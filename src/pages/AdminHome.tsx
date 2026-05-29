@@ -35,9 +35,6 @@ import DebtSummaryCard from '@/components/admin/DebtSummaryCard';
 import TreasurySummaryCard from '@/components/admin/TreasurySummaryCard';
 import TodayCustomersDialog from '@/components/sectors/TodayCustomersDialog';
 import { fetchProjectManagerWorkerActivity } from '@/utils/projectManagerWorkerActivity';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { format } from 'date-fns';
 
 // ─── Functional Group Definitions ───
 
@@ -124,29 +121,7 @@ const AdminHome: React.FC = () => {
   const [taskDialogType, setTaskDialogType] = useState<'task' | 'request' | null>(null);
   const [pmDetailKind, setPmDetailKind] = useState<PMSummaryKind | null>(null);
   const [dailyTasksOpen, setDailyTasksOpen] = useState(false);
-  const [pmRange, setPmRange] = useState<'day' | 'week' | '2weeks' | 'month' | 'custom'>('day');
-  const [pmCustomFrom, setPmCustomFrom] = useState<Date | undefined>(undefined);
-  const [pmCustomTo, setPmCustomTo] = useState<Date | undefined>(undefined);
-
-  // Compute period bounds based on current range selection
-  const pmPeriodBounds = React.useMemo(() => {
-    const now = new Date();
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    let start = new Date(startOfToday);
-    let end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
-    if (pmRange === 'week') start.setDate(start.getDate() - 6);
-    else if (pmRange === '2weeks') start.setDate(start.getDate() - 13);
-    else if (pmRange === 'month') start = new Date(now.getFullYear(), now.getMonth(), 1);
-    else if (pmRange === 'custom') {
-      if (pmCustomFrom) {
-        start = new Date(pmCustomFrom.getFullYear(), pmCustomFrom.getMonth(), pmCustomFrom.getDate());
-      }
-      if (pmCustomTo) {
-        end = new Date(pmCustomTo.getFullYear(), pmCustomTo.getMonth(), pmCustomTo.getDate(), 23, 59, 59, 999);
-      }
-    }
-    return { periodStart: start.toISOString(), periodEnd: end.toISOString() };
-  }, [pmRange, pmCustomFrom, pmCustomTo]);
+  const [pmRange, setPmRange] = useState<'day' | 'week' | '2weeks' | 'month'>('day');
 
   const isBranchAdmin = role === 'branch_admin';
   const isProjectManager = role === 'project_manager';
@@ -293,11 +268,19 @@ const AdminHome: React.FC = () => {
 
   // ─── Project Manager Professional Summary ───
   const { data: pmSummary } = useQuery({
-    queryKey: ['admin-home-pm-summary', activeBranch?.id, pmRange, pmPeriodBounds.periodStart, pmPeriodBounds.periodEnd],
+    queryKey: ['admin-home-pm-summary', activeBranch?.id, pmRange],
     enabled: isProjectManager,
     queryFn: async () => {
-      const periodStart = pmPeriodBounds.periodStart;
-      const periodEnd = pmPeriodBounds.periodEnd;
+      const now = new Date();
+      const startOfDayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const startOfDay = startOfDayDate.toISOString();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      const periodStartDate = new Date(startOfDayDate);
+      if (pmRange === 'week') periodStartDate.setDate(periodStartDate.getDate() - 6);
+      else if (pmRange === '2weeks') periodStartDate.setDate(periodStartDate.getDate() - 13);
+      else if (pmRange === 'month') periodStartDate.setDate(1);
+      const periodStart = periodStartDate.toISOString();
+      const queryStart = periodStart < startOfMonth ? periodStart : startOfMonth;
 
       // Resolve worker IDs of this branch (used as fallback when orders/sales lost branch_id)
       let branchWorkerIds: string[] = [];
@@ -313,18 +296,20 @@ const AdminHome: React.FC = () => {
         .from('orders')
         .select('total_amount, status, created_at, branch_id, assigned_worker_id')
         .eq('status', 'delivered')
-        .gte('created_at', periodStart)
-        .lte('created_at', periodEnd);
+        .gte('created_at', queryStart);
       if (activeBranch?.id) {
+        // Include rows tagged with the branch OR (legacy NULL branch but worker belongs to branch)
         const workerFilter = branchWorkerIds.length
           ? `,and(branch_id.is.null,assigned_worker_id.in.(${branchWorkerIds.join(',')}))`
           : '';
         salesQuery = salesQuery.or(`branch_id.eq.${activeBranch.id}${workerFilter}`);
       }
       const { data: salesRows } = await salesQuery;
-      const todaySales = (salesRows || []).reduce((s, r: any) => s + Number(r.total_amount || 0), 0);
-      const todayOrders = (salesRows || []).length;
-      const monthSales = todaySales;
+      const monthSales = (salesRows || []).filter((r: any) => r.created_at >= startOfMonth).reduce((s, r: any) => s + Number(r.total_amount || 0), 0);
+      const todaySales = (salesRows || [])
+        .filter((r: any) => r.created_at >= periodStart)
+        .reduce((s, r: any) => s + Number(r.total_amount || 0), 0);
+      const todayOrders = (salesRows || []).filter((r: any) => r.created_at >= periodStart).length;
 
       let stockQuery = supabase
         .from('warehouse_stock')
@@ -335,12 +320,11 @@ const AdminHome: React.FC = () => {
       const lowStockCount = (stockRows || []).filter((r: any) => Number(r.quantity || 0) > 0 && Number(r.quantity || 0) < 10).length;
       const damagedTotal = (stockRows || []).reduce((s, r: any) => s + Number(r.damaged_quantity || 0), 0);
 
-      // Distinct products sold in the selected period
+      // Distinct products sold today (any quantity sold — pieces OR boxes)
       let soldTodayQuery = supabase
         .from('sales_tracking')
         .select('product_id, branch_id, worker_id, sold_pieces, sold_boxes, total_price, sold_at')
-        .gte('sold_at', periodStart)
-        .lte('sold_at', periodEnd);
+        .gte('sold_at', periodStart);
       if (activeBranch?.id) {
         const workerFilter = branchWorkerIds.length
           ? `,and(branch_id.is.null,worker_id.in.(${branchWorkerIds.join(',')}))`
@@ -359,11 +343,11 @@ const AdminHome: React.FC = () => {
       const activeWorkersToday = workerActivity.activeWorkersToday;
       const deliveriesToday = workerActivity.deliveriesToday;
 
-      const periodMonthStr = periodStart.slice(0, 10);
+      const monthStr = startOfMonth.slice(0, 10);
       let bonusQuery = supabase
         .from('monthly_bonus_summary')
         .select('worker_id, total_points, branch_id, month')
-        .gte('month', periodMonthStr);
+        .gte('month', monthStr);
       if (activeBranch?.id) bonusQuery = bonusQuery.eq('branch_id', activeBranch.id);
       const { data: bonusRows } = await bonusQuery;
       const agg: Record<string, number> = {};
@@ -384,8 +368,7 @@ const AdminHome: React.FC = () => {
       let offersQuery = supabase
         .from('sales_tracking')
         .select('id, gift_pieces, gift_boxes, sold_at, branch_id, worker_id, order_id, order_item_id')
-        .gte('sold_at', periodStart)
-        .lte('sold_at', periodEnd);
+        .gte('sold_at', queryStart);
       if (activeBranch?.id) {
         const workerFilter = branchWorkerIds.length
           ? `,and(branch_id.is.null,worker_id.in.(${branchWorkerIds.join(',')}))`
@@ -395,10 +378,11 @@ const AdminHome: React.FC = () => {
       const { data: offerRows } = await offersQuery;
       const offerList = ((offerRows || []) as any[]).filter((r) => Number(r.gift_boxes || 0) > 0 || Number(r.gift_pieces || 0) > 0);
       const toGiftPieces = (r: any) => Number(r.gift_boxes || 0) * Number(r.pieces_per_box || 1) + Number(r.gift_pieces || 0);
-      const todayGiftPieces = offerList.reduce((s, r) => s + toGiftPieces(r), 0);
-      const monthGiftPieces = todayGiftPieces;
-      const offersDeliveredToday = new Set(offerList.map((r) => r.order_id || r.order_item_id || r.id)).size;
-      const offersDeliveredMonth = offersDeliveredToday;
+      const monthGiftPieces = offerList.filter((r) => r.sold_at >= startOfMonth).reduce((s, r) => s + toGiftPieces(r), 0);
+      const todayOfferRows = offerList.filter((r) => r.sold_at >= periodStart);
+      const todayGiftPieces = todayOfferRows.reduce((s, r) => s + toGiftPieces(r), 0);
+      const offersDeliveredMonth = new Set(offerList.filter((r) => r.sold_at >= startOfMonth).map((r) => r.order_id || r.order_item_id || r.id)).size;
+      const offersDeliveredToday = new Set(todayOfferRows.map((r) => r.order_id || r.order_item_id || r.id)).size;
 
       return { todaySales, monthSales, todayOrders, totalPieces, lowStockCount, damagedTotal, productsSoldToday, activeWorkersToday, deliveriesToday, topName, topPoints, totalPoints, offersDeliveredToday, offersDeliveredMonth, todayGiftPieces, monthGiftPieces };
     },
@@ -666,12 +650,8 @@ const AdminHome: React.FC = () => {
           { key: 'week', label: t('admin_home.range_week') || 'أسبوع' },
           { key: '2weeks', label: t('admin_home.range_2weeks') || 'أسبوعان' },
           { key: 'month', label: t('admin_home.range_month') || 'شهر' },
-          { key: 'custom', label: t('admin_home.range_custom') || 'مخصص' },
         ];
-        const baseLabel = rangeOptions.find((o) => o.key === pmRange)?.label || '';
-        const periodLabel = pmRange === 'custom' && (pmCustomFrom || pmCustomTo)
-          ? `${pmCustomFrom ? format(pmCustomFrom, 'dd/MM') : '…'} - ${pmCustomTo ? format(pmCustomTo, 'dd/MM') : '…'}`
-          : baseLabel;
+        const periodLabel = rangeOptions.find((o) => o.key === pmRange)?.label || '';
         return (
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-border bg-card p-1.5 w-fit">
@@ -691,32 +671,6 @@ const AdminHome: React.FC = () => {
               </button>
             ))}
           </div>
-          {pmRange === 'custom' && (
-            <div className="flex flex-wrap items-center gap-2">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-8 text-xs">
-                    <CalendarDays className="h-3.5 w-3.5 me-1" />
-                    {pmCustomFrom ? format(pmCustomFrom, 'dd/MM/yyyy') : (t('date.from') || 'من')}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-popover z-50" align="start">
-                  <Calendar mode="single" selected={pmCustomFrom} onSelect={setPmCustomFrom} initialFocus className="pointer-events-auto" />
-                </PopoverContent>
-              </Popover>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-8 text-xs">
-                    <CalendarDays className="h-3.5 w-3.5 me-1" />
-                    {pmCustomTo ? format(pmCustomTo, 'dd/MM/yyyy') : (t('date.to') || 'إلى')}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-popover z-50" align="start">
-                  <Calendar mode="single" selected={pmCustomTo} onSelect={setPmCustomTo} initialFocus className="pointer-events-auto" />
-                </PopoverContent>
-              </Popover>
-            </div>
-          )}
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           {/* Sales */}
           <button type="button" onClick={() => navigate('/manager-sales-summary')} className="text-start rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-4 shadow-sm transition hover:shadow-md hover:border-blue-300">
@@ -729,22 +683,25 @@ const AdminHome: React.FC = () => {
               <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); navigate('/manager-sales-summary'); }}>{t('admin_home.view')}</Button>
 
             </div>
-            <div className="mt-3 grid grid-cols-1 gap-2 text-xs">
+            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
               <div className="rounded-xl bg-white/70 p-2">
                 <p className="text-muted-foreground">{periodLabel}</p>
                 <p className="mt-1 text-base font-bold text-blue-900">{(pmSummary?.todaySales || 0).toLocaleString()} DA</p>
                 <p className="text-[10px] text-muted-foreground">{pmSummary?.todayOrders || 0} {t('admin_home.orders_count')}</p>
               </div>
+              <div className="rounded-xl bg-white/70 p-2">
+                <p className="text-muted-foreground">{t('admin_home.month_sales')}</p>
+                <p className="mt-1 text-base font-bold text-blue-900">{(pmSummary?.monthSales || 0).toLocaleString()} DA</p>
+              </div>
             </div>
           </button>
 
           {(() => {
-            const periodStartIso = pmPeriodBounds.periodStart;
-            const periodEndIso = pmPeriodBounds.periodEnd;
+            const periodStartIso = pmRange === 'day' ? undefined : (() => { const d = new Date(); d.setHours(0,0,0,0); if (pmRange === 'week') d.setDate(d.getDate()-6); else if (pmRange === '2weeks') d.setDate(d.getDate()-13); else if (pmRange === 'month') d.setDate(1); return d.toISOString(); })();
             return (
               <>
-                {!isDebtsHidden && <DebtSummaryCard periodStart={periodStartIso} periodEnd={periodEndIso} periodLabel={periodLabel} />}
-                <TreasurySummaryCard periodStart={periodStartIso} periodEnd={periodEndIso} periodLabel={periodLabel} />
+                {!isDebtsHidden && <DebtSummaryCard periodStart={periodStartIso} periodLabel={periodLabel} />}
+                <TreasurySummaryCard periodStart={periodStartIso} periodLabel={periodLabel} />
               </>
             );
           })()}
