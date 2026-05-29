@@ -114,7 +114,7 @@ const DebtSummaryCard: React.FC<DebtSummaryCardProps> = ({ periodStart, periodLa
         {isLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         <div className="rounded-xl bg-rose-100/70 dark:bg-rose-950/40 p-3 border border-rose-200/60 dark:border-rose-900/60">
           <div className="flex items-center gap-1 text-[10px] text-rose-700 dark:text-rose-400 font-semibold">
             <Banknote className="h-3 w-3" />
@@ -125,15 +125,6 @@ const DebtSummaryCard: React.FC<DebtSummaryCardProps> = ({ periodStart, periodLa
           </p>
         </div>
 
-        <div className="rounded-xl bg-emerald-100/70 dark:bg-emerald-950/40 p-3 border border-emerald-200/60 dark:border-emerald-900/60">
-          <div className="flex items-center gap-1 text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold">
-            <HandCoins className="h-3 w-3" />
-            {t('admin_home.total_collections')}
-          </div>
-          <p className="mt-1 text-base font-bold text-emerald-900 dark:text-emerald-200">
-            {fmt(data?.totalCollections || 0)} DA
-          </p>
-        </div>
 
         <div className="rounded-xl bg-teal-100/70 dark:bg-teal-950/40 p-3 border border-teal-200/60 dark:border-teal-900/60">
           <div className="flex items-center gap-1 text-[10px] text-teal-700 dark:text-teal-400 font-semibold">
