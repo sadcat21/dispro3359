@@ -10,6 +10,7 @@ import UncollectedDebtsDialog from '@/components/treasury/UncollectedDebtsDialog
 import CollectedDebtsDialog from '@/components/treasury/CollectedDebtsDialog';
 import HandoverItemPickerDialog, { PickedItem } from '@/components/treasury/HandoverItemPickerDialog';
 import HandoverPrintView from '@/components/treasury/HandoverPrintView';
+import WorkerHeldDialog from '@/components/treasury/WorkerHeldDialog';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
