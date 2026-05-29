@@ -114,18 +114,20 @@ const UncollectedDebtsDialog = ({ open, onOpenChange }: Props) => {
             {groups.map((group) => (
               <Card key={group.customer_id}>
                 <CardContent className="p-3">
-                  <div className="mb-2 flex items-center justify-between gap-3">
-                    <CustomerSummary
-                      customer={{
-                        name: group.customer_name,
-                        store_name: group.store_name,
-                      }}
-                      compact
-                      showAvatar={false}
-                      showMeta={false}
-                    />
-                    <div className="text-left">
-                      <p className="font-bold text-destructive">{group.total_remaining.toLocaleString()} د.ج</p>
+                  <div className="mb-2 flex items-center justify-between gap-2 min-w-0">
+                    <div className="min-w-0 flex-1">
+                      <CustomerSummary
+                        customer={{
+                          name: group.customer_name,
+                          store_name: group.store_name,
+                        }}
+                        compact
+                        showAvatar={false}
+                        showMeta={false}
+                      />
+                    </div>
+                    <div className="text-left shrink-0">
+                      <p className="font-bold text-destructive text-sm whitespace-nowrap">{group.total_remaining.toLocaleString()} د.ج</p>
                       <Badge variant="outline" className="mt-1 text-[10px]">
                         {group.debts.length} دين
                       </Badge>
