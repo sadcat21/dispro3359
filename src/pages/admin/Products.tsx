@@ -1421,11 +1421,32 @@ const Products: React.FC = () => {
             <div className="pt-2 border-t space-y-4">
               <Label className="text-base font-semibold block">{t('products.prices')}</Label>
 
-              {/* سعر الشراء */}
-              <div className="border rounded-lg p-3 space-y-2 bg-muted/20">
-                <Label className="text-sm font-bold text-primary block">{t('products.purchase_price')}</Label>
-                <Input type="number" min={0} step="0.01" value={editPurchasePrice} onChange={(e) => setEditPurchasePrice(parseFloat(e.target.value) || 0)} className="text-right h-9" onFocus={(e) => e.target.select()} />
+              {/* بطاقة إعدادات الباليت */}
+              <div className="border-2 border-primary/30 rounded-lg p-3 space-y-3 bg-gradient-to-br from-primary/5 to-muted/20">
+                <div className="flex items-center gap-3">
+                  <img src={palletSettingsImage} alt="Pallet" loading="lazy" width={512} height={512} className="w-14 h-14 object-contain shrink-0" />
+                  <Label className="text-sm font-bold text-primary block">{t('products.pallet_settings')}</Label>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-[11px] text-muted-foreground">{t('products.purchase_price')}</Label>
+                    <Input type="number" min={0} step="0.01" value={editPurchasePrice} onChange={(e) => setEditPurchasePrice(parseFloat(e.target.value) || 0)} className="text-right h-9" onFocus={(e) => e.target.select()} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[11px] text-muted-foreground flex items-center gap-1"><Truck className="w-3 h-3" />{t('products.supplier')}</Label>
+                    <Select value={editSupplierId || 'none'} onValueChange={(v) => setEditSupplierId(v === 'none' ? '' : v)}>
+                      <SelectTrigger className="h-9"><SelectValue placeholder={t('products.select_supplier_placeholder')} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">{t('products.no_supplier')}</SelectItem>
+                        {suppliers.map((s) => (
+                          <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </div>
+
 
               {/* فاتورة 2 */}
               <div className="border rounded-lg p-3 space-y-3 bg-muted/20">
