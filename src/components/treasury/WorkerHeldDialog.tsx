@@ -4,7 +4,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Card, CardContent } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { MoneyValue } from '@/components/treasury/CashConsolidationDialog';
+import { formatAmount } from '@/utils/amountFormatting';
+
+const MoneyValue = ({ value, currency, className = '' }: { value: number; currency: string; className?: string }) => (
+  <span className={className}>{formatAmount(value)} {currency}</span>
+);
 
 interface Props {
   open: boolean;
