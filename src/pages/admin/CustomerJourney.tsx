@@ -564,6 +564,30 @@ const CustomerJourney = () => {
     setCustomerPickerOpen(false);
   };
 
+  const refreshCustomerData = () => {
+    queryClient.invalidateQueries({ queryKey: ['customer-journey-customer'] });
+    queryClient.invalidateQueries({ queryKey: ['customer-journey-customers'] });
+  };
+
+  const handleDeleteCustomer = async () => {
+    if (!selectedCustomer) return;
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase.from('customers').delete().eq('id', selectedCustomer.id);
+      if (error) throw error;
+      toast.success(t('common.delete') + ' ✓');
+      setDeleteConfirmOpen(false);
+      setSelectedCustomerId(null);
+      setSearchParams({});
+      refreshCustomerData();
+    } catch (error: any) {
+      console.error('Error deleting customer:', error);
+      toast.error(error.message || 'Error');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="p-3 pb-24 space-y-3" dir={dir}>
       {selectedCustomerSummary && (
