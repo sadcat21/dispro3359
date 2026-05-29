@@ -43,7 +43,7 @@ const DeliveryWorkerSelect: React.FC<DeliveryWorkerSelectProps> = ({
           custom_roles!inner(code)
         `)
         .in('custom_roles.code', ['delivery_rep', 'warehouse_manager'])
-        .eq('branch_id', customerBranchId);
+        .or(`branch_id.eq.${customerBranchId},branch_id.is.null`);
 
       if (!workerRoles || workerRoles.length === 0) {
         setDeliveryWorkers([]);
@@ -52,11 +52,14 @@ const DeliveryWorkerSelect: React.FC<DeliveryWorkerSelectProps> = ({
 
       const workerIds = workerRoles.map(wr => wr.worker_id);
 
+      // For roles without a branch, fall back to the worker's own branch_id
+      // so global-role workers still appear in their actual branch.
       const { data: workers } = await supabase
         .from('workers')
         .select('*')
         .in('id', workerIds)
         .eq('is_active', true)
+        .eq('branch_id', customerBranchId)
         .order('full_name');
 
       setDeliveryWorkers(workers || []);
