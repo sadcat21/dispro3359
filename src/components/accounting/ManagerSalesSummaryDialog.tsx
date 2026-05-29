@@ -1114,7 +1114,8 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
 
             <TabsContent value="products" className="mt-0 min-h-0 flex-1 overflow-hidden">
               <ScrollArea className="h-full max-h-[calc(100dvh-18rem)]">
-                <div className="grid grid-cols-2 gap-2.5 px-3 py-3 sm:gap-3 sm:px-4 sm:py-4 md:grid-cols-3">
+                <div className="grid grid-cols-2 gap-2.5 px-3 py-3 sm:gap-3 sm:px-4 sm:py-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+
                   {aggregate.items.map((item) => {
                     const displayedWorkerStock = selectedWorkerId !== 'all'
                       ? (item.workerStockByWorker?.[selectedWorkerId] || 0)
@@ -1127,15 +1128,16 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
                           {item.name}
                         </span>
                       </div>
-                      <div className="aspect-square w-full overflow-hidden bg-slate-100">
+                      <div className="aspect-[4/3] w-full max-h-32 overflow-hidden bg-slate-100">
                         {item.imageUrl ? (
-                          <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" loading="lazy" />
+                          <img src={item.imageUrl} alt={item.name} className="h-full w-full object-contain" loading="lazy" />
                         ) : (
                           <div className="flex h-full items-center justify-center">
-                            <Package className="h-12 w-12 text-slate-300" />
+                            <Package className="h-8 w-8 text-slate-300" />
                           </div>
                         )}
                       </div>
+
                       <div className="flex flex-col gap-2 bg-white px-2.5 py-2.5">
                         {(() => {
                           const ppb = Math.max(1, Number(item.piecesPerBox || 1));
