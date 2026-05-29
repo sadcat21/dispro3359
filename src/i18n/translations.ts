@@ -341,7 +341,7 @@ export const translations: Translations = {
   'products.price_retail': { ar: 'Détail', fr: 'Prix détail', en: 'Retail Price' },
   'products.price_no_invoice': { ar: 'سعر Facture 2', fr: 'Prix facture 2', en: 'Invoice 2 Price' },
   'products.purchase_price': { ar: 'سعر الشراء', fr: 'Prix d\'achat', en: 'Purchase Price' },
-  'products.pallet_settings': { ar: 'إعدادات الباليت', fr: 'Paramètres de la palette', en: 'Pallet Settings' },
+  'products.pallet_settings': { ar: 'تفاصيل التوريد', fr: 'Détails d\'approvisionnement', en: 'Supply Details' },
   'products.boxes_per_pallet': { ar: 'عدد الصناديق في الباليت', fr: 'Boîtes par palette', en: 'Boxes per Pallet' },
   'products.pallet_costs_by_supplier': { ar: 'تكلفة الباليت حسب المورّد', fr: 'Coût de la palette par fournisseur', en: 'Pallet Cost by Supplier' },
   'products.pallet_cost': { ar: 'تكلفة الباليت (دج)', fr: 'Coût de la palette (DA)', en: 'Pallet Cost (DA)' },
