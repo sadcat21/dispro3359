@@ -1076,9 +1076,14 @@ const ManagerTreasury = () => {
                       <MoneyValue value={summary?.totalSales || 0} currency={cur} className="text-lg font-bold text-green-600" />
                     </div>
                     <div className="rounded-lg bg-muted/50 p-3 text-center">
+                      <p className="text-[10px] text-muted-foreground">المستلم من العمال نقداً (بدون تحصيلات الديون)</p>
+                      <MoneyValue value={Math.max((summary?.total || 0) - (summary?.debtCashCollected || 0), 0)} currency={cur} className="text-lg font-bold" />
+                    </div>
+                    <div className="rounded-lg bg-muted/50 p-3 text-center">
                       <p className="text-[10px] text-muted-foreground">{t('treasury.received_treasury')}</p>
                       <MoneyValue value={summary?.total || 0} currency={cur} className="text-lg font-bold" />
                     </div>
+
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <button
