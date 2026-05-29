@@ -1079,9 +1079,7 @@ const ManagerTreasury = () => {
                     <button
                       type="button"
                       className="rounded-lg bg-muted/50 p-3 text-center hover:bg-muted transition-colors"
-                      onClick={() => {
-                        document.getElementById('handovers-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                      }}
+                      onClick={() => { setTimeout(() => setHandoversListOpen(true), 200); }}
                     >
                       <p className="text-[10px] text-muted-foreground">المستلم من العمال نقداً (بدون تحصيلات الديون)</p>
                       <MoneyValue value={Math.max((summary?.total || 0) - (summary?.debtCashCollected || 0), 0)} currency={cur} className="text-lg font-bold" />
