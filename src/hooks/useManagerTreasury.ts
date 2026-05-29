@@ -282,9 +282,16 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
       const uncollectedDebts = (debts || []).reduce((s: number, d: any) => s + Number(d.remaining_amount || 0), 0);
 
       // Get debt payments (cash collections to add to treasury)
-      let dpQuery = supabase.from('debt_payments').select('amount, payment_method');
+      let dpQuery = supabase
+        .from('debt_payments')
+        .select('amount, payment_method, worker_id, debt:customer_debts!debt_payments_debt_id_fkey(branch_id)');
+      if (perManager) dpQuery = dpQuery.eq('worker_id', perManager);
+      if (range?.from) dpQuery = dpQuery.gte('collected_at', `${range.from}T00:00:00`);
+      if (range?.to) dpQuery = dpQuery.lte('collected_at', `${range.to}T23:59:59`);
       const { data: debtPayments } = await dpQuery;
       const debtCashCollected = (debtPayments || []).reduce((s: number, dp: any) => {
+        const debtBranchId = dp?.debt?.branch_id || null;
+        if (activeBranch?.id && debtBranchId && debtBranchId !== activeBranch.id) return s;
         if (dp.payment_method === 'cash' || !dp.payment_method) return s + Number(dp.amount || 0);
         return s;
       }, 0);
