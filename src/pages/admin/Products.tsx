@@ -114,6 +114,7 @@ const Products: React.FC = () => {
   const [allowInvoiceSale, setAllowInvoiceSale] = useState<boolean>(true);
   const [allowInvoice2Sale, setAllowInvoice2Sale] = useState<boolean>(true);
   const [priceRetail, setPriceRetail] = useState<number>(0);
+  const [minPrice, setMinPrice] = useState<number>(0);
   const [priceNoInvoice, setPriceNoInvoice] = useState<number>(0);
   const [purchasePrice, setPurchasePrice] = useState<number>(0);
   const [boxesPerPallet, setBoxesPerPallet] = useState<number>(0);
@@ -145,6 +146,7 @@ const Products: React.FC = () => {
   const [editAllowInvoiceSale, setEditAllowInvoiceSale] = useState<boolean>(true);
   const [editAllowInvoice2Sale, setEditAllowInvoice2Sale] = useState<boolean>(true);
   const [editPriceRetail, setEditPriceRetail] = useState<number>(0);
+  const [editMinPrice, setEditMinPrice] = useState<number>(0);
   const [editPriceNoInvoice, setEditPriceNoInvoice] = useState<number>(0);
   const [editPurchasePrice, setEditPurchasePrice] = useState<number>(0);
   const [editBoxesPerPallet, setEditBoxesPerPallet] = useState<number>(0);
@@ -333,6 +335,7 @@ const Products: React.FC = () => {
         allow_invoice_sale: allowInvoiceSale,
         allow_invoice2_sale: allowInvoice2Sale,
         price_retail: priceRetail,
+        min_price: minPrice,
         price_no_invoice: priceNoInvoice,
         purchase_price: purchasePrice,
         boxes_per_pallet: boxesPerPallet,
@@ -384,6 +387,7 @@ const Products: React.FC = () => {
       setAllowInvoiceSale(true);
       setAllowInvoice2Sale(true);
       setPriceRetail(0);
+      setMinPrice(0);
       setPriceNoInvoice(0);
       setPurchasePrice(0);
       setBoxesPerPallet(0);
@@ -443,6 +447,7 @@ const Products: React.FC = () => {
     setEditAllowInvoiceSale((product as any).allow_invoice_sale !== false);
     setEditAllowInvoice2Sale((product as any).allow_invoice2_sale !== false);
     setEditPriceRetail(product.price_retail || 0);
+    setEditMinPrice((product as any).min_price || 0);
     setEditPriceNoInvoice(product.price_no_invoice || 0);
     setEditPurchasePrice((product as any).purchase_price || 0);
     setEditBoxesPerPallet((product as any).boxes_per_pallet || 0);
@@ -540,6 +545,7 @@ const Products: React.FC = () => {
         allow_invoice_sale: editAllowInvoiceSale,
         allow_invoice2_sale: editAllowInvoice2Sale,
         price_retail: editPriceRetail,
+        min_price: editMinPrice,
         price_no_invoice: editPriceNoInvoice,
         purchase_price: editPurchasePrice,
         boxes_per_pallet: editBoxesPerPallet,
@@ -637,6 +643,7 @@ const Products: React.FC = () => {
         allow_invoice_sale: editAllowInvoiceSale,
         allow_invoice2_sale: editAllowInvoice2Sale,
         price_retail: editPriceRetail,
+        min_price: editMinPrice,
         price_no_invoice: editPriceNoInvoice,
         purchase_price: editPurchasePrice,
         boxes_per_pallet: editBoxesPerPallet,
@@ -986,6 +993,11 @@ const Products: React.FC = () => {
                             <Label className="text-[11px] text-muted-foreground">{t('products.price_retail')}</Label>
                             <Input type="number" min={0} step="0.01" value={priceRetail} onChange={(e) => setPriceRetail(parseFloat(e.target.value) || 0)} className="text-right h-9" onFocus={(e) => e.target.select()} />
                             <p className="text-[10px] text-muted-foreground">قبل TVA 19%: <span dir="ltr" className="font-medium">{formatPrice(getNetPriceBeforeVat(priceRetail))} DA</span></p>
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-[11px] text-muted-foreground">السعر الأدنى</Label>
+                            <Input type="number" min={0} step="0.01" value={minPrice} onChange={(e) => setMinPrice(parseFloat(e.target.value) || 0)} className="text-right h-9" onFocus={(e) => e.target.select()} />
+                            <p className="text-[10px] text-muted-foreground">الحد الأدنى للسعر المخصص</p>
                           </div>
                         </div>
                       </div>
@@ -1492,6 +1504,11 @@ const Products: React.FC = () => {
                     <Label className="text-[11px] text-muted-foreground">{t('products.price_retail')}</Label>
                     <Input type="number" min={0} step="0.01" value={editPriceRetail} onChange={(e) => setEditPriceRetail(parseFloat(e.target.value) || 0)} className="text-right h-9" onFocus={(e) => e.target.select()} />
                     <p className="text-[10px] text-muted-foreground">قبل TVA 19%: <span dir="ltr" className="font-medium">{formatPrice(getNetPriceBeforeVat(editPriceRetail))} DA</span></p>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[11px] text-muted-foreground">السعر الأدنى</Label>
+                    <Input type="number" min={0} step="0.01" value={editMinPrice} onChange={(e) => setEditMinPrice(parseFloat(e.target.value) || 0)} className="text-right h-9" onFocus={(e) => e.target.select()} />
+                    <p className="text-[10px] text-muted-foreground">الحد الأدنى للسعر المخصص</p>
                   </div>
                 </div>
               </div>

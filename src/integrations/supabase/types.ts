@@ -4603,6 +4603,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_active: boolean
+          min_price: number | null
           name: string
           pieces_per_box: number
           price_gros: number | null
@@ -4629,6 +4630,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean
+          min_price?: number | null
           name: string
           pieces_per_box?: number
           price_gros?: number | null
@@ -4655,6 +4657,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean
+          min_price?: number | null
           name?: string
           pieces_per_box?: number
           price_gros?: number | null
