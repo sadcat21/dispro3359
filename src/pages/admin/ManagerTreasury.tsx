@@ -1075,10 +1075,16 @@ const ManagerTreasury = () => {
                       <p className="text-[10px] text-muted-foreground">{t('treasury.sales_value')}</p>
                       <MoneyValue value={summary?.totalSales || 0} currency={cur} className="text-lg font-bold text-green-600" />
                     </div>
-                    <div className="rounded-lg bg-muted/50 p-3 text-center">
+                    <button
+                      type="button"
+                      className="rounded-lg bg-muted/50 p-3 text-center hover:bg-muted transition-colors"
+                      onClick={() => {
+                        document.getElementById('handovers-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }}
+                    >
                       <p className="text-[10px] text-muted-foreground">المستلم من العمال نقداً (بدون تحصيلات الديون)</p>
                       <MoneyValue value={Math.max((summary?.total || 0) - (summary?.debtCashCollected || 0), 0)} currency={cur} className="text-lg font-bold" />
-                    </div>
+                    </button>
                     <div className="rounded-lg bg-muted/50 p-3 text-center">
                       <p className="text-[10px] text-muted-foreground">{t('treasury.received_treasury')}</p>
                       <MoneyValue value={summary?.total || 0} currency={cur} className="text-lg font-bold" />
@@ -1399,7 +1405,7 @@ const ManagerTreasury = () => {
                 </div>
               )}</section>
 
-              <section className="space-y-2"><h2 className="text-base font-bold border-b pb-1">📤 التسليمات</h2>{(
+              <section id="handovers-section" className="space-y-2 scroll-mt-20"><h2 className="text-base font-bold border-b pb-1">📤 التسليمات</h2>{(
 
                 <div className="space-y-2">
                   {(!handovers || handovers.length === 0) ? (
