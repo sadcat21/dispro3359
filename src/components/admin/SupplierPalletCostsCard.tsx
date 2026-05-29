@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Truck, Save, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import palletSettingsImage from '@/assets/pallet-settings.png';
-import { useI18n } from '@/i18n/i18n';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Supplier {
   id: string;
@@ -22,7 +22,7 @@ interface Row {
 }
 
 export function SupplierPalletCostsCard() {
-  const { t } = useI18n();
+  const { t } = useLanguage();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [rows, setRows] = useState<Record<string, Row>>({});
   const [loading, setLoading] = useState(true);
