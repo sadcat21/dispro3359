@@ -225,7 +225,7 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
 
   useEffect(() => {
     if (debtSummary) {
-      setDebtAmount(debtSummary.totalDebt.toString());
+      setDebtAmount((Math.round(debtSummary.totalDebt * 100) / 100).toString());
     }
   }, [debtSummary]);
 
