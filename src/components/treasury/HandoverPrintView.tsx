@@ -376,7 +376,7 @@ const HandoverPrintView: React.FC<Props> = ({
             {unifiedCash ? (
               <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }} className="font-bold">
                 <span>Espèces:</span>
-                <span>{(cashInvoice1 + cashInvoice2).toLocaleString()} DA</span>
+                <span>{(cashInvoice1 + cashInvoice2 + extraCashTotal).toLocaleString()} DA</span>
               </div>
             ) : (
               <>
