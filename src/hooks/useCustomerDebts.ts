@@ -337,6 +337,7 @@ export const useCollectCustomerDebtGroup = () => {
       }
 
       let remainingToAllocate = amount;
+      const sharedCollectedAt = new Date().toISOString();
 
       for (const debt of activeDebts) {
         const debtRemaining = Number(debt.remaining_amount || 0);
@@ -379,6 +380,7 @@ export const useCollectCustomerDebtGroup = () => {
             amount: allocated,
             payment_method: effectivePaymentMethod,
             notes: notes || null,
+            collected_at: sharedCollectedAt,
           });
 
         if (paymentError) throw paymentError;
