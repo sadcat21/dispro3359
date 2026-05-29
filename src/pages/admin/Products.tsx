@@ -143,6 +143,7 @@ const Products: React.FC = () => {
   const [editAllowInvoice2Sale, setEditAllowInvoice2Sale] = useState<boolean>(true);
   const [editPriceRetail, setEditPriceRetail] = useState<number>(0);
   const [editPriceNoInvoice, setEditPriceNoInvoice] = useState<number>(0);
+  const [editPurchasePrice, setEditPurchasePrice] = useState<number>(0);
   const [editPricingUnit, setEditPricingUnit] = useState<string>('box');
   const [editWeightPerBox, setEditWeightPerBox] = useState<number>(0);
   const [editAllowUnitSale, setEditAllowUnitSale] = useState<boolean>(false);
