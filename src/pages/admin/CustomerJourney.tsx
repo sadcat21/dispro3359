@@ -147,6 +147,10 @@ const CustomerJourney = () => {
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(initialCustomerId);
   const [activeTab, setActiveTab] = useState('debts');
   const [selectedOrder, setSelectedOrder] = useState<OrderWithDetails | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const queryClient = useQueryClient();
 
   const dateLocale = language === 'ar' ? ar : language === 'fr' ? fr : enUS;
   const amountLocale = language === 'fr' ? 'fr-FR' : language === 'en' ? 'en-US' : 'ar-DZ';
