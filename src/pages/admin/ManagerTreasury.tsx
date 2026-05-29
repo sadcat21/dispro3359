@@ -1514,7 +1514,7 @@ const ManagerTreasury = () => {
         if (!h) return null;
         return (
           <Dialog open={!!printHandover} onOpenChange={(open) => !open && setPrintHandover(null)}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="ltr">
+            <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto" dir="ltr">
               <DialogHeader>
                 <DialogTitle className="flex items-center justify-between">
                   <span>طباعة التسليم</span>
