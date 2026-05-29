@@ -841,9 +841,19 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                     السعر الأدنى: {minPricingUnitPrice.toLocaleString()} {t('common.currency')} / {pricingUnitLabel}
                   </div>
                 )}
+                {maxPricingUnitPrice > 0 && (
+                  <div className="text-[10px] text-muted-foreground">
+                    السعر الأقصى: {maxPricingUnitPrice.toLocaleString()} {t('common.currency')} / {pricingUnitLabel}
+                  </div>
+                )}
                 {hasCustomUnitPrice && minPricingUnitPrice > 0 && customUnitPriceValue < minPricingUnitPrice && (
                   <div className="text-[10px] text-destructive font-medium">
                     لا يمكن أن يكون السعر أقل من {minPricingUnitPrice.toLocaleString()} {t('common.currency')}
+                  </div>
+                )}
+                {hasCustomUnitPrice && maxPricingUnitPrice > 0 && customUnitPriceValue > maxPricingUnitPrice && (
+                  <div className="text-[10px] text-destructive font-medium">
+                    لا يمكن أن يكون السعر أعلى من {maxPricingUnitPrice.toLocaleString()} {t('common.currency')}
                   </div>
                 )}
               </div>
@@ -851,7 +861,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                 <Button
                   className="flex-1"
                   onClick={() => setCustomPriceOpen(false)}
-                  disabled={hasCustomUnitPrice && minPricingUnitPrice > 0 && customUnitPriceValue < minPricingUnitPrice}
+                  disabled={hasCustomUnitPrice && ((minPricingUnitPrice > 0 && customUnitPriceValue < minPricingUnitPrice) || (maxPricingUnitPrice > 0 && customUnitPriceValue > maxPricingUnitPrice))}
                 >
                   {t('common.save') || 'حفظ'}
                 </Button>
