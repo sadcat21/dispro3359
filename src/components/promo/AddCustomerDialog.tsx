@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UserPlus, Loader2, MapPin, ChevronDown, ChevronUp, Store, Building2, Warehouse, CreditCard, User, UserCircle, Shield, Languages, Plus, Trash2, Type, BookOpen, X } from 'lucide-react';
-import DeliveryWorkerSelect from '@/components/orders/DeliveryWorkerSelect';
+import InlineDeliveryWorkerPicker from '@/components/orders/InlineDeliveryWorkerPicker';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
 import { Customer } from '@/types/database';
