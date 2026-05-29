@@ -141,7 +141,7 @@ const NavButton: React.FC<{
           isAchievements
             ? 'text-white'
             : item.key === 'home'
-              ? 'text-orange-600'
+              ? 'text-blue-600'
               : isActive ? (item.activeColor ?? 'text-red-500') : 'text-gray-400',
         )}
       />
