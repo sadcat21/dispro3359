@@ -845,7 +845,9 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
             </Label>
 
             <div className="space-y-2">
-              <Label className="text-xs">الدين (دج)</Label>
+              <Label className="text-xs">
+                الدين الحالي: {(debtSummary?.totalDebt || 0).toLocaleString('fr-DZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} دج — أدخل مبلغ دين جديد لإضافته
+              </Label>
               <Input type="number" min="0" value={debtAmount} onChange={(e) => setDebtAmount(e.target.value)} placeholder="0" className="text-right" dir="ltr" />
               {debtSummary && debtSummary.count > 0 && (
                 <p className="text-xs text-muted-foreground">{debtSummary.count} سند(ات) نشطة</p>
