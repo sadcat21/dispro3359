@@ -610,14 +610,15 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
 
   // handleSaveConsolEdit removed — now handled by TreasuryConsolidationEditDialog
 
-  const grandTotal = (customerGroups || []).reduce((sum, group) => sum + group.total, 0);
-  const grandStamp = isCashInvoice1 ? (customerGroups || []).reduce((sum, group) => sum + group.totalStamp, 0) : 0;
-  const grandDebt = (customerGroups || []).reduce((sum, group) => sum + group.totalDebt, 0);
-  const totalOrders = (customerGroups || []).reduce((sum, group) => sum + group.orders.length, 0);
+  const customerGroups = customerGroupsData?.groups || [];
+  const grandTotal = customerGroups.reduce((sum, group) => sum + group.total, 0);
+  const grandStamp = isCashInvoice1 ? customerGroups.reduce((sum, group) => sum + group.totalStamp, 0) : 0;
+  const grandDebt = customerGroups.reduce((sum, group) => sum + group.totalDebt, 0);
+  const totalOrders = customerGroups.reduce((sum, group) => sum + group.orders.length, 0);
   const invoice1GrandTotal = isCashInvoice1 ? grandTotal + grandStamp : grandTotal;
-  const cashInvoice2Remaining = isCashInvoice2 ? grandTotal : 0;
-  const cashInvoice2Handed = isCashInvoice2 ? handedCashInvoice2Amount : 0;
-  const cashInvoice2Overall = isCashInvoice2 ? cashInvoice2Remaining + cashInvoice2Handed : 0;
+  const cashInvoice2Remaining = isCashInvoice2 ? (customerGroupsData?.cashInvoice2WindowRemaining || 0) : 0;
+  const cashInvoice2Overall = isCashInvoice2 ? (customerGroupsData?.cashInvoice2WindowTotal || 0) : 0;
+  const cashInvoice2Handed = isCashInvoice2 ? Math.max(0, cashInvoice2Overall - cashInvoice2Remaining) : 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
