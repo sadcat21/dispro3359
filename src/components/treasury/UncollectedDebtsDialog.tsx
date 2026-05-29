@@ -89,7 +89,7 @@ const UncollectedDebtsDialog = ({ open, onOpenChange }: Props) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] sm:max-w-lg max-h-[85vh] overflow-y-auto overflow-x-hidden break-words">
+      <DialogContent className="w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] p-3 sm:max-w-lg sm:p-6 max-h-[85vh] overflow-y-auto overflow-x-hidden break-words">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <AlertCircle className="w-5 h-5 text-destructive" />
@@ -114,8 +114,8 @@ const UncollectedDebtsDialog = ({ open, onOpenChange }: Props) => {
             {groups.map((group) => (
               <Card key={group.customer_id}>
                 <CardContent className="p-3">
-                  <div className="mb-2 flex items-center justify-between gap-2 min-w-0">
-                    <div className="min-w-0 flex-1">
+                  <div className="mb-2 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0 flex-1 overflow-hidden">
                       <CustomerSummary
                         customer={{
                           name: group.customer_name,
@@ -126,8 +126,8 @@ const UncollectedDebtsDialog = ({ open, onOpenChange }: Props) => {
                         showMeta={false}
                       />
                     </div>
-                    <div className="text-left shrink-0">
-                      <p className="font-bold text-destructive text-sm whitespace-nowrap">{group.total_remaining.toLocaleString()} د.ج</p>
+                    <div className="w-full min-w-0 sm:w-auto sm:shrink-0 sm:text-left">
+                      <p className="font-bold text-destructive text-sm break-words sm:whitespace-nowrap">{group.total_remaining.toLocaleString()} د.ج</p>
                       <Badge variant="outline" className="mt-1 text-[10px]">
                         {group.debts.length} دين
                       </Badge>
@@ -137,8 +137,8 @@ const UncollectedDebtsDialog = ({ open, onOpenChange }: Props) => {
                   <div className="space-y-1.5 border-t pt-2">
                     {group.debts.map((debt) => (
                       <div key={debt.id} className="rounded-lg bg-muted/30 p-2 text-xs">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="space-y-1">
+                        <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                          <div className="min-w-0 space-y-1">
                             <p className="text-muted-foreground">
                               {format(new Date(debt.created_at), 'dd/MM/yyyy HH:mm', { locale: ar })}
                             </p>
@@ -148,11 +148,11 @@ const UncollectedDebtsDialog = ({ open, onOpenChange }: Props) => {
                                 <span>{format(new Date(`${debt.due_date}T00:00:00`), 'dd/MM/yyyy', { locale: ar })}</span>
                               </p>
                             )}
-                            {debt.notes && <p className="text-[10px] text-muted-foreground">{debt.notes}</p>}
+                            {debt.notes && <p className="text-[10px] text-muted-foreground break-words">{debt.notes}</p>}
                           </div>
-                          <div className="text-left">
-                            <p className="font-medium">{Number(debt.total_amount || 0).toLocaleString()} د.ج</p>
-                            <p className="text-destructive">متبقٍ: {Number(debt.remaining_amount || 0).toLocaleString()} د.ج</p>
+                          <div className="w-full min-w-0 sm:w-auto sm:max-w-[45%] sm:text-left">
+                            <p className="font-medium break-words sm:whitespace-nowrap">{Number(debt.total_amount || 0).toLocaleString()} د.ج</p>
+                            <p className="text-destructive break-words sm:whitespace-nowrap">متبقٍ: {Number(debt.remaining_amount || 0).toLocaleString()} د.ج</p>
                           </div>
                         </div>
                       </div>
