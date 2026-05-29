@@ -35,8 +35,9 @@ const ReceiptPaymentDialog: React.FC<ReceiptPaymentDialogProps> = ({
   
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const methodLabel = paymentMethod === 'receipt' ? 'Versement' : 'Virement';
-  const docLabel = paymentMethod === 'receipt' ? 'Versement' : 'Virement';
+  const methodLabel = paymentMethod === 'receipt' ? 'Versement' : paymentMethod === 'transfer' ? 'Virement' : 'Chèque';
+  const docLabel = methodLabel;
+  const allowCash = paymentMethod !== 'check';
 
   const enteredAmount = mode === 'receipt' ? Number(receiptAmount) || 0 : Number(cashAmount) || 0;
   const remainingDebt = Math.max(0, orderTotal - enteredAmount);
