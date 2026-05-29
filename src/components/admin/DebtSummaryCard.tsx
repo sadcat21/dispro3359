@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
-import { Banknote, HandCoins, CalendarDays, TrendingUp, Loader2, X } from 'lucide-react';
+import { Banknote, CalendarDays, TrendingUp, Loader2 } from 'lucide-react';
 
 const fmt = (n: number) => Math.round(n).toLocaleString();
-const DISMISS_KEY = 'debt-summary-card-dismissed';
+
 
 interface DebtSummaryCardProps {
   periodStart?: string;
@@ -21,15 +21,7 @@ const DebtSummaryCard: React.FC<DebtSummaryCardProps> = ({ periodStart, periodEn
   const { t } = useLanguage();
   const { activeBranch } = useAuth();
   const branchId = activeBranch?.id || null;
-  const [dismissed, setDismissed] = useState<boolean>(() => {
-    try { return localStorage.getItem(DISMISS_KEY) === '1'; } catch { return false; }
-  });
-  useEffect(() => {
-    try {
-      if (dismissed) localStorage.setItem(DISMISS_KEY, '1');
-      else localStorage.removeItem(DISMISS_KEY);
-    } catch {}
-  }, [dismissed]);
+
 
   useRealtimeSubscription(
     `debt-summary-card-${branchId || 'all'}`,
@@ -91,21 +83,12 @@ const DebtSummaryCard: React.FC<DebtSummaryCardProps> = ({ periodStart, periodEn
     },
   });
 
-  if (dismissed) return null;
-
   return (
     <div
       onClick={() => navigate('/customer-debts')}
       className="relative cursor-pointer rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50 via-white to-amber-50 p-4 shadow-sm transition hover:shadow-md dark:border-rose-900 dark:from-rose-950/30 dark:via-background dark:to-amber-950/20"
     >
-      <button
-        type="button"
-        onClick={(e) => { e.stopPropagation(); setDismissed(true); }}
-        aria-label={t('common.dismiss') || 'إغلاق'}
-        className="absolute top-2 end-2 rounded-full p-1 text-rose-600/70 hover:bg-rose-100 hover:text-rose-800 dark:hover:bg-rose-950/60 transition"
-      >
-        <X className="h-4 w-4" />
-      </button>
+
       <div className="flex items-center justify-between mb-3 pe-6">
         <div className="flex items-center gap-2 text-rose-700 dark:text-rose-400">
           <Banknote className="h-5 w-5" />
