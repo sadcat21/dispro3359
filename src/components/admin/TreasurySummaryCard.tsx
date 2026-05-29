@@ -30,16 +30,8 @@ const TreasurySummaryCard: React.FC<Props> = ({ periodStart, periodEnd, periodLa
   const { t } = useLanguage();
   const { activeBranch } = useAuth();
   const branchId = activeBranch?.id || null;
-  const [dismissed, setDismissed] = useState<boolean>(() => {
-    try { return localStorage.getItem(DISMISS_KEY) === '1'; } catch { return false; }
-  });
   const [open, setOpen] = useState(false);
-  useEffect(() => {
-    try {
-      if (dismissed) localStorage.setItem(DISMISS_KEY, '1');
-      else localStorage.removeItem(DISMISS_KEY);
-    } catch {}
-  }, [dismissed]);
+
 
   const range = (periodStart || periodEnd)
     ? { from: periodStart ? periodStart.slice(0, 10) : undefined, to: periodEnd ? periodEnd.slice(0, 10) : undefined }
