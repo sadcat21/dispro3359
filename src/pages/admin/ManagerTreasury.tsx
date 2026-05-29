@@ -1405,7 +1405,7 @@ const ManagerTreasury = () => {
                 </div>
               )}</section>
 
-              <section className="space-y-2"><h2 className="text-base font-bold border-b pb-1">📤 التسليمات</h2>{(
+              <section id="handovers-section" className="space-y-2 scroll-mt-20"><h2 className="text-base font-bold border-b pb-1">📤 التسليمات</h2>{(
 
                 <div className="space-y-2">
                   {(!handovers || handovers.length === 0) ? (
