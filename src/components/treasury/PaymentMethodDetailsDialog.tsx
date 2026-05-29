@@ -107,7 +107,23 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
       if (activeBranch?.id) query = query.eq('branch_id', activeBranch.id);
       const { data, error } = await query;
       if (error) throw error;
-      return (data || []).reduce((sum: number, handover: any) => sum + Number(handover.cash_invoice2 || 0), 0);
+      const handed = (data || []).reduce((sum: number, handover: any) => sum + Number(handover.cash_invoice2 || 0), 0);
+
+      // Also account for cash_consolidation_debit entries on cash_invoice2,
+      // which deduct from received cash_invoice2 in the summary card. Without
+      // including them here the dialog still shows those amounts as "remaining"
+      // even though the card balance is already 0.
+      let consQuery = supabase
+        .from('manager_treasury')
+        .select('amount, source_type, payment_method')
+        .in('source_type', ['cash_consolidation_debit']);
+      if (activeBranch?.id) consQuery = consQuery.eq('branch_id', activeBranch.id);
+      const { data: consEntries } = await consQuery;
+      const consDeducted = (consEntries || [])
+        .filter((e: any) => e.payment_method === 'cash_invoice2')
+        .reduce((s: number, e: any) => s + Math.abs(Number(e.amount || 0)), 0);
+
+      return handed + consDeducted;
     },
   });
   const handedCashInvoice2Amount = handedCashInvoice2AmountProp || handedCashInvoice2AmountFromQuery;
