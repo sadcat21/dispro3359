@@ -1172,75 +1172,7 @@ const ManagerTreasury = () => {
                         <MoneyValue value={coinExchangeOut} currency={cur} className="text-sm font-bold text-amber-600" />
                       </button>
                     </div>
-                    <div className={`rounded-lg p-3 text-center ${hasGap ? 'bg-orange-500/10 border border-orange-500/20' : 'bg-green-500/10 border border-green-500/20'}`}>
-                      {hasGap ? (
-                        <>
-                          <p className="text-xs text-muted-foreground mb-1">{gap > 0 ? '⚠️ فرق محاسبي سالب' : '💰 فرق محاسبي موجب'}</p>
-                          <MoneyValue value={Math.abs(gap)} currency={cur} className={`text-lg font-bold ${gap > 0 ? 'text-orange-600' : 'text-green-600'}`} />
-                          {gap < 0 && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="mt-2 h-8 text-[11px] border-green-400 text-green-700 hover:bg-green-50"
-                              onClick={() => {
-                                setGapTransferAmount(String(Math.abs(gap)));
-                                setGapTransferOpen(true);
-                              }}
-                            >
-                              تحويل إلى كاش فاتورة 2
-                            </Button>
-                          )}
-                        </>
-                      ) : (
-                        <p className="text-sm font-medium text-green-600">✅ {t('treasury.balanced')}</p>
-                      )}
-                    </div>
-                    {/* Gap Transfer Dialog */}
-                    <Dialog open={gapTransferOpen} onOpenChange={setGapTransferOpen}>
-                      <DialogContent dir={dir}>
-                        <DialogHeader><DialogTitle>تحويل الفرق المحاسبي الموجب</DialogTitle></DialogHeader>
-                        <div className="space-y-3">
-                          <div className="rounded-lg bg-green-500/10 border border-green-500/20 p-3 text-center">
-                            <p className="text-xs text-muted-foreground mb-1">الفرق المحاسبي الموجب</p>
-                            <MoneyValue value={Math.abs(gap)} currency={cur} className="text-lg font-bold text-green-600" />
-                          </div>
-                          <div>
-                            <Label className="text-sm">المبلغ المراد تحويله إلى كاش فاتورة 2</Label>
-                            <Input
-                              dir="ltr"
-                              className="text-left [direction:ltr] mt-1"
-                              type="number"
-                              placeholder="0"
-                              value={gapTransferAmount}
-                              onChange={e => setGapTransferAmount(e.target.value)}
-                            />
-                            <div className="flex gap-1.5 mt-2">
-                              <Button
-                                type="button" size="sm" variant="outline"
-                                className="h-7 text-[10px]"
-                                onClick={() => setGapTransferAmount(String(Math.abs(gap)))}
-                              >
-                                تحويل كلي
-                              </Button>
-                              <Button
-                                type="button" size="sm" variant="outline"
-                                className="h-7 text-[10px]"
-                                onClick={() => setGapTransferAmount(String(Math.round(Math.abs(gap) / 2)))}
-                              >
-                                نصف المبلغ
-                              </Button>
-                            </div>
-                          </div>
-                          <Button
-                            onClick={() => handleGapTransfer(Math.abs(gap))}
-                            disabled={gapTransferSaving || !gapTransferAmount || Number(gapTransferAmount) <= 0}
-                            className="w-full"
-                          >
-                            {gapTransferSaving ? 'جاري التحويل...' : 'تأكيد التحويل'}
-                          </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                    {/* ميزة الفرق المحاسبي معطلة */}
                   </div>
                 );
               })()}</section>
