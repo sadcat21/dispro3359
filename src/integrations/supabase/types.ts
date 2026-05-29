@@ -4597,6 +4597,7 @@ export type Database = {
           allow_invoice2_sale: boolean
           allow_unit_sale: boolean
           app_name: string | null
+          boxes_per_pallet: number
           created_at: string
           created_by: string | null
           id: string
@@ -4622,6 +4623,7 @@ export type Database = {
           allow_invoice2_sale?: boolean
           allow_unit_sale?: boolean
           app_name?: string | null
+          boxes_per_pallet?: number
           created_at?: string
           created_by?: string | null
           id?: string
@@ -4647,6 +4649,7 @@ export type Database = {
           allow_invoice2_sale?: boolean
           allow_unit_sale?: boolean
           app_name?: string | null
+          boxes_per_pallet?: number
           created_at?: string
           created_by?: string | null
           id?: string
