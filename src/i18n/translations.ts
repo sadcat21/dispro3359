@@ -340,6 +340,7 @@ export const translations: Translations = {
   'products.price_invoice': { ar: 'Prix Facture', fr: 'Prix facture', en: 'Invoice Price' },
   'products.price_retail': { ar: 'Détail', fr: 'Prix détail', en: 'Retail Price' },
   'products.price_no_invoice': { ar: 'سعر Facture 2', fr: 'Prix facture 2', en: 'Invoice 2 Price' },
+  'products.purchase_price': { ar: 'سعر الشراء', fr: 'Prix d\'achat', en: 'Purchase Price' },
   'products.invoice1_title': { ar: 'Facture 1', fr: 'Facture 1', en: 'Invoice 1' },
   'products.invoice2_title': { ar: 'Facture 2', fr: 'Facture 2', en: 'Invoice 2' },
   'products.added': { ar: 'تم إضافة المنتج بنجاح', fr: 'Produit ajouté avec succès', en: 'Product Added Successfully' },
