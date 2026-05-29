@@ -293,19 +293,11 @@ const AdminHome: React.FC = () => {
 
   // ─── Project Manager Professional Summary ───
   const { data: pmSummary } = useQuery({
-    queryKey: ['admin-home-pm-summary', activeBranch?.id, pmRange],
+    queryKey: ['admin-home-pm-summary', activeBranch?.id, pmRange, pmPeriodBounds.periodStart, pmPeriodBounds.periodEnd],
     enabled: isProjectManager,
     queryFn: async () => {
-      const now = new Date();
-      const startOfDayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const startOfDay = startOfDayDate.toISOString();
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-      const periodStartDate = new Date(startOfDayDate);
-      if (pmRange === 'week') periodStartDate.setDate(periodStartDate.getDate() - 6);
-      else if (pmRange === '2weeks') periodStartDate.setDate(periodStartDate.getDate() - 13);
-      else if (pmRange === 'month') periodStartDate.setDate(1);
-      const periodStart = periodStartDate.toISOString();
-      const queryStart = periodStart < startOfMonth ? periodStart : startOfMonth;
+      const periodStart = pmPeriodBounds.periodStart;
+      const periodEnd = pmPeriodBounds.periodEnd;
 
       // Resolve worker IDs of this branch (used as fallback when orders/sales lost branch_id)
       let branchWorkerIds: string[] = [];
@@ -321,20 +313,18 @@ const AdminHome: React.FC = () => {
         .from('orders')
         .select('total_amount, status, created_at, branch_id, assigned_worker_id')
         .eq('status', 'delivered')
-        .gte('created_at', queryStart);
+        .gte('created_at', periodStart)
+        .lte('created_at', periodEnd);
       if (activeBranch?.id) {
-        // Include rows tagged with the branch OR (legacy NULL branch but worker belongs to branch)
         const workerFilter = branchWorkerIds.length
           ? `,and(branch_id.is.null,assigned_worker_id.in.(${branchWorkerIds.join(',')}))`
           : '';
         salesQuery = salesQuery.or(`branch_id.eq.${activeBranch.id}${workerFilter}`);
       }
       const { data: salesRows } = await salesQuery;
-      const monthSales = (salesRows || []).filter((r: any) => r.created_at >= startOfMonth).reduce((s, r: any) => s + Number(r.total_amount || 0), 0);
-      const todaySales = (salesRows || [])
-        .filter((r: any) => r.created_at >= periodStart)
-        .reduce((s, r: any) => s + Number(r.total_amount || 0), 0);
-      const todayOrders = (salesRows || []).filter((r: any) => r.created_at >= periodStart).length;
+      const todaySales = (salesRows || []).reduce((s, r: any) => s + Number(r.total_amount || 0), 0);
+      const todayOrders = (salesRows || []).length;
+      const monthSales = todaySales;
 
       let stockQuery = supabase
         .from('warehouse_stock')
@@ -345,11 +335,12 @@ const AdminHome: React.FC = () => {
       const lowStockCount = (stockRows || []).filter((r: any) => Number(r.quantity || 0) > 0 && Number(r.quantity || 0) < 10).length;
       const damagedTotal = (stockRows || []).reduce((s, r: any) => s + Number(r.damaged_quantity || 0), 0);
 
-      // Distinct products sold today (any quantity sold — pieces OR boxes)
+      // Distinct products sold in the selected period
       let soldTodayQuery = supabase
         .from('sales_tracking')
         .select('product_id, branch_id, worker_id, sold_pieces, sold_boxes, total_price, sold_at')
-        .gte('sold_at', periodStart);
+        .gte('sold_at', periodStart)
+        .lte('sold_at', periodEnd);
       if (activeBranch?.id) {
         const workerFilter = branchWorkerIds.length
           ? `,and(branch_id.is.null,worker_id.in.(${branchWorkerIds.join(',')}))`
@@ -368,11 +359,11 @@ const AdminHome: React.FC = () => {
       const activeWorkersToday = workerActivity.activeWorkersToday;
       const deliveriesToday = workerActivity.deliveriesToday;
 
-      const monthStr = startOfMonth.slice(0, 10);
+      const periodMonthStr = periodStart.slice(0, 10);
       let bonusQuery = supabase
         .from('monthly_bonus_summary')
         .select('worker_id, total_points, branch_id, month')
-        .gte('month', monthStr);
+        .gte('month', periodMonthStr);
       if (activeBranch?.id) bonusQuery = bonusQuery.eq('branch_id', activeBranch.id);
       const { data: bonusRows } = await bonusQuery;
       const agg: Record<string, number> = {};
@@ -393,7 +384,8 @@ const AdminHome: React.FC = () => {
       let offersQuery = supabase
         .from('sales_tracking')
         .select('id, gift_pieces, gift_boxes, sold_at, branch_id, worker_id, order_id, order_item_id')
-        .gte('sold_at', queryStart);
+        .gte('sold_at', periodStart)
+        .lte('sold_at', periodEnd);
       if (activeBranch?.id) {
         const workerFilter = branchWorkerIds.length
           ? `,and(branch_id.is.null,worker_id.in.(${branchWorkerIds.join(',')}))`
@@ -403,11 +395,10 @@ const AdminHome: React.FC = () => {
       const { data: offerRows } = await offersQuery;
       const offerList = ((offerRows || []) as any[]).filter((r) => Number(r.gift_boxes || 0) > 0 || Number(r.gift_pieces || 0) > 0);
       const toGiftPieces = (r: any) => Number(r.gift_boxes || 0) * Number(r.pieces_per_box || 1) + Number(r.gift_pieces || 0);
-      const monthGiftPieces = offerList.filter((r) => r.sold_at >= startOfMonth).reduce((s, r) => s + toGiftPieces(r), 0);
-      const todayOfferRows = offerList.filter((r) => r.sold_at >= periodStart);
-      const todayGiftPieces = todayOfferRows.reduce((s, r) => s + toGiftPieces(r), 0);
-      const offersDeliveredMonth = new Set(offerList.filter((r) => r.sold_at >= startOfMonth).map((r) => r.order_id || r.order_item_id || r.id)).size;
-      const offersDeliveredToday = new Set(todayOfferRows.map((r) => r.order_id || r.order_item_id || r.id)).size;
+      const todayGiftPieces = offerList.reduce((s, r) => s + toGiftPieces(r), 0);
+      const monthGiftPieces = todayGiftPieces;
+      const offersDeliveredToday = new Set(offerList.map((r) => r.order_id || r.order_item_id || r.id)).size;
+      const offersDeliveredMonth = offersDeliveredToday;
 
       return { todaySales, monthSales, todayOrders, totalPieces, lowStockCount, damagedTotal, productsSoldToday, activeWorkersToday, deliveriesToday, topName, topPoints, totalPoints, offersDeliveredToday, offersDeliveredMonth, todayGiftPieces, monthGiftPieces };
     },
