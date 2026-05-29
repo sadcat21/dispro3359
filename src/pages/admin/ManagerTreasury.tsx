@@ -1296,42 +1296,52 @@ const ManagerTreasury = () => {
                 );
               })()}</section>
 
-              <section className="space-y-2"><h2 className="text-base font-bold border-b pb-1">💳 تفاصيل المدفوعات</h2>{(
+              {(() => {
+                const paymentDetails = [
+                  { label: `💵 ${t('treasury.cash_invoice1')}`, total: (summary?.cash_invoice1 || 0) + (summary?.cash_invoice1_stamp || 0), handed: (summary?.cash_invoice1_handed || 0) + (summary?.cash_invoice1_stamp || 0) },
+                  { label: `💵 ${t('treasury.cash_invoice2')}`, total: summary?.cash_invoice2 || 0, handed: summary?.cash_invoice2_handed || 0 },
+                  { label: `📝 ${t('treasury.checks')}`, total: summary?.check || 0, handed: summary?.check_handed || 0 },
+                  { label: `🧾 Versement Doc`, total: summary?.bank_receipt || 0, handed: summary?.receipt_handed || 0 },
+                  { label: `🧾 Versement Cash`, total: summary?.receipt_cash || 0, handed: summary?.receipt_cash_handed || 0 },
+                  { label: `🏦 ${t('treasury.virement')}`, total: summary?.bank_transfer || 0, handed: summary?.transfer_handed || 0 },
+                ]
+                  .map((pm) => ({
+                    ...pm,
+                    remaining: Math.max(pm.total - pm.handed, 0),
+                  }))
+                  .filter((pm) => pm.total > 0 || pm.handed > 0 || pm.remaining > 0);
 
-                <div className="space-y-3">
-                  {[
-                    { label: `💵 ${t('treasury.cash_invoice1')}`, total: (summary?.cash_invoice1 || 0) + (summary?.cash_invoice1_stamp || 0), handed: (summary?.cash_invoice1_handed || 0) + (summary?.cash_invoice1_stamp || 0) },
-                    { label: `💵 ${t('treasury.cash_invoice2')}`, total: summary?.cash_invoice2 || 0, handed: summary?.cash_invoice2_handed || 0 },
-                    { label: `📝 ${t('treasury.checks')}`, total: summary?.check || 0, handed: summary?.check_handed || 0 },
-                    { label: `🧾 Versement Doc`, total: summary?.bank_receipt || 0, handed: summary?.receipt_handed || 0 },
-                    { label: `🧾 Versement Cash`, total: summary?.receipt_cash || 0, handed: summary?.receipt_cash_handed || 0 },
-                    { label: `🏦 ${t('treasury.virement')}`, total: summary?.bank_transfer || 0, handed: summary?.transfer_handed || 0 },
-                  ].map((pm, i) => {
-                    const remaining = pm.total - pm.handed;
-                    return (
-                      <div key={i} className="rounded-xl border bg-card p-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-semibold">{pm.label}</span>
-                        </div>
-                        <div className="grid grid-cols-3 gap-2 text-center">
-                          <div className="rounded-lg bg-muted/50 p-2">
-                            <p className="text-[9px] text-muted-foreground">الإجمالي</p>
-                            <MoneyValue value={pm.total} currency={cur} className="text-xs font-bold" />
+                if (paymentDetails.length === 0) return null;
+
+                return (
+                  <section className="space-y-2">
+                    <h2 className="text-base font-bold border-b pb-1">💳 تفاصيل المدفوعات</h2>
+                    <div className="space-y-3">
+                      {paymentDetails.map((pm) => (
+                        <div key={pm.label} className="rounded-xl border bg-card p-3">
+                          <div className="mb-2 flex items-center justify-between">
+                            <span className="text-sm font-semibold">{pm.label}</span>
                           </div>
-                          <div className="rounded-lg bg-destructive/5 p-2">
-                            <p className="text-[9px] text-muted-foreground">المسلّم</p>
-                            <MoneyValue value={pm.handed} currency={cur} className="text-xs font-bold text-destructive" />
-                          </div>
-                          <div className="rounded-lg bg-primary/5 p-2">
-                            <p className="text-[9px] text-muted-foreground">المتبقي</p>
-                            <MoneyValue value={remaining} currency={cur} className="text-xs font-bold text-primary" />
+                          <div className="grid grid-cols-3 gap-2 text-center">
+                            <div className="rounded-lg bg-muted/50 p-2">
+                              <p className="text-[9px] text-muted-foreground">الإجمالي</p>
+                              <MoneyValue value={pm.total} currency={cur} className="text-xs font-bold" />
+                            </div>
+                            <div className="rounded-lg bg-destructive/5 p-2">
+                              <p className="text-[9px] text-muted-foreground">المسلّم</p>
+                              <MoneyValue value={pm.handed} currency={cur} className="text-xs font-bold text-destructive" />
+                            </div>
+                            <div className="rounded-lg bg-primary/5 p-2">
+                              <p className="text-[9px] text-muted-foreground">المتبقي</p>
+                              <MoneyValue value={pm.remaining} currency={cur} className="text-xs font-bold text-primary" />
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}</section>
+                      ))}
+                    </div>
+                  </section>
+                );
+              })()}
 
               <section className="space-y-2"><h2 className="text-base font-bold border-b pb-1">📥 المستلمات</h2>{(
 
