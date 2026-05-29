@@ -59,11 +59,10 @@ const DebtSummaryCard: React.FC<DebtSummaryCardProps> = ({ periodStart, periodEn
       );
 
       // Collections (debt_payments)
-      let paymentsQ = supabase
+      // Match the debts query: sum across all branches (project-manager scope)
+      const { data: payments } = await supabase
         .from('debt_payments')
-        .select('amount, collected_at, debt_id, customer_debts!inner(branch_id)');
-      if (branchId) paymentsQ = paymentsQ.eq('customer_debts.branch_id', branchId);
-      const { data: payments } = await paymentsQ;
+        .select('amount, collected_at, debt_id');
 
       const totalCollections = (payments || []).reduce(
         (s, p: any) => s + Number(p.amount || 0),
