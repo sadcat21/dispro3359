@@ -238,7 +238,7 @@ const buildTimeline = (
       payment.worker_id || '',
       payment.payment_method || '',
       (payment.notes || '').trim(),
-      new Date(date).toISOString().slice(0, 19), // group within same second
+      new Date(date).toISOString().slice(0, 16), // group within same minute (single user collection)
     ].join('|');
     const existing = paymentGroups.get(bucketKey);
     if (existing) {
