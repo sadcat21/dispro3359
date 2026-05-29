@@ -1780,7 +1780,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
         onOpenChange={setShowReceiptPaymentDialog}
         orderTotal={totals.amountAfterPrepaid}
         customerName={order.customer?.name || ''}
-        paymentMethod={((order as any).invoice_payment_method === 'transfer' ? 'transfer' : 'receipt') as 'receipt' | 'transfer'}
+        paymentMethod={((order as any).invoice_payment_method === 'transfer' ? 'transfer' : (order as any).invoice_payment_method === 'check' ? 'check' : 'receipt') as 'receipt' | 'transfer' | 'check'}
         onConfirm={handleReceiptPaymentConfirm}
       />
 
