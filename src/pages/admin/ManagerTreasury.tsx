@@ -10,6 +10,7 @@ import UncollectedDebtsDialog from '@/components/treasury/UncollectedDebtsDialog
 import CollectedDebtsDialog from '@/components/treasury/CollectedDebtsDialog';
 import HandoverItemPickerDialog, { PickedItem } from '@/components/treasury/HandoverItemPickerDialog';
 import HandoverPrintView from '@/components/treasury/HandoverPrintView';
+import WorkerHeldDialog from '@/components/treasury/WorkerHeldDialog';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
@@ -143,6 +144,7 @@ const ManagerTreasury = () => {
   const [uncollectedDebtsOpen, setUncollectedDebtsOpen] = useState(false);
   const [collectedDebtsOpen, setCollectedDebtsOpen] = useState(false);
   const [handoversListOpen, setHandoversListOpen] = useState(false);
+  const [workerHeldOpen, setWorkerHeldOpen] = useState(false);
   const [addForm, setAddForm] = useState({ payment_method: 'cash_invoice1', amount: '', customer_name: '', invoice_number: '', invoice_date: '', check_number: '', check_bank: '', check_date: '', receipt_number: '', transfer_reference: '', notes: '' });
   const [handoverForm, setHandoverForm] = useState({ cash_invoice1: '', cash_invoice2: '', cash_delivered: '', notes: '', delivery_method: 'direct', intermediary_name: '', bank_transfer_reference: '', received_by: '', bank_account_id: '', receipt_image_url: '' });
   const [pickedChecks, setPickedChecks] = useState<PickedItem[]>([]);
@@ -1063,6 +1065,7 @@ const ManagerTreasury = () => {
       <StampDetailsDialog open={stampOpen} onOpenChange={setStampOpen} />
       <UncollectedDebtsDialog open={uncollectedDebtsOpen} onOpenChange={setUncollectedDebtsOpen} />
       <CollectedDebtsDialog open={collectedDebtsOpen} onOpenChange={setCollectedDebtsOpen} range={dateRange} />
+      <WorkerHeldDialog open={workerHeldOpen} onOpenChange={setWorkerHeldOpen} range={dateRange} currency={cur} />
       <CashConsolidationDialog open={consolidationOpen} onOpenChange={setConsolidationOpen} summary={summary} />
 
       <Dialog open={handoversListOpen} onOpenChange={setHandoversListOpen}>
@@ -1202,10 +1205,10 @@ const ManagerTreasury = () => {
                         <span className="text-xs text-muted-foreground">{t('treasury.approved_expenses')}</span>
                         <MoneyValue value={totalExpenses} currency={cur} className="text-sm font-bold" />
                       </div>
-                      <div className="flex items-center justify-between rounded-lg bg-amber-500/5 border border-amber-500/20 p-3">
+                      <button type="button" onClick={() => { setTimeout(() => setWorkerHeldOpen(true), 200); }} className="w-full text-start flex items-center justify-between rounded-lg bg-amber-500/5 border border-amber-500/20 p-3 hover:bg-amber-500/10 transition-colors">
                         <span className="text-xs text-muted-foreground">👷 {t('treasury.worker_held')}</span>
                         <MoneyValue value={workerHeldAmount} currency={cur} className="text-sm font-bold text-amber-600" />
-                      </div>
+                      </button>
                       <button type="button" onClick={() => { setTimeout(() => setCoinExchangeOpen(true), 200); }} className="w-full text-start flex items-center justify-between rounded-lg bg-amber-500/5 border border-amber-500/20 p-3 hover:bg-amber-500/10 transition-colors">
                         <span className="text-xs text-muted-foreground">🪙 {t('coin_exchange.title') || 'تحويل عملات'}</span>
                         <MoneyValue value={coinExchangeOut} currency={cur} className="text-sm font-bold text-amber-600" />
