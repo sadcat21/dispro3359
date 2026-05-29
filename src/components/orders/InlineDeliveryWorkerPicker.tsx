@@ -72,21 +72,25 @@ const InlineDeliveryWorkerPicker: React.FC<Props> = ({
     try {
       let query = supabase
         .from('worker_roles')
-        .select(`worker_id, custom_roles!inner(code)`)
+        .select(`worker_id, branch_id, custom_roles!inner(code)`)
         .in('custom_roles.code', ['delivery_rep', 'warehouse_manager']);
-      if (customerBranchId) query = query.eq('branch_id', customerBranchId);
+      if (customerBranchId) {
+        query = query.or(`branch_id.eq.${customerBranchId},branch_id.is.null`);
+      }
       const { data: roles } = await query;
       const ids = (roles || []).map((r: any) => r.worker_id);
       if (ids.length === 0) {
         setWorkers([]);
         return;
       }
-      const { data } = await supabase
+      let workersQuery = supabase
         .from('workers')
         .select('*')
         .in('id', ids)
-        .eq('is_active', true)
-        .order('full_name');
+        .eq('is_active', true);
+      // For global roles (branch_id null), fall back to the worker's own branch
+      if (customerBranchId) workersQuery = workersQuery.eq('branch_id', customerBranchId);
+      const { data } = await workersQuery.order('full_name');
       setWorkers(data || []);
     } finally {
       setIsLoading(false);
