@@ -1186,18 +1186,18 @@ const ManagerTreasury = () => {
                     </div>
                     <p className="text-[10px] text-muted-foreground text-center">📤 {t('treasury.where_money_went')}</p>
                     <div className="space-y-1.5">
-                      <div className="flex items-center justify-between rounded-lg bg-background p-3 border">
+                      <button type="button" onClick={() => { setTimeout(() => setHandoversListOpen(true), 200); }} className="w-full text-start flex items-center justify-between rounded-lg bg-background p-3 border hover:bg-muted transition-colors">
                         <span className="text-xs text-muted-foreground">المستلم من العمال نقداً (بدون تحصيلات الديون)</span>
                         <MoneyValue value={Math.max(totalInTreasury - debtCashCollected, 0)} currency={cur} className="text-sm font-bold" />
-                      </div>
+                      </button>
                       <div className="flex items-center justify-between rounded-lg bg-background p-3 border">
                         <span className="text-xs text-muted-foreground">{t('treasury.actual_after_handover')}</span>
                         <MoneyValue value={netInTreasury} currency={cur} className="text-sm font-bold" />
                       </div>
-                      <div className="flex items-center justify-between rounded-lg bg-background p-3 border">
+                      <button type="button" onClick={() => { setTimeout(() => setHandoversListOpen(true), 200); }} className="w-full text-start flex items-center justify-between rounded-lg bg-background p-3 border hover:bg-muted transition-colors">
                         <span className="text-xs text-muted-foreground">{t('treasury.handed_to_upper')}</span>
                         <MoneyValue value={handedOver} currency={cur} className="text-sm font-bold" />
-                      </div>
+                      </button>
                       <div className="flex items-center justify-between rounded-lg bg-background p-3 border">
                         <span className="text-xs text-muted-foreground">{t('treasury.approved_expenses')}</span>
                         <MoneyValue value={totalExpenses} currency={cur} className="text-sm font-bold" />
