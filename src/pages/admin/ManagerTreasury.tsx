@@ -1041,6 +1041,7 @@ const ManagerTreasury = () => {
           onOpenChange={(open) => !open && setDetailsCategory(null)}
           category={detailsCategory}
           handedCashInvoice2Amount={summary?.cash_invoice2_handed || 0}
+          range={dateRange}
         />
       )}
 
