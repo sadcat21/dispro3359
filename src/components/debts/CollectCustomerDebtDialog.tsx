@@ -218,19 +218,56 @@ const buildTimeline = (
     });
   });
 
+  // Group payments inserted in the same transaction (split across multiple debts).
+  // We aggregate by worker + payment method + notes + same-second timestamp so a
+  // single user-entered collection appears as ONE row with the original amount.
+  const paymentGroups = new Map<string, {
+    ids: string[];
+    debtId: string;
+    workerId: string | null;
+    workerName: string;
+    paymentMethod: string | null;
+    notes: string | null;
+    amount: number;
+    date: string;
+  }>();
   payments.forEach((payment) => {
     const amount = toNumber(payment.amount);
     const date = payment.collected_at || payment.created_at || new Date().toISOString();
+    const bucketKey = [
+      payment.worker_id || '',
+      payment.payment_method || '',
+      (payment.notes || '').trim(),
+      new Date(date).toISOString().slice(0, 19), // group within same second
+    ].join('|');
+    const existing = paymentGroups.get(bucketKey);
+    if (existing) {
+      existing.amount += amount;
+      existing.ids.push(payment.id);
+    } else {
+      paymentGroups.set(bucketKey, {
+        ids: [payment.id],
+        debtId: payment.debt_id,
+        workerId: payment.worker_id || null,
+        workerName: payment.worker?.full_name || '-',
+        paymentMethod: payment.payment_method || null,
+        notes: payment.notes || null,
+        amount,
+        date,
+      });
+    }
+  });
+  paymentGroups.forEach((group) => {
     rawEvents.push({
-      id: `payment-${payment.id}`,
-      debtId: payment.debt_id,
-      kind: amount <= 0 ? 'visit' : 'partial',
-      date,
-      workerName: payment.worker?.full_name || '-',
-      workerId: payment.worker_id || null,
-      paymentMethod: payment.payment_method || null,
-      amount,
-      note: payment.notes || null,
+      id: `payment-${group.ids.join('+')}`,
+      debtId: group.debtId,
+      kind: group.amount <= 0 ? 'visit' : 'partial',
+      date: group.date,
+      workerName: group.workerName,
+      workerId: group.workerId,
+      paymentMethod: group.paymentMethod,
+      amount: group.amount,
+      note: group.notes,
       orderId: null,
     });
   });
@@ -938,12 +975,18 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                             : item.id.startsWith('payment-')
                               ? item.id.slice(8)
                               : null;
-                          const isAccounted = isPayment && underlyingId ? accountedPaymentIds.has(underlyingId) : false;
-                          const isLocked = isPayment && underlyingId ? lockedPaymentIds.has(underlyingId) : false;
+                          const groupedIds = underlyingId ? underlyingId.split('+').filter(Boolean) : [];
+                          const isAccounted = isPayment && groupedIds.length > 0 ? groupedIds.some(id => accountedPaymentIds.has(id)) : false;
+                          const isLocked = isPayment && groupedIds.length > 0 ? groupedIds.some(id => lockedPaymentIds.has(id)) : false;
                           const handleClick = () => {
                             if (isPayment && underlyingId) {
                               if (isLocked) {
                                 toast.error('تم إغلاق هذا التحصيل بعد المحاسبة مع المسؤول');
+                                return;
+                              }
+                              if (groupedIds.length > 1) {
+                                // Grouped collection (split across debts): only allow delete, not edit
+                                setDeleteTarget({ kind: 'payment', id: underlyingId, label: customerName || '' });
                                 return;
                               }
                               setEditTarget({ kind: 'payment', id: underlyingId, currentAmount: item.amount });
@@ -1129,7 +1172,11 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                   if (deleteTarget.kind === 'debt') {
                     await deleteDebtMutation.mutateAsync(deleteTarget.id);
                   } else {
-                    await deletePaymentMutation.mutateAsync(deleteTarget.id);
+                    // Handle grouped payments (single user collection split across debts)
+                    const ids = deleteTarget.id.split('+').filter(Boolean);
+                    for (const pid of ids) {
+                      await deletePaymentMutation.mutateAsync(pid);
+                    }
                   }
                   toast.success(t('debt_collect.cancelled_success'));
                   setDeleteTarget(null);
