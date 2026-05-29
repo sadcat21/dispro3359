@@ -344,7 +344,7 @@ export const translations: Translations = {
   'products.pallet_settings': { ar: 'إعدادات الباليت', fr: 'Paramètres de la palette', en: 'Pallet Settings' },
   'products.boxes_per_pallet': { ar: 'عدد الصناديق في الباليت', fr: 'Boîtes par palette', en: 'Boxes per Pallet' },
   'products.pallet_costs_by_supplier': { ar: 'تكلفة الباليت حسب المورّد', fr: 'Coût de la palette par fournisseur', en: 'Pallet Cost by Supplier' },
-  'products.pallet_cost': { ar: 'تكلفة الباليت', fr: 'Coût de la palette', en: 'Pallet Cost' },
+  'products.pallet_cost': { ar: 'تكلفة الباليت (دج)', fr: 'Coût de la palette (DA)', en: 'Pallet Cost (DA)' },
   'products.notes': { ar: 'ملاحظات', fr: 'Notes', en: 'Notes' },
   'products.no_suppliers': { ar: 'لا يوجد موردون', fr: 'Aucun fournisseur', en: 'No suppliers' },
   'products.supplier': { ar: 'المورد', fr: 'Fournisseur', en: 'Supplier' },
