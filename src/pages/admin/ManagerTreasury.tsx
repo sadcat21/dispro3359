@@ -1187,6 +1187,10 @@ const ManagerTreasury = () => {
                     <p className="text-[10px] text-muted-foreground text-center">📤 {t('treasury.where_money_went')}</p>
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between rounded-lg bg-background p-3 border">
+                        <span className="text-xs text-muted-foreground">المستلم من العمال نقداً (بدون تحصيلات الديون)</span>
+                        <MoneyValue value={Math.max(totalInTreasury - debtCashCollected, 0)} currency={cur} className="text-sm font-bold" />
+                      </div>
+                      <div className="flex items-center justify-between rounded-lg bg-background p-3 border">
                         <span className="text-xs text-muted-foreground">{t('treasury.actual_after_handover')}</span>
                         <MoneyValue value={netInTreasury} currency={cur} className="text-sm font-bold" />
                       </div>
