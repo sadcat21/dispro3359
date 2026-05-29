@@ -142,6 +142,7 @@ const ManagerTreasury = () => {
   const [detailsCategory, setDetailsCategory] = useState<'cash_invoice1' | 'cash_invoice2' | 'check' | 'bank_receipt_cash' | 'bank_receipt' | 'bank_transfer' | null>(null);
   const [uncollectedDebtsOpen, setUncollectedDebtsOpen] = useState(false);
   const [collectedDebtsOpen, setCollectedDebtsOpen] = useState(false);
+  const [handoversListOpen, setHandoversListOpen] = useState(false);
   const [addForm, setAddForm] = useState({ payment_method: 'cash_invoice1', amount: '', customer_name: '', invoice_number: '', invoice_date: '', check_number: '', check_bank: '', check_date: '', receipt_number: '', transfer_reference: '', notes: '' });
   const [handoverForm, setHandoverForm] = useState({ cash_invoice1: '', cash_invoice2: '', cash_delivered: '', notes: '', delivery_method: 'direct', intermediary_name: '', bank_transfer_reference: '', received_by: '', bank_account_id: '', receipt_image_url: '' });
   const [pickedChecks, setPickedChecks] = useState<PickedItem[]>([]);
@@ -1064,6 +1065,39 @@ const ManagerTreasury = () => {
       <CollectedDebtsDialog open={collectedDebtsOpen} onOpenChange={setCollectedDebtsOpen} range={dateRange} />
       <CashConsolidationDialog open={consolidationOpen} onOpenChange={setConsolidationOpen} summary={summary} />
 
+      <Dialog open={handoversListOpen} onOpenChange={setHandoversListOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>📤 تسليمات العمال للمسؤول</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 max-h-[70vh] overflow-y-auto">
+            {(!handovers || handovers.length === 0) ? (
+              <p className="text-center text-muted-foreground py-8">{t('treasury.no_handovers')}</p>
+            ) : handovers.map(h => (
+              <Card key={h.id}>
+                <CardContent className="p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Send className="w-4 h-4 text-destructive" />
+                      <p className="font-bold">{Number(h.amount).toLocaleString()} {cur}</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{format(new Date(h.created_at), 'dd/MM/yyyy', { locale: dateLocale })}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1 text-xs">
+                    {Number(h.cash_invoice1 ?? 0) > 0 && <p>{t('treasury.cash_f1')}: {Number(h.cash_invoice1).toLocaleString()} {cur}</p>}
+                    {Number(h.cash_invoice2 ?? 0) > 0 && <p>{t('treasury.cash_f2')}: {Number(h.cash_invoice2).toLocaleString()} {cur}</p>}
+                    {Number(h.checks_amount ?? 0) > 0 && <p>{t('treasury.checks')}: {Number(h.checks_amount).toLocaleString()} {cur}</p>}
+                    {Number(h.receipts_amount ?? 0) > 0 && <p>{t('treasury.versement')}: {Number(h.receipts_amount).toLocaleString()} {cur}</p>}
+                    {Number(h.transfers_amount ?? 0) > 0 && <p>{t('treasury.virement')}: {Number(h.transfers_amount).toLocaleString()} {cur}</p>}
+                  </div>
+                  {h.notes && <p className="text-xs text-muted-foreground">{h.notes}</p>}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* All treasury sections on one page */}
       <div className="px-3 md:px-4 pb-6 space-y-6" dir={dir}>
 
@@ -1078,9 +1112,7 @@ const ManagerTreasury = () => {
                     <button
                       type="button"
                       className="rounded-lg bg-muted/50 p-3 text-center hover:bg-muted transition-colors"
-                      onClick={() => {
-                        document.getElementById('handovers-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                      }}
+                      onClick={() => { setTimeout(() => setHandoversListOpen(true), 200); }}
                     >
                       <p className="text-[10px] text-muted-foreground">المستلم من العمال نقداً (بدون تحصيلات الديون)</p>
                       <MoneyValue value={Math.max((summary?.total || 0) - (summary?.debtCashCollected || 0), 0)} currency={cur} className="text-lg font-bold" />
