@@ -20,6 +20,7 @@ interface WorkerRow {
   full_name: string;
   username: string;
   role: AppRole;
+  branch_id: string | null;
 }
 
 interface CustomRoleRow {
