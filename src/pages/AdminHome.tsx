@@ -121,7 +121,29 @@ const AdminHome: React.FC = () => {
   const [taskDialogType, setTaskDialogType] = useState<'task' | 'request' | null>(null);
   const [pmDetailKind, setPmDetailKind] = useState<PMSummaryKind | null>(null);
   const [dailyTasksOpen, setDailyTasksOpen] = useState(false);
-  const [pmRange, setPmRange] = useState<'day' | 'week' | '2weeks' | 'month'>('day');
+  const [pmRange, setPmRange] = useState<'day' | 'week' | '2weeks' | 'month' | 'custom'>('day');
+  const [pmCustomFrom, setPmCustomFrom] = useState<Date | undefined>(undefined);
+  const [pmCustomTo, setPmCustomTo] = useState<Date | undefined>(undefined);
+
+  // Compute period bounds based on current range selection
+  const pmPeriodBounds = React.useMemo(() => {
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    let start = new Date(startOfToday);
+    let end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+    if (pmRange === 'week') start.setDate(start.getDate() - 6);
+    else if (pmRange === '2weeks') start.setDate(start.getDate() - 13);
+    else if (pmRange === 'month') start = new Date(now.getFullYear(), now.getMonth(), 1);
+    else if (pmRange === 'custom') {
+      if (pmCustomFrom) {
+        start = new Date(pmCustomFrom.getFullYear(), pmCustomFrom.getMonth(), pmCustomFrom.getDate());
+      }
+      if (pmCustomTo) {
+        end = new Date(pmCustomTo.getFullYear(), pmCustomTo.getMonth(), pmCustomTo.getDate(), 23, 59, 59, 999);
+      }
+    }
+    return { periodStart: start.toISOString(), periodEnd: end.toISOString() };
+  }, [pmRange, pmCustomFrom, pmCustomTo]);
 
   const isBranchAdmin = role === 'branch_admin';
   const isProjectManager = role === 'project_manager';
