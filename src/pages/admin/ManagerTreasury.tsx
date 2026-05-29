@@ -750,7 +750,8 @@ const ManagerTreasury = () => {
                         const currentCash = Number(handoverForm.cash_delivered || 0);
                         const inv1Val = invoice1CashAmountWithStamp;
                         const inv2Val = availableInvoice2CashAmount;
-                        const totalVal = inv1Val + inv2Val;
+                        const debtVal = availableDebtCashAmount;
+                        const totalVal = inv1Val + inv2Val + debtVal;
                         
                         // Detect which invoices are currently "inserted"
                         const isInv1Inserted = Math.abs(currentCash - inv1Val) < 1 || Math.abs(currentCash - totalVal) < 1;
@@ -832,6 +833,13 @@ const ManagerTreasury = () => {
 	                      <MoneyValue value={availableInvoice2CashAmount} currency={cur} className="mt-1 text-lg font-bold text-sky-600" />
 	                      {invoice2CashAmount > 0 && (
 	                        <p className="mt-1 text-[11px] text-sky-700">المرسل من فاتورة 2: <MoneyValue value={invoice2CashAmount} currency={cur} /></p>
+	                      )}
+	                    </div>
+	                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 sm:col-span-2">
+	                      <p className="text-[11px] text-amber-700">تحصيلات الديون النقدية</p>
+	                      <MoneyValue value={availableDebtCashAmount} currency={cur} className="mt-1 text-lg font-bold text-amber-600" />
+	                      {debtCashHandoverAmount > 0 && (
+	                        <p className="mt-1 text-[11px] text-amber-700">المرسل من تحصيلات الديون: <MoneyValue value={debtCashHandoverAmount} currency={cur} /></p>
 	                      )}
 	                    </div>
                   </div>
