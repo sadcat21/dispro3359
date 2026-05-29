@@ -1206,10 +1206,10 @@ const ManagerTreasury = () => {
                         <span className="text-xs text-muted-foreground">👷 {t('treasury.worker_held')}</span>
                         <MoneyValue value={workerHeldAmount} currency={cur} className="text-sm font-bold text-amber-600" />
                       </div>
-                      <div className="flex items-center justify-between rounded-lg bg-amber-500/5 border border-amber-500/20 p-3">
+                      <button type="button" onClick={() => { setTimeout(() => setCoinExchangeOpen(true), 200); }} className="w-full text-start flex items-center justify-between rounded-lg bg-amber-500/5 border border-amber-500/20 p-3 hover:bg-amber-500/10 transition-colors">
                         <span className="text-xs text-muted-foreground">🪙 {t('coin_exchange.title') || 'تحويل عملات'}</span>
                         <MoneyValue value={coinExchangeOut} currency={cur} className="text-sm font-bold text-amber-600" />
-                      </div>
+                      </button>
                     </div>
                     <div className={`rounded-lg p-3 text-center ${hasGap ? 'bg-orange-500/10 border border-orange-500/20' : 'bg-green-500/10 border border-green-500/20'}`}>
                       {hasGap ? (
