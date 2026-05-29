@@ -35,6 +35,9 @@ import DebtSummaryCard from '@/components/admin/DebtSummaryCard';
 import TreasurySummaryCard from '@/components/admin/TreasurySummaryCard';
 import TodayCustomersDialog from '@/components/sectors/TodayCustomersDialog';
 import { fetchProjectManagerWorkerActivity } from '@/utils/projectManagerWorkerActivity';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
 
 // ─── Functional Group Definitions ───
 
