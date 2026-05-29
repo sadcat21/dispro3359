@@ -257,13 +257,31 @@ export const useDeleteCustomerDebt = () => {
 
   return useMutation({
     mutationFn: async (debtId: string) => {
-      const { error } = await supabase
+      // Remove dependent rows first (no cascade FK in schema → otherwise silent failure or FK error)
+      const { error: paymentsErr } = await supabase
+        .from('debt_payments')
+        .delete()
+        .eq('debt_id', debtId);
+      if (paymentsErr) throw paymentsErr;
+
+      const { error: collectionsErr } = await supabase
+        .from('debt_collections')
+        .delete()
+        .eq('debt_id', debtId);
+      if (collectionsErr) throw collectionsErr;
+
+      const { data, error } = await supabase
         .from('customer_debts')
         .delete()
-        .eq('id', debtId);
+        .eq('id', debtId)
+        .select('id');
 
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error('تعذر حذف الدين — تحقق من الصلاحيات');
+      }
     },
+
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customer-debts'] });
       queryClient.invalidateQueries({ queryKey: ['customer-debt-summary'] });
