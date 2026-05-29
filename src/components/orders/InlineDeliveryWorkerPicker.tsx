@@ -74,7 +74,7 @@ const InlineDeliveryWorkerPicker: React.FC<Props> = ({
         .from('worker_roles')
         .select(`worker_id, custom_roles!inner(code)`)
         .in('custom_roles.code', ['delivery_rep', 'warehouse_manager']);
-      if (customerBranchId) query = query.eq('branch_id', customerBranchId);
+      if (customerBranchId) query = query.or(`branch_id.eq.${customerBranchId},branch_id.is.null`);
       const { data: roles } = await query;
       const ids = (roles || []).map((r: any) => r.worker_id);
       if (ids.length === 0) {
