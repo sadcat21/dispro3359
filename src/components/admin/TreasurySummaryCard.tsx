@@ -60,8 +60,6 @@ const TreasurySummaryCard: React.FC<Props> = ({ periodStart, periodEnd, periodLa
     },
   });
 
-  if (dismissed) return null;
-
   const rows = perManager || [];
 
   const aggTotal = aggregate?.total || 0;
@@ -70,14 +68,7 @@ const TreasurySummaryCard: React.FC<Props> = ({ periodStart, periodEnd, periodLa
 
   return (
     <div className="relative rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-sky-50 p-4 shadow-sm dark:border-emerald-900 dark:from-emerald-950/30 dark:via-background dark:to-sky-950/20">
-      <button
-        type="button"
-        onClick={(e) => { e.stopPropagation(); setDismissed(true); }}
-        aria-label={t('common.dismiss') || 'إغلاق'}
-        className="absolute top-2 end-2 rounded-full p-1 text-emerald-700/70 hover:bg-emerald-100 hover:text-emerald-900 dark:hover:bg-emerald-950/60 transition"
-      >
-        <X className="h-4 w-4" />
-      </button>
+
       <div className="flex items-center justify-between mb-3 pe-6">
         <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
           <Wallet className="h-5 w-5" />
