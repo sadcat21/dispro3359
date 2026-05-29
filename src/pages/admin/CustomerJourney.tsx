@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ar, enUS, fr } from 'date-fns/locale';
@@ -9,10 +9,13 @@ import {
   CreditCard,
   Loader2,
   MapPin,
+  Pencil,
   ShoppingCart,
+  Trash2,
   User,
   Wallet,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -20,11 +23,22 @@ import { Customer, OrderWithDetails } from '@/types/database';
 import CustomerPickerDialog from '@/components/orders/CustomerPickerDialog';
 import CustomerSummary from '@/components/customers/CustomerSummary';
 import OrderDetailsDialog from '@/components/orders/OrderDetailsDialog';
+import EditCustomerDialog from '@/components/orders/EditCustomerDialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import { getLocalizedName } from '@/utils/sectorName';
 
@@ -133,6 +147,10 @@ const CustomerJourney = () => {
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(initialCustomerId);
   const [activeTab, setActiveTab] = useState('debts');
   const [selectedOrder, setSelectedOrder] = useState<OrderWithDetails | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const queryClient = useQueryClient();
 
   const dateLocale = language === 'ar' ? ar : language === 'fr' ? fr : enUS;
   const amountLocale = language === 'fr' ? 'fr-FR' : language === 'en' ? 'en-US' : 'ar-DZ';
@@ -546,22 +564,72 @@ const CustomerJourney = () => {
     setCustomerPickerOpen(false);
   };
 
+  const refreshCustomerData = () => {
+    queryClient.invalidateQueries({ queryKey: ['customer-journey-customer'] });
+    queryClient.invalidateQueries({ queryKey: ['customer-journey-customers'] });
+  };
+
+  const handleDeleteCustomer = async () => {
+    if (!selectedCustomer) return;
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase.from('customers').delete().eq('id', selectedCustomer.id);
+      if (error) throw error;
+      toast.success(t('common.delete') + ' ✓');
+      setDeleteConfirmOpen(false);
+      setSelectedCustomerId(null);
+      setSearchParams({});
+      refreshCustomerData();
+    } catch (error: any) {
+      console.error('Error deleting customer:', error);
+      toast.error(error.message || 'Error');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="p-3 pb-24 space-y-3" dir={dir}>
       {selectedCustomerSummary && (
         <Card className="border-primary/15 shadow-sm">
           <CardContent className="p-3">
             <div className="rounded-2xl border bg-muted/30 p-3">
-              <CustomerSummary
-                customer={selectedCustomerSummary}
-                avatarSize="lg"
-                meta={[
-                  selectedCustomerSummary.phone,
-                  selectedCustomerSummary.sector_name,
-                  selectedCustomerSummary.zone_name,
-                  selectedCustomerSummary.wilaya,
-                ].filter(Boolean).join(' • ')}
-              />
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <CustomerSummary
+                    customer={selectedCustomerSummary}
+                    avatarSize="lg"
+                    meta={[
+                      selectedCustomerSummary.phone,
+                      selectedCustomerSummary.sector_name,
+                      selectedCustomerSummary.zone_name,
+                      selectedCustomerSummary.wilaya,
+                    ].filter(Boolean).join(' • ')}
+                  />
+                </div>
+                <div className="flex flex-col gap-1 shrink-0">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-primary hover:bg-primary/10"
+                    onClick={() => setEditDialogOpen(true)}
+                    aria-label={t('common.edit')}
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                    onClick={() => setDeleteConfirmOpen(true)}
+                    aria-label={t('common.delete')}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -902,6 +970,37 @@ const CustomerJourney = () => {
         order={selectedOrder}
         hideModifyAction
       />
+
+      <EditCustomerDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        customer={selectedCustomer as Customer | null}
+        onSuccess={() => {
+          setEditDialogOpen(false);
+          refreshCustomerData();
+        }}
+      />
+
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('common.confirm')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('customers.delete_confirm')} "{selectedCustomer?.name}"؟
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteCustomer}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={isDeleting}
+            >
+              {isDeleting ? (<><Loader2 className="w-4 h-4 ml-2 animate-spin" />{t('common.loading')}</>) : t('common.delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
