@@ -830,9 +830,23 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                 <div className="text-[10px] text-muted-foreground">
                   {safeT('orders.default_price', 'السعر الافتراضي')}: {selectedPricingUnitPrice.toLocaleString()} {t('common.currency')} / {pricingUnitLabel}
                 </div>
+                {minPricingUnitPrice > 0 && (
+                  <div className="text-[10px] text-muted-foreground">
+                    السعر الأدنى: {minPricingUnitPrice.toLocaleString()} {t('common.currency')} / {pricingUnitLabel}
+                  </div>
+                )}
+                {hasCustomUnitPrice && minPricingUnitPrice > 0 && customUnitPriceValue < minPricingUnitPrice && (
+                  <div className="text-[10px] text-destructive font-medium">
+                    لا يمكن أن يكون السعر أقل من {minPricingUnitPrice.toLocaleString()} {t('common.currency')}
+                  </div>
+                )}
               </div>
               <div className="flex gap-2">
-                <Button className="flex-1" onClick={() => setCustomPriceOpen(false)}>
+                <Button
+                  className="flex-1"
+                  onClick={() => setCustomPriceOpen(false)}
+                  disabled={hasCustomUnitPrice && minPricingUnitPrice > 0 && customUnitPriceValue < minPricingUnitPrice}
+                >
                   {t('common.save') || 'حفظ'}
                 </Button>
                 <Button
