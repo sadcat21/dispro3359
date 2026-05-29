@@ -1438,7 +1438,11 @@ const Products: React.FC = () => {
                   <img src={palletSettingsImage} alt="Pallet" loading="lazy" width={512} height={512} className="w-14 h-14 object-contain shrink-0" />
                   <Label className="text-sm font-bold text-primary block">{t('products.pallet_settings')}</Label>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-[11px] text-muted-foreground">{t('products.boxes_per_pallet')}</Label>
+                    <Input type="number" min={0} step="1" value={editBoxesPerPallet} onChange={(e) => setEditBoxesPerPallet(parseInt(e.target.value) || 0)} className="text-right h-9" onFocus={(e) => e.target.select()} />
+                  </div>
                   <div className="space-y-1">
                     <Label className="text-[11px] text-muted-foreground">{t('products.purchase_price')}</Label>
                     <Input type="number" min={0} step="0.01" value={editPurchasePrice} onChange={(e) => setEditPurchasePrice(parseFloat(e.target.value) || 0)} className="text-right h-9" onFocus={(e) => e.target.select()} />
