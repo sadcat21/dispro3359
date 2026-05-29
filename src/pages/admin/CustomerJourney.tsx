@@ -594,16 +594,42 @@ const CustomerJourney = () => {
         <Card className="border-primary/15 shadow-sm">
           <CardContent className="p-3">
             <div className="rounded-2xl border bg-muted/30 p-3">
-              <CustomerSummary
-                customer={selectedCustomerSummary}
-                avatarSize="lg"
-                meta={[
-                  selectedCustomerSummary.phone,
-                  selectedCustomerSummary.sector_name,
-                  selectedCustomerSummary.zone_name,
-                  selectedCustomerSummary.wilaya,
-                ].filter(Boolean).join(' • ')}
-              />
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <CustomerSummary
+                    customer={selectedCustomerSummary}
+                    avatarSize="lg"
+                    meta={[
+                      selectedCustomerSummary.phone,
+                      selectedCustomerSummary.sector_name,
+                      selectedCustomerSummary.zone_name,
+                      selectedCustomerSummary.wilaya,
+                    ].filter(Boolean).join(' • ')}
+                  />
+                </div>
+                <div className="flex flex-col gap-1 shrink-0">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-primary hover:bg-primary/10"
+                    onClick={() => setEditDialogOpen(true)}
+                    aria-label={t('common.edit')}
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                    onClick={() => setDeleteConfirmOpen(true)}
+                    aria-label={t('common.delete')}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
