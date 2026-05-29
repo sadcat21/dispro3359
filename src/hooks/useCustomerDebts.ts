@@ -672,11 +672,15 @@ export const useDeleteDebtPayment = () => {
 
       const amount = Number(payment.amount || 0);
 
-      const { error: delErr } = await supabase
+      const { data: deleted, error: delErr } = await supabase
         .from('debt_payments')
         .delete()
-        .eq('id', paymentId);
+        .eq('id', paymentId)
+        .select('id');
       if (delErr) throw delErr;
+      if (!deleted || deleted.length === 0) {
+        throw new Error('تعذر حذف التحصيل — تحقق من الصلاحيات');
+      }
 
       if (amount > 0) {
         const { data: debt, error: debtErr } = await supabase
