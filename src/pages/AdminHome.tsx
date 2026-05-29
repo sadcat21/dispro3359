@@ -666,8 +666,12 @@ const AdminHome: React.FC = () => {
           { key: 'week', label: t('admin_home.range_week') || 'أسبوع' },
           { key: '2weeks', label: t('admin_home.range_2weeks') || 'أسبوعان' },
           { key: 'month', label: t('admin_home.range_month') || 'شهر' },
+          { key: 'custom', label: t('admin_home.range_custom') || 'مخصص' },
         ];
-        const periodLabel = rangeOptions.find((o) => o.key === pmRange)?.label || '';
+        const baseLabel = rangeOptions.find((o) => o.key === pmRange)?.label || '';
+        const periodLabel = pmRange === 'custom' && (pmCustomFrom || pmCustomTo)
+          ? `${pmCustomFrom ? format(pmCustomFrom, 'dd/MM') : '…'} - ${pmCustomTo ? format(pmCustomTo, 'dd/MM') : '…'}`
+          : baseLabel;
         return (
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-border bg-card p-1.5 w-fit">
@@ -687,6 +691,32 @@ const AdminHome: React.FC = () => {
               </button>
             ))}
           </div>
+          {pmRange === 'custom' && (
+            <div className="flex flex-wrap items-center gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 text-xs">
+                    <CalendarDays className="h-3.5 w-3.5 me-1" />
+                    {pmCustomFrom ? format(pmCustomFrom, 'dd/MM/yyyy') : (t('date.from') || 'من')}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-popover z-50" align="start">
+                  <Calendar mode="single" selected={pmCustomFrom} onSelect={setPmCustomFrom} initialFocus className="pointer-events-auto" />
+                </PopoverContent>
+              </Popover>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 text-xs">
+                    <CalendarDays className="h-3.5 w-3.5 me-1" />
+                    {pmCustomTo ? format(pmCustomTo, 'dd/MM/yyyy') : (t('date.to') || 'إلى')}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-popover z-50" align="start">
+                  <Calendar mode="single" selected={pmCustomTo} onSelect={setPmCustomTo} initialFocus className="pointer-events-auto" />
+                </PopoverContent>
+              </Popover>
+            </div>
+          )}
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           {/* Sales */}
           <button type="button" onClick={() => navigate('/manager-sales-summary')} className="text-start rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-4 shadow-sm transition hover:shadow-md hover:border-blue-300">
@@ -699,25 +729,22 @@ const AdminHome: React.FC = () => {
               <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); navigate('/manager-sales-summary'); }}>{t('admin_home.view')}</Button>
 
             </div>
-            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+            <div className="mt-3 grid grid-cols-1 gap-2 text-xs">
               <div className="rounded-xl bg-white/70 p-2">
                 <p className="text-muted-foreground">{periodLabel}</p>
                 <p className="mt-1 text-base font-bold text-blue-900">{(pmSummary?.todaySales || 0).toLocaleString()} DA</p>
                 <p className="text-[10px] text-muted-foreground">{pmSummary?.todayOrders || 0} {t('admin_home.orders_count')}</p>
               </div>
-              <div className="rounded-xl bg-white/70 p-2">
-                <p className="text-muted-foreground">{t('admin_home.month_sales')}</p>
-                <p className="mt-1 text-base font-bold text-blue-900">{(pmSummary?.monthSales || 0).toLocaleString()} DA</p>
-              </div>
             </div>
           </button>
 
           {(() => {
-            const periodStartIso = pmRange === 'day' ? undefined : (() => { const d = new Date(); d.setHours(0,0,0,0); if (pmRange === 'week') d.setDate(d.getDate()-6); else if (pmRange === '2weeks') d.setDate(d.getDate()-13); else if (pmRange === 'month') d.setDate(1); return d.toISOString(); })();
+            const periodStartIso = pmPeriodBounds.periodStart;
+            const periodEndIso = pmPeriodBounds.periodEnd;
             return (
               <>
-                {!isDebtsHidden && <DebtSummaryCard periodStart={periodStartIso} periodLabel={periodLabel} />}
-                <TreasurySummaryCard periodStart={periodStartIso} periodLabel={periodLabel} />
+                {!isDebtsHidden && <DebtSummaryCard periodStart={periodStartIso} periodEnd={periodEndIso} periodLabel={periodLabel} />}
+                <TreasurySummaryCard periodStart={periodStartIso} periodEnd={periodEndIso} periodLabel={periodLabel} />
               </>
             );
           })()}
