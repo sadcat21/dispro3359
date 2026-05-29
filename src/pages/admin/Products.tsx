@@ -1398,7 +1398,13 @@ const Products: React.FC = () => {
             {/* Pricing Section */}
             <div className="pt-2 border-t space-y-4">
               <Label className="text-base font-semibold block">{t('products.prices')}</Label>
-              
+
+              {/* سعر الشراء */}
+              <div className="border rounded-lg p-3 space-y-2 bg-muted/20">
+                <Label className="text-sm font-bold text-primary block">{t('products.purchase_price')}</Label>
+                <Input type="number" min={0} step="0.01" value={editPurchasePrice} onChange={(e) => setEditPurchasePrice(parseFloat(e.target.value) || 0)} className="text-right h-9" onFocus={(e) => e.target.select()} />
+              </div>
+
               {/* فاتورة 2 */}
               <div className="border rounded-lg p-3 space-y-3 bg-muted/20">
                 <div className="flex items-center justify-between gap-3">
