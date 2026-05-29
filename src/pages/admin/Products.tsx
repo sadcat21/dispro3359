@@ -944,10 +944,7 @@ const Products: React.FC = () => {
                           </div>
                           <div className="space-y-1">
                             <Label className="text-[11px] text-muted-foreground">{t('products.purchase_price')}</Label>
-                            <div className="relative">
-                              <Input type="number" min={0} step="0.01" value={purchasePrice} onChange={(e) => setPurchasePrice(parseFloat(e.target.value) || 0)} className="text-right h-9 pe-10" onFocus={(e) => e.target.select()} />
-                              <span className="pointer-events-none absolute inset-y-0 end-2 flex items-center text-[11px] font-medium text-muted-foreground">DA</span>
-                            </div>
+                            <Input type="number" min={0} step="0.01" value={purchasePrice} onChange={(e) => setPurchasePrice(parseFloat(e.target.value) || 0)} className="text-right h-9" onFocus={(e) => e.target.select()} />
                           </div>
                           <div className="space-y-1">
                             <Label className="text-[11px] text-muted-foreground flex items-center gap-1"><Truck className="w-3 h-3" />{t('products.supplier')}</Label>
@@ -1452,10 +1449,7 @@ const Products: React.FC = () => {
                   </div>
                   <div className="space-y-1">
                     <Label className="text-[11px] text-muted-foreground">{t('products.purchase_price')}</Label>
-                    <div className="relative">
-                      <Input type="number" min={0} step="0.01" value={editPurchasePrice} onChange={(e) => setEditPurchasePrice(parseFloat(e.target.value) || 0)} className="text-right h-9 pe-10" onFocus={(e) => e.target.select()} />
-                      <span className="pointer-events-none absolute inset-y-0 end-2 flex items-center text-[11px] font-medium text-muted-foreground">DA</span>
-                    </div>
+                    <Input type="number" min={0} step="0.01" value={editPurchasePrice} onChange={(e) => setEditPurchasePrice(parseFloat(e.target.value) || 0)} className="text-right h-9" onFocus={(e) => e.target.select()} />
                   </div>
                   <div className="space-y-1">
                     <Label className="text-[11px] text-muted-foreground flex items-center gap-1"><Truck className="w-3 h-3" />{t('products.supplier')}</Label>
