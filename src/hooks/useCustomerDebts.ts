@@ -98,10 +98,10 @@ export const useCustomerDebtSummary = (customerId: string | null) => {
         .from('customer_debts')
         .select('total_amount, paid_amount, remaining_amount, status')
         .eq('customer_id', customerId)
-        .eq('status', 'active');
+        .gt('remaining_amount', 0);
 
       if (error) throw error;
-      const totalDebt = data?.reduce((sum, d) => sum + Number(d.remaining_amount), 0) || 0;
+      const totalDebt = data?.reduce((sum, d) => sum + Number(d.remaining_amount || 0), 0) || 0;
       return { totalDebt, count: data?.length || 0 };
     },
     enabled: !!customerId,
