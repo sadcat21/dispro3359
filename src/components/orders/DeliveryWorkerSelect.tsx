@@ -39,10 +39,11 @@ const DeliveryWorkerSelect: React.FC<DeliveryWorkerSelectProps> = ({
         .select(`
           worker_id,
           custom_role_id,
+          branch_id,
           custom_roles!inner(code)
         `)
-        .eq('branch_id', customerBranchId)
-        .in('custom_roles.code', ['delivery_rep', 'warehouse_manager']);
+        .in('custom_roles.code', ['delivery_rep', 'warehouse_manager'])
+        .or(`branch_id.eq.${customerBranchId},branch_id.is.null`);
 
       if (!workerRoles || workerRoles.length === 0) {
         setDeliveryWorkers([]);
