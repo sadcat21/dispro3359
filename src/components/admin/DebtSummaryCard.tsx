@@ -21,15 +21,7 @@ const DebtSummaryCard: React.FC<DebtSummaryCardProps> = ({ periodStart, periodEn
   const { t } = useLanguage();
   const { activeBranch } = useAuth();
   const branchId = activeBranch?.id || null;
-  const [dismissed, setDismissed] = useState<boolean>(() => {
-    try { return localStorage.getItem(DISMISS_KEY) === '1'; } catch { return false; }
-  });
-  useEffect(() => {
-    try {
-      if (dismissed) localStorage.setItem(DISMISS_KEY, '1');
-      else localStorage.removeItem(DISMISS_KEY);
-    } catch {}
-  }, [dismissed]);
+
 
   useRealtimeSubscription(
     `debt-summary-card-${branchId || 'all'}`,
