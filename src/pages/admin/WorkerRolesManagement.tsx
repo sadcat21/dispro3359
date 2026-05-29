@@ -20,6 +20,7 @@ interface WorkerRow {
   full_name: string;
   username: string;
   role: AppRole;
+  branch_id: string | null;
 }
 
 interface CustomRoleRow {
@@ -184,6 +185,8 @@ const WorkerRolesManagement: React.FC = () => {
       }
 
       if (toInsertIds.length > 0) {
+        const selectedWorker = workers?.find(w => w.id === selectedWorkerId);
+        const defaultBranchId = selectedWorker?.branch_id ?? null;
         const rows = toInsertIds.map(rid => {
           const cr = customRoles?.find(c => c.id === rid);
           const baseRole: AppRole = (cr && baseRoleMap[cr.code]) || 'worker';
@@ -191,6 +194,7 @@ const WorkerRolesManagement: React.FC = () => {
             worker_id: selectedWorkerId,
             role: baseRole,
             custom_role_id: rid,
+            branch_id: defaultBranchId,
             is_active: true,
             valid_from: newValidFrom ? new Date(newValidFrom).toISOString() : null,
             valid_until: newValidUntil ? new Date(newValidUntil).toISOString() : null,
