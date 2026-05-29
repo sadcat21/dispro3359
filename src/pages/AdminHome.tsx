@@ -578,59 +578,8 @@ const AdminHome: React.FC = () => {
   return (
     <div className="p-4 space-y-4">
       {/* Header */}
-      {isProjectManager ? (
-        <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-950 via-slate-800 to-cyan-700 p-5 text-white shadow-xl">
-          <div className="absolute inset-0 opacity-20">
-            <div className="absolute -top-12 -right-12 h-36 w-36 rounded-full bg-cyan-300/40 blur-2xl" />
-            <div className="absolute -bottom-14 -left-10 h-40 w-40 rounded-full bg-white/15 blur-2xl" />
-          </div>
-          <div className="relative space-y-4">
-            <div className="flex items-start justify-between gap-3">
-              <div className="space-y-1">
-                <Badge className="border-white/20 bg-white/10 text-white hover:bg-white/10">{t('admin_home.project_manager')}</Badge>
-                <h2 className="text-2xl font-bold">{t('admin_home.project_dashboard')}</h2>
-                <p className="text-sm text-slate-200">
-                  {activeBranch?.name ? `${t('admin_home.selected_branch')}: ${activeBranch.name}` : t('admin_home.review_all_branches')}
-                </p>
-              </div>
-              <div className="rounded-2xl border border-white/15 bg-white/10 p-3 backdrop-blur">
-                <Radar className="h-7 w-7 text-cyan-200" />
-              </div>
-            </div>
+      {isBranchAdmin ? (
 
-            <div className="grid grid-cols-2 gap-3">
-              {managerSummaryCards.map((card) => (
-                <Card key={card.key} className={cn('border bg-gradient-to-br shadow-sm', card.tone)}>
-                  <CardContent className="flex items-center justify-between p-3">
-                    <div>
-                      <p className="text-[11px] font-medium text-muted-foreground">{card.label}</p>
-                      <p className="mt-1 text-2xl font-bold text-foreground">{card.value}</p>
-                    </div>
-                    <div className="rounded-xl bg-card/80 dark:bg-card p-2">
-                      <card.icon className="h-5 w-5" />
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-3 gap-2">
-              <div className="rounded-2xl border border-white/10 bg-white/10 p-3">
-                <p className="text-[11px] text-slate-300">{t('admin_home.orders_need_dispatch')}</p>
-                <p className="mt-1 text-lg font-bold">{operationalSnapshot?.pendingOrdersCount || 0}</p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-white/10 p-3">
-                <p className="text-[11px] text-slate-300">{t('admin_home.orders_in_progress')}</p>
-                <p className="mt-1 text-lg font-bold">{operationalSnapshot?.inProgressOrdersCount || 0}</p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-white/10 p-3">
-                <p className="text-[11px] text-slate-300">{t('admin_home.overdue_followups')}</p>
-                <p className="mt-1 text-lg font-bold">{overdueTasksCount}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : isBranchAdmin ? (
         <div className="relative overflow-hidden rounded-2xl border-2 border-teal-300 bg-gradient-to-br from-teal-600 via-teal-500 to-cyan-500 p-5 text-white shadow-lg">
           <div className="absolute top-0 left-0 w-full h-full opacity-10">
             <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-white/20" />
