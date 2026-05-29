@@ -1171,14 +1171,14 @@ const ManagerTreasury = () => {
                         <span className="text-xs text-muted-foreground">{t('treasury.total_sales')}</span>
                         <MoneyValue value={totalSales} currency={cur} className="text-sm font-bold" />
                       </div>
-                      <div className="flex items-center justify-between rounded-lg bg-background p-3 border">
+                      <button type="button" onClick={() => { setTimeout(() => setUncollectedDebtsOpen(true), 200); }} className="w-full text-start flex items-center justify-between rounded-lg bg-background p-3 border hover:bg-muted transition-colors">
                         <span className="text-xs text-muted-foreground">{t('treasury.unpaid')}</span>
                         <SignedMoneyValue value={-unpaidAmount} currency={cur} className="text-sm font-bold text-orange-500" />
-                      </div>
-                      <div className="flex items-center justify-between rounded-lg bg-background p-3 border">
+                      </button>
+                      <button type="button" onClick={() => { setTimeout(() => setCollectedDebtsOpen(true), 200); }} className="w-full text-start flex items-center justify-between rounded-lg bg-background p-3 border hover:bg-muted transition-colors">
                         <span className="text-xs text-muted-foreground">{t('treasury.debt_cash_collected')}</span>
                         <SignedMoneyValue value={debtCashCollected} currency={cur} className="text-sm font-bold text-green-500" />
-                      </div>
+                      </button>
                       <div className="flex items-center justify-between rounded-lg bg-primary/5 border border-primary/20 p-3">
                         <span className="text-xs font-medium">{t('treasury.expected_in_treasury')}</span>
                         <MoneyValue value={expectedInTreasury} currency={cur} className="text-sm font-bold text-primary" />
