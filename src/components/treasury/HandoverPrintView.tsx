@@ -164,6 +164,7 @@ const HandoverPrintView: React.FC<Props> = ({
 
   const cashItemsTotal = cashItems.reduce((sum, item) => sum + Number(item.amount || 0), 0);
   const receiptCashTotal = receiptCash.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  const extraCashTotal = Math.max(0, totalAmount - (cashInvoice1 + cashInvoice2 + checksAmount + receiptsAmount + transfersAmount));
   const stampAmount = Math.max(0, cashInvoice1 - cashItemsTotal - receiptCashTotal);
   const dateStr = format(new Date(handoverDate), 'dd/MM/yyyy');
   const wilayaFr = branchWilaya ? ALGERIAN_WILAYAS.find((wilaya) => wilaya.name === branchWilaya)?.nameFr || branchWilaya : '';
@@ -375,7 +376,7 @@ const HandoverPrintView: React.FC<Props> = ({
             {unifiedCash ? (
               <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }} className="font-bold">
                 <span>Espèces:</span>
-                <span>{(cashInvoice1 + cashInvoice2).toLocaleString()} DA</span>
+                <span>{(cashInvoice1 + cashInvoice2 + extraCashTotal).toLocaleString()} DA</span>
               </div>
             ) : (
               <>
@@ -399,9 +400,15 @@ const HandoverPrintView: React.FC<Props> = ({
                   <span>Espèces Facture 2:</span>
                   <span className="font-bold">{cashInvoice2.toLocaleString()} DA</span>
                 </div>
+                {extraCashTotal > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
+                    <span>Recouvrement dettes / cash suppl.:</span>
+                    <span className="font-bold">{extraCashTotal.toLocaleString()} DA</span>
+                  </div>
+                )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginTop: '4px', paddingTop: '4px', borderTop: '1px solid black' }} className="font-bold">
                   <span>Total Espèces:</span>
-                  <span>{(cashInvoice1 + cashInvoice2).toLocaleString()} DA</span>
+                  <span>{(cashInvoice1 + cashInvoice2 + extraCashTotal).toLocaleString()} DA</span>
                 </div>
               </>
             )}
