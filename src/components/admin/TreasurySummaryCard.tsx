@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTreasurySummary } from '@/hooks/useManagerTreasury';
-import { Wallet, Loader2, X, UserCog } from 'lucide-react';
+import { Wallet, Loader2, UserCog } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const fmt = (n: number) => Math.round(n).toLocaleString();
-const DISMISS_KEY = 'treasury-summary-card-dismissed';
+
 
 interface Props {
   periodStart?: string;
