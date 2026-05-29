@@ -1085,8 +1085,8 @@ const ManagerTreasury = () => {
                     </div>
                     <div className="rounded-lg bg-green-500/5 border border-green-500/20 p-3 text-center">
                       <CheckCircle className="w-4 h-4 mx-auto mb-1 text-green-500" />
-                      <p className="text-[10px] text-muted-foreground">{t('treasury.collected_debts')}</p>
-                      <MoneyValue value={summary?.collectedDebts || 0} currency={cur} className="text-sm font-bold text-green-500" />
+                      <p className="text-[10px] text-muted-foreground">{t('treasury.debt_cash_collected').replace(/^[+＋]\s*/, '')}</p>
+                      <MoneyValue value={summary?.debtCashCollected || 0} currency={cur} className="text-sm font-bold text-green-500" />
                     </div>
                     <button
                       type="button"
