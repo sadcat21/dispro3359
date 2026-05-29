@@ -115,6 +115,7 @@ const Products: React.FC = () => {
   const [priceRetail, setPriceRetail] = useState<number>(0);
   const [priceNoInvoice, setPriceNoInvoice] = useState<number>(0);
   const [purchasePrice, setPurchasePrice] = useState<number>(0);
+  const [boxesPerPallet, setBoxesPerPallet] = useState<number>(0);
   const [pricingUnit, setPricingUnit] = useState<string>('box');
   const [weightPerBox, setWeightPerBox] = useState<number>(0);
   const [allowUnitSale, setAllowUnitSale] = useState<boolean>(false);
@@ -145,6 +146,7 @@ const Products: React.FC = () => {
   const [editPriceRetail, setEditPriceRetail] = useState<number>(0);
   const [editPriceNoInvoice, setEditPriceNoInvoice] = useState<number>(0);
   const [editPurchasePrice, setEditPurchasePrice] = useState<number>(0);
+  const [editBoxesPerPallet, setEditBoxesPerPallet] = useState<number>(0);
   const [editPricingUnit, setEditPricingUnit] = useState<string>('box');
   const [editWeightPerBox, setEditWeightPerBox] = useState<number>(0);
   const [editAllowUnitSale, setEditAllowUnitSale] = useState<boolean>(false);
@@ -332,6 +334,7 @@ const Products: React.FC = () => {
         price_retail: priceRetail,
         price_no_invoice: priceNoInvoice,
         purchase_price: purchasePrice,
+        boxes_per_pallet: boxesPerPallet,
         allow_unit_sale: allowUnitSale,
         sort_order: productSortOrder,
         supplier_id: productSupplierId || null,
@@ -382,6 +385,7 @@ const Products: React.FC = () => {
       setPriceRetail(0);
       setPriceNoInvoice(0);
       setPurchasePrice(0);
+      setBoxesPerPallet(0);
       setPricingUnit('box');
       setWeightPerBox(0);
       setAllowUnitSale(true);
@@ -440,6 +444,7 @@ const Products: React.FC = () => {
     setEditPriceRetail(product.price_retail || 0);
     setEditPriceNoInvoice(product.price_no_invoice || 0);
     setEditPurchasePrice((product as any).purchase_price || 0);
+    setEditBoxesPerPallet((product as any).boxes_per_pallet || 0);
     
     // Store original prices for comparison
     setOriginalPrices({
@@ -536,6 +541,7 @@ const Products: React.FC = () => {
         price_retail: editPriceRetail,
         price_no_invoice: editPriceNoInvoice,
         purchase_price: editPurchasePrice,
+        boxes_per_pallet: editBoxesPerPallet,
         allow_unit_sale: editAllowUnitSale,
         sort_order: editSortOrder,
         supplier_id: editSupplierId || null,
@@ -632,6 +638,7 @@ const Products: React.FC = () => {
         price_retail: editPriceRetail,
         price_no_invoice: editPriceNoInvoice,
         purchase_price: editPurchasePrice,
+        boxes_per_pallet: editBoxesPerPallet,
         allow_unit_sale: editAllowUnitSale,
         supplier_id: editSupplierId || null,
       };
@@ -929,7 +936,11 @@ const Products: React.FC = () => {
                           <img src={palletSettingsImage} alt="Pallet" loading="lazy" width={512} height={512} className="w-14 h-14 object-contain shrink-0" />
                           <Label className="text-sm font-bold text-primary block">{t('products.pallet_settings')}</Label>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <div className="space-y-1">
+                            <Label className="text-[11px] text-muted-foreground">{t('products.boxes_per_pallet')}</Label>
+                            <Input type="number" min={0} step="1" value={boxesPerPallet} onChange={(e) => setBoxesPerPallet(parseInt(e.target.value) || 0)} className="text-right h-9" onFocus={(e) => e.target.select()} />
+                          </div>
                           <div className="space-y-1">
                             <Label className="text-[11px] text-muted-foreground">{t('products.purchase_price')}</Label>
                             <Input type="number" min={0} step="0.01" value={purchasePrice} onChange={(e) => setPurchasePrice(parseFloat(e.target.value) || 0)} className="text-right h-9" onFocus={(e) => e.target.select()} />
@@ -1427,7 +1438,11 @@ const Products: React.FC = () => {
                   <img src={palletSettingsImage} alt="Pallet" loading="lazy" width={512} height={512} className="w-14 h-14 object-contain shrink-0" />
                   <Label className="text-sm font-bold text-primary block">{t('products.pallet_settings')}</Label>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-[11px] text-muted-foreground">{t('products.boxes_per_pallet')}</Label>
+                    <Input type="number" min={0} step="1" value={editBoxesPerPallet} onChange={(e) => setEditBoxesPerPallet(parseInt(e.target.value) || 0)} className="text-right h-9" onFocus={(e) => e.target.select()} />
+                  </div>
                   <div className="space-y-1">
                     <Label className="text-[11px] text-muted-foreground">{t('products.purchase_price')}</Label>
                     <Input type="number" min={0} step="0.01" value={editPurchasePrice} onChange={(e) => setEditPurchasePrice(parseFloat(e.target.value) || 0)} className="text-right h-9" onFocus={(e) => e.target.select()} />

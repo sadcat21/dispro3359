@@ -1,0 +1,1 @@
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS boxes_per_pallet integer NOT NULL DEFAULT 0;
