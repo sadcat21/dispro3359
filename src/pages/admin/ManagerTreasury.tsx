@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import PaymentMethodDetailsDialog from '@/components/treasury/PaymentMethodDetailsDialog';
 import StampDetailsDialog from '@/components/treasury/StampDetailsDialog';
 import UncollectedDebtsDialog from '@/components/treasury/UncollectedDebtsDialog';
+import CollectedDebtsDialog from '@/components/treasury/CollectedDebtsDialog';
 import HandoverItemPickerDialog, { PickedItem } from '@/components/treasury/HandoverItemPickerDialog';
 import HandoverPrintView from '@/components/treasury/HandoverPrintView';
 import { Button } from '@/components/ui/button';
