@@ -994,6 +994,11 @@ const Products: React.FC = () => {
                             <Input type="number" min={0} step="0.01" value={priceRetail} onChange={(e) => setPriceRetail(parseFloat(e.target.value) || 0)} className="text-right h-9" onFocus={(e) => e.target.select()} />
                             <p className="text-[10px] text-muted-foreground">قبل TVA 19%: <span dir="ltr" className="font-medium">{formatPrice(getNetPriceBeforeVat(priceRetail))} DA</span></p>
                           </div>
+                          <div className="space-y-1">
+                            <Label className="text-[11px] text-muted-foreground">السعر الأدنى</Label>
+                            <Input type="number" min={0} step="0.01" value={minPrice} onChange={(e) => setMinPrice(parseFloat(e.target.value) || 0)} className="text-right h-9" onFocus={(e) => e.target.select()} />
+                            <p className="text-[10px] text-muted-foreground">الحد الأدنى للسعر المخصص</p>
+                          </div>
                         </div>
                       </div>
 
