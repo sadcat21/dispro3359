@@ -224,10 +224,8 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
   }, [customerFieldSettings.completionFields, isFieldFilled]);
 
   useEffect(() => {
-    if (debtSummary) {
-      setDebtAmount((Math.round(debtSummary.totalDebt * 100) / 100).toString());
-    }
-  }, [debtSummary]);
+    if (open) setDebtAmount('');
+  }, [open]);
 
   useEffect(() => {
     if (open && customer) {
