@@ -2193,10 +2193,6 @@ export const translations: Translations = {
 
   // ==================== Admin Home ====================
   'admin_home.project_manager': { ar: 'مدير المشروع', fr: 'Chef de projet', en: 'Project Manager' },
-  'admin_home.range_day': { ar: 'يوم', fr: 'Jour', en: 'Day' },
-  'admin_home.range_week': { ar: 'أسبوع', fr: 'Semaine', en: 'Week' },
-  'admin_home.range_2weeks': { ar: 'أسبوعان', fr: '2 semaines', en: '2 weeks' },
-  'admin_home.range_month': { ar: 'شهر', fr: 'Mois', en: 'Month' },
   'admin_home.range_custom': { ar: 'مخصص', fr: 'Personnalisé', en: 'Custom' },
   'admin_home.project_dashboard': { ar: 'لوحة متابعة المشروع', fr: 'Tableau de bord du projet', en: 'Project Dashboard' },
   'admin_home.selected_branch': { ar: 'الفرع المحدد', fr: 'Filiale sélectionnée', en: 'Selected branch' },
