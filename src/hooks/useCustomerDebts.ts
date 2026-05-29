@@ -98,11 +98,23 @@ export const useCustomerDebtSummary = (customerId: string | null) => {
         .from('customer_debts')
         .select('total_amount, paid_amount, remaining_amount, status')
         .eq('customer_id', customerId)
-        .gt('remaining_amount', 0);
+        .in('status', ['active', 'partially_paid']);
 
       if (error) throw error;
-      const totalDebt = data?.reduce((sum, d) => sum + Number(d.remaining_amount || 0), 0) || 0;
-      return { totalDebt, count: data?.length || 0 };
+      const normalizedDebts = (data || []).filter((d) => {
+        const remaining = Number(d.remaining_amount ?? (Number(d.total_amount || 0) - Number(d.paid_amount || 0)));
+        return remaining > 0.009 || d.status === 'partially_paid' || d.status === 'active';
+      });
+
+      const totalDebt = normalizedDebts.reduce((sum, d) => {
+        const remaining = Number(d.remaining_amount ?? (Number(d.total_amount || 0) - Number(d.paid_amount || 0)));
+        return sum + (remaining > 0.009 ? remaining : 0);
+      }, 0);
+
+      return {
+        totalDebt: Math.round(totalDebt * 100) / 100,
+        count: normalizedDebts.filter((d) => Number(d.remaining_amount ?? (Number(d.total_amount || 0) - Number(d.paid_amount || 0))) > 0.009).length,
+      };
     },
     enabled: !!customerId,
   });
