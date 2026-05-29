@@ -1066,7 +1066,7 @@ const ManagerTreasury = () => {
       <CashConsolidationDialog open={consolidationOpen} onOpenChange={setConsolidationOpen} summary={summary} />
 
       <Dialog open={handoversListOpen} onOpenChange={setHandoversListOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-[95vw] sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>📤 تسليمات العمال للمسؤول</DialogTitle>
           </DialogHeader>
