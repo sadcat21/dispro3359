@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import PaymentMethodDetailsDialog from '@/components/treasury/PaymentMethodDetailsDialog';
 import StampDetailsDialog from '@/components/treasury/StampDetailsDialog';
 import UncollectedDebtsDialog from '@/components/treasury/UncollectedDebtsDialog';
+import CollectedDebtsDialog from '@/components/treasury/CollectedDebtsDialog';
 import HandoverItemPickerDialog, { PickedItem } from '@/components/treasury/HandoverItemPickerDialog';
 import HandoverPrintView from '@/components/treasury/HandoverPrintView';
 import { Button } from '@/components/ui/button';
@@ -140,6 +141,7 @@ const ManagerTreasury = () => {
   const [stampOpen, setStampOpen] = useState(false);
   const [detailsCategory, setDetailsCategory] = useState<'cash_invoice1' | 'cash_invoice2' | 'check' | 'bank_receipt_cash' | 'bank_receipt' | 'bank_transfer' | null>(null);
   const [uncollectedDebtsOpen, setUncollectedDebtsOpen] = useState(false);
+  const [collectedDebtsOpen, setCollectedDebtsOpen] = useState(false);
   const [addForm, setAddForm] = useState({ payment_method: 'cash_invoice1', amount: '', customer_name: '', invoice_number: '', invoice_date: '', check_number: '', check_bank: '', check_date: '', receipt_number: '', transfer_reference: '', notes: '' });
   const [handoverForm, setHandoverForm] = useState({ cash_invoice1: '', cash_invoice2: '', cash_delivered: '', notes: '', delivery_method: 'direct', intermediary_name: '', bank_transfer_reference: '', received_by: '', bank_account_id: '', receipt_image_url: '' });
   const [pickedChecks, setPickedChecks] = useState<PickedItem[]>([]);
@@ -1059,6 +1061,7 @@ const ManagerTreasury = () => {
 
       <StampDetailsDialog open={stampOpen} onOpenChange={setStampOpen} />
       <UncollectedDebtsDialog open={uncollectedDebtsOpen} onOpenChange={setUncollectedDebtsOpen} />
+      <CollectedDebtsDialog open={collectedDebtsOpen} onOpenChange={setCollectedDebtsOpen} range={dateRange} />
       <CashConsolidationDialog open={consolidationOpen} onOpenChange={setConsolidationOpen} summary={summary} />
 
       {/* All treasury sections on one page */}
@@ -1077,17 +1080,16 @@ const ManagerTreasury = () => {
                       <MoneyValue value={summary?.total || 0} currency={cur} className="text-lg font-bold" />
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="rounded-lg bg-orange-500/5 border border-orange-500/20 p-3 text-center">
-                      <AlertCircle className="w-4 h-4 mx-auto mb-1 text-orange-500" />
-                      <p className="text-[10px] text-muted-foreground">{t('treasury.total_debts')}</p>
-                      <MoneyValue value={summary?.totalDebts || 0} currency={cur} className="text-sm font-bold text-orange-500" />
-                    </div>
-                    <div className="rounded-lg bg-green-500/5 border border-green-500/20 p-3 text-center">
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      className="rounded-lg bg-green-500/5 border border-green-500/20 p-3 text-center"
+                      onClick={() => { setTimeout(() => setCollectedDebtsOpen(true), 200); }}
+                    >
                       <CheckCircle className="w-4 h-4 mx-auto mb-1 text-green-500" />
                       <p className="text-[10px] text-muted-foreground">{t('treasury.debt_cash_collected').replace(/^[+＋]\s*/, '')}</p>
                       <MoneyValue value={summary?.debtCashCollected || 0} currency={cur} className="text-sm font-bold text-green-500" />
-                    </div>
+                    </button>
                     <button
                       type="button"
                       className="rounded-lg bg-destructive/5 border border-destructive/20 p-3 text-center"
@@ -1098,6 +1100,7 @@ const ManagerTreasury = () => {
                       <MoneyValue value={summary?.uncollectedDebts || 0} currency={cur} className="text-sm font-bold text-destructive" />
                     </button>
                   </div>
+
                 </div>
               )}</section>
 
