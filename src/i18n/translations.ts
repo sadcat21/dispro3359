@@ -2193,6 +2193,7 @@ export const translations: Translations = {
 
   // ==================== Admin Home ====================
   'admin_home.project_manager': { ar: 'مدير المشروع', fr: 'Chef de projet', en: 'Project Manager' },
+  'admin_home.range_custom': { ar: 'مخصص', fr: 'Personnalisé', en: 'Custom' },
   'admin_home.project_dashboard': { ar: 'لوحة متابعة المشروع', fr: 'Tableau de bord du projet', en: 'Project Dashboard' },
   'admin_home.selected_branch': { ar: 'الفرع المحدد', fr: 'Filiale sélectionnée', en: 'Selected branch' },
   'admin_home.review_all_branches': { ar: 'أنت تراجع جميع الفروع من مكان واحد', fr: 'Vous supervisez toutes les filiales depuis un seul endroit', en: 'You are reviewing all branches from one place' },
