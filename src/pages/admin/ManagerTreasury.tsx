@@ -1066,7 +1066,7 @@ const ManagerTreasury = () => {
       <CashConsolidationDialog open={consolidationOpen} onOpenChange={setConsolidationOpen} summary={summary} />
 
       <Dialog open={handoversListOpen} onOpenChange={setHandoversListOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-[95vw] sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>📤 تسليمات العمال للمسؤول</DialogTitle>
           </DialogHeader>
@@ -1514,7 +1514,7 @@ const ManagerTreasury = () => {
         if (!h) return null;
         return (
           <Dialog open={!!printHandover} onOpenChange={(open) => !open && setPrintHandover(null)}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="ltr">
+            <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto" dir="ltr">
               <DialogHeader>
                 <DialogTitle className="flex items-center justify-between">
                   <span>طباعة التسليم</span>
@@ -1602,7 +1602,7 @@ const ManagerTreasury = () => {
         if (!h) return null;
         return (
           <Dialog open={!!viewHandover} onOpenChange={(open) => !open && setViewHandover(null)}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="ltr">
+            <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto" dir="ltr">
               <DialogHeader>
                 <DialogTitle className="flex items-center justify-between">
                   <span>{t('treasury.handover_details')}</span>
