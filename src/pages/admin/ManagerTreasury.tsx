@@ -1175,12 +1175,10 @@ const ManagerTreasury = () => {
                         <span className="text-xs text-muted-foreground">{t('treasury.unpaid')}</span>
                         <SignedMoneyValue value={-unpaidAmount} currency={cur} className="text-sm font-bold text-orange-500" />
                       </div>
-                      {debtCashCollected > 0 && (
-                        <div className="flex items-center justify-between rounded-lg bg-background p-3 border">
-                          <span className="text-xs text-muted-foreground">{t('treasury.debt_cash_collected')}</span>
-                          <SignedMoneyValue value={debtCashCollected} currency={cur} className="text-sm font-bold text-green-500" />
-                        </div>
-                      )}
+                      <div className="flex items-center justify-between rounded-lg bg-background p-3 border">
+                        <span className="text-xs text-muted-foreground">{t('treasury.debt_cash_collected')}</span>
+                        <SignedMoneyValue value={debtCashCollected} currency={cur} className="text-sm font-bold text-green-500" />
+                      </div>
                       <div className="flex items-center justify-between rounded-lg bg-primary/5 border border-primary/20 p-3">
                         <span className="text-xs font-medium">{t('treasury.expected_in_treasury')}</span>
                         <MoneyValue value={expectedInTreasury} currency={cur} className="text-sm font-bold text-primary" />
@@ -1196,24 +1194,18 @@ const ManagerTreasury = () => {
                         <span className="text-xs text-muted-foreground">{t('treasury.handed_to_upper')}</span>
                         <MoneyValue value={handedOver} currency={cur} className="text-sm font-bold" />
                       </div>
-                      {totalExpenses > 0 && (
-                        <div className="flex items-center justify-between rounded-lg bg-background p-3 border">
-                          <span className="text-xs text-muted-foreground">{t('treasury.approved_expenses')}</span>
-                          <MoneyValue value={totalExpenses} currency={cur} className="text-sm font-bold" />
-                        </div>
-                      )}
-                      {workerHeldAmount > 0 && (
-                        <div className="flex items-center justify-between rounded-lg bg-amber-500/5 border border-amber-500/20 p-3">
-                          <span className="text-xs text-muted-foreground">👷 {t('treasury.worker_held')}</span>
-                          <MoneyValue value={workerHeldAmount} currency={cur} className="text-sm font-bold text-amber-600" />
-                        </div>
-                      )}
-                      {coinExchangeOut > 0 && (
-                        <div className="flex items-center justify-between rounded-lg bg-amber-500/5 border border-amber-500/20 p-3">
-                          <span className="text-xs text-muted-foreground">🪙 {t('coin_exchange.title') || 'تحويل عملات'}</span>
-                          <MoneyValue value={coinExchangeOut} currency={cur} className="text-sm font-bold text-amber-600" />
-                        </div>
-                      )}
+                      <div className="flex items-center justify-between rounded-lg bg-background p-3 border">
+                        <span className="text-xs text-muted-foreground">{t('treasury.approved_expenses')}</span>
+                        <MoneyValue value={totalExpenses} currency={cur} className="text-sm font-bold" />
+                      </div>
+                      <div className="flex items-center justify-between rounded-lg bg-amber-500/5 border border-amber-500/20 p-3">
+                        <span className="text-xs text-muted-foreground">👷 {t('treasury.worker_held')}</span>
+                        <MoneyValue value={workerHeldAmount} currency={cur} className="text-sm font-bold text-amber-600" />
+                      </div>
+                      <div className="flex items-center justify-between rounded-lg bg-amber-500/5 border border-amber-500/20 p-3">
+                        <span className="text-xs text-muted-foreground">🪙 {t('coin_exchange.title') || 'تحويل عملات'}</span>
+                        <MoneyValue value={coinExchangeOut} currency={cur} className="text-sm font-bold text-amber-600" />
+                      </div>
                     </div>
                     <div className={`rounded-lg p-3 text-center ${hasGap ? 'bg-orange-500/10 border border-orange-500/20' : 'bg-green-500/10 border border-green-500/20'}`}>
                       {hasGap ? (
