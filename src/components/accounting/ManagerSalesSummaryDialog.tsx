@@ -1128,15 +1128,16 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
                           {item.name}
                         </span>
                       </div>
-                      <div className="aspect-square w-full overflow-hidden bg-slate-100">
+                      <div className="aspect-[4/3] w-full max-h-32 overflow-hidden bg-slate-100">
                         {item.imageUrl ? (
-                          <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" loading="lazy" />
+                          <img src={item.imageUrl} alt={item.name} className="h-full w-full object-contain" loading="lazy" />
                         ) : (
                           <div className="flex h-full items-center justify-center">
-                            <Package className="h-12 w-12 text-slate-300" />
+                            <Package className="h-8 w-8 text-slate-300" />
                           </div>
                         )}
                       </div>
+
                       <div className="flex flex-col gap-2 bg-white px-2.5 py-2.5">
                         {(() => {
                           const ppb = Math.max(1, Number(item.piecesPerBox || 1));
