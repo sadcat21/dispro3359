@@ -14,7 +14,7 @@ interface ReceiptPaymentDialogProps {
   onOpenChange: (open: boolean) => void;
   orderTotal: number;
   customerName: string;
-  paymentMethod: 'receipt' | 'transfer'; // Versement or Virement
+  paymentMethod: 'receipt' | 'transfer' | 'check'; // Versement / Virement / Chèque
   onConfirm: (data: {
     receiptReceived: boolean;
     paidByCash: boolean;
@@ -35,8 +35,9 @@ const ReceiptPaymentDialog: React.FC<ReceiptPaymentDialogProps> = ({
   
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const methodLabel = paymentMethod === 'receipt' ? 'Versement' : 'Virement';
-  const docLabel = paymentMethod === 'receipt' ? 'Versement' : 'Virement';
+  const methodLabel = paymentMethod === 'receipt' ? 'Versement' : paymentMethod === 'transfer' ? 'Virement' : 'Chèque';
+  const docLabel = methodLabel;
+  const allowCash = paymentMethod !== 'check';
 
   const enteredAmount = mode === 'receipt' ? Number(receiptAmount) || 0 : Number(cashAmount) || 0;
   const remainingDebt = Math.max(0, orderTotal - enteredAmount);
@@ -116,15 +117,17 @@ const ReceiptPaymentDialog: React.FC<ReceiptPaymentDialogProps> = ({
                   <FileText className="w-5 h-5 me-2" />
                   استلام {docLabel}
                 </Button>
-                <Button
-                  variant="outline"
-                  className="h-14 text-base"
-                  onClick={() => setMode('cash')}
-                  disabled={isSubmitting}
-                >
-                  <Banknote className="w-5 h-5 me-2" />
-                  دفع كاش
-                </Button>
+                {allowCash && (
+                  <Button
+                    variant="outline"
+                    className="h-14 text-base"
+                    onClick={() => setMode('cash')}
+                    disabled={isSubmitting}
+                  >
+                    <Banknote className="w-5 h-5 me-2" />
+                    دفع كاش
+                  </Button>
+                )}
                 <Button
                   variant="destructive"
                   className="h-14 text-base"
