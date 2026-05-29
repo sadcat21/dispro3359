@@ -1166,7 +1166,11 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                   if (deleteTarget.kind === 'debt') {
                     await deleteDebtMutation.mutateAsync(deleteTarget.id);
                   } else {
-                    await deletePaymentMutation.mutateAsync(deleteTarget.id);
+                    // Handle grouped payments (single user collection split across debts)
+                    const ids = deleteTarget.id.split('+').filter(Boolean);
+                    for (const pid of ids) {
+                      await deletePaymentMutation.mutateAsync(pid);
+                    }
                   }
                   toast.success(t('debt_collect.cancelled_success'));
                   setDeleteTarget(null);
