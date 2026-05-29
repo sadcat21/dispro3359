@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTreasurySummary } from '@/hooks/useManagerTreasury';
-import { Wallet, Loader2, X, UserCog } from 'lucide-react';
+import { Wallet, Loader2, UserCog } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const fmt = (n: number) => Math.round(n).toLocaleString();
-const DISMISS_KEY = 'treasury-summary-card-dismissed';
+
 
 interface Props {
   periodStart?: string;
@@ -30,16 +30,8 @@ const TreasurySummaryCard: React.FC<Props> = ({ periodStart, periodEnd, periodLa
   const { t } = useLanguage();
   const { activeBranch } = useAuth();
   const branchId = activeBranch?.id || null;
-  const [dismissed, setDismissed] = useState<boolean>(() => {
-    try { return localStorage.getItem(DISMISS_KEY) === '1'; } catch { return false; }
-  });
   const [open, setOpen] = useState(false);
-  useEffect(() => {
-    try {
-      if (dismissed) localStorage.setItem(DISMISS_KEY, '1');
-      else localStorage.removeItem(DISMISS_KEY);
-    } catch {}
-  }, [dismissed]);
+
 
   const range = (periodStart || periodEnd)
     ? { from: periodStart ? periodStart.slice(0, 10) : undefined, to: periodEnd ? periodEnd.slice(0, 10) : undefined }
@@ -68,8 +60,6 @@ const TreasurySummaryCard: React.FC<Props> = ({ periodStart, periodEnd, periodLa
     },
   });
 
-  if (dismissed) return null;
-
   const rows = perManager || [];
 
   const aggTotal = aggregate?.total || 0;
@@ -78,14 +68,7 @@ const TreasurySummaryCard: React.FC<Props> = ({ periodStart, periodEnd, periodLa
 
   return (
     <div className="relative rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-sky-50 p-4 shadow-sm dark:border-emerald-900 dark:from-emerald-950/30 dark:via-background dark:to-sky-950/20">
-      <button
-        type="button"
-        onClick={(e) => { e.stopPropagation(); setDismissed(true); }}
-        aria-label={t('common.dismiss') || 'إغلاق'}
-        className="absolute top-2 end-2 rounded-full p-1 text-emerald-700/70 hover:bg-emerald-100 hover:text-emerald-900 dark:hover:bg-emerald-950/60 transition"
-      >
-        <X className="h-4 w-4" />
-      </button>
+
       <div className="flex items-center justify-between mb-3 pe-6">
         <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
           <Wallet className="h-5 w-5" />
