@@ -188,18 +188,9 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
     : pricingUnit === 'unit'
       ? (safePiecesPerBox > 0 ? unitPrice / safePiecesPerBox : unitPrice)
       : unitPrice;
-  const productMinPriceBox = Number((product as any)?.min_price) || 0;
-  const minPricingUnitPrice = pricingUnit === 'kg'
-    ? (safeWeightPerBox > 0 ? productMinPriceBox / safeWeightPerBox : productMinPriceBox)
-    : pricingUnit === 'unit'
-      ? (safePiecesPerBox > 0 ? productMinPriceBox / safePiecesPerBox : productMinPriceBox)
-      : productMinPriceBox;
-  const productMaxPriceBox = Number((product as any)?.price_retail) || 0;
-  const maxPricingUnitPrice = pricingUnit === 'kg'
-    ? (safeWeightPerBox > 0 ? productMaxPriceBox / safeWeightPerBox : productMaxPriceBox)
-    : pricingUnit === 'unit'
-      ? (safePiecesPerBox > 0 ? productMaxPriceBox / safePiecesPerBox : productMaxPriceBox)
-      : productMaxPriceBox;
+  // Note: min_price and price_retail are stored per pricing unit (per kg / per piece / per box)
+  const minPricingUnitPrice = Number((product as any)?.min_price) || 0;
+  const maxPricingUnitPrice = Number((product as any)?.price_retail) || 0;
   const resolveSaleUnitPrice = useCallback((basePrice: number, unitSale: boolean) => {
     if (pricingUnit === 'kg') {
       const boxPrice = basePrice * (safeWeightPerBox || 1);
