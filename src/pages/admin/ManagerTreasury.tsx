@@ -1108,50 +1108,8 @@ const ManagerTreasury = () => {
       <div className="px-3 md:px-4 pb-6 space-y-6" dir={dir}>
 
               {/* Sales & Debts Summary */}
-              <section className="space-y-2"><h2 className="text-base font-bold border-b pb-1">📊 ملخص المبيعات والديون</h2>{true && (
-                <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="rounded-lg bg-green-500/5 border border-green-500/20 p-3 text-center">
-                      <p className="text-[10px] text-muted-foreground">{t('treasury.sales_value')}</p>
-                      <MoneyValue value={summary?.totalSales || 0} currency={cur} className="text-lg font-bold text-green-600" />
-                    </div>
-                    <button
-                      type="button"
-                      className="rounded-lg bg-muted/50 p-3 text-center hover:bg-muted transition-colors"
-                      onClick={() => { setTimeout(() => setHandoversListOpen(true), 200); }}
-                    >
-                      <p className="text-[10px] text-muted-foreground">المستلم من العمال نقداً (بدون تحصيلات الديون)</p>
-                      <MoneyValue value={Math.max((summary?.total || 0) - (summary?.debtCashCollected || 0), 0)} currency={cur} className="text-lg font-bold" />
-                    </button>
-                    <div className="rounded-lg bg-muted/50 p-3 text-center">
-                      <p className="text-[10px] text-muted-foreground">{t('treasury.received_treasury')}</p>
-                      <MoneyValue value={summary?.total || 0} currency={cur} className="text-lg font-bold" />
-                    </div>
 
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      className="rounded-lg bg-green-500/5 border border-green-500/20 p-3 text-center"
-                      onClick={() => { setTimeout(() => setCollectedDebtsOpen(true), 200); }}
-                    >
-                      <CheckCircle className="w-4 h-4 mx-auto mb-1 text-green-500" />
-                      <p className="text-[10px] text-muted-foreground">{t('treasury.debt_cash_collected').replace(/^[+＋]\s*/, '')}</p>
-                      <MoneyValue value={summary?.debtCashCollected || 0} currency={cur} className="text-sm font-bold text-green-500" />
-                    </button>
-                    <button
-                      type="button"
-                      className="rounded-lg bg-destructive/5 border border-destructive/20 p-3 text-center"
-                      onClick={() => { setTimeout(() => setUncollectedDebtsOpen(true), 200); }}
-                    >
-                      <AlertCircle className="w-4 h-4 mx-auto mb-1 text-destructive" />
-                      <p className="text-[10px] text-muted-foreground">{t('treasury.uncollected_debts')}</p>
-                      <MoneyValue value={summary?.uncollectedDebts || 0} currency={cur} className="text-sm font-bold text-destructive" />
-                    </button>
-                  </div>
 
-                </div>
-              )}</section>
 
               <section className="space-y-2"><h2 className="text-base font-bold border-b pb-1">⚖️ الميزانية</h2>{(() => {
                 const totalSales = summary?.totalSales || 0;
