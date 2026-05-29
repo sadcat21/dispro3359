@@ -1079,7 +1079,10 @@ const ManagerTreasury = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Send className="w-4 h-4 text-destructive" />
-                      <p className="font-bold">{Number(h.amount).toLocaleString()} {cur}</p>
+                      <div>
+                        <p className="font-bold text-sm">{(h as any).manager?.full_name || '—'}</p>
+                        <p className="font-bold">{Number(h.amount).toLocaleString()} {cur}</p>
+                      </div>
                     </div>
                     <p className="text-xs text-muted-foreground">{format(new Date(h.created_at), 'dd/MM/yyyy', { locale: dateLocale })}</p>
                   </div>

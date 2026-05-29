@@ -550,7 +550,7 @@ export const useManagerHandovers = (range?: TreasuryDateRange) => {
     queryFn: async () => {
       let query = supabase
         .from('manager_handovers')
-        .select('*')
+        .select('*, manager:workers!manager_handovers_manager_id_fkey(id, full_name)')
         .order('created_at', { ascending: false });
 
       if (activeBranch?.id) query = query.eq('branch_id', activeBranch.id);
@@ -560,7 +560,7 @@ export const useManagerHandovers = (range?: TreasuryDateRange) => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as HandoverEntry[];
+      return data as (HandoverEntry & { manager?: { id: string; full_name: string } })[];
     },
   });
 };
