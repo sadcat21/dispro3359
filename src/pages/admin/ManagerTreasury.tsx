@@ -66,14 +66,14 @@ const TreasuryCard = ({ icon, label, total, handed, colorClass, borderClass, onC
 
 const MoneyValue = ({ value, currency, className = '' }: { value: number; currency: string; className?: string }) => (
   <bdi dir="ltr" className={`inline-block whitespace-nowrap tabular-nums ${className}`.trim()}>
-    {value.toLocaleString()} {` ${currency}`}
+    {value.toLocaleString(undefined, { maximumFractionDigits: 4 })} {` ${currency}`}
   </bdi>
 );
 
 const SignedMoneyValue = ({ value, currency, className = '', signClassName = '' }: { value: number; currency: string; className?: string; signClassName?: string }) => (
   <span dir="ltr" className={`inline-flex items-center gap-1 whitespace-nowrap tabular-nums ${className}`.trim()}>
     <span className={signClassName}>{value >= 0 ? '+' : '-'}</span>
-    <bdi dir="ltr">{Math.abs(value).toLocaleString()} {currency}</bdi>
+    <bdi dir="ltr">{Math.abs(value).toLocaleString(undefined, { maximumFractionDigits: 4 })} {currency}</bdi>
   </span>
 );
 
