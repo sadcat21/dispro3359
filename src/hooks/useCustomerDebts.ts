@@ -373,6 +373,7 @@ export const useCollectCustomerDebtGroup = () => {
         const effectivePaymentMethod = await resolveDebtCollectionMethod(debt.id, paymentMethod);
 
         const { error: paymentError } = await supabase
+          .from('debt_payments')
           .insert({
             debt_id: debt.id,
             worker_id: workerId,
