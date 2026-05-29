@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,6 +16,7 @@ import TreasuryConsolidationEditDialog from '@/components/treasury/TreasuryConso
 import OrderDetailsDialog from '@/components/orders/OrderDetailsDialog';
 import { OrderWithDetails } from '@/types/database';
 import { formatAmountWithMaxFraction } from '@/utils/amountFormatting';
+import { orderAccountingTime, TreasuryDateRange } from '@/hooks/useManagerTreasury';
 
 type PaymentCategory =
   | 'cash_invoice1'
@@ -39,6 +40,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   category: PaymentCategory;
   handedCashInvoice2Amount?: number;
+  range?: TreasuryDateRange;
 }
 
 interface ProcessedOrder {
@@ -69,7 +71,7 @@ const MoneyValue = ({ value, className = '' }: { value: number; className?: stri
   </bdi>
 );
 
-const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashInvoice2Amount: handedCashInvoice2AmountProp = 0 }: Props) => {
+const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashInvoice2Amount: handedCashInvoice2AmountProp = 0, range }: Props) => {
   const { workerId, activeBranch } = useAuth();
   const queryClient = useQueryClient();
   const config = categoryConfig[category];
@@ -79,6 +81,8 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
   const isReceiptCash = category === 'bank_receipt_cash';
   const isBankReceipt = category === 'bank_receipt';
   const { data: stampTiers } = useActiveStampTiers();
+  const rangeFromTs = useMemo(() => (range?.from ? orderAccountingTime({ delivery_date: range.from }) : null), [range?.from]);
+  const rangeToTs = useMemo(() => (range?.to ? orderAccountingTime({ delivery_date: range.to }) + (24 * 60 * 60 * 1000) - 1 : null), [range?.to]);
 
   // Consolidation edit state
   const [editConsolId, setEditConsolId] = useState<string | null>(null);
@@ -100,11 +104,13 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
     }
   };
   const { data: handedCashInvoice2AmountFromQuery = 0 } = useQuery({
-    queryKey: ['treasury-summary', 'handed-cash-invoice2', activeBranch?.id],
+    queryKey: ['treasury-summary', 'handed-cash-invoice2', activeBranch?.id, range?.from || null, range?.to || null],
     enabled: open && isCashInvoice2,
     queryFn: async () => {
       let query = supabase.from('manager_handovers').select('cash_invoice2');
       if (activeBranch?.id) query = query.eq('branch_id', activeBranch.id);
+      if (range?.from) query = query.gte('handover_date', range.from);
+      if (range?.to) query = query.lte('handover_date', range.to);
       const { data, error } = await query;
       if (error) throw error;
       const handed = (data || []).reduce((sum: number, handover: any) => sum + Number(handover.cash_invoice2 || 0), 0);
@@ -118,6 +124,8 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
         .select('amount, source_type, payment_method')
         .in('source_type', ['cash_consolidation_debit']);
       if (activeBranch?.id) consQuery = consQuery.eq('branch_id', activeBranch.id);
+      if (range?.from) consQuery = consQuery.gte('created_at', `${range.from}T00:00:00`);
+      if (range?.to) consQuery = consQuery.lte('created_at', `${range.to}T23:59:59`);
       const { data: consEntries } = await consQuery;
       const consDeducted = (consEntries || [])
         .filter((e: any) => e.payment_method === 'cash_invoice2')
@@ -129,7 +137,7 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
   const handedCashInvoice2Amount = handedCashInvoice2AmountProp || handedCashInvoice2AmountFromQuery;
 
   const { data: customerGroups, isLoading } = useQuery({
-    queryKey: ['treasury-details', category, activeBranch?.id, stampTiers?.length, handedCashInvoice2Amount],
+    queryKey: ['treasury-details', category, activeBranch?.id, stampTiers?.length, handedCashInvoice2Amount, range?.from || null, range?.to || null],
     enabled: open && (isCashInvoice1 ? !!stampTiers : true),
     queryFn: async () => {
       let handedQuery = supabase
@@ -157,6 +165,8 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
         .order('created_at', { ascending: false });
 
       if (activeBranch?.id) query = query.eq('branch_id', activeBranch.id);
+      if (range?.from) query = query.gte('delivery_date', range.from);
+      if (range?.to) query = query.lte('delivery_date', range.to);
 
       switch (category) {
         case 'cash_invoice1':
@@ -183,6 +193,10 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
       const processedOrders: any[] = [];
 
       (data || []).forEach((o: any) => {
+        const orderTs = orderAccountingTime(o);
+        if (rangeFromTs !== null && orderTs < rangeFromTs) return;
+        if (rangeToTs !== null && orderTs > rangeToTs) return;
+
         const receiptBucket = resolveReceiptBucket(o.document_verification);
         const verification =
           o.document_verification && typeof o.document_verification === 'object' && !Array.isArray(o.document_verification)
