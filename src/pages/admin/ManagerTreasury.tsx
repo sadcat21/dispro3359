@@ -1077,17 +1077,16 @@ const ManagerTreasury = () => {
                       <MoneyValue value={summary?.total || 0} currency={cur} className="text-lg font-bold" />
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="rounded-lg bg-orange-500/5 border border-orange-500/20 p-3 text-center">
-                      <AlertCircle className="w-4 h-4 mx-auto mb-1 text-orange-500" />
-                      <p className="text-[10px] text-muted-foreground">{t('treasury.total_debts')}</p>
-                      <MoneyValue value={summary?.totalDebts || 0} currency={cur} className="text-sm font-bold text-orange-500" />
-                    </div>
-                    <div className="rounded-lg bg-green-500/5 border border-green-500/20 p-3 text-center">
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      className="rounded-lg bg-green-500/5 border border-green-500/20 p-3 text-center"
+                      onClick={() => { setTimeout(() => setCollectedDebtsOpen(true), 200); }}
+                    >
                       <CheckCircle className="w-4 h-4 mx-auto mb-1 text-green-500" />
                       <p className="text-[10px] text-muted-foreground">{t('treasury.debt_cash_collected').replace(/^[+＋]\s*/, '')}</p>
                       <MoneyValue value={summary?.debtCashCollected || 0} currency={cur} className="text-sm font-bold text-green-500" />
-                    </div>
+                    </button>
                     <button
                       type="button"
                       className="rounded-lg bg-destructive/5 border border-destructive/20 p-3 text-center"
@@ -1098,6 +1097,7 @@ const ManagerTreasury = () => {
                       <MoneyValue value={summary?.uncollectedDebts || 0} currency={cur} className="text-sm font-bold text-destructive" />
                     </button>
                   </div>
+
                 </div>
               )}</section>
 
