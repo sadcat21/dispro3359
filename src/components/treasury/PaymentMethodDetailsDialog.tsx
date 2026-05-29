@@ -100,7 +100,7 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
     }
   };
   const { data: handedCashInvoice2AmountFromQuery = 0 } = useQuery({
-    queryKey: ['treasury-handed-cash-invoice2', activeBranch?.id],
+    queryKey: ['treasury-summary', 'handed-cash-invoice2', activeBranch?.id],
     enabled: open && isCashInvoice2,
     queryFn: async () => {
       let query = supabase.from('manager_handovers').select('cash_invoice2');
