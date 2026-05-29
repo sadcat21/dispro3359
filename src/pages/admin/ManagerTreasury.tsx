@@ -514,7 +514,10 @@ const ManagerTreasury = () => {
   const transfersAmount = pickedTransfers.reduce((s, i) => s + i.amount, 0);
   const deliveredCashAmount = Number(handoverForm.cash_delivered || 0);
   const availableInvoice2CashAmount = Math.max((summary?.cash_invoice2 || 0) - (summary?.cash_invoice2_handed || 0), 0);
-  const invoice2CashAmount = Math.min(availableInvoice2CashAmount, Math.max(0, deliveredCashAmount - invoice1CashAmountWithStamp));
+  const availableDebtCashAmount = Math.max(summary?.debtCashCollected || 0, 0);
+  const extraDeliveredCashAmount = Math.max(0, deliveredCashAmount - invoice1CashAmountWithStamp);
+  const invoice2CashAmount = Math.min(availableInvoice2CashAmount, extraDeliveredCashAmount);
+  const debtCashHandoverAmount = Math.max(0, extraDeliveredCashAmount - invoice2CashAmount);
   const remainingCashInvoice1Count = remainingCounts?.cash_invoice1?.operations ?? (((summary?.cash_invoice1 || 0) + (summary?.cash_invoice1_stamp || 0) - (summary?.cash_invoice1_handed || 0)) > 1 ? (summary?.cash_invoice1_count || 0) : 0);
   const remainingCashInvoice2Count = remainingCounts?.cash_invoice2?.operations ?? (((summary?.cash_invoice2 || 0) - (summary?.cash_invoice2_handed || 0)) > 1 ? (summary?.cash_invoice2_count || 0) : 0);
   const remainingChecksCount = remainingCounts?.check?.operations ?? (((summary?.check || 0) - (summary?.check_handed || 0)) > 1 ? (summary?.checkCount || 0) : 0);
@@ -537,7 +540,7 @@ const ManagerTreasury = () => {
       toast.error('الكاش المسلم يجب أن يكون أكبر من أو يساوي كاش فاتورة 1');
       return;
     }
-    const total = finalCash1 + finalCash2 + checksAmount + receiptsAmount + transfersAmount;
+    const total = deliveredCashAmount + checksAmount + receiptsAmount + transfersAmount;
     if (total <= 0) {
       toast.error(t('treasury.enter_at_least_one'));
       return;
