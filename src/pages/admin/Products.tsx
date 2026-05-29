@@ -545,6 +545,7 @@ const Products: React.FC = () => {
         allow_invoice_sale: editAllowInvoiceSale,
         allow_invoice2_sale: editAllowInvoice2Sale,
         price_retail: editPriceRetail,
+        min_price: editMinPrice,
         price_no_invoice: editPriceNoInvoice,
         purchase_price: editPurchasePrice,
         boxes_per_pallet: editBoxesPerPallet,
