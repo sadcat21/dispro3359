@@ -752,10 +752,11 @@ const ManagerTreasury = () => {
                         const inv2Val = availableInvoice2CashAmount;
                         const debtVal = availableDebtCashAmount;
                         const totalVal = inv1Val + inv2Val + debtVal;
+                        const allocatedInv2 = Math.min(inv2Val, Math.max(0, currentCash - inv1Val));
                         
                         // Detect which invoices are currently "inserted"
-                        const isInv1Inserted = Math.abs(currentCash - inv1Val) < 1 || Math.abs(currentCash - totalVal) < 1;
-                        const isInv2Inserted = Math.abs(currentCash - (inv1Val + inv2Val)) < 1 || Math.abs(currentCash - inv2Val) < 1 || (currentCash > inv1Val && Math.abs(currentCash - inv1Val - inv2Val) < 1);
+                        const isInv1Inserted = inv1Val > 0 && currentCash >= inv1Val - 1;
+                        const isInv2Inserted = allocatedInv2 > 0;
                         const isTotalInserted = Math.abs(currentCash - totalVal) < 1;
 
                         return (
@@ -770,8 +771,8 @@ const ManagerTreasury = () => {
                                 if (isInv1Inserted && !isInv2Inserted) {
                                   setHandoverForm(f => ({ ...f, cash_delivered: '0' }));
                                 } else if (isTotalInserted) {
-                                  // Remove inv1, keep inv2
-                                  setHandoverForm(f => ({ ...f, cash_delivered: String(inv2Val) }));
+                                  // Remove inv1, keep inv2 + debt collections
+                                  setHandoverForm(f => ({ ...f, cash_delivered: String(inv2Val + debtVal) }));
                                 } else {
                                   setHandoverForm(f => ({ ...f, cash_delivered: String(inv1Val) }));
                                 }
@@ -789,8 +790,8 @@ const ManagerTreasury = () => {
                                 if (isInv2Inserted && !isInv1Inserted) {
                                   setHandoverForm(f => ({ ...f, cash_delivered: '0' }));
                                 } else if (isTotalInserted) {
-                                  // Remove inv2, keep inv1
-                                  setHandoverForm(f => ({ ...f, cash_delivered: String(inv1Val) }));
+                                  // Remove inv2, keep inv1 + debt collections
+                                  setHandoverForm(f => ({ ...f, cash_delivered: String(inv1Val + debtVal) }));
                                 } else {
                                   const base = isInv1Inserted ? inv1Val : 0;
                                   setHandoverForm(f => ({ ...f, cash_delivered: String(base + inv2Val) }));
