@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
-import { Banknote, HandCoins, CalendarDays, TrendingUp, Loader2, X } from 'lucide-react';
+import { Banknote, CalendarDays, TrendingUp, Loader2 } from 'lucide-react';
 
 const fmt = (n: number) => Math.round(n).toLocaleString();
-const DISMISS_KEY = 'debt-summary-card-dismissed';
+
 
 interface DebtSummaryCardProps {
   periodStart?: string;
