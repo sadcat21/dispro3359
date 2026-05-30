@@ -645,7 +645,7 @@ const ManagerTreasury = () => {
             <Button size="sm" className="h-8 gap-1 rounded-full px-2.5 text-[11px] bg-blue-600 hover:bg-blue-700 text-white border-blue-600" onClick={() => setConsolidationOpen(true)}>
               <Wallet className="w-4 h-4" /><span>تجميع الكاش</span>
             </Button>
-            <Button size="sm" className="h-8 gap-1 rounded-full px-2.5 text-[11px]" onClick={() => setHandoverOpen(true)}>
+            <Button size="sm" className={`h-8 gap-1 rounded-full px-2.5 text-[11px] ${(!handovers || handovers.length === 0) ? 'bg-green-600 hover:bg-green-700 text-white border-green-600' : ''}`} onClick={() => setHandoverOpen(true)}>
               <Send className="w-4 h-4" /><span>تسليم</span>
             </Button>
           </div>
