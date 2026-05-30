@@ -8,6 +8,7 @@ interface RecordSaleItem {
   productName?: string | null;
   /** Quantity in B.P format (e.g. 6.03 = 6 boxes + 3 pieces) */
   quantity: number;
+  isUnitSale?: boolean;
   giftBoxes?: number;
   giftPieces?: number;
   piecesPerBox?: number | null;
@@ -82,8 +83,10 @@ export async function recordSaleTracking(params: RecordSaleParams): Promise<void
       const isDeferred = !!(it.offerId && deferredOfferIds.has(it.offerId));
       const hasGift = giftBoxes > 0 || giftPieces > 0;
       const trackedSoldQty = isDeferred ? Math.max(0, qty - giftBoxes) : qty;
-      const soldBoxes = Math.floor(trackedSoldQty);
-      const soldPieces = Math.round((trackedSoldQty - soldBoxes) * 100);
+      const soldBoxes = it.isUnitSale ? 0 : Math.floor(trackedSoldQty);
+      const soldPieces = it.isUnitSale
+        ? Math.round(trackedSoldQty)
+        : Math.round((trackedSoldQty - soldBoxes) * 100);
 
       if (isDeferred && hasGift) {
         await recordPendingOfferConfirmation({
@@ -97,8 +100,8 @@ export async function recordSaleTracking(params: RecordSaleParams): Promise<void
           giftProductName: it.giftProductName || it.productName || null,
           giftBoxes,
           giftPieces,
-          purchasedBoxes: Math.max(0, Math.floor(qty - giftBoxes)),
-          purchasedPieces: Math.round((qty - Math.floor(qty)) * 100),
+          purchasedBoxes: it.isUnitSale ? 0 : Math.max(0, Math.floor(qty - giftBoxes)),
+          purchasedPieces: it.isUnitSale ? Math.round(qty) : Math.round((qty - Math.floor(qty)) * 100),
           customerId: params.customerId || null,
           customerName: params.customerName || null,
           workerId: params.workerId || null,
