@@ -609,7 +609,7 @@ const ManagerTreasury = () => {
       <div className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-xl font-bold">{t('treasury.title')}</h1>
+            <h1 className="text-xl font-bold">الخزينة</h1>
             {!isSettingsHidden && (
               <Button size="icon" variant="outline" className="h-8 w-8 rounded-full" onClick={() => setSettingsOpen(true)} title="إعدادات" aria-label="إعدادات">
                 <Settings className="w-4 h-4" />
@@ -627,21 +627,6 @@ const ManagerTreasury = () => {
               <Send className="w-4 h-4" /><span>تسليم</span>
             </Button>
           </div>
-        </div>
-        <div className="flex flex-wrap items-end gap-2 rounded-lg border border-border bg-muted/30 p-2">
-          <div className="flex flex-col gap-1">
-            <Label className="text-[10px] text-muted-foreground">من تاريخ</Label>
-            <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-8 w-[150px] text-xs" />
-          </div>
-          <div className="flex flex-col gap-1">
-            <Label className="text-[10px] text-muted-foreground">إلى تاريخ</Label>
-            <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-8 w-[150px] text-xs" />
-          </div>
-          {(dateFrom || dateTo) && (
-            <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => { setDateFrom(''); setDateTo(''); }}>
-              مسح
-            </Button>
-          )}
         </div>
         <div className="hidden">
           <Dialog open={handoverOpen} onOpenChange={setHandoverOpen}>
