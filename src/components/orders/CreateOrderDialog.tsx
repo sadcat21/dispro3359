@@ -285,14 +285,9 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
 
   // Product handlers
   const handleProductClick = (product: Product) => {
-    if (paymentType === 'with_invoice' && (product as any).allow_invoice_sale === false) {
-      toast.warning('هذا المنتج غير مسموح ببيعه بالفاتورة 1');
-      return;
-    }
-    if (paymentType === 'without_invoice' && (product as any).allow_invoice2_sale === false) {
-      toast.warning('هذا المنتج غير مسموح ببيعه بالفاتورة 2');
-      return;
-    }
+    // Note: products with allow_invoice_sale/allow_invoice2_sale = false can still
+    // be added; the ProductQuantityDialog hides the F1 option for them.
+
     if (shortageProductIds.has(product.id) || !warehouseStockProductIds.has(product.id)) {
       toast.warning(t('stock.product_unavailable_warning'), { duration: 5000 });
     }

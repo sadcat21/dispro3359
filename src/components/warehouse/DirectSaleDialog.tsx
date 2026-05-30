@@ -388,14 +388,9 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
   };
 
   const handleProductClick = (product: Product) => {
-    if (paymentType === 'with_invoice' && (product as any).allow_invoice_sale === false) {
-      toast.warning('هذا المنتج غير مسموح ببيعه بالفاتورة 1');
-      return;
-    }
-    if (paymentType === 'without_invoice' && (product as any).allow_invoice2_sale === false) {
-      toast.warning('هذا المنتج غير مسموح ببيعه بالفاتورة 2');
-      return;
-    }
+    // Products with allow_invoice_sale/allow_invoice2_sale = false can still be added;
+    // the ProductQuantityDialog hides F1 for them.
+
     const existingItem = orderItems.find(item => item.productId === product.id);
     if (existingItem) {
       handleEditItem(existingItem);
