@@ -67,11 +67,12 @@ export const SwipeStack: React.FC<{
   enabled: boolean;
   children: React.ReactNode;
   onActiveSectionChange?: (key: string | null) => void;
-}> = ({ enabled, children, onActiveSectionChange }) => {
+  initialIndex?: number;
+}> = ({ enabled, children, onActiveSectionChange, initialIndex = 0 }) => {
   const all = flattenChildren(children);
   const sections = all.filter(isSectionEl);
   const others = all.filter((c) => !isSectionEl(c));
-  const [index, setIndex] = React.useState(0);
+  const [index, setIndex] = React.useState(initialIndex);
   const startX = React.useRef<number | null>(null);
   React.useEffect(() => { if (index >= sections.length) setIndex(0); }, [sections.length, index]);
   const safeIndex = sections.length ? ((index % sections.length) + sections.length) % sections.length : 0;
