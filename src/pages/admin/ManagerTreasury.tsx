@@ -914,7 +914,7 @@ const ManagerTreasury = () => {
       <div className="grid grid-cols-2 gap-3">
         <TreasuryCard
           icon={<Banknote className="w-5 h-5 text-green-500" />}
-          label={`${t('treasury.cash_invoice1')} (${remainingCashInvoice1Count})`}
+          label={t('treasury.cash_invoice1')}
           total={(summary?.cash_invoice1 || 0) + (summary?.cash_invoice1_stamp || 0)}
           handed={(summary?.cash_invoice1_handed || 0) + (summary?.cash_invoice1_stamp || 0)}
           colorClass="green-500"
@@ -938,7 +938,7 @@ const ManagerTreasury = () => {
         />
         <TreasuryCard
           icon={<CreditCard className="w-5 h-5 text-blue-500" />}
-          label={`${t('treasury.checks')} (${remainingChecksCount})`}
+          label={t('treasury.checks')}
           total={summary?.check || 0}
           handed={summary?.check_handed || 0}
           colorClass="blue-500"
@@ -950,7 +950,7 @@ const ManagerTreasury = () => {
         />
         <TreasuryCard
           icon={<Receipt className="w-5 h-5 text-purple-500" />}
-          label={`Versement Cash (${remainingReceiptCashCount})`}
+          label="Versement Cash"
           total={summary?.receipt_cash || 0}
           handed={summary?.receipt_cash_handed || 0}
           colorClass="fuchsia-500"
@@ -962,7 +962,7 @@ const ManagerTreasury = () => {
         />
         <TreasuryCard
           icon={<Receipt className="w-5 h-5 text-purple-500" />}
-          label={`Versement Doc (${remainingReceiptDocCount})`}
+          label="Versement Doc"
           total={summary?.bank_receipt || 0}
           handed={summary?.receipt_handed || 0}
           colorClass="purple-500"
@@ -974,7 +974,7 @@ const ManagerTreasury = () => {
         />
         <TreasuryCard
           icon={<ArrowUpRight className="w-5 h-5 text-orange-500" />}
-          label={`${t('treasury.virement')} (${remainingTransferCount})`}
+          label={t('treasury.virement')}
           total={summary?.bank_transfer || 0}
           handed={summary?.transfer_handed || 0}
           colorClass="orange-500"
