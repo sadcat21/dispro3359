@@ -58,7 +58,10 @@ const ReceiptSessionsTimelineDialog: React.FC<Props> = ({
     if (selectedIds && selectedIds.size > 0) {
       setLocalSel(new Set(selectedIds));
     } else if (sessions.length > 0) {
-      setLocalSel(new Set(sessions.map((s) => s.id)));
+      const allIds = new Set(sessions.map((s) => s.id));
+      setLocalSel(allIds);
+      // Auto-apply all sessions by default so parent reflects the selection immediately.
+      onApply(sessions.map((s) => ({ id: s.id, start: s.start, end: s.end })));
     } else {
       setLocalSel(new Set());
     }
