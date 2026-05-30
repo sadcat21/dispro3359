@@ -653,8 +653,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       }
     }
 
-    // إلزام Cash/Doc فقط مع Virement
-    if (paymentType === 'with_invoice' && invoicePaymentMethod === 'transfer' && !invoicePaymentSubType) {
+    // إلزام Cash/Doc فقط مع Versement
+    if (paymentType === 'with_invoice' && invoicePaymentMethod === 'receipt' && !invoicePaymentSubType) {
       toast.error('يرجى اختيار نوع الاستلام: Cash أو Doc');
       return;
     }
@@ -664,18 +664,18 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
     setFrozenInvoiceMethod(invoicePaymentMethod);
 
     // التوجيه:
-    //  - Chèque / Versement (مستند دائماً) → ReceiptPaymentDialog
-    //  - Virement + Doc → ReceiptPaymentDialog
-    //  - Virement + Cash → نافذة الدفع العادية (Facture2)
+    //  - Chèque / Virement (مستند دائماً) → ReceiptPaymentDialog
+    //  - Versement + Doc → ReceiptPaymentDialog
+    //  - Versement + Cash → نافذة الدفع العادية (Facture2)
     //  - Espèces → نافذة الدفع العادية
-    if (paymentType === 'with_invoice' && (invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'check')) {
+    if (paymentType === 'with_invoice' && (invoicePaymentMethod === 'transfer' || invoicePaymentMethod === 'check')) {
       setShowReceiptPaymentDialog(true);
-    } else if (paymentType === 'with_invoice' && invoicePaymentMethod === 'transfer') {
+    } else if (paymentType === 'with_invoice' && invoicePaymentMethod === 'receipt') {
       if (invoicePaymentSubType === 'cash') {
         // احفظ علامة paid_by_cash مسبقاً لتُسجَّل مع الطلب
         setPendingDocVerification({
           verification: {
-            type: 'transfer',
+            type: 'receipt',
             paid_by_cash: true,
             verified_at: new Date().toISOString(),
           },
