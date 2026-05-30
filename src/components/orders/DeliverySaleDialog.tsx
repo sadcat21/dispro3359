@@ -589,6 +589,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
       pricingUnit?: string;
       weightPerBox?: number | null;
       piecesPerBox?: number;
+      isUnitSale?: boolean;
     }[] = [];
     for (const item of saleItems) {
       if (item.originalItemId && item.originalQuantity > 0 && item.quantity < item.originalQuantity) {
@@ -602,6 +603,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
           pricingUnit: item.pricingUnit,
           weightPerBox: item.weightPerBox,
           piecesPerBox: item.piecesPerBox,
+          isUnitSale: item.isUnitSale,
         });
       }
     }
