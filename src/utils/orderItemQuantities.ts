@@ -29,14 +29,21 @@ export const getGiftTotalBoxes = (item: GiftBreakdownInput): number => {
 
 export const toStoredOrderItemQuantity = (
   quantity: number | null | undefined,
-  _piecesPerBox: number | null | undefined,
-  _isUnitSale?: boolean | null,
+  piecesPerBox: number | null | undefined,
+  isUnitSale?: boolean | null,
 ): number => {
-  // Store the natural quantity (fractional boxes for box-priced items,
-  // raw pieces for unit-priced items). Display helpers convert to B.P
-  // format on render. Encoding B.P into the DB caused legacy/new value
-  // mismatches in stock deduction (e.g. 0.5 fractional was read as 0.50 = 50 pieces).
-  return Math.max(0, toNumber(quantity));
+  const safeQuantity = Math.max(0, toNumber(quantity));
+  const safePiecesPerBox = Math.max(1, toNumber(piecesPerBox) || 1);
+
+  if (isUnitSale) {
+    return safeQuantity;
+  }
+
+  const boxes = Math.floor(safeQuantity);
+  const fractionalBoxes = safeQuantity - boxes;
+  const pieces = Math.round(fractionalBoxes * safePiecesPerBox);
+
+  return Number(`${boxes}.${String(Math.max(0, pieces)).padStart(2, '0')}`);
 };
 
 export const getPaidQuantity = (item: GiftBreakdownInput): number => {
