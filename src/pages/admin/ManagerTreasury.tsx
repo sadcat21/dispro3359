@@ -966,16 +966,13 @@ const ManagerTreasury = () => {
                       <div className="space-y-1.5">
                         <button type="button" onClick={() => { setCashBalanceOpen(false); setTimeout(() => setHandoversListOpen(true), 200); }} className="w-full text-start flex items-center justify-between rounded-lg bg-background p-3 border hover:bg-muted transition-colors">
                           <span className="text-xs text-muted-foreground">المستلم من العمال نقداً (بدون تحصيلات الديون)</span>
-                          <MoneyValue value={Math.max(totalInTreasury - debtCashCollected, 0)} currency={cur} className="text-sm font-bold" />
+                          <MoneyValue value={Math.max(totalInTreasury - debtCashCollected - handedOver, 0)} currency={cur} className="text-sm font-bold" />
                         </button>
                         <div className="flex items-center justify-between rounded-lg bg-background p-3 border">
                           <span className="text-xs text-muted-foreground">{t('treasury.actual_after_handover')}</span>
                           <MoneyValue value={netInTreasury} currency={cur} className="text-sm font-bold" />
                         </div>
-                        <button type="button" onClick={() => { setCashBalanceOpen(false); setTimeout(() => setHandoversListOpen(true), 200); }} className="w-full text-start flex items-center justify-between rounded-lg bg-background p-3 border hover:bg-muted transition-colors">
-                          <span className="text-xs text-muted-foreground">{t('treasury.handed_to_upper')}</span>
-                          <MoneyValue value={handedOver} currency={cur} className="text-sm font-bold" />
-                        </button>
+
                         <div className="flex items-center justify-between rounded-lg bg-background p-3 border">
                           <span className="text-xs text-muted-foreground">{t('treasury.approved_expenses')}</span>
                           <MoneyValue value={totalExpenses} currency={cur} className="text-sm font-bold" />
