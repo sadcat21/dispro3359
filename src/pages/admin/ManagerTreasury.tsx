@@ -922,24 +922,71 @@ const ManagerTreasury = () => {
               </CardContent>
             </Card>
             <Dialog open={cashBalanceOpen} onOpenChange={setCashBalanceOpen}>
-              <DialogContent dir={dir}>
+              <DialogContent dir={dir} className="max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>💰 الخزينة المتبقية</DialogTitle>
+                  <DialogTitle>⚖️ الميزانية</DialogTitle>
                 </DialogHeader>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between rounded-lg border border-primary/30 bg-primary/5 p-3">
-                    <span className="text-sm font-medium">الإجمالي المتبقي</span>
-                    <MoneyValue value={overallRemaining} currency={cur} className="text-lg font-bold text-primary" />
-                  </div>
-                  <div className="flex items-center justify-between rounded-lg border border-green-500/30 bg-green-500/5 p-3">
-                    <span className="text-sm font-medium">💵 الكاش المتبقي بعد التسليم</span>
-                    <MoneyValue value={physicalRemaining} currency={cur} className="text-lg font-bold text-green-600" />
-                  </div>
-                  <div className="flex items-center justify-between rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">
-                    <span className="text-sm font-medium">🏦 غير مسلَّم فعلياً (معلق)</span>
-                    <MoneyValue value={nonCashPending} currency={cur} className="text-lg font-bold text-amber-600" />
-                  </div>
-                </div>
+                {(() => {
+                  const totalSales = summary?.totalSales || 0;
+                  const unpaidAmount = summary?.uncollectedDebts || 0;
+                  const debtCashCollected = summary?.debtCashCollected || 0;
+                  const totalInTreasury = summary?.total || 0;
+                  const handedOver = summary?.handedOver || 0;
+                  const totalExpenses = summary?.totalExpenses || 0;
+                  const workerHeldAmount = summary?.workerHeldAmount || 0;
+                  const coinExchangeOut = summary?.coinExchangeOut || 0;
+                  const expectedInTreasury = totalSales - unpaidAmount + debtCashCollected;
+                  const netInTreasury = totalInTreasury - handedOver - totalExpenses;
+                  return (
+                    <div className="space-y-3">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between rounded-lg bg-background p-3 border">
+                          <span className="text-xs text-muted-foreground">{t('treasury.total_sales')}</span>
+                          <MoneyValue value={totalSales} currency={cur} className="text-sm font-bold" />
+                        </div>
+                        <button type="button" onClick={() => { setCashBalanceOpen(false); setTimeout(() => setUncollectedDebtsOpen(true), 200); }} className="w-full text-start flex items-center justify-between rounded-lg bg-background p-3 border hover:bg-muted transition-colors">
+                          <span className="text-xs text-muted-foreground">{t('treasury.unpaid')}</span>
+                          <SignedMoneyValue value={-unpaidAmount} currency={cur} className="text-sm font-bold text-orange-500" />
+                        </button>
+                        <button type="button" onClick={() => { setCashBalanceOpen(false); setTimeout(() => setCollectedDebtsOpen(true), 200); }} className="w-full text-start flex items-center justify-between rounded-lg bg-background p-3 border hover:bg-muted transition-colors">
+                          <span className="text-xs text-muted-foreground">{t('treasury.debt_cash_collected')}</span>
+                          <SignedMoneyValue value={debtCashCollected} currency={cur} className="text-sm font-bold text-green-500" />
+                        </button>
+                        <div className="flex items-center justify-between rounded-lg bg-primary/5 border border-primary/20 p-3">
+                          <span className="text-xs font-medium">{t('treasury.expected_in_treasury')}</span>
+                          <MoneyValue value={expectedInTreasury} currency={cur} className="text-sm font-bold text-primary" />
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground text-center">📤 {t('treasury.where_money_went')}</p>
+                      <div className="space-y-1.5">
+                        <button type="button" onClick={() => { setCashBalanceOpen(false); setTimeout(() => setHandoversListOpen(true), 200); }} className="w-full text-start flex items-center justify-between rounded-lg bg-background p-3 border hover:bg-muted transition-colors">
+                          <span className="text-xs text-muted-foreground">المستلم من العمال نقداً (بدون تحصيلات الديون)</span>
+                          <MoneyValue value={Math.max(totalInTreasury - debtCashCollected, 0)} currency={cur} className="text-sm font-bold" />
+                        </button>
+                        <div className="flex items-center justify-between rounded-lg bg-background p-3 border">
+                          <span className="text-xs text-muted-foreground">{t('treasury.actual_after_handover')}</span>
+                          <MoneyValue value={netInTreasury} currency={cur} className="text-sm font-bold" />
+                        </div>
+                        <button type="button" onClick={() => { setCashBalanceOpen(false); setTimeout(() => setHandoversListOpen(true), 200); }} className="w-full text-start flex items-center justify-between rounded-lg bg-background p-3 border hover:bg-muted transition-colors">
+                          <span className="text-xs text-muted-foreground">{t('treasury.handed_to_upper')}</span>
+                          <MoneyValue value={handedOver} currency={cur} className="text-sm font-bold" />
+                        </button>
+                        <div className="flex items-center justify-between rounded-lg bg-background p-3 border">
+                          <span className="text-xs text-muted-foreground">{t('treasury.approved_expenses')}</span>
+                          <MoneyValue value={totalExpenses} currency={cur} className="text-sm font-bold" />
+                        </div>
+                        <button type="button" onClick={() => { setCashBalanceOpen(false); setTimeout(() => setWorkerHeldOpen(true), 200); }} className="w-full text-start flex items-center justify-between rounded-lg bg-amber-500/5 border border-amber-500/20 p-3 hover:bg-amber-500/10 transition-colors">
+                          <span className="text-xs text-muted-foreground">👷 {t('treasury.worker_held')}</span>
+                          <MoneyValue value={workerHeldAmount} currency={cur} className="text-sm font-bold text-amber-600" />
+                        </button>
+                        <button type="button" onClick={() => { setCashBalanceOpen(false); setTimeout(() => setCoinExchangeOpen(true), 200); }} className="w-full text-start flex items-center justify-between rounded-lg bg-amber-500/5 border border-amber-500/20 p-3 hover:bg-amber-500/10 transition-colors">
+                          <span className="text-xs text-muted-foreground">🪙 {t('coin_exchange.title') || 'تحويل عملات'}</span>
+                          <MoneyValue value={coinExchangeOut} currency={cur} className="text-sm font-bold text-amber-600" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
               </DialogContent>
             </Dialog>
           </>
@@ -1083,71 +1130,6 @@ const ManagerTreasury = () => {
 
 
 
-              <section className="space-y-2"><h2 className="text-base font-bold border-b pb-1">⚖️ الميزانية</h2>{(() => {
-                const totalSales = summary?.totalSales || 0;
-                const unpaidAmount = summary?.uncollectedDebts || 0;
-                const debtCashCollected = summary?.debtCashCollected || 0;
-                const totalInTreasury = summary?.total || 0;
-                const handedOver = summary?.handedOver || 0;
-                const totalExpenses = summary?.totalExpenses || 0;
-                const workerHeldAmount = summary?.workerHeldAmount || 0;
-                const coinExchangeOut = summary?.coinExchangeOut || 0;
-                const expectedInTreasury = totalSales - unpaidAmount + debtCashCollected;
-                const netInTreasury = totalInTreasury - handedOver - totalExpenses;
-                const accountedFor = netInTreasury + handedOver + totalExpenses + workerHeldAmount + coinExchangeOut;
-                const gap = expectedInTreasury - accountedFor;
-                const hasGap = Math.abs(gap) > 1;
-                return (
-                  <div className="space-y-3">
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between rounded-lg bg-background p-3 border">
-                        <span className="text-xs text-muted-foreground">{t('treasury.total_sales')}</span>
-                        <MoneyValue value={totalSales} currency={cur} className="text-sm font-bold" />
-                      </div>
-                      <button type="button" onClick={() => { setTimeout(() => setUncollectedDebtsOpen(true), 200); }} className="w-full text-start flex items-center justify-between rounded-lg bg-background p-3 border hover:bg-muted transition-colors">
-                        <span className="text-xs text-muted-foreground">{t('treasury.unpaid')}</span>
-                        <SignedMoneyValue value={-unpaidAmount} currency={cur} className="text-sm font-bold text-orange-500" />
-                      </button>
-                      <button type="button" onClick={() => { setTimeout(() => setCollectedDebtsOpen(true), 200); }} className="w-full text-start flex items-center justify-between rounded-lg bg-background p-3 border hover:bg-muted transition-colors">
-                        <span className="text-xs text-muted-foreground">{t('treasury.debt_cash_collected')}</span>
-                        <SignedMoneyValue value={debtCashCollected} currency={cur} className="text-sm font-bold text-green-500" />
-                      </button>
-                      <div className="flex items-center justify-between rounded-lg bg-primary/5 border border-primary/20 p-3">
-                        <span className="text-xs font-medium">{t('treasury.expected_in_treasury')}</span>
-                        <MoneyValue value={expectedInTreasury} currency={cur} className="text-sm font-bold text-primary" />
-                      </div>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground text-center">📤 {t('treasury.where_money_went')}</p>
-                    <div className="space-y-1.5">
-                      <button type="button" onClick={() => { setTimeout(() => setHandoversListOpen(true), 200); }} className="w-full text-start flex items-center justify-between rounded-lg bg-background p-3 border hover:bg-muted transition-colors">
-                        <span className="text-xs text-muted-foreground">المستلم من العمال نقداً (بدون تحصيلات الديون)</span>
-                        <MoneyValue value={Math.max(totalInTreasury - debtCashCollected, 0)} currency={cur} className="text-sm font-bold" />
-                      </button>
-                      <div className="flex items-center justify-between rounded-lg bg-background p-3 border">
-                        <span className="text-xs text-muted-foreground">{t('treasury.actual_after_handover')}</span>
-                        <MoneyValue value={netInTreasury} currency={cur} className="text-sm font-bold" />
-                      </div>
-                      <button type="button" onClick={() => { setTimeout(() => setHandoversListOpen(true), 200); }} className="w-full text-start flex items-center justify-between rounded-lg bg-background p-3 border hover:bg-muted transition-colors">
-                        <span className="text-xs text-muted-foreground">{t('treasury.handed_to_upper')}</span>
-                        <MoneyValue value={handedOver} currency={cur} className="text-sm font-bold" />
-                      </button>
-                      <div className="flex items-center justify-between rounded-lg bg-background p-3 border">
-                        <span className="text-xs text-muted-foreground">{t('treasury.approved_expenses')}</span>
-                        <MoneyValue value={totalExpenses} currency={cur} className="text-sm font-bold" />
-                      </div>
-                      <button type="button" onClick={() => { setTimeout(() => setWorkerHeldOpen(true), 200); }} className="w-full text-start flex items-center justify-between rounded-lg bg-amber-500/5 border border-amber-500/20 p-3 hover:bg-amber-500/10 transition-colors">
-                        <span className="text-xs text-muted-foreground">👷 {t('treasury.worker_held')}</span>
-                        <MoneyValue value={workerHeldAmount} currency={cur} className="text-sm font-bold text-amber-600" />
-                      </button>
-                      <button type="button" onClick={() => { setTimeout(() => setCoinExchangeOpen(true), 200); }} className="w-full text-start flex items-center justify-between rounded-lg bg-amber-500/5 border border-amber-500/20 p-3 hover:bg-amber-500/10 transition-colors">
-                        <span className="text-xs text-muted-foreground">🪙 {t('coin_exchange.title') || 'تحويل عملات'}</span>
-                        <MoneyValue value={coinExchangeOut} currency={cur} className="text-sm font-bold text-amber-600" />
-                      </button>
-                    </div>
-                    {/* ميزة الفرق المحاسبي معطلة */}
-                  </div>
-                );
-              })()}</section>
 
 
 
