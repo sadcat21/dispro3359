@@ -273,6 +273,14 @@ const ProjectManagerTreasury = () => {
           color="indigo"
           count={(handovers || []).filter((h: any) => Number(h.stamp_amount) > 0).length}
         />
+        <TreasuryCard
+          icon={<Wallet className="w-4 h-4 text-amber-700" />}
+          label="المصاريف المعتمدة"
+          total={Number(expensesTotal || 0)}
+          color="amber"
+          count={0}
+        />
+
       </div>
 
 
