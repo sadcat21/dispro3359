@@ -1466,7 +1466,22 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                     const totalGiftPieces = productCartItems.reduce((sum, item) => sum + (item.giftPieces || 0), 0);
                     const hasAppliedGift = totalGiftBoxes > 0 || totalGiftPieces > 0;
                     const available = getAvailable(product.id);
-                    const price = getProductPrice(product);
+                    // Prefer the price stored on the cart item (custom or per-item method/subtype)
+                    // so the product card reflects the price the user actually chose, not the default.
+                    const cartBoxPrice = (() => {
+                      const itemWithCustom = productCartItems.find(it => it.customUnitPrice !== undefined);
+                      if (itemWithCustom) {
+                        const piecesPerBox = itemWithCustom.piecesPerBox ?? product.pieces_per_box ?? 1;
+                        return itemWithCustom.isUnitSale ? itemWithCustom.unitPrice * piecesPerBox : itemWithCustom.unitPrice;
+                      }
+                      const anyItem = productCartItems[0];
+                      if (anyItem && anyItem.unitPrice > 0) {
+                        const piecesPerBox = anyItem.piecesPerBox ?? product.pieces_per_box ?? 1;
+                        return anyItem.isUnitSale ? anyItem.unitPrice * piecesPerBox : anyItem.unitPrice;
+                      }
+                      return null;
+                    })();
+                    const price = cartBoxPrice ?? getProductPrice(product);
                     const invoiceDisabled = paymentType === 'with_invoice' && (product as any).allow_invoice_sale === false;
                     const invoice2Disabled = paymentType === 'without_invoice' && (product as any).allow_invoice2_sale === false;
                     const isInvoiceRestricted = invoiceDisabled || invoice2Disabled;
