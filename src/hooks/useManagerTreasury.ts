@@ -340,6 +340,8 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
         }));
       }
 
+      // For worker-held calculation we must consider ALL completed sessions in the branch
+      // (any manager). Use shared util so the card matches the dialog exactly.
       let scopedOrders = orders || [];
       if (perManager) {
         scopedOrders = (orders || []).filter((o: any) => {
@@ -349,18 +351,11 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
         });
       }
 
-      // Calculate worker-held amounts: delivered paid orders NOT covered by any completed session (any manager)
-      let workerHeldAmount = 0;
-      (orders || []).forEach((o: any) => {
-        let paidAmount = Number(o.total_amount || 0);
-        if (o.payment_status === 'partial') paidAmount = Number(o.partial_amount || 0);
-        else if (o.payment_status === 'debt') paidAmount = 0;
-        if (paidAmount <= 0 || !o.assigned_worker_id) return;
+      const { computeWorkerHeld } = await import('@/utils/computeWorkerHeld');
+      const workerHeldResult = await computeWorkerHeld(activeBranch?.id, range);
+      const workerHeldAmount = workerHeldResult.total;
 
-        const t = orderAccountingTime(o);
-        const isCovered = allSessionWindows.some((w) => w.worker_id === o.assigned_worker_id && t >= w.start && t <= w.end);
-        if (!isCovered) workerHeldAmount += paidAmount;
-      });
+
 
 
 
