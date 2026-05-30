@@ -297,17 +297,23 @@ const HandoverPrintView: React.FC<Props> = ({
             </tr>
           </thead>
           <tbody>
-            {cashItemsWithStamp.map((item, index) => (
-              <tr key={`cash-invoice1-${index}`}>
-                <td className="border border-black p-1">{item.customer_name || '-'}</td>
-                <td className="border border-black p-1">{item.invoice_number || '-'}</td>
-                <td className="border border-black p-1 text-right">{Number(item.base_amount || 0).toLocaleString()}</td>
-                <td className="border border-black p-1 text-right">{Number(item.stamp_percentage || 0).toLocaleString()}%</td>
-                <td className="border border-black p-1 text-right">{Number(item.stamp_amount || 0).toLocaleString()}</td>
-                <td className="border border-black p-1 text-right">{Number(item.amount || 0).toLocaleString()}</td>
-                <td className="border border-black p-1">{item.invoice_date || item.check_date || '-'}</td>
+            {cashItemsWithStamp.length === 0 ? (
+              <tr>
+                <td className="border border-black p-1 text-center text-muted-foreground" colSpan={7}>-</td>
               </tr>
-            ))}
+            ) : (
+              cashItemsWithStamp.map((item, index) => (
+                <tr key={`cash-invoice1-${index}`}>
+                  <td className="border border-black p-1">{item.customer_name || '-'}</td>
+                  <td className="border border-black p-1">{item.invoice_number || '-'}</td>
+                  <td className="border border-black p-1 text-right">{Number(item.base_amount || 0).toLocaleString()}</td>
+                  <td className="border border-black p-1 text-right">{Number(item.stamp_percentage || 0).toLocaleString()}%</td>
+                  <td className="border border-black p-1 text-right">{Number(item.stamp_amount || 0).toLocaleString()}</td>
+                  <td className="border border-black p-1 text-right">{Number(item.amount || 0).toLocaleString()}</td>
+                  <td className="border border-black p-1">{item.invoice_date || item.check_date || '-'}</td>
+                </tr>
+              ))
+            )}
             <tr className="font-bold">
               <td className="border border-black p-1" colSpan={2}>Total ESPÈCES FACTURE 1</td>
               <td className="border border-black p-1 text-right">{cashItemsNetTotal.toLocaleString()}</td>
