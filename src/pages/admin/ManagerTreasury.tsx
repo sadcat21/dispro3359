@@ -967,7 +967,7 @@ const ManagerTreasury = () => {
                   const workerHeldAmount = summary?.workerHeldAmount || 0;
                   const coinExchangeOut = summary?.coinExchangeOut || 0;
                   const expectedInTreasury = totalSales - unpaidAmount + debtCashCollected;
-                  const netInTreasury = totalInTreasury - handedOver - totalExpenses;
+                  const netInTreasury = Math.max(0, totalInTreasury - handedOver - totalExpenses);
                   return (
                     <div className="space-y-3">
                       <div className="space-y-1.5">

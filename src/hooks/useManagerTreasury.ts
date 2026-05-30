@@ -310,12 +310,15 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
       const totalExpenses = (expensesData || []).reduce((s: number, e: any) => s + Number(e.amount || 0), 0);
 
       // Get completed accounting sessions to determine covered orders.
-      // When viewing as a branch manager, restrict to sessions HE conducted with workers,
-      // so that the treasury only reflects sales he was the accountant for.
+      // CRITICAL: only sessions whose manager-review has been CONFIRMED are
+      // allowed to flow into treasury totals. Unreviewed sessions must not
+      // contribute sales, collections, or expenses to the budget window.
       let sessQuery = supabase
         .from('accounting_sessions')
         .select('worker_id, period_start, period_end, manager_id')
-        .eq('status', 'completed');
+        .eq('status', 'completed')
+        .eq('is_treasury_posted', true)
+        .not('review_session_id', 'is', null);
       if (activeBranch?.id) sessQuery = sessQuery.eq('branch_id', activeBranch.id);
       if (perManager) sessQuery = sessQuery.eq('manager_id', perManager);
       const { data: sessions } = await sessQuery;
@@ -325,6 +328,13 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
         start: parseAccountingTime(s.period_start),
         end: parseAccountingTime(s.period_end),
       }));
+
+      // When viewing as a specific manager with no reviewed sessions yet,
+      // nothing should be displayed in the budget — zero out expenses and
+      // debt-cash collections too (sales are already gated via scopedOrders).
+      const noReviewedSessions = perManager && sessionWindows.length === 0;
+      const effectiveDebtCashCollected = noReviewedSessions ? 0 : debtCashCollected;
+      const effectiveTotalExpenses = noReviewedSessions ? 0 : totalExpenses;
 
 
 
@@ -396,7 +406,10 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
         coinExchangeOut,
         coinBillsReturned,
         total: 0, handedOver: 0, remaining: 0,
-        totalSales, totalDebts, collectedDebts, uncollectedDebts, debtCashCollected, totalExpenses, totalGiftsValue,
+        totalSales, totalDebts, collectedDebts, uncollectedDebts,
+        debtCashCollected: effectiveDebtCashCollected,
+        totalExpenses: effectiveTotalExpenses,
+        totalGiftsValue,
         workerHeldAmount, orderUnpaidAmount,
       };
 
@@ -541,7 +554,7 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
         }
       }
 
-      summary.total = summary.cash_invoice1 + summary.cash_invoice1_stamp + summary.receipt_cash + summary.cash_invoice2 + summary.check + summary.bank_receipt + summary.bank_transfer + debtCashCollected - coinExchangeOut;
+      summary.total = summary.cash_invoice1 + summary.cash_invoice1_stamp + summary.receipt_cash + summary.cash_invoice2 + summary.check + summary.bank_receipt + summary.bank_transfer + effectiveDebtCashCollected - coinExchangeOut;
       summary.handedOver = (handovers || []).reduce((s: number, h: any) => s + Number(h.amount), 0);
       summary.remaining = summary.total - summary.handedOver;
 
