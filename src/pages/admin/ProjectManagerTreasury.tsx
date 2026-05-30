@@ -275,7 +275,7 @@ const ProjectManagerTreasury = () => {
         />
         <TreasuryCard
           icon={<Wallet className="w-4 h-4 text-amber-700" />}
-          label="المصاريف المعتمدة"
+          label="المصاريف"
           total={Number(expensesTotal || 0)}
           color="amber"
           count={0}
