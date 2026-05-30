@@ -1139,60 +1139,6 @@ const ManagerTreasury = () => {
                 );
               })()}</section>
 
-              <section className="space-y-2"><h2 className="text-base font-bold border-b pb-1">💰 الخزينة المتبقية</h2>{(() => {
-                const cashAvailableBeforeHandover =
-                  (summary?.cash_invoice1 || 0) + (summary?.cash_invoice1_stamp || 0) +
-                  (summary?.receipt_cash || 0) + (summary?.cash_invoice2 || 0) +
-                  (summary?.debtCashCollected || 0) - (summary?.coinExchangeOut || 0);
-                const nonCash = (summary?.check || 0) + (summary?.bank_receipt || 0) + (summary?.bank_transfer || 0);
-                const nonCashHanded = (summary?.check_handed || 0) + (summary?.receipt_handed || 0) + (summary?.transfer_handed || 0);
-                const cashHanded = (handovers || []).reduce((sum: number, handover: any) => (
-                  sum + Number(handover.cash_invoice1 || 0) + Number(handover.cash_invoice2 || 0)
-                ), 0);
-                const nonCashPending = nonCash - nonCashHanded;
-                const physicalRemaining = cashAvailableBeforeHandover - cashHanded;
-                const overallRemaining = physicalRemaining + nonCashPending;
-                const paperMoney = physicalRemaining - (summary?.coins || 0) + (summary?.coinBillsReturned || 0);
-                const hasCashDeficit = physicalRemaining < 0;
-                return (
-                  <div className="space-y-3">
-                    <Card className="border-primary/30">
-                      <CardContent className="p-3 text-center">
-                        <p className="text-xs text-muted-foreground">{t('treasury.overall_remaining')}</p>
-                        <MoneyValue value={overallRemaining} currency={cur} className="text-xl font-bold text-primary" />
-                      </CardContent>
-                    </Card>
-                    <Card className="border-green-500/20">
-                      <CardContent className="p-3 space-y-2 text-center">
-                        <p className="text-[11px] font-medium text-muted-foreground">💵 {t('treasury.cash_remaining_after_handover')}</p>
-                        <MoneyValue value={physicalRemaining} currency={cur} className={`text-lg font-bold ${hasCashDeficit ? 'text-destructive' : ''}`} />
-                        {hasCashDeficit && <p className="text-[10px] text-destructive">يوجد عجز نقدي</p>}
-                        {(summary?.coins || 0) > 0 && (
-                          <div className="grid grid-cols-2 gap-2 pt-2 border-t">
-                            <div className="rounded-lg bg-muted/50 p-2 text-center">
-                              <Banknote className="w-3.5 h-3.5 mx-auto mb-0.5 text-muted-foreground" />
-                              <p className="text-[10px] text-muted-foreground">{t('treasury.paper_money')}</p>
-                              <MoneyValue value={paperMoney} currency={cur} className={`text-xs font-bold ${paperMoney < 0 ? 'text-destructive' : ''}`} />
-                            </div>
-                            <div className="rounded-lg bg-muted/50 p-2 text-center">
-                              <Coins className="w-3.5 h-3.5 mx-auto mb-0.5 text-amber-500" />
-                              <p className="text-[10px] text-muted-foreground">{t('treasury.coins_from_remaining')}</p>
-                              <MoneyValue value={summary?.coins || 0} currency={cur} className="text-xs font-bold text-amber-500" />
-                            </div>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                    <Card className="border-blue-500/20">
-                      <CardContent className="p-3 text-center">
-                        <p className="text-[11px] font-medium text-muted-foreground">🏦 {t('treasury.non_physical_pending')}</p>
-                        <MoneyValue value={nonCashPending} currency={cur} className="text-lg font-bold" />
-                        {nonCashHanded > 0 && <p className="text-[10px] text-green-500 mt-1">{t('treasury.handed')}: <MoneyValue value={nonCashHanded} currency={cur} /></p>}
-                      </CardContent>
-                    </Card>
-                  </div>
-                );
-              })()}</section>
 
 
               <section id="handovers-section" className="space-y-2 scroll-mt-20"><h2 className="text-base font-bold border-b pb-1">📤 التسليمات</h2>{(
