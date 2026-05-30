@@ -505,8 +505,10 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
 
   const getRemaining = (item: any) => {
     const ppb = Math.max(1, Number(item.product?.pieces_per_box) || 20);
-    const r = balanceByProduct[item.product_id]?.remaining;
-    return typeof r === 'number' ? r : dbBPToBoxes(Number(item.quantity || 0), ppb);
+    // اعتمد رصيد worker_stock (تمت إعادة معايرته من stock_movements) كمصدر الحقيقة،
+    // لأن balanceByProduct يحسب فقط منذ آخر شحنة ويتجاهل الرصيد المُرحَّل قبلها،
+    // مما يُظهر 0 رغم أن سجل الحركة يُظهر القيمة الصحيحة (مثلاً 91).
+    return dbBPToBoxes(Math.max(0, Number(item.quantity || 0)), ppb);
   };
   const sorted = [...truckStock].sort((a: any, b: any) => {
     const ra = getRemaining(a);
