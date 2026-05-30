@@ -304,6 +304,7 @@ export const useCreateDocCollection = () => {
       queryClient.invalidateQueries({ queryKey: ['customer-debt-summary'] });
       queryClient.invalidateQueries({ queryKey: ['due-debts'] });
       queryClient.invalidateQueries({ queryKey: ['debt-payments'] });
+      queryClient.invalidateQueries({ queryKey: ['order-doc-collections'] });
     },
   });
 };
