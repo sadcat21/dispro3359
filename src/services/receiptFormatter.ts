@@ -775,7 +775,7 @@ export function formatReceiptForPreview(data: ReceiptData): string {
         ${data.paymentMethod ? `<div style="text-align:center;">Mode: ${methodLabels[data.paymentMethod] || data.paymentMethod}</div>` : ''}
         ${data.nextCollectionDate ? `<div style="border-top:1px dashed #000;margin-top:4px;padding-top:4px;text-align:center;font-weight:bold;">PROCHAIN RDV: ${data.nextCollectionDate}${data.nextCollectionTime ? ' ' + data.nextCollectionTime : ''}</div>` : ''}
         ${debtMovementsHtml}
-        ${data.notes ? `<div style="border-top:1px dashed #000;margin-top:4px;padding-top:4px;">Note: ${data.notes}</div>` : ''}
+        ${data.notes ? `<div style="border-top:1px dashed #000;margin-top:4px;padding-top:4px;text-align:left;"><div>Note:</div><div>${data.notes.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>')}</div></div>` : ''}
         ${advancedHtml}
         ${data.advancedOptions?.showSignatures ? `
         <div style="border-top:2px solid #000;margin-top:8px;padding-top:6px;">
