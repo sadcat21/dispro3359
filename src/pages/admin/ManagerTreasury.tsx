@@ -619,30 +619,27 @@ const ManagerTreasury = () => {
   return (
     <div className="p-4 space-y-4 pb-24" dir={dir}>
       <div className="space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-xl font-bold">الخزينة</h1>
+        <div className="fixed bottom-16 left-0 right-0 z-40 px-3 pointer-events-none">
+          <div className="mx-auto max-w-md flex items-center justify-center gap-1.5 rounded-full bg-background/95 backdrop-blur border shadow-lg p-1.5 pointer-events-auto" dir={dir}>
             {!isSettingsHidden && (
-              <Button size="icon" variant="outline" className="h-8 w-8 rounded-full" onClick={() => setSettingsOpen(true)} title="إعدادات" aria-label="إعدادات">
+              <Button size="icon" variant="outline" className="h-8 w-8 rounded-full shrink-0" onClick={() => setSettingsOpen(true)} title="إعدادات" aria-label="إعدادات">
                 <Settings className="w-4 h-4" />
               </Button>
             )}
-            <Button size="icon" variant="outline" className="h-8 w-8 rounded-full" onClick={syncOldSessions} disabled={syncing} title="مزامنة" aria-label="مزامنة">
+            <Button size="icon" variant="outline" className="h-8 w-8 rounded-full shrink-0" onClick={syncOldSessions} disabled={syncing} title="مزامنة" aria-label="مزامنة">
               <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
             </Button>
             <Button
               size="icon"
               variant="outline"
-              className={`h-8 w-8 rounded-full ${(handovers && handovers.length > 0) ? 'border-destructive text-destructive hover:bg-destructive/10' : 'border-green-500 text-green-600 hover:bg-green-500/10'}`}
+              className={`h-8 w-8 rounded-full shrink-0 ${(handovers && handovers.length > 0) ? 'border-destructive text-destructive hover:bg-destructive/10' : 'border-green-500 text-green-600 hover:bg-green-500/10'}`}
               onClick={() => setHandoversListOpen(true)}
               title="التسليمات"
               aria-label="التسليمات"
             >
               <Send className="w-4 h-4" />
             </Button>
-          </div>
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <Button size="sm" variant="outline" className="h-8 gap-1 rounded-full px-2.5 text-[11px] border-amber-300 text-amber-700 hover:bg-amber-50" onClick={() => setConsolidationOpen(true)}>
+            <Button size="sm" className="h-8 gap-1 rounded-full px-2.5 text-[11px] bg-blue-600 hover:bg-blue-700 text-white border-blue-600" onClick={() => setConsolidationOpen(true)}>
               <Wallet className="w-4 h-4" /><span>تجميع الكاش</span>
             </Button>
             <Button size="sm" className="h-8 gap-1 rounded-full px-2.5 text-[11px]" onClick={() => setHandoverOpen(true)}>
@@ -650,6 +647,7 @@ const ManagerTreasury = () => {
             </Button>
           </div>
         </div>
+
         <div className="hidden">
           <Dialog open={handoverOpen} onOpenChange={setHandoverOpen}>
             <DialogContent dir={dir} className="max-h-[90vh] overflow-y-auto">
