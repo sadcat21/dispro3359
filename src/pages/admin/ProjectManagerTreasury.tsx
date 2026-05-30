@@ -52,16 +52,21 @@ const TreasuryCard = ({
   total,
   color,
   count,
+  onClick,
 }: {
   icon: React.ReactNode;
   label: string;
   total: number;
   color: ColorKey;
   count: number;
+  onClick?: () => void;
 }) => {
   const c = colorMap[color];
   return (
-    <Card className={`${c.bg} ${c.border} hover:shadow-md transition-shadow rounded-2xl`}>
+    <Card
+      onClick={onClick}
+      className={`${c.bg} ${c.border} hover:shadow-md transition-shadow rounded-2xl ${onClick ? 'cursor-pointer hover:scale-[1.02]' : ''}`}
+    >
       <CardContent className="p-4 space-y-2">
         <div className="flex items-center justify-between gap-2">
           <span className={`text-sm font-bold ${c.text} truncate`}>{label}</span>
@@ -80,6 +85,29 @@ const TreasuryCard = ({
   );
 };
 
+type CardType = 'cash_invoice1' | 'cash_invoice2' | 'checks' | 'receipts' | 'transfers' | 'debt_cash' | 'stamps' | 'expenses';
+
+const cardLabel: Record<CardType, string> = {
+  cash_invoice1: 'كاش فاتورة 1',
+  cash_invoice2: 'كاش فاتورة 2',
+  checks: 'الشيكات',
+  receipts: 'Versement Doc',
+  transfers: 'Virement (فاتورة 2)',
+  debt_cash: 'تحصيلات الديون',
+  stamps: 'الطوابع',
+  expenses: 'المصاريف',
+};
+
+const cardField: Record<Exclude<CardType, 'expenses'>, string> = {
+  cash_invoice1: 'cash_invoice1',
+  cash_invoice2: 'cash_invoice2',
+  checks: 'checks_amount',
+  receipts: 'receipts_amount',
+  transfers: 'transfers_amount',
+  debt_cash: 'debt_cash_amount',
+  stamps: 'stamp_amount',
+};
+
 
 const ProjectManagerTreasury = () => {
   const navigate = useNavigate();
@@ -87,6 +115,7 @@ const ProjectManagerTreasury = () => {
   const [dateTo, setDateTo] = useState('');
   const [branchId, setBranchId] = useState<string>('all');
   const [selected, setSelected] = useState<any>(null);
+  const [openCard, setOpenCard] = useState<CardType | null>(null);
 
   const { data: branches } = useQuery({
     queryKey: ['pmt-branches'],
@@ -114,18 +143,27 @@ const ProjectManagerTreasury = () => {
     },
   });
 
-  const { data: expensesTotal } = useQuery({
+  const { data: expensesList } = useQuery({
     queryKey: ['pmt-expenses', dateFrom, dateTo, branchId],
     queryFn: async () => {
-      let q = supabase.from('expenses').select('amount, branch_id, expense_date').eq('status', 'approved');
+      let q = supabase
+        .from('expenses')
+        .select('*, branch:branches(id, name)')
+        .eq('status', 'approved')
+        .order('expense_date', { ascending: false });
       if (dateFrom) q = q.gte('expense_date', dateFrom);
       if (dateTo) q = q.lte('expense_date', dateTo);
       if (branchId !== 'all') q = q.eq('branch_id', branchId);
       const { data, error } = await q;
       if (error) throw error;
-      return (data || []).reduce((s: number, e: any) => s + Number(e.amount || 0), 0);
+      return data || [];
     },
   });
+
+  const expensesTotal = useMemo(
+    () => (expensesList || []).reduce((s: number, e: any) => s + Number(e.amount || 0), 0),
+    [expensesList]
+  );
 
   const totals = useMemo(() => {
     const init = {
@@ -230,6 +268,7 @@ const ProjectManagerTreasury = () => {
           total={totals.cash_invoice1}
           color="emerald"
           count={(handovers || []).filter((h: any) => Number(h.cash_invoice1) > 0).length}
+          onClick={() => setOpenCard('cash_invoice1')}
         />
         <TreasuryCard
           icon={<Coins className="w-4 h-4 text-amber-700" />}
@@ -237,6 +276,7 @@ const ProjectManagerTreasury = () => {
           total={totals.cash_invoice2}
           color="amber"
           count={(handovers || []).filter((h: any) => Number(h.cash_invoice2) > 0).length}
+          onClick={() => setOpenCard('cash_invoice2')}
         />
         <TreasuryCard
           icon={<CreditCard className="w-4 h-4 text-blue-700" />}
@@ -244,6 +284,7 @@ const ProjectManagerTreasury = () => {
           total={totals.checks}
           color="blue"
           count={(handovers || []).filter((h: any) => Number(h.checks_amount) > 0).length}
+          onClick={() => setOpenCard('checks')}
         />
         <TreasuryCard
           icon={<Receipt className="w-4 h-4 text-purple-700" />}
@@ -251,6 +292,7 @@ const ProjectManagerTreasury = () => {
           total={totals.receipts}
           color="purple"
           count={(handovers || []).filter((h: any) => Number(h.receipts_amount) > 0).length}
+          onClick={() => setOpenCard('receipts')}
         />
         <TreasuryCard
           icon={<ArrowUpRight className="w-4 h-4 text-orange-700" />}
@@ -258,6 +300,7 @@ const ProjectManagerTreasury = () => {
           total={totals.transfers}
           color="orange"
           count={(handovers || []).filter((h: any) => Number(h.transfers_amount) > 0).length}
+          onClick={() => setOpenCard('transfers')}
         />
         <TreasuryCard
           icon={<HandCoins className="w-4 h-4 text-rose-700" />}
@@ -265,6 +308,7 @@ const ProjectManagerTreasury = () => {
           total={totals.debt_cash}
           color="rose"
           count={(handovers || []).filter((h: any) => Number(h.debt_cash_amount) > 0).length}
+          onClick={() => setOpenCard('debt_cash')}
         />
         <TreasuryCard
           icon={<Stamp className="w-4 h-4 text-indigo-700" />}
@@ -272,14 +316,17 @@ const ProjectManagerTreasury = () => {
           total={totals.stamps}
           color="indigo"
           count={(handovers || []).filter((h: any) => Number(h.stamp_amount) > 0).length}
+          onClick={() => setOpenCard('stamps')}
         />
         <TreasuryCard
           icon={<Wallet className="w-4 h-4 text-amber-700" />}
           label="المصاريف"
           total={Number(expensesTotal || 0)}
           color="amber"
-          count={0}
+          count={(expensesList || []).length}
+          onClick={() => setOpenCard('expenses')}
         />
+
 
       </div>
 
@@ -385,6 +432,82 @@ const ProjectManagerTreasury = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Card details dialog */}
+      <Dialog open={!!openCard} onOpenChange={(o) => !o && setOpenCard(null)}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>تفاصيل: {openCard ? cardLabel[openCard] : ''}</DialogTitle>
+          </DialogHeader>
+          {openCard === 'expenses' ? (
+            (expensesList || []).length === 0 ? (
+              <div className="text-center text-muted-foreground py-8">لا توجد مصاريف</div>
+            ) : (
+              <div className="space-y-2">
+                {(expensesList || []).map((e: any) => (
+                  <Card key={e.id}>
+                    <CardContent className="p-3 flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="font-bold text-sm flex items-center gap-2">
+                          <Building2 className="w-4 h-4 text-primary" />
+                          {e.branch?.name || '—'}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {e.description || e.category || '—'} • {e.expense_date ? format(new Date(e.expense_date), 'PPP', { locale: ar }) : ''}
+                        </div>
+                      </div>
+                      <Money value={Number(e.amount || 0)} className="font-bold text-amber-700" />
+                    </CardContent>
+                  </Card>
+                ))}
+                <div className="flex items-center justify-between border-t pt-2 mt-2">
+                  <span className="font-bold">الإجمالي</span>
+                  <Money value={expensesTotal} className="font-bold text-primary text-lg" />
+                </div>
+              </div>
+            )
+          ) : openCard ? (
+            (() => {
+              const field = cardField[openCard];
+              const rows = (handovers || []).filter((h: any) => Number(h[field] || 0) > 0);
+              const sum = rows.reduce((s: number, h: any) => s + Number(h[field] || 0), 0);
+              if (rows.length === 0) {
+                return <div className="text-center text-muted-foreground py-8">لا توجد بيانات</div>;
+              }
+              return (
+                <div className="space-y-2">
+                  {rows.map((h: any) => (
+                    <Card key={h.id} className="hover:shadow-sm">
+                      <CardContent className="p-3 flex items-center justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="font-bold text-sm flex items-center gap-2">
+                            <Building2 className="w-4 h-4 text-primary" />
+                            {h.branch?.name || '—'}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {h.manager?.full_name || '—'} • {format(new Date(h.handover_date), 'PPP', { locale: ar })}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Money value={Number(h[field] || 0)} className="font-bold text-primary" />
+                          <Button size="sm" variant="outline" onClick={() => { setSelected(h); setOpenCard(null); }}>
+                            <Eye className="w-4 h-4 ml-1" /> معاينة
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                  <div className="flex items-center justify-between border-t pt-2 mt-2">
+                    <span className="font-bold">الإجمالي</span>
+                    <Money value={sum} className="font-bold text-primary text-lg" />
+                  </div>
+                </div>
+              );
+            })()
+          ) : null}
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 };
