@@ -64,6 +64,9 @@ const HandoverApprovals = () => {
       queryClient.invalidateQueries({ queryKey: ['handover-approvals'] });
       queryClient.invalidateQueries({ queryKey: ['manager-handovers'] });
       queryClient.invalidateQueries({ queryKey: ['project-manager-treasury'] });
+      queryClient.invalidateQueries({ queryKey: ['manager-treasury'] });
+      queryClient.invalidateQueries({ queryKey: ['treasury-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['pmt-expenses'] });
       setSelected(null);
       setDecisionNotes('');
     },
