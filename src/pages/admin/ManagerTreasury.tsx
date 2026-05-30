@@ -785,7 +785,7 @@ const ManagerTreasury = () => {
                                 }
                               }}
                             >
-                              {isInv1Inserted ? 'إزالة فاتورة 1' : 'إدراج فاتورة 1'}
+                              {isInv1Inserted ? 'إزالة فاتورة 1' : 'فاتورة 1'}
                             </Button>
                             <Button
                               type="button" size="sm"
