@@ -1830,6 +1830,9 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         groups={paymentGroups as any}
         stampByKey={stampByGroupKey}
         onConfirmAll={handleSplitConfirmAll}
+      />
+
+
 
       {/* Stock Overflow Dialog */}
       <StockOverflowDialog
