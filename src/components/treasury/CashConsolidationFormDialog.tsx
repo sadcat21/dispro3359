@@ -76,6 +76,7 @@ const CashConsolidationFormDialog = ({
   const [invoiceTotal, setInvoiceTotal] = useState(toInputAmountValue(initialInvoiceTotal || 0));
   const [cashInvoice1, setCashInvoice1] = useState(toInputAmountValue(initialSources.cashInvoice1 || 0));
   const [stamp, setStamp] = useState(toInputAmountValue(initialSources.stamp || 0));
+  const [receiptCash, setReceiptCash] = useState(toInputAmountValue(initialSources.receiptCash || 0));
 
   useEffect(() => {
     if (!open) return;
@@ -83,14 +84,16 @@ const CashConsolidationFormDialog = ({
     setInvoiceTotal(toInputAmountValue(initialInvoiceTotal || 0));
     setCashInvoice1(toInputAmountValue(initialSources.cashInvoice1 || 0));
     setStamp(toInputAmountValue(initialSources.stamp || 0));
-  }, [open, initialCustomerName, initialInvoiceTotal, initialSources.cashInvoice1, initialSources.stamp]);
+    setReceiptCash(toInputAmountValue(initialSources.receiptCash || 0));
+  }, [open, initialCustomerName, initialInvoiceTotal, initialSources.cashInvoice1, initialSources.stamp, initialSources.receiptCash]);
 
   const limits = sourceLimits ?? initialSources;
   const cashInvoice1Value = toPositiveNumber(cashInvoice1);
   const stampValue = toPositiveNumber(stamp);
+  const receiptCashValue = toPositiveNumber(receiptCash);
   const enteredInvoiceTotal = toPositiveNumber(invoiceTotal);
 
-  const baseSum = roundToMaxFraction(cashInvoice1Value + stampValue);
+  const baseSum = roundToMaxFraction(cashInvoice1Value + stampValue + receiptCashValue);
   const maxCashInvoice2 = Math.max(sourceLimits?.cashInvoice2 ?? initialSources.cashInvoice2 ?? 0, 0);
   const cashInvoice2Value = roundToMaxFraction(Math.min(Math.max(enteredInvoiceTotal - baseSum, 0), maxCashInvoice2));
   const finalTotal = roundToMaxFraction(baseSum + cashInvoice2Value);
@@ -105,7 +108,7 @@ const CashConsolidationFormDialog = ({
       sources: {
         cashInvoice1: cashInvoice1Value,
         stamp: stampValue,
-        receiptCash: 0,
+        receiptCash: receiptCashValue,
         cashInvoice2: cashInvoice2Value,
       },
     });
