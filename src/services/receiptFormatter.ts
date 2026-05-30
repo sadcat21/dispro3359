@@ -5,6 +5,7 @@
  */
 
 import { ReceiptItem, ReceiptType } from '@/types/receipt';
+import { boxesToBP } from '@/utils/boxPieceInput';
 
 const ESC = 0x1B;
 const GS = 0x1D;
@@ -123,8 +124,11 @@ function formatAmount(amount: number): string {
   return `${intPart},${parts[1]}`;
 }
 
-function formatQty(value: number): string {
+function formatQty(value: number, piecesPerBox?: number | null): string {
   if (Number.isInteger(value)) return String(value);
+  if (piecesPerBox && piecesPerBox > 1) {
+    return boxesToBP(value, piecesPerBox);
+  }
   return value.toFixed(2).replace(/\.0+$/, '').replace(/(\.[1-9]*)0+$/, '$1');
 }
 
@@ -406,7 +410,7 @@ export function formatReceiptForPrint(data: ReceiptData): Uint8Array {
         const unitLabel = getUnitLabel(item);
         const unitPrice = getUnitPrice(item);
         const totalStr = formatAmount(item.totalPrice);
-        const qtyStr = formatQty(item.quantity);
+        const qtyStr = formatQty(item.quantity, item.piecesPerBox);
         const nameStr = sanitizeForPrint(item.productName);
 
         // Gift suffix
@@ -447,7 +451,7 @@ export function formatReceiptForPrint(data: ReceiptData): Uint8Array {
         const unitLabel = getUnitLabel(item);
         const unitPrice = getUnitPrice(item);
         const totalStr = formatAmount(item.totalPrice);
-        const qtyStr = formatQty(item.quantity);
+        const qtyStr = formatQty(item.quantity, item.piecesPerBox);
 
         const nameStr = sanitizeForPrint(item.productName);
         if (nameStr.length > LINE_WIDTH) {
@@ -637,7 +641,7 @@ export function formatReceiptForPreview(data: ReceiptData): string {
       const { paidQuantity, giftBoxes, giftPieces } = resolveGiftDisplay(item);
       const unitLabel = getUnitLabel(item);
       const unitPrice = getUnitPrice(item);
-      const qtyStr = formatQty(item.quantity);
+      const qtyStr = formatQty(item.quantity, item.piecesPerBox);
 
       let giftSuffix = '';
           if (giftBoxes > 0) giftSuffix += `+${formatQty(giftBoxes)} ${unitLabel.toLowerCase()}`;
@@ -679,7 +683,7 @@ export function formatReceiptForPreview(data: ReceiptData): string {
         <div style="border-bottom:1px dotted #ccc;padding:4px 0;margin-bottom:2px;">
           <div style="font-size:10px;font-weight:bold;word-wrap:break-word;margin-bottom:2px;">${escapeHtml(item.productName)}</div>
           <div style="display:flex;justify-content:space-between;font-size:9px;color:#444;line-height:1.4;">
-            <span><strong>${formatQty(item.quantity)} ${escapeHtml(unitLabel)}</strong> x ${escapeHtml(unitPrice)}</span>
+            <span><strong>${formatQty(item.quantity, item.piecesPerBox)} ${escapeHtml(unitLabel)}</strong> x ${escapeHtml(unitPrice)}</span>
             <span style="font-weight:bold;">${Math.round(item.totalPrice).toLocaleString()} DA</span>
           </div>
           ${giftHtml}${noteHtml}
