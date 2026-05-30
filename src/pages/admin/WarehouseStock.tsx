@@ -105,37 +105,10 @@ const WarehouseStock: React.FC = () => {
   const [workersForProduct, setWorkersForProduct] = useState<ProductSummary | null>(null);
   const [soldForProduct, setSoldForProduct] = useState<ProductSummary | null>(null);
   const [metricLog, setMetricLog] = useState<{ product: ProductSummary; metric: MetricKind } | null>(null);
-  const [showReceiptSessionsDialog, setShowReceiptSessionsDialog] = useState(false);
-  const [selectedReceiptRanges, setSelectedReceiptRanges] = useState<SelectedReceiptRange[]>([]);
-  const [receiptDefaultsApplied, setReceiptDefaultsApplied] = useState(false);
-  const hasReceiptFilter = selectedReceiptRanges.length > 0;
+  // فلتر جلسات الاستلام أُزيل — نُبقي على ثوابت فارغة لتفادي تعديلات واسعة.
+  const selectedReceiptRanges: SelectedReceiptRange[] = [];
+  const hasReceiptFilter = false;
 
-  // Default: select ALL receipt sessions on first load and apply the filter automatically.
-  useEffect(() => {
-    if (!branchId || receiptDefaultsApplied) return;
-    (async () => {
-      const { data, error } = await supabase
-        .from('stock_receipts')
-        .select('id, created_at')
-        .eq('branch_id', branchId)
-        .order('created_at', { ascending: false })
-        .limit(120);
-      if (error || !data || data.length === 0) {
-        setReceiptDefaultsApplied(true);
-        return;
-      }
-      const sorted = [...data].sort(
-        (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-      );
-      const ranges: SelectedReceiptRange[] = sorted.map((r: any, idx: number) => ({
-        id: r.id,
-        start: r.created_at,
-        end: idx === 0 ? new Date().toISOString() : sorted[idx - 1].created_at,
-      }));
-      setSelectedReceiptRanges(ranges);
-      setReceiptDefaultsApplied(true);
-    })();
-  }, [branchId, receiptDefaultsApplied]);
 
   // Fetch aggregated data for summary
   const { data: summaryData, isLoading: summaryLoading } = useQuery({
@@ -352,9 +325,9 @@ const WarehouseStock: React.FC = () => {
       };
     }
 
-    // فلتر النوافذ (جلسات الاستلام). عند تفعيله نُجمّع فقط الأحداث التي تقع داخل النوافذ.
-    const inWindow = (iso: string | null | undefined) =>
-      !hasReceiptFilter || isInRanges(iso || null, selectedReceiptRanges);
+    // تم إزالة فلتر جلسات الاستلام: نُجمّع كل الأحداث دون قيود زمنية.
+    const inWindow = (_iso: string | null | undefined) => true;
+
 
     // Received
     for (const r of (summaryData?.receipts || [])) {
@@ -547,29 +520,8 @@ const WarehouseStock: React.FC = () => {
           <BarChart3 className="w-5 h-5 text-primary" />
           {t('stock.warehouse_stock')}
         </h2>
-        <div className="flex items-center gap-1.5">
-          <Button
-            size="sm"
-            variant={hasReceiptFilter ? 'default' : 'outline'}
-            className="h-8 text-xs gap-1.5"
-            onClick={() => setShowReceiptSessionsDialog(true)}
-            title="تصفية حسب جلسات الاستلام"
-          >
-            <Filter className="w-3.5 h-3.5" />
-            {hasReceiptFilter ? `جلسات الاستلام (${selectedReceiptRanges.length})` : 'جلسات الاستلام'}
-          </Button>
-          {hasReceiptFilter && (
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8"
-              onClick={() => setSelectedReceiptRanges([])}
-              title="إلغاء التصفية"
-            >
-              <X className="w-3.5 h-3.5" />
-            </Button>
-          )}
-        </div>
+        <div className="flex items-center gap-1.5" />
+
       </div>
       {/* Tabs */}
       <Tabs value={activeTab === 'today' ? 'stock' : activeTab} onValueChange={setActiveTab}>
@@ -924,15 +876,6 @@ const WarehouseStock: React.FC = () => {
           productName={movementProduct.productName}
           productImage={products.find(p => p.id === movementProduct.productId)?.image_url || null}
           piecesPerBox={products.find(p => p.id === movementProduct.productId)?.pieces_per_box || 20}
-        />
-      )}
-      {branchId && (
-        <ReceiptSessionsTimelineDialog
-          open={showReceiptSessionsDialog}
-          onOpenChange={setShowReceiptSessionsDialog}
-          branchId={branchId}
-          selectedIds={new Set(selectedReceiptRanges.map((r) => r.id))}
-          onApply={setSelectedReceiptRanges}
         />
       )}
     </div>
