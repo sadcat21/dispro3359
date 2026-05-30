@@ -1413,7 +1413,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                           "bg-white shadow-lg border-2",
                           hasAppliedGift
                             ? 'border-green-500 ring-2 ring-green-400/40'
-                            : inCart ? 'border-primary ring-2 ring-primary/40' : 'border-red-200 hover:border-primary/60 hover:shadow-xl'
+                            : inCart ? 'border-primary ring-2 ring-primary/40' : 'border-red-200 hover:border-primary/60 hover:shadow-xl',
+                          isInvoiceRestricted && "opacity-50 grayscale"
                         )}
                       >
                         {/* اسم المنتج أعلى الصورة */}
