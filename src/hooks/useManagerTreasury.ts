@@ -333,6 +333,8 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
       // nothing should be displayed in the budget — zero out expenses and
       // debt-cash collections too (sales are already gated via scopedOrders).
       const noReviewedSessions = perManager && sessionWindows.length === 0;
+      const effectiveDebtCashCollected = noReviewedSessions ? 0 : debtCashCollected;
+      const effectiveTotalExpenses = noReviewedSessions ? 0 : totalExpenses;
 
 
 
