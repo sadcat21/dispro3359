@@ -466,6 +466,7 @@ const AdminHome: React.FC = () => {
         { path: '/shared-invoices', icon: FolderOpen, label: t('admin_home.item.shared_invoices') },
         ...(isAdminRole(role) ? [{ path: '/assistant-approvals', icon: ShieldCheck, label: t('nav.assistant_approvals') }] : []),
         ...(isAdminRole(role) ? [{ path: '/handover-approvals', icon: CheckSquare, label: 'موافقات التسليمات' }] : []),
+        ...(isAdminRole(role) ? [{ path: '/project-manager-treasury', icon: Vault, label: 'خزينة مدير المشروع' }] : []),
         { path: '/worker-debts', icon: Banknote, label: t('nav.worker_debts') },
         ...(isAdminRole(role) ? [{ path: '/manager-sales-summary', icon: ShoppingCart, label: t('admin_home.item.manager_sales_summary') }] : []),
         { path: '/cash-ledger', icon: Coins, label: t('admin_home.item.cash_ledger') },
