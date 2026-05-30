@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
 import { useActiveStampTiers, calculateStampAmount } from '@/hooks/useStampTiers';
 import { isTransferPaidByCash, resolveReceiptBucket } from '@/utils/treasuryDocumentClassification';
+import { orderAccountingTime, parseAccountingTime } from '@/hooks/useManagerTreasury';
 
 export interface PickedItem {
   order_id: string;
@@ -40,19 +41,37 @@ const labels: Record<string, string> = {
 };
 
 const HandoverItemPickerDialog = ({ open, onOpenChange, paymentMethod, onConfirm }: Props) => {
-  const { activeBranch } = useAuth();
+  const { activeBranch, workerId, role } = useAuth();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const { data: stampTiers } = useActiveStampTiers();
+  const perManagerId = role === 'branch_admin' && workerId ? workerId : null;
 
   // Fetch delivered orders with this payment method
   const { data: items, isLoading } = useQuery({
-    queryKey: ['handover-picker', paymentMethod, activeBranch?.id],
+    queryKey: ['handover-picker', paymentMethod, activeBranch?.id, perManagerId],
     enabled: open,
     queryFn: async () => {
+      let sessionWindows: Array<{ worker_id: string; start: number; end: number }> = [];
+      if (perManagerId) {
+        let sessionQuery = supabase
+          .from('accounting_sessions')
+          .select('worker_id, period_start, period_end')
+          .eq('status', 'completed')
+          .eq('manager_id', perManagerId);
+        if (activeBranch?.id) sessionQuery = sessionQuery.eq('branch_id', activeBranch.id);
+        const { data: sessions, error: sessionsError } = await sessionQuery;
+        if (sessionsError) throw sessionsError;
+        sessionWindows = (sessions || []).map((session: any) => ({
+          worker_id: session.worker_id,
+          start: parseAccountingTime(session.period_start),
+          end: parseAccountingTime(session.period_end),
+        }));
+      }
+
       const baseQuery = () => {
         let query = supabase
           .from('orders')
-          .select('id, total_amount, partial_amount, payment_status, invoice_payment_method, document_verification, created_at, customer_id, customers!inner(name, store_name), order_items(total_price)')
+          .select('id, total_amount, partial_amount, payment_status, invoice_payment_method, document_verification, created_at, delivery_date, customer_id, assigned_worker_id, customer:customers(name, store_name), order_items(total_price)')
           .eq('status', 'delivered')
           .eq('payment_type', 'with_invoice');
         if (activeBranch?.id) query = query.eq('branch_id', activeBranch.id);
@@ -63,14 +82,24 @@ const HandoverItemPickerDialog = ({ open, onOpenChange, paymentMethod, onConfirm
       if (paymentMethod === 'cash') {
         const { data, error } = await baseQuery().in('invoice_payment_method', ['cash', 'receipt', 'transfer']);
         if (error) throw error;
-        orders = (data || []).filter((order: any) => {
-          return order.invoice_payment_method === 'cash';
-        });
+         orders = (data || []).filter((order: any) => {
+           if (order.invoice_payment_method !== 'cash') return false;
+           if (!perManagerId) return true;
+           if (!order.assigned_worker_id) return false;
+           const orderTs = orderAccountingTime(order);
+           return sessionWindows.some((window) => window.worker_id === order.assigned_worker_id && orderTs >= window.start && orderTs <= window.end);
+         });
       } else {
         const invoiceMethod = paymentMethod === 'receipt_cash' ? 'receipt' : paymentMethod;
         const { data, error } = await baseQuery().eq('invoice_payment_method', invoiceMethod);
         if (error) throw error;
         orders = (data || []).filter((order: any) => {
+          if (perManagerId) {
+            if (!order.assigned_worker_id) return false;
+            const orderTs = orderAccountingTime(order);
+            const isInsideManagerWindow = sessionWindows.some((window) => window.worker_id === order.assigned_worker_id && orderTs >= window.start && orderTs <= window.end);
+            if (!isInsideManagerWindow) return false;
+          }
           if (paymentMethod === 'receipt_cash') {
             return resolveReceiptBucket(order.document_verification) === 'cash';
           }
@@ -86,9 +115,10 @@ const HandoverItemPickerDialog = ({ open, onOpenChange, paymentMethod, onConfirm
 
       let handedQuery = supabase
         .from('handover_items')
-        .select('order_id, treasury_entry_id, handover:manager_handovers!inner(branch_id)')
+        .select('order_id, treasury_entry_id, handover:manager_handovers!inner(branch_id, manager_id)')
         .eq('payment_method', paymentMethod);
       if (activeBranch?.id) handedQuery = handedQuery.eq('handover.branch_id', activeBranch.id);
+      if (perManagerId) handedQuery = handedQuery.eq('handover.manager_id', perManagerId);
 
       const { data: handedOver, error: handedOverError } = await handedQuery;
       if (handedOverError) throw handedOverError;
@@ -113,8 +143,8 @@ const HandoverItemPickerDialog = ({ open, onOpenChange, paymentMethod, onConfirm
             amount,
             stamp_amount: stampAmount,
             total_with_stamp: amount + stampAmount,
-            customer_name: (o.customers as any)?.name || '',
-            store_name: (o.customers as any)?.store_name || '',
+            customer_name: (o.customer as any)?.name || 'عميل غير معروف',
+            store_name: (o.customer as any)?.store_name || '',
             created_at: o.created_at,
           };
         })
