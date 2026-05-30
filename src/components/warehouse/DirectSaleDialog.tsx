@@ -81,6 +81,8 @@ interface OrderItemWithPrice {
   piecesPerBox?: number;
   priceSubType?: PriceSubType;
   itemPaymentType?: PaymentType;
+  itemInvoicePaymentMethod?: InvoicePaymentMethod | null;
+  itemInvoicePaymentSubType?: 'cash' | 'doc' | null;
 }
 
 const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
@@ -412,7 +414,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
 
     if (isUnitSale) {
       const totalPrice = computed.unitPrice * quantity;
-      setOrderItems(prev => [...prev, { productId, quantity, unitPrice: computed.unitPrice, totalPrice, customUnitPrice, isUnitSale: true, priceSubType: computed.subType, itemPaymentType: computed.payType, pricingUnit: product.pricing_unit || 'box', weightPerBox: product.weight_per_box, piecesPerBox: product.pieces_per_box }]);
+      setOrderItems(prev => [...prev, { productId, quantity, unitPrice: computed.unitPrice, totalPrice, customUnitPrice, isUnitSale: true, priceSubType: computed.subType, itemPaymentType: computed.payType, itemInvoicePaymentMethod: perItemPricing?.invoicePaymentMethod, itemInvoicePaymentSubType: perItemPricing?.invoicePaymentSubType, pricingUnit: product.pricing_unit || 'box', weightPerBox: product.weight_per_box, piecesPerBox: product.pieces_per_box }]);
       return;
     }
 
@@ -454,7 +456,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
             : item
         );
       }
-      return [...prev, { productId, quantity, unitPrice, totalPrice: paidQuantity * unitPrice, customUnitPrice, giftQuantity: giftQuantity || undefined, giftPieces: giftPieces || undefined, giftOfferId: giftInfo?.offerId, priceSubType: computed.subType, itemPaymentType: computed.payType, pricingUnit: product.pricing_unit || 'box', weightPerBox: product.weight_per_box, piecesPerBox: product.pieces_per_box }];
+      return [...prev, { productId, quantity, unitPrice, totalPrice: paidQuantity * unitPrice, customUnitPrice, giftQuantity: giftQuantity || undefined, giftPieces: giftPieces || undefined, giftOfferId: giftInfo?.offerId, priceSubType: computed.subType, itemPaymentType: computed.payType, itemInvoicePaymentMethod: perItemPricing?.invoicePaymentMethod, itemInvoicePaymentSubType: perItemPricing?.invoicePaymentSubType, pricingUnit: product.pricing_unit || 'box', weightPerBox: product.weight_per_box, piecesPerBox: product.pieces_per_box }];
     });
   };
 
@@ -486,6 +488,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         giftOfferId: undefined,
         priceSubType: computed.subType,
         itemPaymentType: computed.payType,
+        itemInvoicePaymentMethod: perItemPricing?.invoicePaymentMethod,
+        itemInvoicePaymentSubType: perItemPricing?.invoicePaymentSubType,
       } : item));
     } else {
       const unitPrice = computed.unitPrice;
@@ -506,6 +510,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         giftOfferId: giftInfo?.offerId ?? item.giftOfferId,
         priceSubType: computed.subType,
         itemPaymentType: computed.payType,
+        itemInvoicePaymentMethod: perItemPricing?.invoicePaymentMethod,
+        itemInvoicePaymentSubType: perItemPricing?.invoicePaymentSubType,
       } : item));
     }
 
@@ -1507,8 +1513,13 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                         <div className="flex-1 min-w-0">
                           <span className="font-medium text-sm truncate block">
                             {(() => {
+                              const methodMap: Record<string, string> = { receipt: 'VRST', check: 'CHK', cash: 'ESP', transfer: 'VRMT' };
+                              const subTypeMap: Record<string, string> = { cash: 'Cash', doc: 'Doc' };
+                              const methodSuffix = item.itemPaymentType === 'with_invoice' && item.itemInvoicePaymentMethod
+                                ? `-${methodMap[item.itemInvoicePaymentMethod]}${item.itemInvoicePaymentMethod === 'receipt' && item.itemInvoicePaymentSubType ? ` ${subTypeMap[item.itemInvoicePaymentSubType]}` : ''}`
+                                : '';
                               const code = item.itemPaymentType === 'with_invoice'
-                                ? 'F1'
+                                ? `F1${methodSuffix}`
                                 : item.priceSubType === 'super_gros' ? 'SG'
                                 : item.priceSubType === 'retail' ? 'D'
                                 : item.priceSubType === 'gros' ? 'G'
