@@ -162,6 +162,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   );
   const [itemPriceSubType, setItemPriceSubType] = useState<PriceSubType>(defaultPriceSubType);
   const [itemInvoicePaymentMethod, setItemInvoicePaymentMethod] = useState<InvoicePaymentMethod | null>(defaultInvoicePaymentMethod);
+  const [itemInvoicePaymentSubType, setItemInvoicePaymentSubType] = useState<InvoicePaymentSubType | null>(defaultInvoicePaymentSubType);
   const [customPriceOpen, setCustomPriceOpen] = useState(false);
   const [customUnitPriceInput, setCustomUnitPriceInput] = useState(initialCustomUnitPrice ? String(initialCustomUnitPrice) : '');
   const [prefetchedOffersByKey, setPrefetchedOffersByKey] = useState<Record<string, ProductOfferWithDetails[]>>({});
