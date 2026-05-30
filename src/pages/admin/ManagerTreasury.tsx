@@ -758,10 +758,12 @@ const ManagerTreasury = () => {
                         const debtVal = availableDebtCashAmount;
                         const totalVal = inv1Val + inv2Val + debtVal;
                         const allocatedInv2 = Math.min(inv2Val, Math.max(0, currentCash - inv1Val));
+                        const allocatedDebt = Math.max(0, currentCash - inv1Val - inv2Val);
                         
                         // Detect which invoices are currently "inserted"
                         const isInv1Inserted = inv1Val > 0 && currentCash >= inv1Val - 1;
                         const isInv2Inserted = allocatedInv2 > 0;
+                        const isDebtInserted = debtVal > 0 && allocatedDebt >= debtVal - 1;
                         const isTotalInserted = Math.abs(currentCash - totalVal) < 1;
 
                         return (
@@ -804,6 +806,26 @@ const ManagerTreasury = () => {
                               }}
                             >
                               {isInv2Inserted ? 'إزالة فاتورة 2' : 'إدراج فاتورة 2'}
+                            </Button>
+                            <Button
+                              type="button" size="sm"
+                              variant={isDebtInserted ? "default" : "outline"}
+                              disabled={debtVal <= 0}
+                              className={`h-8 text-[11px] ${isDebtInserted 
+                                ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' 
+                                : 'border-amber-400 text-amber-700 hover:bg-amber-50'}`}
+                              onClick={() => {
+                                if (isDebtInserted) {
+                                  // Remove debt portion, keep inv1 + inv2 part
+                                  const base = (isInv1Inserted ? inv1Val : 0) + (isInv2Inserted ? allocatedInv2 : 0);
+                                  setHandoverForm(f => ({ ...f, cash_delivered: String(base) }));
+                                } else {
+                                  const base = (isInv1Inserted ? inv1Val : 0) + (isInv2Inserted ? allocatedInv2 : 0);
+                                  setHandoverForm(f => ({ ...f, cash_delivered: String(base + debtVal) }));
+                                }
+                              }}
+                            >
+                              {isDebtInserted ? 'إزالة تحصيلات الديون' : 'إدراج تحصيلات الديون'}
                             </Button>
                             <Button
                               type="button" size="sm"
