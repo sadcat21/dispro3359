@@ -250,7 +250,7 @@ const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
 
     const getBoxMultiplier = (product: Product): number => {
       if (product.pricing_unit === 'kg' && product.weight_per_box) return product.weight_per_box;
-      else if (product.pricing_unit === 'piece' && product.pieces_per_box > 1) return product.pieces_per_box;
+      else if ((product.pricing_unit === 'piece' || product.pricing_unit === 'unit') && product.pieces_per_box > 1) return product.pieces_per_box;
       return 1;
     };
 

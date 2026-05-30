@@ -782,7 +782,7 @@ const OrderDetailsContent: React.FC<{ order: GroupedOrder }> = ({ order }) => {
                       <span className="text-green-600 font-medium">+ {item.gift_quantity} 🎁</span>
                     )}
                     {item.pricing_unit && item.pricing_unit !== 'box' && (
-                      <Badge variant="outline" className="text-[8px] py-0 px-1">{item.pricing_unit === 'piece' ? 'قطعة' : item.pricing_unit === 'kg' ? 'كغ' : item.pricing_unit}</Badge>
+                      <Badge variant="outline" className="text-[8px] py-0 px-1">{(item.pricing_unit === 'piece' || item.pricing_unit === 'unit') ? 'قطعة' : item.pricing_unit === 'kg' ? 'كغ' : item.pricing_unit}</Badge>
                     )}
                     {(item as any).price_subtype && (
                       <Badge variant="outline" className={`text-[8px] py-0 px-1 ${
