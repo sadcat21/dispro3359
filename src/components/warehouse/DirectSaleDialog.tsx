@@ -884,18 +884,30 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
 
       const orderItemsData = orderItems.map(item => {
         const prod = availableProducts.find(p => p.id === item.productId);
+        const ppb = Math.max(1, Math.round(item.piecesPerBox ?? prod?.pieces_per_box ?? 1));
+        let qty: number = Number(item.quantity || 0);
+        let unitPrice: number = Number(item.unitPrice || 0);
+        let pricingUnit: string = item.pricingUnit || prod?.pricing_unit || 'box';
+        // Defensive: integer column. If a fractional box quantity slipped
+        // through (e.g. 10 pieces with ppb=20 = 0.5), convert to piece sale.
+        if (!Number.isInteger(qty)) {
+          const totalPieces = Math.max(1, Math.round(qty * ppb));
+          unitPrice = totalPieces > 0 ? Number(item.totalPrice || 0) / totalPieces : 0;
+          qty = totalPieces;
+          pricingUnit = 'piece';
+        }
         return {
           order_id: order.id,
           product_id: item.productId,
-          quantity: item.quantity,
-          unit_price: item.unitPrice,
+          quantity: qty,
+          unit_price: unitPrice,
           total_price: item.totalPrice,
-          gift_quantity: item.giftQuantity || 0,
-          gift_pieces: item.giftPieces || 0,
+          gift_quantity: Math.round(Number(item.giftQuantity || 0)),
+          gift_pieces: Math.round(Number(item.giftPieces || 0)),
           gift_offer_id: item.giftOfferId || null,
-          pricing_unit: item.pricingUnit || prod?.pricing_unit || 'box',
+          pricing_unit: pricingUnit,
           weight_per_box: item.weightPerBox ?? prod?.weight_per_box ?? null,
-          pieces_per_box: item.piecesPerBox ?? prod?.pieces_per_box ?? null,
+          pieces_per_box: ppb,
         };
       });
 
