@@ -570,6 +570,7 @@ const ManagerTreasury = () => {
         amount: total,
         cash_invoice1: finalCash1,
         cash_invoice2: finalCash2,
+        debt_cash_amount: debtCashHandoverAmount,
         checks_amount: checksAmount,
         check_count: pickedChecks.length,
         receipts_amount: receiptsAmount,
