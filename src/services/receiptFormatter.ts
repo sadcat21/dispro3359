@@ -5,6 +5,7 @@
  */
 
 import { ReceiptItem, ReceiptType } from '@/types/receipt';
+import { boxesToBP } from '@/utils/boxPieceInput';
 
 const ESC = 0x1B;
 const GS = 0x1D;
