@@ -43,6 +43,7 @@ import CustomerDistanceIndicator from './CustomerDistanceIndicator';
 import SimpleProductPickerDialog from '@/components/stock/SimpleProductPickerDialog';
 import { cn } from '@/lib/utils';
 import { getCustomerTypesArray } from '@/utils/customerTypes';
+import { toStoredOrderItemQuantity } from '@/utils/orderItemQuantities';
 
 interface DeliverySaleDialogProps {
   open: boolean;
@@ -66,6 +67,7 @@ interface SaleItem {
   piecesPerBox: number;
   pricingUnit?: string;
   weightPerBox?: number | null;
+  isUnitSale?: boolean;
 }
 
 const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
