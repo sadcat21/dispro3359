@@ -52,16 +52,21 @@ const TreasuryCard = ({
   total,
   color,
   count,
+  onClick,
 }: {
   icon: React.ReactNode;
   label: string;
   total: number;
   color: ColorKey;
   count: number;
+  onClick?: () => void;
 }) => {
   const c = colorMap[color];
   return (
-    <Card className={`${c.bg} ${c.border} hover:shadow-md transition-shadow rounded-2xl`}>
+    <Card
+      onClick={onClick}
+      className={`${c.bg} ${c.border} hover:shadow-md transition-shadow rounded-2xl ${onClick ? 'cursor-pointer hover:scale-[1.02]' : ''}`}
+    >
       <CardContent className="p-4 space-y-2">
         <div className="flex items-center justify-between gap-2">
           <span className={`text-sm font-bold ${c.text} truncate`}>{label}</span>
@@ -78,6 +83,29 @@ const TreasuryCard = ({
       </CardContent>
     </Card>
   );
+};
+
+type CardType = 'cash_invoice1' | 'cash_invoice2' | 'checks' | 'receipts' | 'transfers' | 'debt_cash' | 'stamps' | 'expenses';
+
+const cardLabel: Record<CardType, string> = {
+  cash_invoice1: 'كاش فاتورة 1',
+  cash_invoice2: 'كاش فاتورة 2',
+  checks: 'الشيكات',
+  receipts: 'Versement Doc',
+  transfers: 'Virement (فاتورة 2)',
+  debt_cash: 'تحصيلات الديون',
+  stamps: 'الطوابع',
+  expenses: 'المصاريف',
+};
+
+const cardField: Record<Exclude<CardType, 'expenses'>, string> = {
+  cash_invoice1: 'cash_invoice1',
+  cash_invoice2: 'cash_invoice2',
+  checks: 'checks_amount',
+  receipts: 'receipts_amount',
+  transfers: 'transfers_amount',
+  debt_cash: 'debt_cash_amount',
+  stamps: 'stamp_amount',
 };
 
 
