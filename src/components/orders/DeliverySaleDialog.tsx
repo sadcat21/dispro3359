@@ -634,11 +634,11 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
     const paidByCash = dv && typeof dv === 'object' && dv.paid_by_cash === true;
     if (order.payment_type === 'with_invoice' && invoiceMethod === 'check') {
       setShowCheckDialog(true);
-    } else if (order.payment_type === 'with_invoice' && invoiceMethod === 'receipt') {
-      // Versement دائماً مستند
-      setShowReceiptPaymentDialog(true);
     } else if (order.payment_type === 'with_invoice' && invoiceMethod === 'transfer') {
-      // Virement: Cash → نافذة الدفع العادية (Facture2)، Doc → نافذة استلام المستند
+      // Virement دائماً مستند
+      setShowReceiptPaymentDialog(true);
+    } else if (order.payment_type === 'with_invoice' && invoiceMethod === 'receipt') {
+      // Versement: Cash → نافذة الدفع العادية (Facture2)، Doc → نافذة استلام المستند
       if (paidByCash) {
         setShowPaymentDialog(true);
       } else {
