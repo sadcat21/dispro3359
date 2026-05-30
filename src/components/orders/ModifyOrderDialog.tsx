@@ -2484,6 +2484,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
         defaultPaymentType={editingSubtype === 'invoice' ? 'with_invoice' : 'without_invoice'}
         defaultPriceSubType={editingSubtype === 'invoice' ? priceSubType : (editingSubtype as PriceSubType)}
         defaultInvoicePaymentMethod={editingSubtype === 'invoice' ? invoicePaymentMethod : null}
+        defaultInvoicePaymentSubType={editingSubtype === 'invoice' ? invoicePaymentSubType : null}
         mode="edit"
         initialQuantity={editingInitialQuantity}
         initialGiftPieces={editingInitialGiftPieces}
