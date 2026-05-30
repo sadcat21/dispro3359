@@ -281,12 +281,22 @@ const WorkerAchievementsDialog: React.FC<WorkerAchievementsDialogProps> = ({
         };
       });
 
+      // Dedupe: same operation_type + operation_id should appear only once
+      const seen = new Set<string>();
+      const dedupedVisits = enrichedVisits.filter((v: any) => {
+        if (!v.operation_id) return true;
+        const key = `${v.operation_type}::${v.operation_id}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
       const counts: Record<string, number> = {};
-      for (const v of enrichedVisits) {
+      for (const v of dedupedVisits) {
         counts[v.operation_type] = (counts[v.operation_type] || 0) + 1;
       }
 
-      return { visits: enrichedVisits, counts };
+      return { visits: dedupedVisits, counts };
     },
     enabled: open && !!workerId,
     refetchInterval: 30000, // Real-time polling every 30s
