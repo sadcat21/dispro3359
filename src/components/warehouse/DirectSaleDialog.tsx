@@ -46,6 +46,7 @@ import { sendSmsDirectly, buildDeliveryConfirmationSms } from '@/utils/smsHelper
 import { loadSmsSettings, buildSmsFromTemplate, openSmsApp } from '@/components/settings/SmsSettingsCard';
 import { useProductOffers } from '@/hooks/useProductOffers';
 import { getGiftTotalPieces, getPaidQuantity as getStoredPaidQuantity } from '@/utils/orderItemQuantities';
+import { boxesToBP } from '@/utils/boxPieceInput';
 import { splitOrderByPaymentGroup, buildPaymentKey } from '@/utils/splitOrderByPaymentGroup';
 import SplitPaymentConfirmDialog, { GroupPaymentResult } from '@/components/sales/SplitPaymentConfirmDialog';
 
@@ -888,13 +889,9 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         let qty: number = Number(item.quantity || 0);
         let unitPrice: number = Number(item.unitPrice || 0);
         let pricingUnit: string = item.pricingUnit || prod?.pricing_unit || 'box';
-        // Defensive: integer column. If a fractional box quantity slipped
-        // through (e.g. 10 pieces with ppb=20 = 0.5), convert to piece sale.
-        if (!Number.isInteger(qty)) {
-          const totalPieces = Math.max(1, Math.round(qty * ppb));
-          unitPrice = totalPieces > 0 ? Number(item.totalPrice || 0) / totalPieces : 0;
-          qty = totalPieces;
-          pricingUnit = 'unit';
+        // Store non-unit sales in B.P notation so 10/20 becomes 0.10, not 0.5.
+        if (!item.isUnitSale && qty > 0) {
+          qty = Number(boxesToBP(qty, ppb));
         }
         return {
           order_id: order.id,
