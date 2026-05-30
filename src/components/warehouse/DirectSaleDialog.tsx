@@ -1707,6 +1707,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         initialCustomUnitPrice={editingProductMode ? editingInitialCustomUnitPrice : undefined}
         defaultPaymentType={paymentType}
         defaultInvoicePaymentMethod={invoicePaymentMethod}
+        defaultInvoicePaymentSubType={invoicePaymentSubType}
         defaultPriceSubType={(editingProductMode
           ? (orderItems.find(i => i.productId === editingTargetProductId)?.priceSubType)
           : undefined) || priceSubType}
