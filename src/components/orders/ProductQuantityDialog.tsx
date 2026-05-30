@@ -313,16 +313,25 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
         onConfirm(product.id, effectiveQty, undefined, true, perItemPricing);
       } else {
         const ppb = product.pieces_per_box || 1;
-        const giftBoxes = ppb > 0 ? Math.floor(giftPieces / ppb) : 0;
-        const giftRemainder = ppb > 0 ? giftPieces % ppb : giftPieces;
-        const appliedGiftBoxes = offerApplied ? giftBoxes : 0;
-        const appliedGiftRemainder = offerApplied ? giftRemainder : 0;
-        const totalQuantity = effectiveQty + appliedGiftBoxes;
-
-        if (appliedGiftBoxes > 0 || appliedGiftRemainder > 0) {
-          onConfirm(product.id, totalQuantity, { giftQuantity: appliedGiftBoxes, giftPieces: appliedGiftRemainder, offerId: giftOfferId }, false, perItemPricing);
+        // If the user entered a fractional box quantity (e.g. 0.01 = 1 piece) with
+        // no offer applied, convert to unit-sale pieces so we don't try to write a
+        // fractional value into the integer `quantity` column on order_items.
+        if (!Number.isInteger(effectiveQty) && giftPieces === 0) {
+          const totalPieces = Math.max(1, Math.round(effectiveQty * ppb));
+          onConfirm(product.id, totalPieces, undefined, true, perItemPricing);
         } else {
-          onConfirm(product.id, effectiveQty, undefined, false, perItemPricing);
+          const giftBoxes = ppb > 0 ? Math.floor(giftPieces / ppb) : 0;
+          const giftRemainder = ppb > 0 ? giftPieces % ppb : giftPieces;
+          const appliedGiftBoxes = offerApplied ? giftBoxes : 0;
+          const appliedGiftRemainder = offerApplied ? giftRemainder : 0;
+          const wholeEffective = Math.floor(effectiveQty);
+          const totalQuantity = wholeEffective + appliedGiftBoxes;
+
+          if (appliedGiftBoxes > 0 || appliedGiftRemainder > 0) {
+            onConfirm(product.id, totalQuantity, { giftQuantity: appliedGiftBoxes, giftPieces: appliedGiftRemainder, offerId: giftOfferId }, false, perItemPricing);
+          } else {
+            onConfirm(product.id, wholeEffective, undefined, false, perItemPricing);
+          }
         }
       }
       setUnitQuantityInput('');
