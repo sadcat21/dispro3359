@@ -972,18 +972,20 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           const giftBoxesQty = isDeferredItem ? 0 : Number(item.giftQuantity || 0);
           const giftPiecesQty = isDeferredItem ? 0 : Number(item.giftPieces || 0);
 
-          // Quantity is stored as fractional boxes (e.g. 0.5 box = 10 pieces when ppb=20).
-          // Convert to total pieces, then subtract deferred gift boxes and add gift pieces.
-          const soldPiecesRaw = Math.round(qtyRounded * piecesPerBox);
-          const soldPieces = soldPiecesRaw
-            - (isDeferredItem ? Math.round(Number(item.giftQuantity || 0) * piecesPerBox) : 0)
-            + giftPiecesQty;
+          // Convert sold quantity (box.pieces format) to total pieces, including gift pieces
+          const soldBoxes = Math.floor(qtyRounded);
+          const soldDec = Math.round((qtyRounded - soldBoxes) * 100);
+          const soldPieces = soldBoxes * piecesPerBox + soldDec - (isDeferredItem ? (Number(item.giftQuantity || 0) * piecesPerBox) : 0) + giftPiecesQty;
 
-          // Stock is also stored as fractional boxes.
-          const stockPieces = Math.round(Number(ws.quantity || 0) * piecesPerBox);
+          // Convert current stock to total pieces
+          const stockBoxes = Math.floor(Math.round(ws.quantity * 100) / 100);
+          const stockDec = Math.round((Math.round(ws.quantity * 100) / 100 - stockBoxes) * 100);
+          const stockPieces = stockBoxes * piecesPerBox + stockDec;
 
           const remainingPieces = Math.max(0, stockPieces - soldPieces);
-          const newQty = remainingPieces / piecesPerBox;
+          const newBoxes = Math.floor(remainingPieces / piecesPerBox);
+          const newRemaining = Math.round(remainingPieces % piecesPerBox);
+          const newQty = newBoxes + newRemaining / 100;
 
           const stockTable = stockSource === 'warehouse' ? 'warehouse_stock' : 'worker_stock';
           await supabase.from(stockTable).update({ quantity: newQty }).eq('id', ws.id);
