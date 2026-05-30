@@ -432,6 +432,82 @@ const ProjectManagerTreasury = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Card details dialog */}
+      <Dialog open={!!openCard} onOpenChange={(o) => !o && setOpenCard(null)}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>تفاصيل: {openCard ? cardLabel[openCard] : ''}</DialogTitle>
+          </DialogHeader>
+          {openCard === 'expenses' ? (
+            (expensesList || []).length === 0 ? (
+              <div className="text-center text-muted-foreground py-8">لا توجد مصاريف</div>
+            ) : (
+              <div className="space-y-2">
+                {(expensesList || []).map((e: any) => (
+                  <Card key={e.id}>
+                    <CardContent className="p-3 flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="font-bold text-sm flex items-center gap-2">
+                          <Building2 className="w-4 h-4 text-primary" />
+                          {e.branch?.name || '—'}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {e.description || e.category || '—'} • {e.expense_date ? format(new Date(e.expense_date), 'PPP', { locale: ar }) : ''}
+                        </div>
+                      </div>
+                      <Money value={Number(e.amount || 0)} className="font-bold text-amber-700" />
+                    </CardContent>
+                  </Card>
+                ))}
+                <div className="flex items-center justify-between border-t pt-2 mt-2">
+                  <span className="font-bold">الإجمالي</span>
+                  <Money value={expensesTotal} className="font-bold text-primary text-lg" />
+                </div>
+              </div>
+            )
+          ) : openCard ? (
+            (() => {
+              const field = cardField[openCard];
+              const rows = (handovers || []).filter((h: any) => Number(h[field] || 0) > 0);
+              const sum = rows.reduce((s: number, h: any) => s + Number(h[field] || 0), 0);
+              if (rows.length === 0) {
+                return <div className="text-center text-muted-foreground py-8">لا توجد بيانات</div>;
+              }
+              return (
+                <div className="space-y-2">
+                  {rows.map((h: any) => (
+                    <Card key={h.id} className="hover:shadow-sm">
+                      <CardContent className="p-3 flex items-center justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="font-bold text-sm flex items-center gap-2">
+                            <Building2 className="w-4 h-4 text-primary" />
+                            {h.branch?.name || '—'}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {h.manager?.full_name || '—'} • {format(new Date(h.handover_date), 'PPP', { locale: ar })}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Money value={Number(h[field] || 0)} className="font-bold text-primary" />
+                          <Button size="sm" variant="outline" onClick={() => { setSelected(h); setOpenCard(null); }}>
+                            <Eye className="w-4 h-4 ml-1" /> معاينة
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                  <div className="flex items-center justify-between border-t pt-2 mt-2">
+                    <span className="font-bold">الإجمالي</span>
+                    <Money value={sum} className="font-bold text-primary text-lg" />
+                  </div>
+                </div>
+              );
+            })()
+          ) : null}
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 };
