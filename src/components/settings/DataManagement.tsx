@@ -653,6 +653,49 @@ const DataManagement: React.FC = () => {
           onSkip={handleRelatedSkip}
         />
 
+        {/* Delivery Debt Choice Dialog */}
+        <Dialog open={showDeliveryDebtChoice} onOpenChange={setShowDeliveryDebtChoice}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-base">
+                <AlertTriangle className="w-5 h-5 text-amber-500" />
+                حذف التوصيلات — معالجة الديون
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3 text-sm">
+              <p className="text-muted-foreground">
+                اخترت حذف سجلات التوصيلات والمبيعات المباشرة. كيف تريد التعامل مع الديون المرتبطة بها؟
+              </p>
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => handleDeliveryDebtChoice(true)}
+                  className="w-full text-right p-3 rounded-lg border border-destructive/30 bg-destructive/5 hover:bg-destructive/10 transition-colors"
+                >
+                  <p className="font-semibold text-destructive">حذف الديون أيضاً</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    حذف الديون المرتبطة بالتوصيلات والمبيعات المباشرة من المستودع (وأيضاً الأرصدة وتحصيل الوثائق).
+                  </p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDeliveryDebtChoice(false)}
+                  className="w-full text-right p-3 rounded-lg border border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors"
+                >
+                  <p className="font-semibold text-primary">إبقاء الديون على ذمة الزبون</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    حذف سجلات المبيعات فقط مع ترك الديون مفتوحة على ذمة الزبائن.
+                  </p>
+                </button>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setShowDeliveryDebtChoice(false)}>إلغاء</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+
         {/* Confirmation Dialog */}
         <AlertDialog open={showConfirm} onOpenChange={(open) => { setShowConfirm(open); if (!open) { setPassword(''); setPasswordError(''); } }}>
           <AlertDialogContent>
