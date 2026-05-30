@@ -121,6 +121,7 @@ const DataManagement: React.FC = () => {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showConfirm, setShowConfirm] = useState(false);
   const [showRelated, setShowRelated] = useState(false);
+  const [showDeliveryDebtChoice, setShowDeliveryDebtChoice] = useState(false);
   const [relatedSuggestions, setRelatedSuggestions] = useState<{ id: string; reason: string }[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deletionProgress, setDeletionProgress] = useState('');
@@ -183,6 +184,15 @@ const DataManagement: React.FC = () => {
 
   const handleDeleteClick = () => {
     if (selected.size === 0) return;
+    // If deliveries is being deleted, first ask how to handle associated debts
+    if (selected.has('deliveries') && !selected.has('debts')) {
+      setShowDeliveryDebtChoice(true);
+      return;
+    }
+    proceedAfterDeliveryChoice();
+  };
+
+  const proceedAfterDeliveryChoice = () => {
     const related = computeRelated();
     if (related.length > 0) {
       setRelatedSuggestions(related);
@@ -191,6 +201,21 @@ const DataManagement: React.FC = () => {
       setShowConfirm(true);
     }
   };
+
+  const handleDeliveryDebtChoice = (includeDebts: boolean) => {
+    setShowDeliveryDebtChoice(false);
+    if (includeDebts) {
+      setSelected(prev => {
+        const next = new Set(prev);
+        next.add('debts');
+        next.add('credits');
+        next.add('doc_collections');
+        return next;
+      });
+    }
+    setTimeout(() => proceedAfterDeliveryChoice(), 100);
+  };
+
 
   const handleRelatedConfirm = (addRelated: Set<string>) => {
     setSelected(prev => {
@@ -627,6 +652,49 @@ const DataManagement: React.FC = () => {
           onConfirm={handleRelatedConfirm}
           onSkip={handleRelatedSkip}
         />
+
+        {/* Delivery Debt Choice Dialog */}
+        <Dialog open={showDeliveryDebtChoice} onOpenChange={setShowDeliveryDebtChoice}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-base">
+                <AlertTriangle className="w-5 h-5 text-amber-500" />
+                حذف التوصيلات — معالجة الديون
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3 text-sm">
+              <p className="text-muted-foreground">
+                اخترت حذف سجلات التوصيلات والمبيعات المباشرة. كيف تريد التعامل مع الديون المرتبطة بها؟
+              </p>
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => handleDeliveryDebtChoice(true)}
+                  className="w-full text-right p-3 rounded-lg border border-destructive/30 bg-destructive/5 hover:bg-destructive/10 transition-colors"
+                >
+                  <p className="font-semibold text-destructive">حذف الديون أيضاً</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    حذف الديون المرتبطة بالتوصيلات والمبيعات المباشرة من المستودع (وأيضاً الأرصدة وتحصيل الوثائق).
+                  </p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDeliveryDebtChoice(false)}
+                  className="w-full text-right p-3 rounded-lg border border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors"
+                >
+                  <p className="font-semibold text-primary">إبقاء الديون على ذمة الزبون</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    حذف سجلات المبيعات فقط مع ترك الديون مفتوحة على ذمة الزبائن.
+                  </p>
+                </button>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setShowDeliveryDebtChoice(false)}>إلغاء</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
 
         {/* Confirmation Dialog */}
         <AlertDialog open={showConfirm} onOpenChange={(open) => { setShowConfirm(open); if (!open) { setPassword(''); setPasswordError(''); } }}>
