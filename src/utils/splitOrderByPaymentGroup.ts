@@ -42,7 +42,7 @@ export function buildGroupLabel(
   subType: 'cash' | 'doc' | null,
 ): { badge: string; label: string } {
   if (paymentType !== 'with_invoice') {
-    return { badge: 'Invoice 2', label: 'Invoice 2' };
+    return { badge: 'FACTURE 2', label: 'FACTURE 2' };
   }
   const m = method ? INVOICE_LABEL[method] || method : '—';
   const s = method === 'receipt' && subType ? (subType === 'cash' ? 'Cash' : 'Doc') : '';
