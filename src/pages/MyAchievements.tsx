@@ -593,7 +593,14 @@ const MyAchievements: React.FC = () => {
             created_at: o.created_at,
             branch_id: o.branch_id || activeBranch?.id || null,
           }))),
-      ].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      ].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .filter((v: any, _i: number, arr: any[]) => {
+          // Dedupe by operation_type + operation_id (keep most recent, which is first after sort desc)
+          if (!v.operation_id) return true;
+          const key = `${v.operation_type}::${v.operation_id}`;
+          const firstIdx = arr.findIndex((x: any) => x.operation_id && `${x.operation_type}::${x.operation_id}` === key);
+          return arr.indexOf(v) === firstIdx;
+        });
 
       const customerIds = [...new Set((mergedVisits || []).filter((v) => v.customer_id).map((v) => v.customer_id!))];
       const orderLinkedTypes = new Set<OperationType>(['order', 'direct_sale', 'delivery']);
