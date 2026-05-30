@@ -39,7 +39,9 @@ const paymentMethodLabel = (m?: string | null) => {
   switch (m) {
     case 'cash': return 'نقداً';
     case 'check': return 'شيك';
-    case 'versement': return 'تحويل (Versement)';
+    case 'receipt': return 'Versement';
+    case 'versement': return 'Versement';
+    case 'transfer': return 'تحويل بنكي (Virement)';
     case 'virement': return 'تحويل بنكي (Virement)';
     case 'debt': return 'دين';
     default: return m || '—';
