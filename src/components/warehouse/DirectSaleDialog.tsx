@@ -1364,6 +1364,9 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                     const hasAppliedGift = totalGiftBoxes > 0 || totalGiftPieces > 0;
                     const available = getAvailable(product.id);
                     const price = getProductPrice(product);
+                    const invoiceDisabled = paymentType === 'with_invoice' && (product as any).allow_invoice_sale === false;
+                    const invoice2Disabled = paymentType === 'without_invoice' && (product as any).allow_invoice2_sale === false;
+                    const isInvoiceRestricted = invoiceDisabled || invoice2Disabled;
                     if (productViewMode === 'list') {
                       return (
                         <button
