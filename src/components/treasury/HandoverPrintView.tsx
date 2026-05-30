@@ -227,8 +227,7 @@ const HandoverPrintView: React.FC<Props> = ({
       className?: string;
     }>,
   ) => {
-    if (tableItems.length === 0) return null;
-
+    const extras = extraColumns || [];
     return (
       <div className="mb-4" data-pdf-section>
         <h3 className="mb-1 text-sm font-bold">{title} ({tableItems.length})</h3>
@@ -238,7 +237,7 @@ const HandoverPrintView: React.FC<Props> = ({
               <th className="border border-black p-1 text-left">Client</th>
               <th className="border border-black p-1 text-left">N° Facture</th>
               <th className="border border-black p-1 text-right">Montant</th>
-              {(extraColumns || []).map((column) => (
+              {extras.map((column) => (
                 <th key={column.header} className={`border border-black p-1 text-left ${column.className || ''}`}>
                   {column.header}
                 </th>
@@ -247,23 +246,31 @@ const HandoverPrintView: React.FC<Props> = ({
             </tr>
           </thead>
           <tbody>
-            {tableItems.map((item, index) => (
-              <tr key={`${title}-${index}`}>
-                <td className="border border-black p-1">{item.customer_name || '-'}</td>
-                <td className="border border-black p-1">{item.invoice_number || '-'}</td>
-                <td className="border border-black p-1 text-right">{item.amount.toLocaleString()}</td>
-                {(extraColumns || []).map((column) => (
-                  <td key={column.header} className={`border border-black p-1 ${column.className || ''}`}>
-                    {column.cell(item)}
-                  </td>
-                ))}
-                <td className="border border-black p-1">{item.invoice_date || item.check_date || '-'}</td>
+            {tableItems.length === 0 ? (
+              <tr>
+                <td className="border border-black p-1 text-center text-muted-foreground" colSpan={3 + extras.length + 1}>
+                  -
+                </td>
               </tr>
-            ))}
+            ) : (
+              tableItems.map((item, index) => (
+                <tr key={`${title}-${index}`}>
+                  <td className="border border-black p-1">{item.customer_name || '-'}</td>
+                  <td className="border border-black p-1">{item.invoice_number || '-'}</td>
+                  <td className="border border-black p-1 text-right">{item.amount.toLocaleString()}</td>
+                  {extras.map((column) => (
+                    <td key={column.header} className={`border border-black p-1 ${column.className || ''}`}>
+                      {column.cell(item)}
+                    </td>
+                  ))}
+                  <td className="border border-black p-1">{item.invoice_date || item.check_date || '-'}</td>
+                </tr>
+              ))
+            )}
             <tr className="font-bold">
               <td className="border border-black p-1" colSpan={2}>Total {title}</td>
               <td className="border border-black p-1 text-right">{total.toLocaleString()}</td>
-              <td className="border border-black p-1" colSpan={(extraColumns?.length || 0) + 1}></td>
+              <td className="border border-black p-1" colSpan={extras.length + 1}></td>
             </tr>
           </tbody>
         </table>
