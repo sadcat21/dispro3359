@@ -926,15 +926,6 @@ const WarehouseStock: React.FC = () => {
           piecesPerBox={products.find(p => p.id === movementProduct.productId)?.pieces_per_box || 20}
         />
       )}
-      {branchId && (
-        <ReceiptSessionsTimelineDialog
-          open={showReceiptSessionsDialog}
-          onOpenChange={setShowReceiptSessionsDialog}
-          branchId={branchId}
-          selectedIds={new Set(selectedReceiptRanges.map((r) => r.id))}
-          onApply={setSelectedReceiptRanges}
-        />
-      )}
     </div>
 
   );
