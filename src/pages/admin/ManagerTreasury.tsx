@@ -209,11 +209,12 @@ const ManagerTreasury = () => {
         .eq('branch_id', activeBranch!.id);
       if (perManagerId) handoversQ = handoversQ.eq('manager_id', perManagerId);
 
-      let handedItemsQ = supabase
+      // Note: do NOT filter handed items by manager_id — once an order is handed over by ANY
+      // manager in the branch, it must not appear again (mirrors HandoverItemPickerDialog behavior).
+      const handedItemsQ = supabase
         .from('handover_items')
         .select('order_id, treasury_entry_id, payment_method, handover:manager_handovers!inner(branch_id, manager_id)')
         .eq('handover.branch_id', activeBranch!.id);
-      if (perManagerId) handedItemsQ = handedItemsQ.eq('handover.manager_id', perManagerId);
 
       let consolidationQ = supabase
         .from('manager_treasury')
