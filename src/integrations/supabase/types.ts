@@ -1848,9 +1848,11 @@ export type Database = {
       document_collections: {
         Row: {
           action: string
+          amount: number | null
           approved_at: string | null
           approved_by: string | null
           collection_date: string
+          collection_type: string | null
           created_at: string
           id: string
           next_due_date: string | null
@@ -1862,9 +1864,11 @@ export type Database = {
         }
         Insert: {
           action?: string
+          amount?: number | null
           approved_at?: string | null
           approved_by?: string | null
           collection_date?: string
+          collection_type?: string | null
           created_at?: string
           id?: string
           next_due_date?: string | null
@@ -1876,9 +1880,11 @@ export type Database = {
         }
         Update: {
           action?: string
+          amount?: number | null
           approved_at?: string | null
           approved_by?: string | null
           collection_date?: string
+          collection_type?: string | null
           created_at?: string
           id?: string
           next_due_date?: string | null
