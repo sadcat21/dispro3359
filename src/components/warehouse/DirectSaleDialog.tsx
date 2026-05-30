@@ -731,6 +731,34 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
     }
   };
 
+  // Handler for SplitPaymentConfirmDialog → aggregates per-group results
+  // and forwards to the standard handlePaymentConfirm, while storing the
+  // per-group payment metadata so sales_tracking rows are split correctly.
+  const handleSplitConfirmAll = async (results: GroupPaymentResult[]) => {
+    splitResultsRef.current = results;
+    const total = results.reduce((s, r) => s + r.group.subtotal + (stampByGroupKey[r.key] || 0), 0);
+    const paid = results.reduce((s, r) => s + r.paidAmount, 0);
+    const remaining = Math.max(0, total - paid);
+    // Pick a representative invoice method: prefer the first F1 group's method, else null
+    const firstF1 = results.find((r) => r.group.paymentType === 'with_invoice');
+    if (firstF1) {
+      setFrozenPaymentType('with_invoice');
+      setFrozenInvoiceMethod(firstF1.group.invoicePaymentMethod);
+    } else {
+      setFrozenPaymentType('without_invoice');
+      setFrozenInvoiceMethod(null);
+    }
+    setPendingDocVerification(null);
+    setShowSplitDialog(false);
+    await handlePaymentConfirm({
+      paidAmount: paid,
+      remainingAmount: remaining,
+      paymentMethod: firstF1 ? (firstF1.group.invoicePaymentMethod || 'receipt') : 'cash',
+      isFullPayment: paid >= total,
+      isNoPayment: paid === 0,
+    });
+  };
+
   // معالج خاص بنافذة ReceiptPaymentDialog لتحويل بياناتها إلى صيغة handlePaymentConfirm
   const handleReceiptPaymentConfirm = async (data: {
     receiptReceived: boolean;
