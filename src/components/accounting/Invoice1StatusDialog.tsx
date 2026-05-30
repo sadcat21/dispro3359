@@ -87,7 +87,7 @@ const Invoice1StatusDialog: React.FC<Props> = ({ open, onOpenChange, branchId })
       const mapped: Row[] = (data || []).map((o: any) => {
         const dv = (o.document_verification && typeof o.document_verification === 'object')
           ? o.document_verification : {};
-        const docReceived = o.document_status === 'received';
+        const docReceived = o.document_status === 'received' || o.document_status === 'verified';
         const invoiceReceived = !!o.invoice_received_at;
         const attached = dv.attached_to_invoice === true;
 
