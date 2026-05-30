@@ -212,62 +212,56 @@ const ProjectManagerTreasury = () => {
       {/* Treasury cards by type — same structure as branch manager treasury */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         <TreasuryCard
-          icon={<Banknote className="w-4 h-4 text-emerald-600" />}
+          icon={<Banknote className="w-4 h-4 text-emerald-700" />}
           label="كاش فاتورة 1"
           total={totals.cash_invoice1}
-          color="emerald-600"
-          border="border-emerald-200"
+          color="emerald"
           count={(handovers || []).filter((h: any) => Number(h.cash_invoice1) > 0).length}
         />
         <TreasuryCard
-          icon={<Coins className="w-4 h-4 text-amber-600" />}
+          icon={<Coins className="w-4 h-4 text-amber-700" />}
           label="كاش فاتورة 2"
           total={totals.cash_invoice2}
-          color="amber-600"
-          border="border-amber-200"
+          color="amber"
           count={(handovers || []).filter((h: any) => Number(h.cash_invoice2) > 0).length}
         />
         <TreasuryCard
-          icon={<CreditCard className="w-4 h-4 text-blue-600" />}
+          icon={<CreditCard className="w-4 h-4 text-blue-700" />}
           label="الشيكات"
           total={totals.checks}
-          color="blue-600"
-          border="border-blue-200"
+          color="blue"
           count={(handovers || []).filter((h: any) => Number(h.checks_amount) > 0).length}
         />
         <TreasuryCard
-          icon={<Receipt className="w-4 h-4 text-purple-600" />}
+          icon={<Receipt className="w-4 h-4 text-purple-700" />}
           label="Versement Doc"
           total={totals.receipts}
-          color="purple-600"
-          border="border-purple-200"
+          color="purple"
           count={(handovers || []).filter((h: any) => Number(h.receipts_amount) > 0).length}
         />
         <TreasuryCard
-          icon={<ArrowUpRight className="w-4 h-4 text-cyan-600" />}
+          icon={<ArrowUpRight className="w-4 h-4 text-orange-700" />}
           label="Virement (فاتورة 2)"
           total={totals.transfers}
-          color="cyan-600"
-          border="border-cyan-200"
+          color="orange"
           count={(handovers || []).filter((h: any) => Number(h.transfers_amount) > 0).length}
         />
         <TreasuryCard
-          icon={<HandCoins className="w-4 h-4 text-rose-600" />}
+          icon={<HandCoins className="w-4 h-4 text-rose-700" />}
           label="تحصيلات الديون"
           total={totals.debt_cash}
-          color="rose-600"
-          border="border-rose-200"
+          color="rose"
           count={(handovers || []).filter((h: any) => Number(h.debt_cash_amount) > 0).length}
         />
         <TreasuryCard
-          icon={<Stamp className="w-4 h-4 text-indigo-600" />}
+          icon={<Stamp className="w-4 h-4 text-indigo-700" />}
           label="الطوابع"
           total={totals.stamps}
-          color="indigo-600"
-          border="border-indigo-200"
+          color="indigo"
           count={(handovers || []).filter((h: any) => Number(h.stamp_amount) > 0).length}
         />
       </div>
+
 
       <Tabs defaultValue="handovers">
         <TabsList>
