@@ -388,6 +388,14 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
   };
 
   const handleProductClick = (product: Product) => {
+    if (paymentType === 'with_invoice' && (product as any).allow_invoice_sale === false) {
+      toast.warning('هذا المنتج غير مسموح ببيعه بالفاتورة 1');
+      return;
+    }
+    if (paymentType === 'without_invoice' && (product as any).allow_invoice2_sale === false) {
+      toast.warning('هذا المنتج غير مسموح ببيعه بالفاتورة 2');
+      return;
+    }
     const existingItem = orderItems.find(item => item.productId === product.id);
     if (existingItem) {
       handleEditItem(existingItem);
@@ -1356,6 +1364,9 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                     const hasAppliedGift = totalGiftBoxes > 0 || totalGiftPieces > 0;
                     const available = getAvailable(product.id);
                     const price = getProductPrice(product);
+                    const invoiceDisabled = paymentType === 'with_invoice' && (product as any).allow_invoice_sale === false;
+                    const invoice2Disabled = paymentType === 'without_invoice' && (product as any).allow_invoice2_sale === false;
+                    const isInvoiceRestricted = invoiceDisabled || invoice2Disabled;
                     if (productViewMode === 'list') {
                       return (
                         <button
@@ -1366,11 +1377,12 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                             "flex items-center gap-2 p-2 rounded-lg border-2 bg-white text-right transition-all",
                             hasAppliedGift
                               ? 'border-green-500'
-                              : inCart ? 'border-primary' : 'border-red-200 hover:border-primary/60'
+                              : inCart ? 'border-primary' : 'border-red-200 hover:border-primary/60',
+                            isInvoiceRestricted && "opacity-50 grayscale"
                           )}
                         >
                           {product.image_url ? (
-                            <img src={product.image_url} alt="" className="w-12 h-12 rounded object-cover shrink-0" loading="lazy" />
+                            <img src={product.image_url} alt="" className={cn("w-12 h-12 rounded object-cover shrink-0", isInvoiceRestricted && "grayscale")} loading="lazy" />
                           ) : (
                             <div className="w-12 h-12 rounded bg-red-50 flex items-center justify-center shrink-0">
                               <Package className="w-5 h-5 text-primary/40" />
@@ -1401,7 +1413,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                           "bg-white shadow-lg border-2",
                           hasAppliedGift
                             ? 'border-green-500 ring-2 ring-green-400/40'
-                            : inCart ? 'border-primary ring-2 ring-primary/40' : 'border-red-200 hover:border-primary/60 hover:shadow-xl'
+                            : inCart ? 'border-primary ring-2 ring-primary/40' : 'border-red-200 hover:border-primary/60 hover:shadow-xl',
+                          isInvoiceRestricted && "opacity-50 grayscale"
                         )}
                       >
                         {/* اسم المنتج أعلى الصورة */}
