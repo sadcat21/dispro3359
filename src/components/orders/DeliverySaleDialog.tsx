@@ -1801,6 +1801,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
         orderTotal={totals.amountAfterPrepaid}
         customerName={order.customer?.name || ''}
         paymentMethod={((order as any).invoice_payment_method === 'transfer' ? 'transfer' : (order as any).invoice_payment_method === 'check' ? 'check' : 'receipt') as 'receipt' | 'transfer' | 'check'}
+        hideCash={(() => { const dv: any = (order as any).document_verification; return dv && typeof dv === 'object' && dv.paid_by_cash === false; })()}
         onConfirm={handleReceiptPaymentConfirm}
       />
 

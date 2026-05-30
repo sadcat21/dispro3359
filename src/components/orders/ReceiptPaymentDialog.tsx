@@ -15,6 +15,8 @@ interface ReceiptPaymentDialogProps {
   orderTotal: number;
   customerName: string;
   paymentMethod: 'receipt' | 'transfer' | 'check'; // Versement / Virement / Chèque
+  /** إخفاء زر "دفع كاش" (مثلاً عند اختيار Versement + Doc) */
+  hideCash?: boolean;
   onConfirm: (data: {
     receiptReceived: boolean;
     paidByCash: boolean;
@@ -26,7 +28,7 @@ interface ReceiptPaymentDialogProps {
 }
 
 const ReceiptPaymentDialog: React.FC<ReceiptPaymentDialogProps> = ({
-  open, onOpenChange, orderTotal, customerName, paymentMethod, onConfirm,
+  open, onOpenChange, orderTotal, customerName, paymentMethod, onConfirm, hideCash = false,
 }) => {
   const { dir, language } = useLanguage();
   const [mode, setMode] = useState<'choose' | 'receipt' | 'cash'>('choose');
@@ -37,7 +39,7 @@ const ReceiptPaymentDialog: React.FC<ReceiptPaymentDialogProps> = ({
 
   const methodLabel = paymentMethod === 'receipt' ? 'Versement' : paymentMethod === 'transfer' ? 'Virement' : 'Chèque';
   const docLabel = methodLabel;
-  const allowCash = paymentMethod !== 'check';
+  const allowCash = paymentMethod !== 'check' && !hideCash;
 
   const enteredAmount = mode === 'receipt' ? Number(receiptAmount) || 0 : Number(cashAmount) || 0;
   const remainingDebt = Math.max(0, orderTotal - enteredAmount);
