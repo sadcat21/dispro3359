@@ -223,21 +223,34 @@ const ManagerTreasury = () => {
         .eq('branch_id', activeBranch!.id);
       if (perManagerId) consolidationQ = consolidationQ.eq('manager_id', perManagerId);
 
-      const [{ data: handovers, error: handoversError }, { data: handedItems, error: handedItemsError }, { data: orders, error: ordersError }, { data: consolidationEntries, error: consolidationEntriesError }] = await Promise.all([
+        let ordersQ = supabase
+          .from('orders')
+          .select('id, customer_id, assigned_worker_id, created_at, delivery_date, total_amount, partial_amount, payment_status, payment_type, invoice_payment_method, document_verification')
+          .eq('status', 'delivered')
+          .eq('branch_id', activeBranch!.id);
+
+        const sessionWindowsPromise = perManagerId
+          ? supabase
+              .from('accounting_sessions')
+              .select('worker_id, period_start, period_end')
+              .eq('status', 'completed')
+              .eq('branch_id', activeBranch!.id)
+              .eq('manager_id', perManagerId)
+          : Promise.resolve({ data: null, error: null } as any);
+
+        const [{ data: handovers, error: handoversError }, { data: handedItems, error: handedItemsError }, { data: orders, error: ordersError }, { data: consolidationEntries, error: consolidationEntriesError }, { data: sessionWindowsRaw, error: sessionWindowsError }] = await Promise.all([
         handoversQ,
         handedItemsQ,
-        supabase
-          .from('orders')
-          .select('id, customer_id, total_amount, partial_amount, payment_status, payment_type, invoice_payment_method, document_verification')
-          .eq('status', 'delivered')
-          .eq('branch_id', activeBranch!.id),
+          ordersQ,
         consolidationQ,
+          sessionWindowsPromise,
       ]);
 
       if (handoversError) throw handoversError;
       if (handedItemsError) throw handedItemsError;
       if (ordersError) throw ordersError;
       if (consolidationEntriesError) throw consolidationEntriesError;
+        if (sessionWindowsError) throw sessionWindowsError;
 
       const handedByOrder = new Map<string, Set<string>>();
       const handedTreasuryIds = new Set<string>();
@@ -257,7 +270,19 @@ const ManagerTreasury = () => {
         transfer: [] as Array<{ id: string; amount: number; customerId: string | null }>,
       };
 
+      const sessionWindows = (sessionWindowsRaw || []).map((session: any) => ({
+        worker_id: session.worker_id,
+        start: parseAccountingTime(session.period_start),
+        end: parseAccountingTime(session.period_end),
+      }));
+
       for (const order of orders || []) {
+        if (perManagerId) {
+          if (!order.assigned_worker_id) continue;
+          const orderTs = orderAccountingTime(order);
+          const isCovered = sessionWindows.some((window) => window.worker_id === order.assigned_worker_id && orderTs >= window.start && orderTs <= window.end);
+          if (!isCovered) continue;
+        }
         let amount = Number(order.total_amount || 0);
         if (order.payment_status === 'partial') amount = Number(order.partial_amount || 0);
         else if (order.payment_status === 'debt') amount = 0;
