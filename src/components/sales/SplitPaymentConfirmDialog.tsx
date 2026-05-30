@@ -206,7 +206,7 @@ const SplitPaymentConfirmDialog: React.FC<Props> = ({
                         onClick={() => setField(g.key, { mode: 'receipt', amount: String(total) })}>
                         <FileText className="w-3.5 h-3.5 me-1" />استلام
                       </Button>
-                      {g.invoicePaymentMethod !== 'check' && (
+                      {g.invoicePaymentMethod === 'receipt' && (
                         <Button size="sm" variant="outline" className="h-9 text-xs"
                           onClick={() => setField(g.key, { mode: 'cash', amount: String(total) })}>
                           <Banknote className="w-3.5 h-3.5 me-1" />كاش
