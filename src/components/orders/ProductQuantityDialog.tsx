@@ -547,7 +547,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
             {/* Direct pricing buttons F1 / SG / G / D + custom gear */}
             <div className="space-y-1.5">
               <div className="flex items-center gap-1">
-                {!hideInvoiceOption && (
+                {!hideInvoiceOption && invoiceSaleAllowed && (
                   <Button
                     type="button"
                     variant={itemPaymentType === 'with_invoice' ? 'default' : 'outline'}
@@ -557,7 +557,6 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                       setItemPaymentType('with_invoice');
                       if (!itemInvoicePaymentMethod) setItemInvoicePaymentMethod(defaultInvoicePaymentMethod || 'cash');
                     }}
-                    disabled={!invoiceSaleAllowed}
                     title={t('orders.with_invoice')}
                   >
                     F1
