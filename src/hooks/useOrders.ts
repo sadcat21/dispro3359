@@ -255,7 +255,7 @@ export const useCreateOrder = () => {
             if (o.is_deferred_confirmation) deferredMap.set(o.id, o);
           }
           if (deferredMap.size > 0) {
-            const productIds = Array.from(new Set(giftRows.map((g: any) => g.product_id)));
+            const productIds = Array.from(new Set(giftRows.map((g: any) => g.product_id))) as string[];
             const { data: prods } = await supabase.from('products').select('id, name, app_name').in('id', productIds);
             const productNameMap = new Map<string, string>(((prods || []) as any[]).map((p) => [p.id, p.app_name || p.name]));
 
