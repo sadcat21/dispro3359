@@ -75,20 +75,17 @@ export async function recordSaleTracking(params: RecordSaleParams): Promise<void
     const rows: any[] = [];
     for (const it of params.items) {
       const ppb = Math.max(1, Number(it.piecesPerBox || 20));
-      // qty is fractional boxes (e.g. 0.5 = 10 pieces with ppb=20).
-      const qty = Math.max(0, Number(it.quantity || 0));
+      const qty = Math.round(Number(it.quantity || 0) * 100) / 100;
       const giftBoxes = Number(it.giftBoxes || 0);
       const giftPieces = Number(it.giftPieces || 0);
 
       const isDeferred = !!(it.offerId && deferredOfferIds.has(it.offerId));
       const hasGift = giftBoxes > 0 || giftPieces > 0;
       const trackedSoldQty = isDeferred ? Math.max(0, qty - giftBoxes) : qty;
-      const trackedTotalPieces = Math.round(trackedSoldQty * ppb);
-      const soldBoxes = Math.floor(trackedTotalPieces / ppb);
-      const soldPieces = trackedTotalPieces % ppb;
+      const soldBoxes = Math.floor(trackedSoldQty);
+      const soldPieces = Math.round((trackedSoldQty - soldBoxes) * 100);
 
       if (isDeferred && hasGift) {
-        const purchasedTotalPieces = Math.max(0, Math.round((qty - giftBoxes) * ppb));
         await recordPendingOfferConfirmation({
           orderId: params.orderId || null,
           orderItemId: it.orderItemId || null,
@@ -100,8 +97,8 @@ export async function recordSaleTracking(params: RecordSaleParams): Promise<void
           giftProductName: it.giftProductName || it.productName || null,
           giftBoxes,
           giftPieces,
-          purchasedBoxes: Math.floor(purchasedTotalPieces / ppb),
-          purchasedPieces: purchasedTotalPieces % ppb,
+          purchasedBoxes: Math.max(0, Math.floor(qty - giftBoxes)),
+          purchasedPieces: Math.round((qty - Math.floor(qty)) * 100),
           customerId: params.customerId || null,
           customerName: params.customerName || null,
           workerId: params.workerId || null,
@@ -111,6 +108,7 @@ export async function recordSaleTracking(params: RecordSaleParams): Promise<void
           source: sourceForPending,
         });
       }
+
 
 
       rows.push({
