@@ -109,6 +109,8 @@ export async function recordSaleTracking(params: RecordSaleParams): Promise<void
         });
       }
 
+
+
       rows.push({
         source: params.source,
         order_id: params.orderId || null,
