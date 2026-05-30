@@ -115,6 +115,7 @@ const ProjectManagerTreasury = () => {
   const [dateTo, setDateTo] = useState('');
   const [branchId, setBranchId] = useState<string>('all');
   const [selected, setSelected] = useState<any>(null);
+  const [openCard, setOpenCard] = useState<CardType | null>(null);
 
   const { data: branches } = useQuery({
     queryKey: ['pmt-branches'],
