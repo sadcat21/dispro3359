@@ -593,7 +593,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
     }
     if (
       paymentType === 'with_invoice' &&
-      invoicePaymentMethod === 'transfer' &&
+      invoicePaymentMethod === 'receipt' &&
       !invoicePaymentSubType
     ) {
       toast.error('يرجى اختيار نوع الاستلام: Cash أو Doc');
@@ -604,14 +604,14 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
       // Don't auto-assign worker at creation - let the AssignWorkerAfterSaveDialog handle it
       const defaultWorkerId = selectedCustomer?.default_delivery_worker_id || undefined;
 
-      // paid_by_cash: مع Virement يعتمد على اختيار Cash/Doc؛
-      // مع Versement/Chèque دائماً مستند (doc) → paid_by_cash=false؛
+      // paid_by_cash: مع Versement يعتمد على اختيار Cash/Doc؛
+      // مع Virement/Chèque دائماً مستند (doc) → paid_by_cash=false؛
       // مع Espèces لا يُحفظ.
       const computedPaidByCash =
         paymentType === 'with_invoice'
-          ? invoicePaymentMethod === 'transfer'
+          ? invoicePaymentMethod === 'receipt'
             ? invoicePaymentSubType === 'cash'
-            : invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'check'
+            : invoicePaymentMethod === 'transfer' || invoicePaymentMethod === 'check'
               ? false
               : undefined
           : undefined;

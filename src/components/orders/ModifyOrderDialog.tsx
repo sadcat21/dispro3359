@@ -617,11 +617,11 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
     if (dv && typeof dv === 'object' && typeof dv.paid_by_cash === 'boolean') return dv.paid_by_cash;
     return null;
   })();
-  // Versement/Chèque دائماً مستند (paid_by_cash=false). Virement حسب اختيار Cash/Doc.
+  // Virement/Chèque دائماً مستند (paid_by_cash=false). Versement حسب اختيار Cash/Doc.
   const currentPaidByCash =
-    invoicePaymentMethod === 'transfer'
+    invoicePaymentMethod === 'receipt'
       ? (invoicePaymentSubType === 'cash' ? true : invoicePaymentSubType === 'doc' ? false : null)
-      : (invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'check')
+      : (invoicePaymentMethod === 'transfer' || invoicePaymentMethod === 'check')
         ? false
         : null;
   const invoiceSubTypeChanged = paymentType === 'with_invoice'
@@ -914,7 +914,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
     }
     if (
       paymentType === 'with_invoice' &&
-      invoicePaymentMethod === 'transfer' &&
+      invoicePaymentMethod === 'receipt' &&
       !invoicePaymentSubType
     ) {
       toast.error('يرجى اختيار نوع الاستلام: Cash أو Doc');
@@ -1102,8 +1102,8 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
         // Persist Cash/Doc sub-choice so the sale is counted in "الكاش المسلم للمدير" when Cash is selected
         if (paymentType === 'with_invoice' && (invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'check' || invoicePaymentMethod === 'transfer')) {
           const existingDv: any = (order as any).document_verification && typeof (order as any).document_verification === 'object' ? (order as any).document_verification : {};
-          // Versement/Chèque دائماً مستند. Virement حسب الاختيار.
-          const isCash = invoicePaymentMethod === 'transfer' && invoicePaymentSubType === 'cash';
+          // Virement/Chèque دائماً مستند. Versement حسب الاختيار.
+          const isCash = invoicePaymentMethod === 'receipt' && invoicePaymentSubType === 'cash';
           orderUpdate.document_verification = {
             ...existingDv,
             type: invoicePaymentMethod,
@@ -1120,7 +1120,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
           operation: 'change_payment_setup',
           payment_type: paymentType,
           invoice_payment_method: invoicePaymentMethod || null,
-          paid_by_cash: invoicePaymentMethod === 'transfer' && invoicePaymentSubType === 'cash',
+          paid_by_cash: invoicePaymentMethod === 'receipt' && invoicePaymentSubType === 'cash',
           price_subtype: priceSubType,
         });
 
