@@ -18,7 +18,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useHasPermission } from '@/hooks/usePermissions';
 import { getProductDisplayName } from '@/utils/productDisplayName';
 import ProductOfferBadge, { preloadProductOffersForBadge } from '@/components/offers/ProductOfferBadge';
-import InvoicePaymentMethodSelect from '@/components/orders/InvoicePaymentMethodSelect';
+import InvoicePaymentMethodSelect, { InvoicePaymentSubType } from '@/components/orders/InvoicePaymentMethodSelect';
 import { parseBP } from '@/utils/boxPieceInput';
 import { ProductOfferWithDetails } from '@/types/productOffer';
 import { getProductOfferLookupKey } from '@/utils/productOffers';
@@ -107,6 +107,7 @@ interface ProductQuantityDialogProps {
   defaultPaymentType?: PaymentType;
   defaultPriceSubType?: PriceSubType;
   defaultInvoicePaymentMethod?: InvoicePaymentMethod | null;
+  defaultInvoicePaymentSubType?: InvoicePaymentSubType | null;
   initialQuantity?: number;
   initialCustomUnitPrice?: number;
   mode?: 'add' | 'edit';
@@ -130,6 +131,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   defaultPaymentType = 'with_invoice',
   defaultPriceSubType = 'gros',
   defaultInvoicePaymentMethod = null,
+  defaultInvoicePaymentSubType = null,
   initialQuantity = 0,
   initialCustomUnitPrice,
   mode = 'add',
@@ -160,6 +162,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   );
   const [itemPriceSubType, setItemPriceSubType] = useState<PriceSubType>(defaultPriceSubType);
   const [itemInvoicePaymentMethod, setItemInvoicePaymentMethod] = useState<InvoicePaymentMethod | null>(defaultInvoicePaymentMethod);
+  const [itemInvoicePaymentSubType, setItemInvoicePaymentSubType] = useState<InvoicePaymentSubType | null>(defaultInvoicePaymentSubType);
   const [customPriceOpen, setCustomPriceOpen] = useState(false);
   const [customUnitPriceInput, setCustomUnitPriceInput] = useState(initialCustomUnitPrice ? String(initialCustomUnitPrice) : '');
   const [prefetchedOffersByKey, setPrefetchedOffersByKey] = useState<Record<string, ProductOfferWithDetails[]>>({});
@@ -604,7 +607,9 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
               {itemPaymentType === 'with_invoice' && invoiceSaleAllowed && (
                 <InvoicePaymentMethodSelect
                   value={itemInvoicePaymentMethod}
-                  onChange={setItemInvoicePaymentMethod}
+                  onChange={(m) => { setItemInvoicePaymentMethod(m); setItemInvoicePaymentSubType(null); }}
+                  subType={itemInvoicePaymentSubType}
+                  onSubTypeChange={setItemInvoicePaymentSubType}
                 />
               )}
               {hasCustomUnitPrice && (
