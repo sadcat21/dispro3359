@@ -124,8 +124,11 @@ function formatAmount(amount: number): string {
   return `${intPart},${parts[1]}`;
 }
 
-function formatQty(value: number): string {
+function formatQty(value: number, piecesPerBox?: number | null): string {
   if (Number.isInteger(value)) return String(value);
+  if (piecesPerBox && piecesPerBox > 1) {
+    return boxesToBP(value, piecesPerBox);
+  }
   return value.toFixed(2).replace(/\.0+$/, '').replace(/(\.[1-9]*)0+$/, '$1');
 }
 
