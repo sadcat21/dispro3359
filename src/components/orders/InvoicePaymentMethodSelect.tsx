@@ -38,7 +38,8 @@ const InvoicePaymentMethodSelect: React.FC<InvoicePaymentMethodSelectProps> = ({
     setInternalSub(null);
   }, [value]);
 
-  const requiresSub = value === 'receipt' || value === 'check' || value === 'transfer';
+  // نوع الاستلام (Cash/Doc) يظهر فقط مع Virement (transfer)
+  const requiresSub = value === 'transfer';
 
   const handleSub = (s: InvoicePaymentSubType) => {
     setInternalSub(s);
