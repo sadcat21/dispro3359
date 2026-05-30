@@ -33,38 +33,53 @@ const Money = ({ value, className = '' }: { value: number; className?: string })
   </bdi>
 );
 
+type ColorKey = 'emerald' | 'amber' | 'blue' | 'purple' | 'cyan' | 'rose' | 'indigo' | 'orange';
+
+const colorMap: Record<ColorKey, { bg: string; border: string; text: string; iconBg: string }> = {
+  emerald: { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', iconBg: 'bg-emerald-100' },
+  amber:   { bg: 'bg-amber-50',   border: 'border-amber-200',   text: 'text-amber-700',   iconBg: 'bg-amber-100' },
+  blue:    { bg: 'bg-blue-50',    border: 'border-blue-200',    text: 'text-blue-700',    iconBg: 'bg-blue-100' },
+  purple:  { bg: 'bg-purple-50',  border: 'border-purple-200',  text: 'text-purple-700',  iconBg: 'bg-purple-100' },
+  cyan:    { bg: 'bg-cyan-50',    border: 'border-cyan-200',    text: 'text-cyan-700',    iconBg: 'bg-cyan-100' },
+  rose:    { bg: 'bg-rose-50',    border: 'border-rose-200',    text: 'text-rose-700',    iconBg: 'bg-rose-100' },
+  indigo:  { bg: 'bg-indigo-50',  border: 'border-indigo-200',  text: 'text-indigo-700',  iconBg: 'bg-indigo-100' },
+  orange:  { bg: 'bg-orange-50',  border: 'border-orange-200',  text: 'text-orange-700',  iconBg: 'bg-orange-100' },
+};
+
 const TreasuryCard = ({
   icon,
   label,
   total,
   color,
-  border,
   count,
 }: {
   icon: React.ReactNode;
   label: string;
   total: number;
-  color: string;
-  border: string;
+  color: ColorKey;
   count: number;
-}) => (
-  <Card className={`${border} hover:shadow-md transition-shadow`}>
-    <CardContent className="p-3 space-y-2">
-      <div className="flex items-center gap-1.5 min-w-0">
-        <span className={`flex items-center justify-center w-7 h-7 rounded-full bg-${color}/10 shrink-0`}>
-          {icon}
-        </span>
-        <span className={`text-sm font-bold text-${color} truncate`}>{label}</span>
-      </div>
-      <div className="text-center">
-        <Money value={total} className={`text-lg font-bold text-${color}`} />
-      </div>
-      <div className="flex justify-center">
-        <Badge variant="outline" className="text-[10px]">{count} تسليم</Badge>
-      </div>
-    </CardContent>
-  </Card>
-);
+}) => {
+  const c = colorMap[color];
+  return (
+    <Card className={`${c.bg} ${c.border} hover:shadow-md transition-shadow rounded-2xl`}>
+      <CardContent className="p-4 space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <span className={`text-sm font-bold ${c.text} truncate`}>{label}</span>
+          <span className={`flex items-center justify-center w-8 h-8 rounded-full ${c.iconBg} shrink-0`}>
+            {icon}
+          </span>
+        </div>
+        <div className="text-center">
+          <Money value={total} className={`text-xl font-bold ${c.text}`} />
+        </div>
+        <div className="flex justify-center">
+          <Badge variant="outline" className={`text-[10px] ${c.text} bg-white/60`}>{count} تسليم</Badge>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 
 const ProjectManagerTreasury = () => {
   const navigate = useNavigate();
@@ -197,62 +212,56 @@ const ProjectManagerTreasury = () => {
       {/* Treasury cards by type — same structure as branch manager treasury */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         <TreasuryCard
-          icon={<Banknote className="w-4 h-4 text-emerald-600" />}
+          icon={<Banknote className="w-4 h-4 text-emerald-700" />}
           label="كاش فاتورة 1"
           total={totals.cash_invoice1}
-          color="emerald-600"
-          border="border-emerald-200"
+          color="emerald"
           count={(handovers || []).filter((h: any) => Number(h.cash_invoice1) > 0).length}
         />
         <TreasuryCard
-          icon={<Coins className="w-4 h-4 text-amber-600" />}
+          icon={<Coins className="w-4 h-4 text-amber-700" />}
           label="كاش فاتورة 2"
           total={totals.cash_invoice2}
-          color="amber-600"
-          border="border-amber-200"
+          color="amber"
           count={(handovers || []).filter((h: any) => Number(h.cash_invoice2) > 0).length}
         />
         <TreasuryCard
-          icon={<CreditCard className="w-4 h-4 text-blue-600" />}
+          icon={<CreditCard className="w-4 h-4 text-blue-700" />}
           label="الشيكات"
           total={totals.checks}
-          color="blue-600"
-          border="border-blue-200"
+          color="blue"
           count={(handovers || []).filter((h: any) => Number(h.checks_amount) > 0).length}
         />
         <TreasuryCard
-          icon={<Receipt className="w-4 h-4 text-purple-600" />}
+          icon={<Receipt className="w-4 h-4 text-purple-700" />}
           label="Versement Doc"
           total={totals.receipts}
-          color="purple-600"
-          border="border-purple-200"
+          color="purple"
           count={(handovers || []).filter((h: any) => Number(h.receipts_amount) > 0).length}
         />
         <TreasuryCard
-          icon={<ArrowUpRight className="w-4 h-4 text-cyan-600" />}
+          icon={<ArrowUpRight className="w-4 h-4 text-orange-700" />}
           label="Virement (فاتورة 2)"
           total={totals.transfers}
-          color="cyan-600"
-          border="border-cyan-200"
+          color="orange"
           count={(handovers || []).filter((h: any) => Number(h.transfers_amount) > 0).length}
         />
         <TreasuryCard
-          icon={<HandCoins className="w-4 h-4 text-rose-600" />}
+          icon={<HandCoins className="w-4 h-4 text-rose-700" />}
           label="تحصيلات الديون"
           total={totals.debt_cash}
-          color="rose-600"
-          border="border-rose-200"
+          color="rose"
           count={(handovers || []).filter((h: any) => Number(h.debt_cash_amount) > 0).length}
         />
         <TreasuryCard
-          icon={<Stamp className="w-4 h-4 text-indigo-600" />}
+          icon={<Stamp className="w-4 h-4 text-indigo-700" />}
           label="الطوابع"
           total={totals.stamps}
-          color="indigo-600"
-          border="border-indigo-200"
+          color="indigo"
           count={(handovers || []).filter((h: any) => Number(h.stamp_amount) > 0).length}
         />
       </div>
+
 
       <Tabs defaultValue="handovers">
         <TabsList>
