@@ -1102,14 +1102,16 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
         // Persist Cash/Doc sub-choice so the sale is counted in "الكاش المسلم للمدير" when Cash is selected
         if (paymentType === 'with_invoice' && (invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'check' || invoicePaymentMethod === 'transfer')) {
           const existingDv: any = (order as any).document_verification && typeof (order as any).document_verification === 'object' ? (order as any).document_verification : {};
+          // Versement/Chèque دائماً مستند. Virement حسب الاختيار.
+          const isCash = invoicePaymentMethod === 'transfer' && invoicePaymentSubType === 'cash';
           orderUpdate.document_verification = {
             ...existingDv,
             type: invoicePaymentMethod,
-            paid_by_cash: invoicePaymentSubType === 'cash',
-            receipt_received: invoicePaymentSubType === 'doc' ? true : !!existingDv.receipt_received,
+            paid_by_cash: isCash,
+            receipt_received: !isCash ? true : !!existingDv.receipt_received,
             verified_at: new Date().toISOString(),
           };
-          orderUpdate.document_status = invoicePaymentSubType === 'cash' ? 'none' : 'received';
+          orderUpdate.document_status = isCash ? 'none' : 'received';
         } else if (paymentType !== 'with_invoice') {
           orderUpdate.document_verification = null;
           orderUpdate.document_status = null;
@@ -1118,7 +1120,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
           operation: 'change_payment_setup',
           payment_type: paymentType,
           invoice_payment_method: invoicePaymentMethod || null,
-          paid_by_cash: invoicePaymentSubType === 'cash',
+          paid_by_cash: invoicePaymentMethod === 'transfer' && invoicePaymentSubType === 'cash',
           price_subtype: priceSubType,
         });
 
