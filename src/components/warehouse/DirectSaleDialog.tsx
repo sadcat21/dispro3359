@@ -647,6 +647,25 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
     return { totalItems, subtotal, stampAmount, stampPercentage, totalAmount: subtotal + stampAmount };
   }, [orderItems, paymentType, invoicePaymentMethod, stampTiers]);
 
+  // Split cart into payment groups (F1/F2 + sub-types). When >1 we use
+  // SplitPaymentConfirmDialog so each group is confirmed in its own section.
+  const paymentGroups = useMemo(() => splitOrderByPaymentGroup(
+    orderItems as any,
+    { paymentType, invoicePaymentMethod, invoicePaymentSubType },
+  ), [orderItems, paymentType, invoicePaymentMethod, invoicePaymentSubType]);
+
+  // Per-group stamp (only F1-Espèces groups get a stamp)
+  const stampByGroupKey = useMemo(() => {
+    const map: Record<string, number> = {};
+    if (!stampTiers?.length) return map;
+    for (const g of paymentGroups) {
+      if (g.paymentType === 'with_invoice' && g.invoicePaymentMethod === 'cash') {
+        map[g.key] = calculateStampAmount(g.subtotal, stampTiers);
+      }
+    }
+    return map;
+  }, [paymentGroups, stampTiers]);
+
   // Report header info to parent
   useEffect(() => {
     onHeaderInfo?.({ customerName: localizedCustomerName(selectedCustomer) || null, totalAmount: orderTotals.totalAmount });
