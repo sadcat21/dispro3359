@@ -1123,8 +1123,12 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                                 const effPm = (item.itemInvoicePaymentMethod as InvoicePaymentMethod | undefined) || invoicePaymentMethod;
                                 const subMap: Record<string, string> = { gros: 'G', super_gros: 'SG', retail: 'D' };
                                 const methodMap: Record<string, string> = { receipt: 'VRST', check: 'CHK', cash: 'ESP', transfer: 'VRMT' };
+                                const subTypeMap: Record<string, string> = { cash: 'Cash', doc: 'Doc' };
+                                const methodSuffix = effPm
+                                  ? '-' + methodMap[effPm] + (effPm === 'receipt' && invoicePaymentSubType ? ' ' + subTypeMap[invoicePaymentSubType] : '')
+                                  : '';
                                 const code = effPt === 'with_invoice'
-                                  ? `F1${effPm ? '-' + methodMap[effPm] : ''}`
+                                  ? `F1${methodSuffix}`
                                   : `F2-${subMap[effPst] || ''}`;
                                 return (
                                   <Badge className="text-[10px] px-1.5 py-0 bg-primary text-primary-foreground hover:bg-primary border-transparent font-bold">
