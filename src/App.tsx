@@ -64,6 +64,7 @@ const WorkerLiability = lazy(() => import("./pages/admin/WorkerLiability"));
 const ShareTarget = lazy(() => import("./pages/ShareTarget"));
 const SharedInvoices = lazy(() => import("./pages/admin/SharedInvoices"));
 const AssistantApprovals = lazy(() => import("./pages/admin/AssistantApprovals"));
+const HandoverApprovals = lazy(() => import("./pages/admin/HandoverApprovals"));
 const Suppliers = lazy(() => import("./pages/admin/Suppliers"));
 const BranchInvoiceApprovals = lazy(() => import("./pages/admin/BranchInvoiceApprovals"));
 const BranchManagerApprovals = lazy(() => import("./pages/admin/BranchManagerApprovals"));
