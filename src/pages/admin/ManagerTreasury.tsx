@@ -950,7 +950,7 @@ const ManagerTreasury = () => {
         />
         <TreasuryCard
           icon={<Receipt className="w-5 h-5 text-purple-500" />}
-          label={`Versement Cash (${remainingReceiptCashCount})`}
+          label="Versement Cash"
           total={summary?.receipt_cash || 0}
           handed={summary?.receipt_cash_handed || 0}
           colorClass="fuchsia-500"
