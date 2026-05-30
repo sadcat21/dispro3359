@@ -119,6 +119,47 @@ export function SaleSuccessDialog({ open, onClose, info }: Props) {
             )}
           </div>
 
+          {info.splitGroups && info.splitGroups.length > 1 && (
+            <div className="rounded-lg border bg-muted/20 p-3 space-y-2">
+              <div className="text-xs font-semibold text-muted-foreground">
+                تفصيل الدفع متعدد الفواتير ({info.splitGroups.length})
+              </div>
+              <div className="space-y-2">
+                {info.splitGroups.map((g, idx) => (
+                  <div key={idx} className="rounded-md border bg-background p-2 space-y-1 text-xs">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="default" className="text-[10px]">{g.badge}</Badge>
+                        <span className="font-medium">{g.label}</span>
+                      </div>
+                      <Badge
+                        className={
+                          g.status === 'paid'
+                            ? 'bg-green-100 text-green-800 border border-green-300'
+                            : g.status === 'partial'
+                              ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                              : 'bg-red-100 text-red-800 border border-red-300'
+                        }
+                      >
+                        {g.status === 'paid' ? 'مدفوع' : g.status === 'partial' ? 'جزئي' : 'دين'}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>طريقة الدفع: <span className="text-foreground">{paymentMethodLabel(g.paymentMethod)}</span></span>
+                      <span>الإجمالي: <span className="text-foreground font-semibold">{Number(g.total).toLocaleString()} دج</span></span>
+                    </div>
+                    {g.status !== 'paid' && (
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>المدفوع: <span className="text-foreground">{Number(g.paidAmount).toLocaleString()} دج</span></span>
+                        <span>المتبقي: <span className="text-destructive font-semibold">{Number(g.remainingDebt).toLocaleString()} دج</span></span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {isInvoice1 && (
             <div
               className={`rounded-lg border p-3 flex items-start gap-2 text-sm ${
