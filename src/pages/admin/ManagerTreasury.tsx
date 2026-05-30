@@ -40,17 +40,28 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useIsElementHidden } from '@/hooks/useUIOverrides';
 
 const TreasuryCard = ({ icon, label, total, handed, colorClass, borderClass, onClick, currency, showDetails, badgeText }: {
-  icon: React.ReactNode; label: string; total: number; handed: number; colorClass: string; borderClass: string; onClick: () => void; currency: string; showDetails: boolean; badgeText?: string;
+  icon: React.ReactNode; label: string; total: number; handed: number; colorClass: string; borderClass: string; onClick: () => void; currency: string; showDetails: boolean; badgeText?: { operations: number; clients: number };
 }) => {
   const { t } = useLanguage();
   const remaining = Math.max(0, total - handed);
   return (
     <Card className={`${borderClass} cursor-pointer hover:shadow-md transition-shadow`} onClick={onClick}>
-      <CardContent className="p-3 text-center space-y-1">
-        <div className="mx-auto mb-1">{icon}</div>
-        <p className="text-xs text-muted-foreground">{label}</p>
-        {badgeText && <p className="text-[10px] font-medium text-muted-foreground">{badgeText}</p>}
-        <MoneyValue value={remaining} currency={currency} className={`text-lg font-bold text-${colorClass}`} />
+      <CardContent className="p-3 space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className={`flex items-center justify-center w-7 h-7 rounded-full bg-${colorClass}/10 shrink-0`}>{icon}</span>
+            <span className={`text-sm font-bold text-${colorClass} truncate`}>{label}</span>
+          </div>
+          {badgeText && (
+            <div className={`flex items-stretch text-[10px] font-bold rounded-full overflow-hidden border border-${colorClass}/30 shrink-0`}>
+              <span className={`px-2 py-0.5 bg-${colorClass}/10 text-${colorClass}`}>{badgeText.operations} عملية</span>
+              <span className={`px-2 py-0.5 bg-${colorClass} text-white`}>{badgeText.clients} عميل</span>
+            </div>
+          )}
+        </div>
+        <div className="text-center">
+          <MoneyValue value={remaining} currency={currency} className={`text-lg font-bold text-${colorClass}`} />
+        </div>
         {showDetails && (
           <div className="flex justify-between text-[10px] px-1">
             <span className="text-muted-foreground">
@@ -530,7 +541,7 @@ const ManagerTreasury = () => {
   const remainingReceiptDocCount = remainingCounts?.receipt?.operations ?? (((summary?.bank_receipt || 0) - (summary?.receipt_handed || 0)) > 1 ? (summary?.receiptCount || 0) : 0);
   const remainingTransferCount = remainingCounts?.transfer?.operations ?? (((summary?.bank_transfer || 0) - (summary?.transfer_handed || 0)) > 1 ? (summary?.transferCount || 0) : 0);
   const buildBadgeText = (bucket: { clients: number; operations: number } | undefined, remainingAmount: number) =>
-    bucket && bucket.operations > 0 && remainingAmount > 0 ? `العمليات: ${bucket.operations} | العملاء: ${bucket.clients}` : undefined;
+    bucket && bucket.operations > 0 && remainingAmount > 0 ? { operations: bucket.operations, clients: bucket.clients } : undefined;
   const cashInvoice1Badge = buildBadgeText(remainingCounts?.cash_invoice1, Math.max((summary?.cash_invoice1 || 0) + (summary?.cash_invoice1_stamp || 0) - (summary?.cash_invoice1_handed || 0), 0));
   const cashInvoice2Badge = buildBadgeText(remainingCounts?.cash_invoice2, Math.max((summary?.cash_invoice2 || 0) - (summary?.cash_invoice2_handed || 0), 0));
   const checksBadge = buildBadgeText(remainingCounts?.check, Math.max((summary?.check || 0) - (summary?.check_handed || 0), 0));
