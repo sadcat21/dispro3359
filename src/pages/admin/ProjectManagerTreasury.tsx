@@ -268,6 +268,7 @@ const ProjectManagerTreasury = () => {
           total={totals.cash_invoice1}
           color="emerald"
           count={(handovers || []).filter((h: any) => Number(h.cash_invoice1) > 0).length}
+          onClick={() => setOpenCard('cash_invoice1')}
         />
         <TreasuryCard
           icon={<Coins className="w-4 h-4 text-amber-700" />}
@@ -275,6 +276,7 @@ const ProjectManagerTreasury = () => {
           total={totals.cash_invoice2}
           color="amber"
           count={(handovers || []).filter((h: any) => Number(h.cash_invoice2) > 0).length}
+          onClick={() => setOpenCard('cash_invoice2')}
         />
         <TreasuryCard
           icon={<CreditCard className="w-4 h-4 text-blue-700" />}
@@ -282,6 +284,7 @@ const ProjectManagerTreasury = () => {
           total={totals.checks}
           color="blue"
           count={(handovers || []).filter((h: any) => Number(h.checks_amount) > 0).length}
+          onClick={() => setOpenCard('checks')}
         />
         <TreasuryCard
           icon={<Receipt className="w-4 h-4 text-purple-700" />}
@@ -289,6 +292,7 @@ const ProjectManagerTreasury = () => {
           total={totals.receipts}
           color="purple"
           count={(handovers || []).filter((h: any) => Number(h.receipts_amount) > 0).length}
+          onClick={() => setOpenCard('receipts')}
         />
         <TreasuryCard
           icon={<ArrowUpRight className="w-4 h-4 text-orange-700" />}
@@ -296,6 +300,7 @@ const ProjectManagerTreasury = () => {
           total={totals.transfers}
           color="orange"
           count={(handovers || []).filter((h: any) => Number(h.transfers_amount) > 0).length}
+          onClick={() => setOpenCard('transfers')}
         />
         <TreasuryCard
           icon={<HandCoins className="w-4 h-4 text-rose-700" />}
@@ -303,6 +308,7 @@ const ProjectManagerTreasury = () => {
           total={totals.debt_cash}
           color="rose"
           count={(handovers || []).filter((h: any) => Number(h.debt_cash_amount) > 0).length}
+          onClick={() => setOpenCard('debt_cash')}
         />
         <TreasuryCard
           icon={<Stamp className="w-4 h-4 text-indigo-700" />}
@@ -310,14 +316,17 @@ const ProjectManagerTreasury = () => {
           total={totals.stamps}
           color="indigo"
           count={(handovers || []).filter((h: any) => Number(h.stamp_amount) > 0).length}
+          onClick={() => setOpenCard('stamps')}
         />
         <TreasuryCard
           icon={<Wallet className="w-4 h-4 text-amber-700" />}
           label="المصاريف"
           total={Number(expensesTotal || 0)}
           color="amber"
-          count={0}
+          count={(expensesList || []).length}
+          onClick={() => setOpenCard('expenses')}
         />
+
 
       </div>
 
