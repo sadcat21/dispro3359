@@ -809,6 +809,26 @@ const ManagerTreasury = () => {
                             </Button>
                             <Button
                               type="button" size="sm"
+                              variant={isDebtInserted ? "default" : "outline"}
+                              disabled={debtVal <= 0}
+                              className={`h-8 text-[11px] ${isDebtInserted 
+                                ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' 
+                                : 'border-amber-400 text-amber-700 hover:bg-amber-50'}`}
+                              onClick={() => {
+                                if (isDebtInserted) {
+                                  // Remove debt portion, keep inv1 + inv2 part
+                                  const base = (isInv1Inserted ? inv1Val : 0) + (isInv2Inserted ? allocatedInv2 : 0);
+                                  setHandoverForm(f => ({ ...f, cash_delivered: String(base) }));
+                                } else {
+                                  const base = (isInv1Inserted ? inv1Val : 0) + (isInv2Inserted ? allocatedInv2 : 0);
+                                  setHandoverForm(f => ({ ...f, cash_delivered: String(base + debtVal) }));
+                                }
+                              }}
+                            >
+                              {isDebtInserted ? 'إزالة تحصيلات الديون' : 'إدراج تحصيلات الديون'}
+                            </Button>
+                            <Button
+                              type="button" size="sm"
                               variant={isTotalInserted ? "default" : "outline"}
                               className={`h-8 text-[11px] ${isTotalInserted 
                                 ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' 
