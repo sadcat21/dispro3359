@@ -608,7 +608,17 @@ const ManagerTreasury = () => {
     <div className="p-4 space-y-4 pb-24" dir={dir}>
       <div className="space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <h1 className="text-xl font-bold">{t('treasury.title')}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold">{t('treasury.title')}</h1>
+            {!isSettingsHidden && (
+              <Button size="icon" variant="outline" className="h-8 w-8 rounded-full" onClick={() => setSettingsOpen(true)} title="إعدادات" aria-label="إعدادات">
+                <Settings className="w-4 h-4" />
+              </Button>
+            )}
+            <Button size="icon" variant="outline" className="h-8 w-8 rounded-full" onClick={syncOldSessions} disabled={syncing} title="مزامنة" aria-label="مزامنة">
+              <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+            </Button>
+          </div>
           <div className="flex items-center gap-2 rounded-full border border-border bg-muted/40 px-2.5 py-1.5">
             <span className="text-[11px] font-medium text-muted-foreground">تفاصيل</span>
             <Switch checked={showCardDetails} onCheckedChange={setShowCardDetails} />
@@ -630,28 +640,6 @@ const ManagerTreasury = () => {
           )}
         </div>
         <div className="flex flex-wrap gap-1.5 pb-1 sm:gap-2">
-          {!isSettingsHidden && (
-            <Button size="sm" variant="outline" className="h-8 gap-1 rounded-full px-2.5 text-[10px] sm:h-9 sm:px-3 sm:text-[11px]" onClick={() => setSettingsOpen(true)}>
-              <Settings className="w-4 h-4" />
-              <span>إعدادات</span>
-            </Button>
-          )}
-          <Button size="sm" variant="outline" className="h-8 gap-1 rounded-full px-2.5 text-[10px] sm:h-9 sm:px-3 sm:text-[11px]" onClick={syncOldSessions} disabled={syncing}>
-            <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
-            <span>مزامنة</span>
-          </Button>
-          {!isInvoiceRequestHidden && (
-            <Button
-              size="sm"
-              variant="default"
-              className="h-8 gap-1 rounded-full px-2.5 text-[10px] sm:h-9 sm:px-3 sm:text-[11px]"
-              onClick={() => navigate(role === 'branch_admin' ? '/branch-invoice-approvals' : '/assistant-approvals')}
-              title="صفحة الموافقات"
-            >
-              <Receipt className="w-4 h-4" />
-              <span>الموافقات</span>
-            </Button>
-          )}
           <Dialog open={addOpen} onOpenChange={setAddOpen}>
             <DialogTrigger asChild>
               <Button size="sm" variant="outline" className="h-8 gap-1 rounded-full px-2.5 text-[10px] sm:h-9 sm:px-3 sm:text-[11px]"><FilePlus className="w-4 h-4" /><span>إضافة</span></Button>
