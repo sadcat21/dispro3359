@@ -1102,8 +1102,8 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
         // Persist Cash/Doc sub-choice so the sale is counted in "الكاش المسلم للمدير" when Cash is selected
         if (paymentType === 'with_invoice' && (invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'check' || invoicePaymentMethod === 'transfer')) {
           const existingDv: any = (order as any).document_verification && typeof (order as any).document_verification === 'object' ? (order as any).document_verification : {};
-          // Versement/Chèque دائماً مستند. Virement حسب الاختيار.
-          const isCash = invoicePaymentMethod === 'transfer' && invoicePaymentSubType === 'cash';
+          // Virement/Chèque دائماً مستند. Versement حسب الاختيار.
+          const isCash = invoicePaymentMethod === 'receipt' && invoicePaymentSubType === 'cash';
           orderUpdate.document_verification = {
             ...existingDv,
             type: invoicePaymentMethod,
