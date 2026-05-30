@@ -45,7 +45,7 @@ import { useTrackVisit } from '@/hooks/useVisitTracking';
 import { sendSmsDirectly, buildDeliveryConfirmationSms } from '@/utils/smsHelper';
 import { loadSmsSettings, buildSmsFromTemplate, openSmsApp } from '@/components/settings/SmsSettingsCard';
 import { useProductOffers } from '@/hooks/useProductOffers';
-import { getGiftTotalPieces, getPaidQuantity as getStoredPaidQuantity, toStoredOrderItemQuantity } from '@/utils/orderItemQuantities';
+import { getGiftTotalPieces, getOrderItemTotalPieces, getPaidQuantity as getStoredPaidQuantity, toStoredOrderItemQuantity } from '@/utils/orderItemQuantities';
 import { boxesToBP } from '@/utils/boxPieceInput';
 import { splitOrderByPaymentGroup, buildPaymentKey } from '@/utils/splitOrderByPaymentGroup';
 import SplitPaymentConfirmDialog, { GroupPaymentResult } from '@/components/sales/SplitPaymentConfirmDialog';
@@ -897,6 +897,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           order_id: order.id,
           product_id: item.productId,
           quantity: qty,
+          is_unit_sale: !!item.isUnitSale,
           unit_price: unitPrice,
           total_price: item.totalPrice,
           gift_quantity: Math.round(Number(item.giftQuantity || 0)),
@@ -908,7 +909,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         };
       });
 
-      const { error: itemsErr } = await supabase.from('order_items').insert(orderItemsData);
+      const { error: itemsErr } = await (supabase as any).from('order_items').insert(orderItemsData as any);
       if (itemsErr) throw new Error('فشل في حفظ بنود الطلب: ' + itemsErr.message);
 
       // Sales tracking ledger
@@ -972,10 +973,13 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           const giftBoxesQty = isDeferredItem ? 0 : Number(item.giftQuantity || 0);
           const giftPiecesQty = isDeferredItem ? 0 : Number(item.giftPieces || 0);
 
-          // Convert sold quantity (box.pieces format) to total pieces, including gift pieces
-          const soldBoxes = Math.floor(qtyRounded);
-          const soldDec = Math.round((qtyRounded - soldBoxes) * 100);
-          const soldPieces = soldBoxes * piecesPerBox + soldDec - (isDeferredItem ? (Number(item.giftQuantity || 0) * piecesPerBox) : 0) + giftPiecesQty;
+          // In unit-sale rows, quantity already means pieces and must not be re-read as B.P boxes.
+          const soldPiecesBase = getOrderItemTotalPieces({
+            quantity: storedQty,
+            pieces_per_box: piecesPerBox,
+            is_unit_sale: item.isUnitSale,
+          });
+          const soldPieces = soldPiecesBase - (isDeferredItem ? (Number(item.giftQuantity || 0) * piecesPerBox) : 0) + giftPiecesQty;
 
           // Convert current stock to total pieces
           const stockBoxes = Math.floor(Math.round(ws.quantity * 100) / 100);
@@ -990,7 +994,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           const stockTable = stockSource === 'warehouse' ? 'warehouse_stock' : 'worker_stock';
           await supabase.from(stockTable).update({ quantity: newQty }).eq('id', ws.id);
         }
-        await supabase.from('stock_movements').insert({
+        await (supabase as any).from('stock_movements').insert({
           product_id: item.productId,
           branch_id: activeBranch?.id || null,
           quantity: stockMovementQty,
