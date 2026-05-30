@@ -530,7 +530,7 @@ const ManagerTreasury = () => {
   const remainingReceiptDocCount = remainingCounts?.receipt?.operations ?? (((summary?.bank_receipt || 0) - (summary?.receipt_handed || 0)) > 1 ? (summary?.receiptCount || 0) : 0);
   const remainingTransferCount = remainingCounts?.transfer?.operations ?? (((summary?.bank_transfer || 0) - (summary?.transfer_handed || 0)) > 1 ? (summary?.transferCount || 0) : 0);
   const buildBadgeText = (bucket: { clients: number; operations: number } | undefined, remainingAmount: number) =>
-    bucket && bucket.operations > 0 && remainingAmount > 0 ? `العمليات: ${bucket.operations} | العملاء: ${bucket.clients}` : undefined;
+    bucket && bucket.operations > 0 && remainingAmount > 0 ? { operations: bucket.operations, clients: bucket.clients } : undefined;
   const cashInvoice1Badge = buildBadgeText(remainingCounts?.cash_invoice1, Math.max((summary?.cash_invoice1 || 0) + (summary?.cash_invoice1_stamp || 0) - (summary?.cash_invoice1_handed || 0), 0));
   const cashInvoice2Badge = buildBadgeText(remainingCounts?.cash_invoice2, Math.max((summary?.cash_invoice2 || 0) - (summary?.cash_invoice2_handed || 0), 0));
   const checksBadge = buildBadgeText(remainingCounts?.check, Math.max((summary?.check || 0) - (summary?.check_handed || 0), 0));
