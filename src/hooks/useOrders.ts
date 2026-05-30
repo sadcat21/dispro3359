@@ -223,9 +223,6 @@ export const useCreateOrder = () => {
         gift_offer_id: item.giftOfferId || null,
         payment_type: item.itemPaymentType || null,
         invoice_payment_method: item.itemInvoicePaymentMethod || null,
-        paid_by_cash: item.itemInvoicePaymentMethod === 'receipt'
-          ? item.itemInvoicePaymentSubType === 'cash'
-          : null,
         price_subtype: item.itemPriceSubType || null,
         pricing_unit: item.pricingUnit || 'box',
         weight_per_box: item.weightPerBox || null,
