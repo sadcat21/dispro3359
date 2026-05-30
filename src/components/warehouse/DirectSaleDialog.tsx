@@ -1822,6 +1822,15 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         onConfirm={handleReceiptPaymentConfirm}
       />
 
+      {/* Split payment confirmation (multi F1/F2 / sub-types) */}
+      <SplitPaymentConfirmDialog
+        open={showSplitDialog}
+        onOpenChange={setShowSplitDialog}
+        customerName={selectedCustomer?.name || ''}
+        groups={paymentGroups as any}
+        stampByKey={stampByGroupKey}
+        onConfirmAll={handleSplitConfirmAll}
+
       {/* Stock Overflow Dialog */}
       <StockOverflowDialog
         open={showOverflowDialog}
