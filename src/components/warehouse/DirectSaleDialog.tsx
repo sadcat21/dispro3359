@@ -1135,7 +1135,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           })
         : null;
       const frLabelFor = (g: GroupPaymentResult): string => {
-        if (g.group.paymentType !== 'with_invoice') return 'F2 — Sans facture';
+        if (g.group.paymentType !== 'with_invoice') return 'Invoice 2';
         const m = g.group.invoicePaymentMethod;
         const mLabel = m === 'receipt' ? 'VRST' : m === 'check' ? 'CHQ' : m === 'transfer' ? 'VIR' : m === 'cash' ? 'Cash' : '—';
         const sub = m === 'receipt' && g.group.invoicePaymentSubType
@@ -1144,10 +1144,10 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         return `F1 — ${mLabel}${sub}`;
       };
       const splitNote = splitResults && splitResults.length > 1
-        ? 'Note: ' + splitResults.map((r) => {
+        ? splitResults.map((r) => {
             const total = r.group.subtotal + (stampByGroupKey[r.key] || 0);
-            return `${frLabelFor(r)}: ${total.toLocaleString()} DA — Payé ${r.paidAmount.toLocaleString()} / Reste ${r.remainingDebt.toLocaleString()}`;
-          }).join(' | ')
+            return `**${frLabelFor(r)}:** ${total.toLocaleString()} DA — Payé ${r.paidAmount.toLocaleString()} / Reste ${r.remainingDebt.toLocaleString()}`;
+          }).join('\n')
         : null;
       const combinedNotes = [notes, offerNotes, splitNote].filter(Boolean).join(' | ');
 

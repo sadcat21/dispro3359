@@ -537,7 +537,11 @@ export function formatReceiptForPrint(data: ReceiptData): Uint8Array {
   if (data.notes) {
     add(ALIGN_LEFT);
     addText(separator());
-    addText(`Note: ${sanitizeForPrint(data.notes)}`);
+    addText('Note:');
+    const noteLines = sanitizeForPrint(data.notes).split('\n');
+    for (const ln of noteLines) {
+      addText(ln.replace(/\*\*/g, ''));
+    }
   }
 
   // ═══════ FOOTER ═══════
@@ -771,7 +775,7 @@ export function formatReceiptForPreview(data: ReceiptData): string {
         ${data.paymentMethod ? `<div style="text-align:center;">Mode: ${methodLabels[data.paymentMethod] || data.paymentMethod}</div>` : ''}
         ${data.nextCollectionDate ? `<div style="border-top:1px dashed #000;margin-top:4px;padding-top:4px;text-align:center;font-weight:bold;">PROCHAIN RDV: ${data.nextCollectionDate}${data.nextCollectionTime ? ' ' + data.nextCollectionTime : ''}</div>` : ''}
         ${debtMovementsHtml}
-        ${data.notes ? `<div style="border-top:1px dashed #000;margin-top:4px;padding-top:4px;">Note: ${data.notes}</div>` : ''}
+        ${data.notes ? `<div style="border-top:1px dashed #000;margin-top:4px;padding-top:4px;text-align:left;"><div>Note:</div><div>${data.notes.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>')}</div></div>` : ''}
         ${advancedHtml}
         ${data.advancedOptions?.showSignatures ? `
         <div style="border-top:2px solid #000;margin-top:8px;padding-top:6px;">
@@ -834,7 +838,7 @@ export function formatReceiptForPreview(data: ReceiptData): string {
       </div>
 
       ${data.paymentMethod && !payLabel ? `<div style="text-align:center;font-size:10px;padding:2px 0;">Mode: ${{ cash: 'Espèces', check: 'Chèque', transfer: 'Virement', receipt: 'Versement' }[data.paymentMethod] || data.paymentMethod}</div>` : ''}
-      ${data.notes ? `<div style="border-top:1px dashed #000;padding-top:4px;font-size:10px;">Note: ${data.notes}</div>` : ''}
+      ${data.notes ? `<div style="border-top:1px dashed #000;padding-top:4px;font-size:10px;text-align:left;"><div>Note:</div><div>${data.notes.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>')}</div></div>` : ''}
 
       ${advancedHtml}
 
