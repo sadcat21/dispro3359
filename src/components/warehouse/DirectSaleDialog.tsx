@@ -1254,7 +1254,9 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                   <>
                     <InvoicePaymentMethodSelect
                       value={invoicePaymentMethod}
-                      onChange={setInvoicePaymentMethod}
+                      onChange={(m) => { setInvoicePaymentMethod(m); setInvoicePaymentSubType(null); }}
+                      subType={invoicePaymentSubType}
+                      onSubTypeChange={setInvoicePaymentSubType}
                     />
                     <div className="space-y-1">
                       <Label className="text-xs font-medium">رقم الفاتورة (اختياري)</Label>
