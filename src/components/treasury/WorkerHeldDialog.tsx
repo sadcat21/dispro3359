@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Card, CardContent } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { orderAccountingTime, parseAccountingTime } from '@/hooks/useManagerTreasury';
 const MoneyValue = ({ value, currency, className = '' }: { value: number; currency: string; className?: string }) => (
   <span className={className}>{Number(value).toLocaleString()} {currency}</span>
 );
