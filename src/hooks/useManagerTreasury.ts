@@ -322,24 +322,11 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
         end: parseAccountingTime(s.period_end),
       }));
 
-      // For worker-held calculation we must consider sessions completed by ANY manager
-      // in the branch, otherwise switching managers inflates the "held by workers" number
-      // with orders that were already settled by a different manager.
-      let allSessionWindows = sessionWindows;
-      if (perManager) {
-        let allSessQuery = supabase
-          .from('accounting_sessions')
-          .select('worker_id, period_start, period_end')
-          .eq('status', 'completed');
-        if (activeBranch?.id) allSessQuery = allSessQuery.eq('branch_id', activeBranch.id);
-        const { data: allSessions } = await allSessQuery;
-        allSessionWindows = (allSessions || []).map((s: any) => ({
-          worker_id: s.worker_id,
-          start: parseAccountingTime(s.period_start),
-          end: parseAccountingTime(s.period_end),
-        }));
-      }
 
+
+
+      // For worker-held calculation we must consider ALL completed sessions in the branch
+      // (any manager). Use shared util so the card matches the dialog exactly.
       let scopedOrders = orders || [];
       if (perManager) {
         scopedOrders = (orders || []).filter((o: any) => {
@@ -349,18 +336,11 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
         });
       }
 
-      // Calculate worker-held amounts: delivered paid orders NOT covered by any completed session (any manager)
-      let workerHeldAmount = 0;
-      (orders || []).forEach((o: any) => {
-        let paidAmount = Number(o.total_amount || 0);
-        if (o.payment_status === 'partial') paidAmount = Number(o.partial_amount || 0);
-        else if (o.payment_status === 'debt') paidAmount = 0;
-        if (paidAmount <= 0 || !o.assigned_worker_id) return;
+      const { computeWorkerHeld } = await import('@/utils/computeWorkerHeld');
+      const workerHeldResult = await computeWorkerHeld(activeBranch?.id, range);
+      const workerHeldAmount = workerHeldResult.total;
 
-        const t = orderAccountingTime(o);
-        const isCovered = allSessionWindows.some((w) => w.worker_id === o.assigned_worker_id && t >= w.start && t <= w.end);
-        if (!isCovered) workerHeldAmount += paidAmount;
-      });
+
 
 
 
