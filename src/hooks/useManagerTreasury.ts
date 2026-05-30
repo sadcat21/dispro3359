@@ -289,12 +289,15 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
       if (range?.from) dpQuery = dpQuery.gte('collected_at', `${range.from}T00:00:00`);
       if (range?.to) dpQuery = dpQuery.lte('collected_at', `${range.to}T23:59:59`);
       const { data: debtPayments } = await dpQuery;
-      const debtCashCollected = (debtPayments || []).reduce((s: number, dp: any) => {
+      const debtCashCollectedGross = (debtPayments || []).reduce((s: number, dp: any) => {
         const debtBranchId = dp?.debt?.branch_id || null;
         if (activeBranch?.id && debtBranchId && debtBranchId !== activeBranch.id) return s;
         if (dp.payment_method === 'cash' || !dp.payment_method) return s + Number(dp.amount || 0);
         return s;
       }, 0);
+      // Deduct the portion already handed over (so it doesn't show as available again)
+      const debtCashHanded = (handovers || []).reduce((s: number, h: any) => s + Number(h.debt_cash_amount || 0), 0);
+      const debtCashCollected = Math.max(debtCashCollectedGross - debtCashHanded, 0);
 
       // Get approved expenses
       let expQuery = supabase.from('expenses').select('amount').eq('status', 'approved');
