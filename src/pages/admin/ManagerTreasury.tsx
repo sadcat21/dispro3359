@@ -1290,39 +1290,6 @@ const ManagerTreasury = () => {
                 </div>
               )}</section>
 
-              <section className="space-y-2"><h2 className="text-base font-bold border-b pb-1">🪙 التجميع</h2><ConsolidationHistoryTab /></section>
-
-              <section className="space-y-2"><h2 className="text-base font-bold border-b pb-1">⚠️ الفوارق المحاسبية</h2>{(
-
-                <div className="space-y-3">
-                  {discrepancies && discrepancies.length > 0 ? (
-                    <div className="space-y-2">
-                      {discrepancies.map((d, i) => {
-                        const isSurplus = d.difference > 0;
-                        return (
-                          <div key={i} className="rounded-xl border bg-card p-3 space-y-1.5">
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm font-medium">{getItemTypeLabel(d.item_type)}</span>
-                              <Badge variant={isSurplus ? 'default' : 'destructive'} className="text-[10px]">
-                                {isSurplus ? t('treasury.surplus_label') : t('treasury.deficit_label')} {Math.abs(d.difference).toLocaleString()} {cur}
-                              </Badge>
-                            </div>
-                            <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                              <span>📊 {t('treasury.expected_system')}: {d.expected.toLocaleString()} {cur}</span>
-                              <span>✅ {t('treasury.actual_recorded')}: {d.actual.toLocaleString()} {cur}</span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <CheckCircle className="w-8 h-8 mx-auto mb-2 text-green-500" />
-                      <p className="text-sm font-medium text-green-600">{t('treasury.no_discrepancies')}</p>
-                    </div>
-                  )}
-                </div>
-              )}</section>
 
       </div>
 
