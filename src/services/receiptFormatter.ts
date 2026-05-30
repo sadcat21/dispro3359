@@ -51,7 +51,28 @@ function hasArabic(text: string): boolean {
 
 function sanitizeForPrint(text: string): string {
   let result = hasArabic(text) ? transliterateArabic(text) : text;
-  result = result.replace(/\u00A0/g, ' ').replace(/°/g, 'o');
+  result = result
+    .replace(/\u00A0/g, ' ')
+    .replace(/°/g, 'o')
+    .replace(/[—–]/g, '-')
+    .replace(/[“”«»]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .replace(/…/g, '...')
+    .replace(/[•·]/g, '*')
+    .replace(/[→➜▶►]/g, '>')
+    .replace(/[←◀◄]/g, '<')
+    .replace(/[★☆]/g, '*')
+    .replace(/é/g, 'e').replace(/è/g, 'e').replace(/ê/g, 'e').replace(/ë/g, 'e')
+    .replace(/à/g, 'a').replace(/â/g, 'a').replace(/ä/g, 'a')
+    .replace(/ô/g, 'o').replace(/ö/g, 'o')
+    .replace(/û/g, 'u').replace(/ü/g, 'u').replace(/ù/g, 'u')
+    .replace(/î/g, 'i').replace(/ï/g, 'i')
+    .replace(/ç/g, 'c')
+    .replace(/É/g, 'E').replace(/È/g, 'E').replace(/Ê/g, 'E')
+    .replace(/À/g, 'A').replace(/Â/g, 'A')
+    .replace(/Ô/g, 'O').replace(/Û/g, 'U').replace(/Ç/g, 'C')
+    // Strip anything still outside printable ASCII (emojis, CJK, box-drawing, etc.)
+    .replace(/[^\x20-\x7E\n\r\t]/g, '');
   return result;
 }
 
