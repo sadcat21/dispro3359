@@ -363,24 +363,49 @@ const HandoverPrintView: React.FC<Props> = ({
         </p>
       )}
 
-      {renderSimpleTable('CHEQUES', checks, checksAmount, [
-        { header: 'N° Chèque', cell: (item) => item.check_number || '-' },
-        { header: 'Banque', cell: (item) => item.check_bank || '-' },
-      ])}
+      {(() => {
+        const sections: Array<{ title: string; isEmpty: boolean; node: React.ReactNode }> = [
+          { title: 'CHEQUES', isEmpty: checks.length === 0, node: renderSimpleTable('CHEQUES', checks, checksAmount, [
+            { header: 'N° Chèque', cell: (item) => item.check_number || '-' },
+            { header: 'Banque', cell: (item) => item.check_bank || '-' },
+          ]) },
+          { title: 'ESPÈCES FACTURE 1', isEmpty: cashItemsWithStamp.length === 0, node: renderCashInvoice1Table() },
+          { title: 'VERSEMENT CASH', isEmpty: receiptCash.length === 0, node: renderSimpleTable('VERSEMENT CASH', receiptCash, receiptCashTotal, [
+            { header: 'N° Reçu', cell: (item) => item.receipt_number || '-' },
+          ]) },
+          { title: 'VERSEMENT DOC', isEmpty: receiptDocs.length === 0, node: renderSimpleTable('VERSEMENT DOC', receiptDocs, receiptsAmount, [
+            { header: 'N° Reçu', cell: (item) => item.receipt_number || '-' },
+          ]) },
+          { title: 'VIREMENTS', isEmpty: transfers.length === 0, node: renderSimpleTable('VIREMENTS', transfers, transfersAmount, [
+            { header: 'Référence', cell: (item) => item.transfer_reference || '-' },
+          ]) },
+        ];
 
-      {renderCashInvoice1Table()}
+        const emptyTitles = sections.filter((section) => section.isEmpty).map((section) => section.title);
 
-      {renderSimpleTable('VERSEMENT CASH', receiptCash, receiptCashTotal, [
-        { header: 'N° Reçu', cell: (item) => item.receipt_number || '-' },
-      ])}
+        return (
+          <>
+            {sections.filter((section) => !section.isEmpty).map((section) => (
+              <React.Fragment key={section.title}>{section.node}</React.Fragment>
+            ))}
+            {emptyTitles.length > 0 && (
+              <div className="mb-4" data-pdf-section>
+                <h3 className="mb-1 text-sm font-bold">Notes</h3>
+                <table className="w-full border-collapse border border-black text-xs">
+                  <tbody>
+                    <tr>
+                      <td className="border border-black p-1">
+                        Sections vides: {emptyTitles.join(', ')}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
+        );
+      })()}
 
-      {renderSimpleTable('VERSEMENT DOC', receiptDocs, receiptsAmount, [
-        { header: 'N° Reçu', cell: (item) => item.receipt_number || '-' },
-      ])}
-
-      {renderSimpleTable('VIREMENTS', transfers, transfersAmount, [
-        { header: 'Référence', cell: (item) => item.transfer_reference || '-' },
-      ])}
 
       <div className="mt-4" data-pdf-section style={{ direction: 'ltr', textAlign: 'left', fontSize: '10px' }}>
         <div style={{ display: 'flex', gap: '8px', marginBottom: '6px' }}>
