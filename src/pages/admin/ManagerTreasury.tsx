@@ -630,6 +630,16 @@ const ManagerTreasury = () => {
             <Button size="icon" variant="outline" className="h-8 w-8 rounded-full" onClick={syncOldSessions} disabled={syncing} title="مزامنة" aria-label="مزامنة">
               <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
             </Button>
+            <Button
+              size="icon"
+              variant="outline"
+              className={`h-8 w-8 rounded-full ${(handovers && handovers.length > 0) ? 'border-destructive text-destructive hover:bg-destructive/10' : 'border-green-500 text-green-600 hover:bg-green-500/10'}`}
+              onClick={() => setHandoversListOpen(true)}
+              title="التسليمات"
+              aria-label="التسليمات"
+            >
+              <Send className="w-4 h-4" />
+            </Button>
           </div>
           <div className="flex items-center gap-1.5 flex-wrap">
             <Button size="sm" variant="outline" className="h-8 gap-1 rounded-full px-2.5 text-[11px] border-amber-300 text-amber-700 hover:bg-amber-50" onClick={() => setConsolidationOpen(true)}>
