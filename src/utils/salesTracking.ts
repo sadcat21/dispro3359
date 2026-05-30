@@ -21,6 +21,12 @@ interface RecordSaleItem {
   offerId?: string | null;
   giftProductId?: string | null;
   giftProductName?: string | null;
+  /** Per-item payment metadata so a single order can be split into
+   *  multiple sales rows (one per payment group). */
+  paymentType?: string | null;
+  invoicePaymentMethod?: string | null;
+  invoicePaymentSubType?: string | null;
+  paymentGroupKey?: string | null;
 }
 
 interface RecordSaleParams {
@@ -75,14 +81,10 @@ export async function recordSaleTracking(params: RecordSaleParams): Promise<void
 
       const isDeferred = !!(it.offerId && deferredOfferIds.has(it.offerId));
       const hasGift = giftBoxes > 0 || giftPieces > 0;
-      // Stored line quantity includes full-box gifts. For deferred offers,
-      // remove those gifts from the immediate sale ledger so stock/achievement
-      // summaries do not count them before manager confirmation.
       const trackedSoldQty = isDeferred ? Math.max(0, qty - giftBoxes) : qty;
       const soldBoxes = Math.floor(trackedSoldQty);
       const soldPieces = Math.round((trackedSoldQty - soldBoxes) * 100);
 
-      // Divert gift to pending confirmations
       if (isDeferred && hasGift) {
         await recordPendingOfferConfirmation({
           orderId: params.orderId || null,
@@ -127,17 +129,23 @@ export async function recordSaleTracking(params: RecordSaleParams): Promise<void
         customer_name: params.customerName || null,
         branch_name: params.branchName || null,
         notes: params.notes || null,
+        payment_type: it.paymentType || null,
+        invoice_payment_method: it.invoicePaymentMethod || null,
+        invoice_payment_subtype: it.invoicePaymentSubType || null,
+        payment_group_key: it.paymentGroupKey || null,
       });
     }
 
     if (!rows.length) return;
-    // Split rows by whether they have an order_id (the unique index only covers those).
     const withOrder = rows.filter((r) => r.order_id);
     const withoutOrder = rows.filter((r) => !r.order_id);
     if (withOrder.length) {
       const { error } = await (supabase as any)
         .from('sales_tracking')
-        .upsert(withOrder, { onConflict: 'order_id,product_id,source', ignoreDuplicates: true });
+        .upsert(withOrder, {
+          onConflict: 'order_id,product_id,source,payment_group_key',
+          ignoreDuplicates: true,
+        });
       if (error) console.warn('[salesTracking] upsert failed', error);
     }
     if (withoutOrder.length) {

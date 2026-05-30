@@ -46,6 +46,8 @@ import { sendSmsDirectly, buildDeliveryConfirmationSms } from '@/utils/smsHelper
 import { loadSmsSettings, buildSmsFromTemplate, openSmsApp } from '@/components/settings/SmsSettingsCard';
 import { useProductOffers } from '@/hooks/useProductOffers';
 import { getGiftTotalPieces, getPaidQuantity as getStoredPaidQuantity } from '@/utils/orderItemQuantities';
+import { splitOrderByPaymentGroup, buildPaymentKey } from '@/utils/splitOrderByPaymentGroup';
+import SplitPaymentConfirmDialog, { GroupPaymentResult } from '@/components/sales/SplitPaymentConfirmDialog';
 
 interface StockItem {
   id: string;
@@ -161,6 +163,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
   const [showOverflowDialog, setShowOverflowDialog] = useState(false);
   const [showAddCustomerDialog, setShowAddCustomerDialog] = useState(false);
   const [overflowData, setOverflowData] = useState<any>(null);
+  const [showSplitDialog, setShowSplitDialog] = useState(false);
+  const splitResultsRef = React.useRef<GroupPaymentResult[] | null>(null);
 
   // Derived
   const selectedCustomer = useMemo(() =>
@@ -643,6 +647,25 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
     return { totalItems, subtotal, stampAmount, stampPercentage, totalAmount: subtotal + stampAmount };
   }, [orderItems, paymentType, invoicePaymentMethod, stampTiers]);
 
+  // Split cart into payment groups (F1/F2 + sub-types). When >1 we use
+  // SplitPaymentConfirmDialog so each group is confirmed in its own section.
+  const paymentGroups = useMemo(() => splitOrderByPaymentGroup(
+    orderItems as any,
+    { paymentType, invoicePaymentMethod, invoicePaymentSubType },
+  ), [orderItems, paymentType, invoicePaymentMethod, invoicePaymentSubType]);
+
+  // Per-group stamp (only F1-Espèces groups get a stamp)
+  const stampByGroupKey = useMemo(() => {
+    const map: Record<string, number> = {};
+    if (!stampTiers?.length) return map;
+    for (const g of paymentGroups) {
+      if (g.paymentType === 'with_invoice' && g.invoicePaymentMethod === 'cash') {
+        map[g.key] = calculateStampAmount(g.subtotal, stampTiers);
+      }
+    }
+    return map;
+  }, [paymentGroups, stampTiers]);
+
   // Report header info to parent
   useEffect(() => {
     onHeaderInfo?.({ customerName: localizedCustomerName(selectedCustomer) || null, totalAmount: orderTotals.totalAmount });
@@ -665,6 +688,15 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
     // إلزام Cash/Doc فقط مع Versement
     if (paymentType === 'with_invoice' && invoicePaymentMethod === 'receipt' && !invoicePaymentSubType) {
       toast.error('يرجى اختيار نوع الاستلام: Cash أو Doc');
+      return;
+    }
+
+    // Mixed payment groups → use split confirmation dialog
+    if (paymentGroups.length > 1) {
+      setFrozenPaymentType(paymentType);
+      setFrozenInvoiceMethod(invoicePaymentMethod);
+      splitResultsRef.current = null;
+      setShowSplitDialog(true);
       return;
     }
 
@@ -697,6 +729,34 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
     } else {
       setShowPaymentDialog(true);
     }
+  };
+
+  // Handler for SplitPaymentConfirmDialog → aggregates per-group results
+  // and forwards to the standard handlePaymentConfirm, while storing the
+  // per-group payment metadata so sales_tracking rows are split correctly.
+  const handleSplitConfirmAll = async (results: GroupPaymentResult[]) => {
+    splitResultsRef.current = results;
+    const total = results.reduce((s, r) => s + r.group.subtotal + (stampByGroupKey[r.key] || 0), 0);
+    const paid = results.reduce((s, r) => s + r.paidAmount, 0);
+    const remaining = Math.max(0, total - paid);
+    // Pick a representative invoice method: prefer the first F1 group's method, else null
+    const firstF1 = results.find((r) => r.group.paymentType === 'with_invoice');
+    if (firstF1) {
+      setFrozenPaymentType('with_invoice');
+      setFrozenInvoiceMethod(firstF1.group.invoicePaymentMethod);
+    } else {
+      setFrozenPaymentType('without_invoice');
+      setFrozenInvoiceMethod(null);
+    }
+    setPendingDocVerification(null);
+    setShowSplitDialog(false);
+    await handlePaymentConfirm({
+      paidAmount: paid,
+      remainingAmount: remaining,
+      paymentMethod: firstF1 ? (firstF1.group.invoicePaymentMethod || 'receipt') : 'cash',
+      isFullPayment: paid >= total,
+      isNoPayment: paid === 0,
+    });
   };
 
   // معالج خاص بنافذة ReceiptPaymentDialog لتحويل بياناتها إلى صيغة handlePaymentConfirm
@@ -856,6 +916,9 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           customerName: selectedCustomer?.name || null,
           items: orderItems.map((item) => {
             const prod = availableProducts.find((p) => p.id === item.productId);
+            const pt = (item.itemPaymentType ?? frozenPaymentType) as any;
+            const im = (item.itemInvoicePaymentMethod !== undefined ? item.itemInvoicePaymentMethod : frozenInvoiceMethod) as any;
+            const is = (item.itemInvoicePaymentSubType !== undefined ? item.itemInvoicePaymentSubType : invoicePaymentSubType) as any;
             return {
               productId: item.productId,
               productName: prod?.name || null,
@@ -866,6 +929,10 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
               unitPrice: item.unitPrice,
               totalPrice: item.totalPrice,
               offerId: (item as any).giftOfferId || null,
+              paymentType: pt || null,
+              invoicePaymentMethod: im || null,
+              invoicePaymentSubType: is || null,
+              paymentGroupKey: buildPaymentKey(pt, im, is),
             };
           }),
         });
@@ -1754,6 +1821,18 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         hideCash={frozenInvoiceMethod === 'receipt' && invoicePaymentSubType === 'doc'}
         onConfirm={handleReceiptPaymentConfirm}
       />
+
+      {/* Split payment confirmation (multi F1/F2 / sub-types) */}
+      <SplitPaymentConfirmDialog
+        open={showSplitDialog}
+        onOpenChange={setShowSplitDialog}
+        customerName={selectedCustomer?.name || ''}
+        groups={paymentGroups as any}
+        stampByKey={stampByGroupKey}
+        onConfirmAll={handleSplitConfirmAll}
+      />
+
+
 
       {/* Stock Overflow Dialog */}
       <StockOverflowDialog
