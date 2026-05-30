@@ -841,7 +841,7 @@ const ManagerTreasury = () => {
                                 }
                               }}
                             >
-                              {isTotalInserted ? 'إزالة المجموع' : 'إدراج المجموع'}
+                              {isTotalInserted ? 'إزالة المجموع' : 'المجموع'}
                             </Button>
                           </>
                         );
