@@ -227,8 +227,7 @@ const HandoverPrintView: React.FC<Props> = ({
       className?: string;
     }>,
   ) => {
-    if (tableItems.length === 0) return null;
-
+    const extras = extraColumns || [];
     return (
       <div className="mb-4" data-pdf-section>
         <h3 className="mb-1 text-sm font-bold">{title} ({tableItems.length})</h3>
@@ -238,7 +237,7 @@ const HandoverPrintView: React.FC<Props> = ({
               <th className="border border-black p-1 text-left">Client</th>
               <th className="border border-black p-1 text-left">N° Facture</th>
               <th className="border border-black p-1 text-right">Montant</th>
-              {(extraColumns || []).map((column) => (
+              {extras.map((column) => (
                 <th key={column.header} className={`border border-black p-1 text-left ${column.className || ''}`}>
                   {column.header}
                 </th>
@@ -247,23 +246,31 @@ const HandoverPrintView: React.FC<Props> = ({
             </tr>
           </thead>
           <tbody>
-            {tableItems.map((item, index) => (
-              <tr key={`${title}-${index}`}>
-                <td className="border border-black p-1">{item.customer_name || '-'}</td>
-                <td className="border border-black p-1">{item.invoice_number || '-'}</td>
-                <td className="border border-black p-1 text-right">{item.amount.toLocaleString()}</td>
-                {(extraColumns || []).map((column) => (
-                  <td key={column.header} className={`border border-black p-1 ${column.className || ''}`}>
-                    {column.cell(item)}
-                  </td>
-                ))}
-                <td className="border border-black p-1">{item.invoice_date || item.check_date || '-'}</td>
+            {tableItems.length === 0 ? (
+              <tr>
+                <td className="border border-black p-1 text-center text-muted-foreground" colSpan={3 + extras.length + 1}>
+                  -
+                </td>
               </tr>
-            ))}
+            ) : (
+              tableItems.map((item, index) => (
+                <tr key={`${title}-${index}`}>
+                  <td className="border border-black p-1">{item.customer_name || '-'}</td>
+                  <td className="border border-black p-1">{item.invoice_number || '-'}</td>
+                  <td className="border border-black p-1 text-right">{item.amount.toLocaleString()}</td>
+                  {extras.map((column) => (
+                    <td key={column.header} className={`border border-black p-1 ${column.className || ''}`}>
+                      {column.cell(item)}
+                    </td>
+                  ))}
+                  <td className="border border-black p-1">{item.invoice_date || item.check_date || '-'}</td>
+                </tr>
+              ))
+            )}
             <tr className="font-bold">
               <td className="border border-black p-1" colSpan={2}>Total {title}</td>
               <td className="border border-black p-1 text-right">{total.toLocaleString()}</td>
-              <td className="border border-black p-1" colSpan={(extraColumns?.length || 0) + 1}></td>
+              <td className="border border-black p-1" colSpan={extras.length + 1}></td>
             </tr>
           </tbody>
         </table>
@@ -272,7 +279,7 @@ const HandoverPrintView: React.FC<Props> = ({
   };
 
   const renderCashInvoice1Table = () => {
-    if (cashItemsWithStamp.length === 0) return null;
+    
 
     return (
       <div className="mb-4" data-pdf-section>
@@ -290,17 +297,23 @@ const HandoverPrintView: React.FC<Props> = ({
             </tr>
           </thead>
           <tbody>
-            {cashItemsWithStamp.map((item, index) => (
-              <tr key={`cash-invoice1-${index}`}>
-                <td className="border border-black p-1">{item.customer_name || '-'}</td>
-                <td className="border border-black p-1">{item.invoice_number || '-'}</td>
-                <td className="border border-black p-1 text-right">{Number(item.base_amount || 0).toLocaleString()}</td>
-                <td className="border border-black p-1 text-right">{Number(item.stamp_percentage || 0).toLocaleString()}%</td>
-                <td className="border border-black p-1 text-right">{Number(item.stamp_amount || 0).toLocaleString()}</td>
-                <td className="border border-black p-1 text-right">{Number(item.amount || 0).toLocaleString()}</td>
-                <td className="border border-black p-1">{item.invoice_date || item.check_date || '-'}</td>
+            {cashItemsWithStamp.length === 0 ? (
+              <tr>
+                <td className="border border-black p-1 text-center text-muted-foreground" colSpan={7}>-</td>
               </tr>
-            ))}
+            ) : (
+              cashItemsWithStamp.map((item, index) => (
+                <tr key={`cash-invoice1-${index}`}>
+                  <td className="border border-black p-1">{item.customer_name || '-'}</td>
+                  <td className="border border-black p-1">{item.invoice_number || '-'}</td>
+                  <td className="border border-black p-1 text-right">{Number(item.base_amount || 0).toLocaleString()}</td>
+                  <td className="border border-black p-1 text-right">{Number(item.stamp_percentage || 0).toLocaleString()}%</td>
+                  <td className="border border-black p-1 text-right">{Number(item.stamp_amount || 0).toLocaleString()}</td>
+                  <td className="border border-black p-1 text-right">{Number(item.amount || 0).toLocaleString()}</td>
+                  <td className="border border-black p-1">{item.invoice_date || item.check_date || '-'}</td>
+                </tr>
+              ))
+            )}
             <tr className="font-bold">
               <td className="border border-black p-1" colSpan={2}>Total ESPÈCES FACTURE 1</td>
               <td className="border border-black p-1 text-right">{cashItemsNetTotal.toLocaleString()}</td>
@@ -384,28 +397,22 @@ const HandoverPrintView: React.FC<Props> = ({
                   <span>Espèces Facture 1:</span>
                   <span className="font-bold">{cashItemsTotal.toLocaleString()} DA</span>
                 </div>
-                {receiptCashTotal > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
-                    <span>Versement Cash:</span>
-                    <span className="font-bold">{receiptCashTotal.toLocaleString()} DA</span>
-                  </div>
-                )}
-                {cashItemsStampTotal > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
-                    <span>Timbre Facture 1:</span>
-                    <span className="font-bold">{cashItemsStampTotal.toLocaleString()} DA</span>
-                  </div>
-                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
+                  <span>Versement Cash:</span>
+                  <span className="font-bold">{receiptCashTotal.toLocaleString()} DA</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
+                  <span>Timbre Facture 1:</span>
+                  <span className="font-bold">{cashItemsStampTotal.toLocaleString()} DA</span>
+                </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
                   <span>Espèces Facture 2:</span>
                   <span className="font-bold">{cashInvoice2.toLocaleString()} DA</span>
                 </div>
-                {extraCashTotal > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
-                    <span>Recouvrement dettes / cash suppl.:</span>
-                    <span className="font-bold">{extraCashTotal.toLocaleString()} DA</span>
-                  </div>
-                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
+                  <span>Recouvrement dettes / cash suppl.:</span>
+                  <span className="font-bold">{extraCashTotal.toLocaleString()} DA</span>
+                </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginTop: '4px', paddingTop: '4px', borderTop: '1px solid black' }} className="font-bold">
                   <span>Total Espèces:</span>
                   <span>{(cashInvoice1 + cashInvoice2 + extraCashTotal).toLocaleString()} DA</span>
@@ -414,33 +421,25 @@ const HandoverPrintView: React.FC<Props> = ({
             )}
           </div>
 
-          {(checksAmount > 0 || receiptsAmount > 0 || transfersAmount > 0) && (
-            <div className="border-2 border-black p-2" style={{ flex: 1 }}>
-              <h3 className="mb-1 text-center font-bold underline" style={{ fontSize: '11px' }}>VALEURS EN TRANSIT</h3>
-              {checksAmount > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
-                  <span>Chèques:</span>
-                  <span className="font-bold">{checksAmount.toLocaleString()} DA</span>
-                </div>
-              )}
-              {receiptsAmount > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
-                  <span>Versement Doc:</span>
-                  <span className="font-bold">{receiptsAmount.toLocaleString()} DA</span>
-                </div>
-              )}
-              {transfersAmount > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
-                  <span>Virements:</span>
-                  <span className="font-bold">{transfersAmount.toLocaleString()} DA</span>
-                </div>
-              )}
-              <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginTop: '4px', paddingTop: '4px', borderTop: '1px solid black' }} className="font-bold">
-                <span>Total Valeurs:</span>
-                <span>{(checksAmount + receiptsAmount + transfersAmount).toLocaleString()} DA</span>
-              </div>
+          <div className="border-2 border-black p-2" style={{ flex: 1 }}>
+            <h3 className="mb-1 text-center font-bold underline" style={{ fontSize: '11px' }}>VALEURS EN TRANSIT</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
+              <span>Chèques:</span>
+              <span className="font-bold">{checksAmount.toLocaleString()} DA</span>
             </div>
-          )}
+            <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
+              <span>Versement Doc:</span>
+              <span className="font-bold">{receiptsAmount.toLocaleString()} DA</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
+              <span>Virements:</span>
+              <span className="font-bold">{transfersAmount.toLocaleString()} DA</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginTop: '4px', paddingTop: '4px', borderTop: '1px solid black' }} className="font-bold">
+              <span>Total Valeurs:</span>
+              <span>{(checksAmount + receiptsAmount + transfersAmount).toLocaleString()} DA</span>
+            </div>
+          </div>
         </div>
 
         <div className="border-2 border-black p-2" style={{ backgroundColor: '#f3f4f6' }}>
