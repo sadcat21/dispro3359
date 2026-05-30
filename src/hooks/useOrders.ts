@@ -230,9 +230,9 @@ export const useCreateOrder = () => {
         pieces_per_box: item.piecesPerBox || null,
       }));
 
-      const { data: insertedItems, error: itemsError } = await supabase
+      const { data: insertedItems, error: itemsError } = await (supabase as any)
         .from('order_items')
-        .insert(orderItems)
+        .insert(orderItems as any)
         .select('id, product_id, quantity, is_unit_sale, gift_quantity, gift_pieces, gift_offer_id, pieces_per_box');
 
       if (itemsError) throw itemsError;
