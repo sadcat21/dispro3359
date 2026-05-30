@@ -47,18 +47,18 @@ const TreasuryCard = ({ icon, label, total, handed, colorClass, borderClass, onC
   return (
     <Card className={`${borderClass} cursor-pointer hover:shadow-md transition-shadow`} onClick={onClick}>
       <CardContent className="p-3 space-y-2">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <span className={`flex items-center justify-center w-7 h-7 rounded-full bg-${colorClass}/10 shrink-0`}>{icon}</span>
-            <span className={`text-sm font-bold text-${colorClass} truncate`}>{label}</span>
-          </div>
-          {badgeText && (
-            <div className={`flex items-stretch text-[10px] font-bold rounded-full overflow-hidden border border-${colorClass}/30 shrink-0`}>
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className={`flex items-center justify-center w-7 h-7 rounded-full bg-${colorClass}/10 shrink-0`}>{icon}</span>
+          <span className={`text-sm font-bold text-${colorClass} truncate`}>{label}</span>
+        </div>
+        {badgeText && (
+          <div className="flex justify-center">
+            <div className={`flex items-stretch text-[10px] font-bold rounded-full overflow-hidden border border-${colorClass}/30`}>
               <span className={`px-2 py-0.5 bg-${colorClass}/10 text-${colorClass}`}>{badgeText.operations} عملية</span>
               <span className={`px-2 py-0.5 bg-${colorClass} text-white`}>{badgeText.clients} عميل</span>
             </div>
-          )}
-        </div>
+          </div>
+        )}
         <div className="text-center">
           <MoneyValue value={remaining} currency={currency} className={`text-lg font-bold text-${colorClass}`} />
         </div>
