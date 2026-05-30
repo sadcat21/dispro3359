@@ -7,6 +7,7 @@ export interface GiftBreakdownInput {
   total_price?: number | null;
   delivered_quantity?: number | null;
   stock_movement_quantity?: number | null;
+  is_unit_sale?: boolean | null;
 }
 
 const toNumber = (value: unknown): number => {
@@ -27,7 +28,11 @@ export const getGiftTotalBoxes = (item: GiftBreakdownInput): number => {
 };
 
 export const getPaidQuantity = (item: GiftBreakdownInput): number => {
-  const quantity = Math.max(0, toNumber(item.quantity));
+  const piecesPerBox = Math.max(1, toNumber(item.pieces_per_box) || 1);
+  const rawQuantity = Math.max(0, toNumber(item.quantity));
+  const quantity = item.is_unit_sale
+    ? rawQuantity
+    : (Math.floor(rawQuantity) + (Math.round((rawQuantity - Math.floor(rawQuantity)) * 100) / piecesPerBox));
   const giftBoxes = Math.max(0, toNumber(item.gift_quantity));
   const unitPrice = toNumber(item.unit_price);
   const totalPrice = toNumber(item.total_price);
