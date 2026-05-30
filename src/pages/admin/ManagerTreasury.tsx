@@ -530,7 +530,7 @@ const ManagerTreasury = () => {
   const remainingReceiptDocCount = remainingCounts?.receipt?.operations ?? (((summary?.bank_receipt || 0) - (summary?.receipt_handed || 0)) > 1 ? (summary?.receiptCount || 0) : 0);
   const remainingTransferCount = remainingCounts?.transfer?.operations ?? (((summary?.bank_transfer || 0) - (summary?.transfer_handed || 0)) > 1 ? (summary?.transferCount || 0) : 0);
   const buildBadgeText = (bucket?: { clients: number; operations: number }) =>
-    bucket ? `العمليات: ${bucket.operations} | العملاء: ${bucket.clients}` : undefined;
+    bucket && bucket.operations > 0 ? `العمليات: ${bucket.operations} | العملاء: ${bucket.clients}` : undefined;
   const cashInvoice1Badge = buildBadgeText(remainingCounts?.cash_invoice1);
   const cashInvoice2Badge = buildBadgeText(remainingCounts?.cash_invoice2);
   const checksBadge = buildBadgeText(remainingCounts?.check);
