@@ -554,7 +554,7 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
         }
       }
 
-      summary.total = summary.cash_invoice1 + summary.cash_invoice1_stamp + summary.receipt_cash + summary.cash_invoice2 + summary.check + summary.bank_receipt + summary.bank_transfer + debtCashCollected - coinExchangeOut;
+      summary.total = summary.cash_invoice1 + summary.cash_invoice1_stamp + summary.receipt_cash + summary.cash_invoice2 + summary.check + summary.bank_receipt + summary.bank_transfer + effectiveDebtCashCollected - coinExchangeOut;
       summary.handedOver = (handovers || []).reduce((s: number, h: any) => s + Number(h.amount), 0);
       summary.remaining = summary.total - summary.handedOver;
 
