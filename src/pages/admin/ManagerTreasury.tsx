@@ -1151,40 +1151,42 @@ const ManagerTreasury = () => {
 
 
 
-              <section id="handovers-section" className="space-y-2 scroll-mt-20"><h2 className="text-base font-bold border-b pb-1">📤 التسليمات</h2>{(
-
-                <div className="space-y-2">
-                  {(!handovers || handovers.length === 0) ? (
-                    <p className="text-center text-muted-foreground py-8">{t('treasury.no_handovers')}</p>
-                  ) : handovers.map(h => (
-                    <Card key={h.id}>
-                      <CardContent className="p-3 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Send className="w-4 h-4 text-destructive" />
-                            <p className="font-bold">{Number(h.amount).toLocaleString()} {cur}</p>
+              <Dialog open={handoversListOpen} onOpenChange={setHandoversListOpen}>
+                <DialogContent dir={dir} className="max-h-[90vh] overflow-y-auto">
+                  <DialogHeader><DialogTitle>📤 التسليمات</DialogTitle></DialogHeader>
+                  <div className="space-y-2">
+                    {(!handovers || handovers.length === 0) ? (
+                      <p className="text-center text-muted-foreground py-8">{t('treasury.no_handovers')}</p>
+                    ) : handovers.map(h => (
+                      <Card key={h.id}>
+                        <CardContent className="p-3 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Send className="w-4 h-4 text-destructive" />
+                              <p className="font-bold">{Number(h.amount).toLocaleString()} {cur}</p>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setTimeout(() => setViewHandover(h.id), 200); }}><Eye className="w-3.5 h-3.5" /></Button>
+                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setTimeout(() => openEditHandover(h), 200); }}><Pencil className="w-3.5 h-3.5" /></Button>
+                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setTimeout(() => setPrintHandover(h.id), 200); }}><Printer className="w-3.5 h-3.5" /></Button>
+                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => { if (confirm(t('common.confirm_delete'))) deleteHandover(h.id); }}><Trash2 className="w-3.5 h-3.5" /></Button>
+                              <p className="text-xs text-muted-foreground">{format(new Date(h.created_at), 'dd/MM/yyyy', { locale: dateLocale })}</p>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-1">
-                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setTimeout(() => setViewHandover(h.id), 200); }}><Eye className="w-3.5 h-3.5" /></Button>
-                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setTimeout(() => openEditHandover(h), 200); }}><Pencil className="w-3.5 h-3.5" /></Button>
-                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setTimeout(() => setPrintHandover(h.id), 200); }}><Printer className="w-3.5 h-3.5" /></Button>
-                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => { if (confirm(t('common.confirm_delete'))) deleteHandover(h.id); }}><Trash2 className="w-3.5 h-3.5" /></Button>
-                            <p className="text-xs text-muted-foreground">{format(new Date(h.created_at), 'dd/MM/yyyy', { locale: dateLocale })}</p>
+                          <div className="grid grid-cols-2 gap-1 text-xs">
+                            {Number(h.cash_invoice1 ?? 0) > 0 && <p>{t('treasury.cash_f1')}: {Number(h.cash_invoice1).toLocaleString()} {cur}</p>}
+                            {Number(h.cash_invoice2 ?? 0) > 0 && <p>{t('treasury.cash_f2')}: {Number(h.cash_invoice2).toLocaleString()} {cur}</p>}
+                            {Number(h.checks_amount ?? 0) > 0 && <p>{t('treasury.checks')}: {Number(h.checks_amount).toLocaleString()} {cur}</p>}
+                            {Number(h.receipts_amount ?? 0) > 0 && <p>{t('treasury.versement')}: {Number(h.receipts_amount).toLocaleString()} {cur}</p>}
+                            {Number(h.transfers_amount ?? 0) > 0 && <p>{t('treasury.virement')}: {Number(h.transfers_amount).toLocaleString()} {cur}</p>}
                           </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-1 text-xs">
-                          {Number(h.cash_invoice1 ?? 0) > 0 && <p>{t('treasury.cash_f1')}: {Number(h.cash_invoice1).toLocaleString()} {cur}</p>}
-                          {Number(h.cash_invoice2 ?? 0) > 0 && <p>{t('treasury.cash_f2')}: {Number(h.cash_invoice2).toLocaleString()} {cur}</p>}
-                          {Number(h.checks_amount ?? 0) > 0 && <p>{t('treasury.checks')}: {Number(h.checks_amount).toLocaleString()} {cur}</p>}
-                          {Number(h.receipts_amount ?? 0) > 0 && <p>{t('treasury.versement')}: {Number(h.receipts_amount).toLocaleString()} {cur}</p>}
-                          {Number(h.transfers_amount ?? 0) > 0 && <p>{t('treasury.virement')}: {Number(h.transfers_amount).toLocaleString()} {cur}</p>}
-                        </div>
-                        {h.notes && <p className="text-xs text-muted-foreground">{h.notes}</p>}
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}</section>
+                          {h.notes && <p className="text-xs text-muted-foreground">{h.notes}</p>}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </DialogContent>
+              </Dialog>
 
 
       </div>
