@@ -617,7 +617,13 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
     if (dv && typeof dv === 'object' && typeof dv.paid_by_cash === 'boolean') return dv.paid_by_cash;
     return null;
   })();
-  const currentPaidByCash = invoicePaymentSubType === 'cash' ? true : invoicePaymentSubType === 'doc' ? false : null;
+  // Versement/Chèque دائماً مستند (paid_by_cash=false). Virement حسب اختيار Cash/Doc.
+  const currentPaidByCash =
+    invoicePaymentMethod === 'transfer'
+      ? (invoicePaymentSubType === 'cash' ? true : invoicePaymentSubType === 'doc' ? false : null)
+      : (invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'check')
+        ? false
+        : null;
   const invoiceSubTypeChanged = paymentType === 'with_invoice'
     && (invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'check' || invoicePaymentMethod === 'transfer')
     && currentPaidByCash !== originalPaidByCash;
