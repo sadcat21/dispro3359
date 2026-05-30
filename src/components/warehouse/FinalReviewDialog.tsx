@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { parseBP, dbBPToBoxes, dbBPDisplay } from '@/utils/boxPieceInput';
+import { getDeliveredSoldPieces } from '@/utils/orderItemQuantities';
 
 interface FinalReviewDialogProps {
   open: boolean;
@@ -78,14 +79,14 @@ const formatBP = (totalPieces: number, piecesPerBox: number): string => {
 const toWholePieces = (value: number): number => Math.round(Number(value || 0));
 
 const getDeliveredSoldBp = (item: any): number => {
-  const deliveredQuantity = item?.delivered_quantity ?? item?.stock_movement_quantity;
-  if (deliveredQuantity !== undefined && deliveredQuantity !== null) {
-    return Math.max(0, Number(deliveredQuantity || 0));
-  }
-
-  const quantity = Math.max(0, Number(item?.quantity || 0));
-  const origGiftBoxes = Math.max(0, Math.floor(Number(item?._orig_gift_quantity ?? item?.gift_quantity ?? 0)));
-  return Math.max(0, quantity - origGiftBoxes);
+  return getDeliveredSoldPieces({
+    quantity: item?.quantity,
+    gift_quantity: item?._orig_gift_quantity ?? item?.gift_quantity,
+    delivered_quantity: item?.delivered_quantity,
+    stock_movement_quantity: item?.stock_movement_quantity,
+    pieces_per_box: item?.pieces_per_box ?? item?.product?.pieces_per_box,
+    is_unit_sale: item?.is_unit_sale,
+  });
 };
 
 const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
@@ -374,7 +375,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
             const prod = (it as any).product || {};
             const ex = map.get(pid) || baseRow(pid, prod);
             const ppb = Math.max(1, Math.round(Number((it as any).pieces_per_box || prod.pieces_per_box || 1)));
-            const soldPieces = bpToPieces(getDeliveredSoldBp(it), ppb);
+            const soldPieces = getDeliveredSoldBp(it);
             // gifts (after merge with sales_tracking): gift_quantity = full boxes, gift_pieces = extra pieces
             const giftBoxes = Math.max(0, Math.floor(Number((it as any).gift_quantity || 0)));
             const giftExtraPieces = Math.max(0, Number((it as any).gift_pieces || 0));
@@ -525,7 +526,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
         const giftBoxes = Math.max(0, Math.floor(Number((it as any).gift_quantity || 0)));
         const giftExtraPieces = Math.max(0, Number((it as any).gift_pieces || 0));
         const giftTotalPieces = giftBoxes * ppb + giftExtraPieces;
-        const soldPieces = bpToPieces(getDeliveredSoldBp(it), ppb);
+        const soldPieces = getDeliveredSoldBp(it);
         ex.loaded -= soldPieces;
         ex.loaded -= giftTotalPieces;
       }
@@ -551,7 +552,7 @@ const FinalReviewDialog: React.FC<FinalReviewDialogProps> = ({
       const giftBoxes = Math.max(0, Math.floor(Number((it as any).gift_quantity || 0)));
       const giftExtraPieces = Math.max(0, Number((it as any).gift_pieces || 0));
       const giftTotalPieces = giftBoxes * ppb + giftExtraPieces;
-      ex.sold += bpToPieces(getDeliveredSoldBp(it), ppb);
+      ex.sold += getDeliveredSoldBp(it);
       ex.gifts += giftTotalPieces;
       const trKey = `${oid}|${pid}`;
       if (trackingByOrderProduct.has(trKey)) {
