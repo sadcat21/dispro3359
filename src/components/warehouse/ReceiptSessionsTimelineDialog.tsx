@@ -52,7 +52,17 @@ const ReceiptSessionsTimelineDialog: React.FC<Props> = ({
   }, [receipts]);
 
   const [localSel, setLocalSel] = useState<Set<string>>(new Set());
-  useEffect(() => { if (open) setLocalSel(new Set(selectedIds)); }, [open, selectedIds]);
+  useEffect(() => {
+    if (!open) return;
+    // Default: pre-select all available sessions; if parent already has a selection, respect it.
+    if (selectedIds && selectedIds.size > 0) {
+      setLocalSel(new Set(selectedIds));
+    } else if (sessions.length > 0) {
+      setLocalSel(new Set(sessions.map((s) => s.id)));
+    } else {
+      setLocalSel(new Set());
+    }
+  }, [open, selectedIds, sessions]);
 
   const toggle = (id: string) => {
     setLocalSel((prev) => {
