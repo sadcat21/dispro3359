@@ -894,7 +894,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           const totalPieces = Math.max(1, Math.round(qty * ppb));
           unitPrice = totalPieces > 0 ? Number(item.totalPrice || 0) / totalPieces : 0;
           qty = totalPieces;
-          pricingUnit = 'piece';
+          pricingUnit = 'unit';
         }
         return {
           order_id: order.id,

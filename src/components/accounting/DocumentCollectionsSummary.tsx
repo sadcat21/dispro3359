@@ -729,7 +729,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
             <div className="space-y-2">
               {orderDetailsItems.map((it: any) => {
                 const p = it.product || {};
-                const unit = it.pricing_unit === 'piece' ? 'قطعة' : 'صندوق';
+                const unit = (it.pricing_unit === 'piece' || it.pricing_unit === 'unit') ? 'قطعة' : 'صندوق';
                 return (
                   <div key={it.id} className="flex items-center gap-3 border rounded-lg p-2.5 bg-card">
                     <div className="w-14 h-14 rounded-md bg-muted shrink-0 overflow-hidden flex items-center justify-center">
