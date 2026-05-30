@@ -62,6 +62,8 @@ const HandoverApprovals = () => {
     onSuccess: (_, vars) => {
       toast.success(vars.status === 'approved' ? 'تمت الموافقة على التسليم' : 'تم رفض التسليم');
       queryClient.invalidateQueries({ queryKey: ['handover-approvals'] });
+      queryClient.invalidateQueries({ queryKey: ['manager-handovers'] });
+      queryClient.invalidateQueries({ queryKey: ['project-manager-treasury'] });
       setSelected(null);
       setDecisionNotes('');
     },

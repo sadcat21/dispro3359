@@ -554,6 +554,7 @@ export const useManagerHandovers = (range?: TreasuryDateRange) => {
       let query = supabase
         .from('manager_handovers')
         .select('*, manager:workers!manager_handovers_manager_id_fkey(id, full_name)')
+        .neq('approval_status', 'approved')
         .order('created_at', { ascending: false });
 
       if (activeBranch?.id) query = query.eq('branch_id', activeBranch.id);
