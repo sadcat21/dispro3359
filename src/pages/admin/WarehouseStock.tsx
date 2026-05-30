@@ -105,6 +105,10 @@ const WarehouseStock: React.FC = () => {
   const [workersForProduct, setWorkersForProduct] = useState<ProductSummary | null>(null);
   const [soldForProduct, setSoldForProduct] = useState<ProductSummary | null>(null);
   const [metricLog, setMetricLog] = useState<{ product: ProductSummary; metric: MetricKind } | null>(null);
+  // فلتر جلسات الاستلام أُزيل — نُبقي على ثوابت فارغة لتفادي تعديلات واسعة.
+  const selectedReceiptRanges: SelectedReceiptRange[] = [];
+  const hasReceiptFilter = false;
+
 
   // Fetch aggregated data for summary
   const { data: summaryData, isLoading: summaryLoading } = useQuery({
