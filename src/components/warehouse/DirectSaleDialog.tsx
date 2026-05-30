@@ -933,6 +933,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
               productId: item.productId,
               productName: prod?.name || null,
               quantity: toStoredBpQuantity(item.quantity, item.piecesPerBox ?? prod?.pieces_per_box ?? 20, item.isUnitSale),
+              isUnitSale: !!item.isUnitSale,
               giftBoxes: Number(item.giftQuantity || 0),
               giftPieces: Number(item.giftPieces || 0),
               piecesPerBox: item.piecesPerBox ?? prod?.pieces_per_box ?? 20,
