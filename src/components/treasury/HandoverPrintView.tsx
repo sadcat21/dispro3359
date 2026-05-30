@@ -229,48 +229,42 @@ const HandoverPrintView: React.FC<Props> = ({
   ) => {
     const extras = extraColumns || [];
     return (
-      <div className="mb-4" data-pdf-section>
-        <h3 className="mb-1 text-sm font-bold">{title} ({tableItems.length})</h3>
-        <table className="w-full border-collapse border border-black text-xs">
+      <div className="hv-block" data-pdf-section>
+        <div className="hv-block-title">{title} ({tableItems.length})</div>
+        <table className="hv-table">
           <thead>
             <tr>
-              <th className="border border-black p-1 text-left">Client</th>
-              <th className="border border-black p-1 text-left">N° Facture</th>
-              <th className="border border-black p-1 text-right">Montant</th>
+              <th style={{ textAlign: 'left' }}>Client</th>
+              <th style={{ textAlign: 'left' }}>N° Facture</th>
+              <th style={{ textAlign: 'right' }}>Montant</th>
               {extras.map((column) => (
-                <th key={column.header} className={`border border-black p-1 text-left ${column.className || ''}`}>
-                  {column.header}
-                </th>
+                <th key={column.header} style={{ textAlign: 'left' }}>{column.header}</th>
               ))}
-              <th className="border border-black p-1 text-left">Date</th>
+              <th style={{ textAlign: 'left' }}>Date</th>
             </tr>
           </thead>
           <tbody>
             {tableItems.length === 0 ? (
               <tr>
-                <td className="border border-black p-1 text-center text-muted-foreground" colSpan={3 + extras.length + 1}>
-                  -
-                </td>
+                <td colSpan={3 + extras.length + 1} style={{ textAlign: 'center', color: '#64748b' }}>-</td>
               </tr>
             ) : (
               tableItems.map((item, index) => (
                 <tr key={`${title}-${index}`}>
-                  <td className="border border-black p-1">{item.customer_name || '-'}</td>
-                  <td className="border border-black p-1">{item.invoice_number || '-'}</td>
-                  <td className="border border-black p-1 text-right">{item.amount.toLocaleString()}</td>
+                  <td style={{ textAlign: 'left' }}>{item.customer_name || '-'}</td>
+                  <td style={{ textAlign: 'left' }}>{item.invoice_number || '-'}</td>
+                  <td style={{ textAlign: 'right' }}>{item.amount.toLocaleString()}</td>
                   {extras.map((column) => (
-                    <td key={column.header} className={`border border-black p-1 ${column.className || ''}`}>
-                      {column.cell(item)}
-                    </td>
+                    <td key={column.header} style={{ textAlign: 'left' }}>{column.cell(item)}</td>
                   ))}
-                  <td className="border border-black p-1">{item.invoice_date || item.check_date || '-'}</td>
+                  <td style={{ textAlign: 'left' }}>{item.invoice_date || item.check_date || '-'}</td>
                 </tr>
               ))
             )}
-            <tr className="font-bold">
-              <td className="border border-black p-1" colSpan={2}>Total {title}</td>
-              <td className="border border-black p-1 text-right">{total.toLocaleString()}</td>
-              <td className="border border-black p-1" colSpan={extras.length + 1}></td>
+            <tr className="hv-total-row">
+              <td colSpan={2} style={{ textAlign: 'left' }}>Total {title}</td>
+              <td style={{ textAlign: 'right' }}>{total.toLocaleString()}</td>
+              <td colSpan={extras.length + 1}></td>
             </tr>
           </tbody>
         </table>
@@ -278,90 +272,97 @@ const HandoverPrintView: React.FC<Props> = ({
     );
   };
 
-  const renderCashInvoice1Table = () => {
-    
-
-    return (
-      <div className="mb-4" data-pdf-section>
-        <h3 className="mb-1 text-sm font-bold">ESPÈCES FACTURE 1 ({cashItemsWithStamp.length})</h3>
-        <table className="w-full border-collapse border border-black text-xs">
-          <thead>
-            <tr>
-              <th className="border border-black p-1 text-left">Client</th>
-              <th className="border border-black p-1 text-left">NÂ° Facture</th>
-              <th className="border border-black p-1 text-right">Montant HT</th>
-              <th className="border border-black p-1 text-right">Taux %</th>
-              <th className="border border-black p-1 text-right">Timbre</th>
-              <th className="border border-black p-1 text-right">Montant TTC</th>
-              <th className="border border-black p-1 text-left">Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {cashItemsWithStamp.length === 0 ? (
-              <tr>
-                <td className="border border-black p-1 text-center text-muted-foreground" colSpan={7}>-</td>
+  const renderCashInvoice1Table = () => (
+    <div className="hv-block" data-pdf-section>
+      <div className="hv-block-title">ESPÈCES FACTURE 1 ({cashItemsWithStamp.length})</div>
+      <table className="hv-table">
+        <thead>
+          <tr>
+            <th style={{ textAlign: 'left' }}>Client</th>
+            <th style={{ textAlign: 'left' }}>N° Facture</th>
+            <th style={{ textAlign: 'right' }}>Montant HT</th>
+            <th style={{ textAlign: 'right' }}>Taux %</th>
+            <th style={{ textAlign: 'right' }}>Timbre</th>
+            <th style={{ textAlign: 'right' }}>Montant TTC</th>
+            <th style={{ textAlign: 'left' }}>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {cashItemsWithStamp.length === 0 ? (
+            <tr><td colSpan={7} style={{ textAlign: 'center', color: '#64748b' }}>-</td></tr>
+          ) : (
+            cashItemsWithStamp.map((item, index) => (
+              <tr key={`cash-invoice1-${index}`}>
+                <td style={{ textAlign: 'left' }}>{item.customer_name || '-'}</td>
+                <td style={{ textAlign: 'left' }}>{item.invoice_number || '-'}</td>
+                <td style={{ textAlign: 'right' }}>{Number(item.base_amount || 0).toLocaleString()}</td>
+                <td style={{ textAlign: 'right' }}>{Number(item.stamp_percentage || 0).toLocaleString()}%</td>
+                <td style={{ textAlign: 'right' }}>{Number(item.stamp_amount || 0).toLocaleString()}</td>
+                <td style={{ textAlign: 'right' }}>{Number(item.amount || 0).toLocaleString()}</td>
+                <td style={{ textAlign: 'left' }}>{item.invoice_date || item.check_date || '-'}</td>
               </tr>
-            ) : (
-              cashItemsWithStamp.map((item, index) => (
-                <tr key={`cash-invoice1-${index}`}>
-                  <td className="border border-black p-1">{item.customer_name || '-'}</td>
-                  <td className="border border-black p-1">{item.invoice_number || '-'}</td>
-                  <td className="border border-black p-1 text-right">{Number(item.base_amount || 0).toLocaleString()}</td>
-                  <td className="border border-black p-1 text-right">{Number(item.stamp_percentage || 0).toLocaleString()}%</td>
-                  <td className="border border-black p-1 text-right">{Number(item.stamp_amount || 0).toLocaleString()}</td>
-                  <td className="border border-black p-1 text-right">{Number(item.amount || 0).toLocaleString()}</td>
-                  <td className="border border-black p-1">{item.invoice_date || item.check_date || '-'}</td>
-                </tr>
-              ))
-            )}
-            <tr className="font-bold">
-              <td className="border border-black p-1" colSpan={2}>Total ESPÈCES FACTURE 1</td>
-              <td className="border border-black p-1 text-right">{cashItemsNetTotal.toLocaleString()}</td>
-              <td className="border border-black p-1 text-right">-</td>
-              <td className="border border-black p-1 text-right">{cashItemsStampTotal.toLocaleString()}</td>
-              <td className="border border-black p-1 text-right">{cashItemsTotal.toLocaleString()}</td>
-              <td className="border border-black p-1"></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    );
-  };
+            ))
+          )}
+          <tr className="hv-total-row">
+            <td colSpan={2} style={{ textAlign: 'left' }}>Total ESPÈCES FACTURE 1</td>
+            <td style={{ textAlign: 'right' }}>{cashItemsNetTotal.toLocaleString()}</td>
+            <td style={{ textAlign: 'right' }}>-</td>
+            <td style={{ textAlign: 'right' }}>{cashItemsStampTotal.toLocaleString()}</td>
+            <td style={{ textAlign: 'right' }}>{cashItemsTotal.toLocaleString()}</td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+
+  const summaryRow = (label: string, value: number, accent?: string) => (
+    <div className="hv-row">
+      <span>{label}</span>
+      <strong style={accent ? { color: accent } : undefined}>{value.toLocaleString()} DA</strong>
+    </div>
+  );
 
   return (
-    <div className="print-handover bg-white p-8 font-sans text-black" style={{ direction: 'ltr', fontSize: '12px', textAlign: 'left', unicodeBidi: 'plaintext' }}>
-      <PrintHeader companyInfo={companyInfo} dir="ltr" />
-      <p className="mb-2" data-pdf-section style={{ textAlign: 'left' }}>
-        <strong>Date d'envoi:</strong> {dateStr}{wilayaFr ? `  -  Depot ${wilayaFr}` : ''}
-      </p>
+    <div className="print-handover" style={{ direction: 'ltr', textAlign: 'left', unicodeBidi: 'plaintext', background: '#fff', color: '#0f172a', fontFamily: "'Helvetica Neue', Arial, sans-serif", fontSize: '12px', padding: '24px' }}>
+      <style>{`
+        .print-handover .hv-header { border-bottom: 3px double #0f172a; padding-bottom: 8px; margin-bottom: 12px; }
+        .print-handover .hv-meta { font-size: 11px; color: #000; line-height: 1.6; margin-top: 4px; }
+        .print-handover .hv-meta b { color: #0f172a; }
+        .print-handover .hv-block { border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; margin-bottom: 10px; page-break-inside: avoid; }
+        .print-handover .hv-block-title { color: #dc2626; background: #fef2f2; padding: 6px 10px; font-size: 11px; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase; border-bottom: 1px solid #fecaca; }
+        .print-handover .hv-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+        .print-handover .hv-table th { background: #f8fafc; color: #0f172a; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px; font-size: 9px; padding: 5px 6px; border: 1px solid #e2e8f0; }
+        .print-handover .hv-table td { border: 1px solid #e2e8f0; padding: 4px 6px; font-variant-numeric: tabular-nums; color: #0f172a; }
+        .print-handover .hv-table tbody tr:nth-child(even) td { background: #f8fafc; }
+        .print-handover .hv-table .hv-total-row td { background: #fef2f2 !important; color: #b91c1c; font-weight: 800; }
+        .print-handover .hv-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+        .print-handover .hv-block-body { padding: 4px 0; }
+        .print-handover .hv-row { display: flex; justify-content: space-between; gap: 10px; padding: 5px 12px; border-bottom: 1px solid #f1f5f9; font-size: 11px; }
+        .print-handover .hv-row:last-child { border-bottom: none; }
+        .print-handover .hv-row strong { font-variant-numeric: tabular-nums; }
+        .print-handover .hv-grand { margin-top: 10px; border: 2px solid #0f172a; border-radius: 6px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; }
+        .print-handover .hv-grand span { font-size: 13px; font-weight: 800; color: #0f172a; letter-spacing: 0.4px; text-transform: uppercase; }
+        .print-handover .hv-grand strong { font-size: 14px; font-weight: 900; color: #15803d; font-variant-numeric: tabular-nums; }
+        .print-handover .hv-sign { margin-top: 24px; font-size: 11px; color: #0f172a; }
+        .print-handover .hv-sign .line { display: inline-block; border-top: 1px solid #0f172a; min-width: 220px; margin-left: 8px; padding-top: 4px; }
+      `}</style>
 
-      {deliveryMethod && (
-        <p className="mb-4" data-pdf-section style={{ textAlign: 'left', margin: '0 0 16px 0', lineHeight: '1.8' }}>
-          <span>Mode: </span>
-          <strong>{deliveryMethod === 'direct' ? 'Remise directe' : deliveryMethod === 'bank_transfer' ? 'Virement bancaire' : 'Par intermédiaire'}</strong>
-          {receivedBy && (
-            <>
-              <span style={{ margin: '0 12px' }}>|</span>
-              <span>Destinataire: </span>
-              <strong>{receivedBy}</strong>
-            </>
-          )}
-          {deliveryMethod === 'intermediary' && intermediaryName && (
-            <>
-              <span style={{ margin: '0 12px' }}>|</span>
-              <span>Intermédiaire: </span>
-              <strong>{intermediaryName}</strong>
-            </>
-          )}
-          {deliveryMethod === 'bank_transfer' && bankTransferReference && (
-            <>
-              <span style={{ margin: '0 12px' }}>|</span>
-              <span>Réf. virement: </span>
-              <strong>{bankTransferReference}</strong>
-            </>
-          )}
-        </p>
-      )}
+      <PrintHeader companyInfo={companyInfo} dir="ltr" />
+
+      <div className="hv-header" data-pdf-section>
+        <div className="hv-meta">
+          <b>Date d'envoi :</b> {dateStr}{wilayaFr ? `  |  Dépôt : ${wilayaFr}` : ''}
+        </div>
+        {deliveryMethod && (
+          <div className="hv-meta">
+            <b>Mode :</b> {deliveryMethod === 'direct' ? 'Remise directe' : deliveryMethod === 'bank_transfer' ? 'Virement bancaire' : 'Par intermédiaire'}
+            {receivedBy && <> &nbsp;|&nbsp; <b>Destinataire :</b> {receivedBy}</>}
+            {deliveryMethod === 'intermediary' && intermediaryName && <> &nbsp;|&nbsp; <b>Intermédiaire :</b> {intermediaryName}</>}
+            {deliveryMethod === 'bank_transfer' && bankTransferReference && <> &nbsp;|&nbsp; <b>Réf. virement :</b> {bankTransferReference}</>}
+          </div>
+        )}
+      </div>
 
       {(() => {
         const sections: Array<{ title: string; isEmpty: boolean; node: React.ReactNode }> = [
@@ -389,97 +390,61 @@ const HandoverPrintView: React.FC<Props> = ({
               <React.Fragment key={section.title}>{section.node}</React.Fragment>
             ))}
             {emptyTitles.length > 0 && (
-              <div className="mb-4" data-pdf-section>
-                <h3 className="mb-1 text-sm font-bold">Notes</h3>
-                <table className="w-full border-collapse border border-black text-xs">
-                  <tbody>
-                    <tr>
-                      <td className="border border-black p-1">
-                        Sections vides: {emptyTitles.join(', ')}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div className="hv-block" data-pdf-section>
+                <div className="hv-block-title">Notes</div>
+                <div className="hv-block-body">
+                  <div className="hv-row">
+                    <span>Sections vides</span>
+                    <strong>{emptyTitles.join(', ')}</strong>
+                  </div>
+                </div>
               </div>
             )}
           </>
         );
       })()}
 
-
-      <div className="mt-4" data-pdf-section style={{ direction: 'ltr', textAlign: 'left', fontSize: '10px' }}>
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '6px' }}>
-          <div className="border-2 border-black p-2" style={{ flex: 1 }}>
-            <h3 className="mb-1 text-center font-bold underline" style={{ fontSize: '11px' }}>ARGENT PHYSIQUE (ESPÈCES)</h3>
+      <div className="hv-two-col" data-pdf-section>
+        <div className="hv-block">
+          <div className="hv-block-title">Argent Physique (Espèces)</div>
+          <div className="hv-block-body">
             {unifiedCash ? (
-              <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }} className="font-bold">
-                <span>Espèces:</span>
-                <span>{(cashInvoice1 + cashInvoice2 + extraCashTotal).toLocaleString()} DA</span>
-              </div>
+              summaryRow('Espèces', cashInvoice1 + cashInvoice2 + extraCashTotal, '#15803d')
             ) : (
               <>
-                <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
-                  <span>Espèces Facture 1:</span>
-                  <span className="font-bold">{cashItemsTotal.toLocaleString()} DA</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
-                  <span>Versement Cash:</span>
-                  <span className="font-bold">{receiptCashTotal.toLocaleString()} DA</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
-                  <span>Timbre Facture 1:</span>
-                  <span className="font-bold">{cashItemsStampTotal.toLocaleString()} DA</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
-                  <span>Espèces Facture 2:</span>
-                  <span className="font-bold">{cashInvoice2.toLocaleString()} DA</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
-                  <span>Recouvrement dettes / cash suppl.:</span>
-                  <span className="font-bold">{extraCashTotal.toLocaleString()} DA</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginTop: '4px', paddingTop: '4px', borderTop: '1px solid black' }} className="font-bold">
-                  <span>Total Espèces:</span>
-                  <span>{(cashInvoice1 + cashInvoice2 + extraCashTotal).toLocaleString()} DA</span>
-                </div>
+                {summaryRow('Espèces Facture 1', cashItemsTotal)}
+                {summaryRow('Versement Cash', receiptCashTotal)}
+                {summaryRow('Timbre Facture 1', cashItemsStampTotal)}
+                {summaryRow('Espèces Facture 2', cashInvoice2)}
+                {summaryRow('Recouvrement dettes / cash suppl.', extraCashTotal)}
+                {summaryRow('Total Espèces', cashInvoice1 + cashInvoice2 + extraCashTotal, '#15803d')}
               </>
             )}
           </div>
-
-          <div className="border-2 border-black p-2" style={{ flex: 1 }}>
-            <h3 className="mb-1 text-center font-bold underline" style={{ fontSize: '11px' }}>VALEURS EN TRANSIT</h3>
-            <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
-              <span>Chèques:</span>
-              <span className="font-bold">{checksAmount.toLocaleString()} DA</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
-              <span>Versement Doc:</span>
-              <span className="font-bold">{receiptsAmount.toLocaleString()} DA</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
-              <span>Virements:</span>
-              <span className="font-bold">{transfersAmount.toLocaleString()} DA</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginTop: '4px', paddingTop: '4px', borderTop: '1px solid black' }} className="font-bold">
-              <span>Total Valeurs:</span>
-              <span>{(checksAmount + receiptsAmount + transfersAmount).toLocaleString()} DA</span>
-            </div>
-          </div>
         </div>
 
-        <div className="border-2 border-black p-2" style={{ backgroundColor: '#f3f4f6' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr' }} className="font-bold" >
-            <span style={{ fontSize: '12px' }}>TOTAL GÉNÉRAL:</span>
-            <span style={{ fontSize: '12px' }}>{totalAmount.toLocaleString()} DA</span>
+        <div className="hv-block">
+          <div className="hv-block-title">Valeurs en Transit</div>
+          <div className="hv-block-body">
+            {summaryRow('Chèques', checksAmount, '#1d4ed8')}
+            {summaryRow('Versement Doc', receiptsAmount, '#7e22ce')}
+            {summaryRow('Virements', transfersAmount, '#0e7490')}
+            {summaryRow('Total Valeurs', checksAmount + receiptsAmount + transfersAmount, '#0f172a')}
           </div>
         </div>
       </div>
 
-      <div className="mt-10" data-pdf-section style={{ textAlign: 'left' }}>
-        <p className="font-bold underline">Signature:</p>
+      <div className="hv-grand" data-pdf-section>
+        <span>Total Général</span>
+        <strong>{totalAmount.toLocaleString()} DA</strong>
+      </div>
+
+      <div className="hv-sign" data-pdf-section>
+        <b>Signature :</b> <span className="line"></span>
       </div>
     </div>
   );
 };
 
 export default HandoverPrintView;
+
