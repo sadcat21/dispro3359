@@ -653,17 +653,29 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       }
     }
 
+    // إلزام Cash/Doc فقط مع Virement
+    if (paymentType === 'with_invoice' && invoicePaymentMethod === 'transfer' && !invoicePaymentSubType) {
+      toast.error('يرجى اختيار نوع الاستلام: Cash أو Doc');
+      return;
+    }
+
     // CRITICAL: Freeze the current values into state BEFORE opening dialog
-    // React 18 batches these setState calls, so all values are consistent in the next render
     setFrozenPaymentType(paymentType);
     setFrozenInvoiceMethod(invoicePaymentMethod);
-    console.log('[DirectSale] FROZEN VALUES SET:', JSON.stringify({
-      paymentType: paymentType,
-      invoiceMethod: invoicePaymentMethod,
-    }));
 
-    if (paymentType === 'with_invoice' && (invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'transfer' || invoicePaymentMethod === 'check')) {
+    // التوجيه:
+    //  - Chèque / Versement (مستند دائماً) → ReceiptPaymentDialog
+    //  - Virement + Doc → ReceiptPaymentDialog
+    //  - Virement + Cash → نافذة الدفع العادية (Facture2)
+    //  - Espèces → نافذة الدفع العادية
+    if (paymentType === 'with_invoice' && (invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'check')) {
       setShowReceiptPaymentDialog(true);
+    } else if (paymentType === 'with_invoice' && invoicePaymentMethod === 'transfer') {
+      if (invoicePaymentSubType === 'cash') {
+        setShowPaymentDialog(true);
+      } else {
+        setShowReceiptPaymentDialog(true);
+      }
     } else {
       setShowPaymentDialog(true);
     }
