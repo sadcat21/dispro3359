@@ -1343,62 +1343,97 @@ const ManagerTreasury = () => {
                 <DialogTitle>{t('treasury.edit_handover')}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
-                {/* Cash section - editable */}
+                {/* Cash section - styled like create dialog */}
                 <div className="p-3 rounded-lg bg-muted/50 space-y-3">
-                  <p className="font-medium text-sm">💵 {t('treasury.cash')}</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div><Label className="text-xs">{t('treasury.cash_invoice1')}</Label><Input type="number" value={editCash1} onChange={e => setEditCash1(Number(e.target.value))} /></div>
-                    <div><Label className="text-xs">{t('treasury.cash_invoice2')}</Label><Input type="number" value={editCash2} onChange={e => setEditCash2(Number(e.target.value))} /></div>
+                  <div className="flex items-center justify-between">
+                    <p className="font-medium text-sm">💵 {t('treasury.cash')}</p>
+                    <Badge variant="outline" className="text-[10px]">حساب تلقائي</Badge>
+                  </div>
+                  <div>
+                    <Label className="text-xs">الكاش المسلم</Label>
+                    <Input
+                      dir="ltr"
+                      className="text-left [direction:ltr]"
+                      type="number"
+                      placeholder="0"
+                      value={editCash1 + editCash2}
+                      onChange={(e) => {
+                        const total = Math.max(0, Number(e.target.value) || 0);
+                        const maxInv1 = Number(h.cash_invoice1 ?? 0);
+                        const newInv1 = Math.min(total, maxInv1);
+                        setEditCash1(newInv1);
+                        setEditCash2(Math.max(0, total - newInv1));
+                      }}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+                      <p className="text-[11px] text-emerald-700">{t('treasury.cash_invoice1')} + Versement Cash</p>
+                      <MoneyValue value={editCash1} currency={cur} className="mt-1 text-lg font-bold text-emerald-600" />
+                    </div>
+                    <div className="rounded-xl border border-sky-200 bg-sky-50 p-3">
+                      <p className="text-[11px] text-sky-700">{t('treasury.cash_invoice2')}</p>
+                      <MoneyValue value={editCash2} currency={cur} className="mt-1 text-lg font-bold text-sky-600" />
+                    </div>
                   </div>
                 </div>
 
                 {/* Checks - read only */}
                 {editItems.checks.length > 0 && (
-                  <div className="p-3 rounded-lg bg-muted/50 space-y-2">
-                    <p className="font-medium text-sm">📝 {t('treasury.checks')} ({editItems.checks.length})</p>
+                  <div className="rounded-xl border border-blue-200/70 bg-blue-50/40 p-3 space-y-2">
+                    <div>
+                      <p className="text-sm font-semibold text-blue-900">📝 {t('treasury.checks')} ({editItems.checks.length})</p>
+                      <p className="text-[11px] text-blue-700">الشيكات المسلّمة</p>
+                    </div>
                     {editItems.checks.map((item, i) => (
                       <div key={i} className="flex items-center justify-between text-xs bg-background rounded-md px-2 py-1.5 border">
                         <span className="truncate flex-1">{item.customer_name}</span>
-                        <span className="font-bold whitespace-nowrap">{item.amount.toLocaleString()} {cur}</span>
+                        <MoneyValue value={item.amount} currency={cur} className="font-bold" />
                       </div>
                     ))}
                     <div className="flex items-center justify-between text-xs pt-1 border-t">
                       <span className="text-muted-foreground">{t('common.total')}</span>
-                      <span className="font-bold">{editChecksTotal.toLocaleString()} {cur}</span>
+                      <MoneyValue value={editChecksTotal} currency={cur} className="font-bold" />
                     </div>
                   </div>
                 )}
 
-                {/* Receipts - read only */}
+                {/* Receipts (Versement Doc) - read only */}
                 {editItems.receipts.length > 0 && (
-                  <div className="p-3 rounded-lg bg-muted/50 space-y-2">
-                    <p className="font-medium text-sm">🧾 {t('treasury.versement')} ({editItems.receipts.length})</p>
+                  <div className="rounded-xl border border-purple-200/70 bg-purple-50/50 p-3 space-y-2">
+                    <div>
+                      <p className="text-sm font-semibold text-purple-900">🧾 Versement Doc ({editItems.receipts.length})</p>
+                      <p className="text-[11px] text-purple-700">العمليات التي قدّم فيها العميل وصل Versement فعليًا</p>
+                    </div>
                     {editItems.receipts.map((item, i) => (
                       <div key={i} className="flex items-center justify-between text-xs bg-background rounded-md px-2 py-1.5 border">
                         <span className="truncate flex-1">{item.customer_name}</span>
-                        <span className="font-bold whitespace-nowrap">{item.amount.toLocaleString()} {cur}</span>
+                        <MoneyValue value={item.amount} currency={cur} className="font-bold" />
                       </div>
                     ))}
                     <div className="flex items-center justify-between text-xs pt-1 border-t">
                       <span className="text-muted-foreground">{t('common.total')}</span>
-                      <span className="font-bold">{editReceiptsTotal.toLocaleString()} {cur}</span>
+                      <MoneyValue value={editReceiptsTotal} currency={cur} className="font-bold" />
                     </div>
                   </div>
                 )}
 
                 {/* Transfers - read only */}
                 {editItems.transfers.length > 0 && (
-                  <div className="p-3 rounded-lg bg-muted/50 space-y-2">
-                    <p className="font-medium text-sm">🏦 {t('treasury.virement')} ({editItems.transfers.length})</p>
+                  <div className="rounded-xl border border-fuchsia-200/70 bg-fuchsia-50/50 p-3 space-y-2">
+                    <div>
+                      <p className="text-sm font-semibold text-fuchsia-900">🏦 {t('treasury.virement')} ({editItems.transfers.length})</p>
+                      <p className="text-[11px] text-fuchsia-700">التحويلات البنكية المسلّمة</p>
+                    </div>
                     {editItems.transfers.map((item, i) => (
                       <div key={i} className="flex items-center justify-between text-xs bg-background rounded-md px-2 py-1.5 border">
                         <span className="truncate flex-1">{item.customer_name}</span>
-                        <span className="font-bold whitespace-nowrap">{item.amount.toLocaleString()} {cur}</span>
+                        <MoneyValue value={item.amount} currency={cur} className="font-bold" />
                       </div>
                     ))}
                     <div className="flex items-center justify-between text-xs pt-1 border-t">
                       <span className="text-muted-foreground">{t('common.total')}</span>
-                      <span className="font-bold">{editTransfersTotal.toLocaleString()} {cur}</span>
+                      <MoneyValue value={editTransfersTotal} currency={cur} className="font-bold" />
                     </div>
                   </div>
                 )}
@@ -1408,7 +1443,9 @@ const ManagerTreasury = () => {
                   <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">{t('treasury.total_handover')}</span>
-                      <span className="text-sm font-bold text-primary">{editGrandTotal.toLocaleString()} {cur}</span>
+                      <span className="text-sm font-bold text-primary">
+                        <MoneyValue value={editGrandTotal} currency={cur} />
+                      </span>
                     </div>
                   </div>
                 )}
