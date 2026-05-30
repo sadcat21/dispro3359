@@ -616,7 +616,10 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
 
       const order = await createOrder.mutateAsync({
         customerId: selectedCustomerId,
-        items: orderItems,
+        items: orderItems.map((item) => ({
+          ...item,
+          pricingUnit: item.isUnitSale ? 'unit' : item.pricingUnit,
+        })),
         notes: notes || undefined,
         deliveryDate: deliveryDate ? (deliveryTime ? `${deliveryDate}T${deliveryTime}` : deliveryDate) : undefined,
         paymentType,
