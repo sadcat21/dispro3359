@@ -974,7 +974,7 @@ const ManagerTreasury = () => {
         />
         <TreasuryCard
           icon={<ArrowUpRight className="w-5 h-5 text-orange-500" />}
-          label={`${t('treasury.virement')} (${remainingTransferCount})`}
+          label={t('treasury.virement')}
           total={summary?.bank_transfer || 0}
           handed={summary?.transfer_handed || 0}
           colorClass="orange-500"
