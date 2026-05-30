@@ -1203,6 +1203,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         splitGroups: splitGroupsInfo,
       });
       setShowSuccessDialog(true);
+      splitResultsRef.current = null;
       // لا نغلق النافذة الأصلية حتى يغلق المستخدم وصل الطباعة
     } catch (error: any) {
       console.error('Direct sale error:', error);
