@@ -964,30 +964,30 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       // Deduct from stock & log movements. Deferred gifts stay out until confirmation.
       for (const item of orderItems) {
         const isDeferredItem = !!((item as any).giftOfferId && deferredOfferIdSet2.has((item as any).giftOfferId));
-        const storedQty = toStoredBpQuantity(item.quantity, item.piecesPerBox || 1, item.isUnitSale);
-        const qtyRounded = Math.round(Number(storedQty || 0) * 100) / 100;
-        const stockMovementQty = isDeferredItem ? Math.max(0, qtyRounded - Number(item.giftQuantity || 0)) : qtyRounded;
+        const product = allProducts.find(p => p.id === item.productId);
+        const piecesPerBox = item.piecesPerBox || product?.pieces_per_box || 20;
+        const storedQty = toStoredBpQuantity(item.quantity, piecesPerBox, item.isUnitSale);
         const ws = stockItems.find(s => s.product_id === item.productId);
+
+        const giftBoxesQty = isDeferredItem ? 0 : Number(item.giftQuantity || 0);
+        const giftPiecesQty = isDeferredItem ? 0 : Number(item.giftPieces || 0);
+
+        // Sale pieces (paid portion) — respects is_unit_sale so "10 pieces" never reads as "10 boxes".
+        const soldPiecesBase = getOrderItemTotalPieces({
+          quantity: storedQty,
+          pieces_per_box: piecesPerBox,
+          is_unit_sale: item.isUnitSale,
+        });
+        const paidSoldPieces = soldPiecesBase - (isDeferredItem ? (Number(item.giftQuantity || 0) * piecesPerBox) : 0);
+        const totalDeductPieces = paidSoldPieces + giftPiecesQty + giftBoxesQty * piecesPerBox;
+
         if (ws) {
-          const product = allProducts.find(p => p.id === item.productId);
-          const piecesPerBox = product?.pieces_per_box || 20;
-          const giftBoxesQty = isDeferredItem ? 0 : Number(item.giftQuantity || 0);
-          const giftPiecesQty = isDeferredItem ? 0 : Number(item.giftPieces || 0);
-
-          // In unit-sale rows, quantity already means pieces and must not be re-read as B.P boxes.
-          const soldPiecesBase = getOrderItemTotalPieces({
-            quantity: storedQty,
-            pieces_per_box: piecesPerBox,
-            is_unit_sale: item.isUnitSale,
-          });
-          const soldPieces = soldPiecesBase - (isDeferredItem ? (Number(item.giftQuantity || 0) * piecesPerBox) : 0) + giftPiecesQty;
-
           // Convert current stock to total pieces
           const stockBoxes = Math.floor(Math.round(ws.quantity * 100) / 100);
           const stockDec = Math.round((Math.round(ws.quantity * 100) / 100 - stockBoxes) * 100);
           const stockPieces = stockBoxes * piecesPerBox + stockDec;
 
-          const remainingPieces = Math.max(0, stockPieces - soldPieces);
+          const remainingPieces = Math.max(0, stockPieces - totalDeductPieces);
           const newBoxes = Math.floor(remainingPieces / piecesPerBox);
           const newRemaining = Math.round(remainingPieces % piecesPerBox);
           const newQty = newBoxes + newRemaining / 100;
@@ -995,6 +995,15 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           const stockTable = stockSource === 'warehouse' ? 'warehouse_stock' : 'worker_stock';
           await supabase.from(stockTable).update({ quantity: newQty }).eq('id', ws.id);
         }
+
+        // CRITICAL: stock_movements.quantity is interpreted as B.P (boxes.pieces) by DB.
+        // Re-derive from total pieces to guarantee correct units (avoids "10 pieces" being
+        // read as "0.50 → 50 pieces" by stock_qty_bp_to_pieces).
+        const movementPieces = paidSoldPieces + giftPiecesQty + giftBoxesQty * piecesPerBox;
+        const movementBoxes = Math.floor(movementPieces / piecesPerBox);
+        const movementRem = Math.round(movementPieces % piecesPerBox);
+        const stockMovementQty = movementBoxes + movementRem / 100;
+
         await (supabase as any).from('stock_movements').insert({
           product_id: item.productId,
           branch_id: activeBranch?.id || null,
