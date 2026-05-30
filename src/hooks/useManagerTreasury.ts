@@ -321,6 +321,25 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
         start: parseAccountingTime(s.period_start),
         end: parseAccountingTime(s.period_end),
       }));
+
+      // For worker-held calculation we must consider sessions completed by ANY manager
+      // in the branch, otherwise switching managers inflates the "held by workers" number
+      // with orders that were already settled by a different manager.
+      let allSessionWindows = sessionWindows;
+      if (perManager) {
+        let allSessQuery = supabase
+          .from('accounting_sessions')
+          .select('worker_id, period_start, period_end')
+          .eq('status', 'completed');
+        if (activeBranch?.id) allSessQuery = allSessQuery.eq('branch_id', activeBranch.id);
+        const { data: allSessions } = await allSessQuery;
+        allSessionWindows = (allSessions || []).map((s: any) => ({
+          worker_id: s.worker_id,
+          start: parseAccountingTime(s.period_start),
+          end: parseAccountingTime(s.period_end),
+        }));
+      }
+
       let scopedOrders = orders || [];
       if (perManager) {
         scopedOrders = (orders || []).filter((o: any) => {
@@ -330,7 +349,7 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
         });
       }
 
-      // Calculate worker-held amounts: delivered paid orders NOT covered by any completed session
+      // Calculate worker-held amounts: delivered paid orders NOT covered by any completed session (any manager)
       let workerHeldAmount = 0;
       (orders || []).forEach((o: any) => {
         let paidAmount = Number(o.total_amount || 0);
@@ -339,9 +358,11 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
         if (paidAmount <= 0 || !o.assigned_worker_id) return;
 
         const t = orderAccountingTime(o);
-        const isCovered = sessionWindows.some((w) => w.worker_id === o.assigned_worker_id && t >= w.start && t <= w.end);
+        const isCovered = allSessionWindows.some((w) => w.worker_id === o.assigned_worker_id && t >= w.start && t <= w.end);
         if (!isCovered) workerHeldAmount += paidAmount;
       });
+
+
 
       // Calculate total sales from all delivered orders (scoped to this manager when applicable)
       const totalSales = scopedOrders.reduce((s: number, o: any) => s + Number(o.total_amount || 0), 0);
