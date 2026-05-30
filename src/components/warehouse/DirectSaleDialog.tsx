@@ -672,6 +672,15 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       setShowReceiptPaymentDialog(true);
     } else if (paymentType === 'with_invoice' && invoicePaymentMethod === 'transfer') {
       if (invoicePaymentSubType === 'cash') {
+        // احفظ علامة paid_by_cash مسبقاً لتُسجَّل مع الطلب
+        setPendingDocVerification({
+          verification: {
+            type: 'transfer',
+            paid_by_cash: true,
+            verified_at: new Date().toISOString(),
+          },
+          status: 'none',
+        });
         setShowPaymentDialog(true);
       } else {
         setShowReceiptPaymentDialog(true);
