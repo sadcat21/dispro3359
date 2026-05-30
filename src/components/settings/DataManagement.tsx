@@ -184,6 +184,15 @@ const DataManagement: React.FC = () => {
 
   const handleDeleteClick = () => {
     if (selected.size === 0) return;
+    // If deliveries is being deleted, first ask how to handle associated debts
+    if (selected.has('deliveries') && !selected.has('debts')) {
+      setShowDeliveryDebtChoice(true);
+      return;
+    }
+    proceedAfterDeliveryChoice();
+  };
+
+  const proceedAfterDeliveryChoice = () => {
     const related = computeRelated();
     if (related.length > 0) {
       setRelatedSuggestions(related);
@@ -192,6 +201,21 @@ const DataManagement: React.FC = () => {
       setShowConfirm(true);
     }
   };
+
+  const handleDeliveryDebtChoice = (includeDebts: boolean) => {
+    setShowDeliveryDebtChoice(false);
+    if (includeDebts) {
+      setSelected(prev => {
+        const next = new Set(prev);
+        next.add('debts');
+        next.add('credits');
+        next.add('doc_collections');
+        return next;
+      });
+    }
+    setTimeout(() => proceedAfterDeliveryChoice(), 100);
+  };
+
 
   const handleRelatedConfirm = (addRelated: Set<string>) => {
     setSelected(prev => {
