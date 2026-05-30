@@ -630,10 +630,20 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
     }
     // Route based on invoice payment method
     const invoiceMethod = (order as any).invoice_payment_method;
+    const dv: any = (order as any).document_verification;
+    const paidByCash = dv && typeof dv === 'object' && dv.paid_by_cash === true;
     if (order.payment_type === 'with_invoice' && invoiceMethod === 'check') {
       setShowCheckDialog(true);
-    } else if (order.payment_type === 'with_invoice' && (invoiceMethod === 'receipt' || invoiceMethod === 'transfer')) {
+    } else if (order.payment_type === 'with_invoice' && invoiceMethod === 'receipt') {
+      // Versement دائماً مستند
       setShowReceiptPaymentDialog(true);
+    } else if (order.payment_type === 'with_invoice' && invoiceMethod === 'transfer') {
+      // Virement: Cash → نافذة الدفع العادية (Facture2)، Doc → نافذة استلام المستند
+      if (paidByCash) {
+        setShowPaymentDialog(true);
+      } else {
+        setShowReceiptPaymentDialog(true);
+      }
     } else {
       setShowPaymentDialog(true);
     }

@@ -120,6 +120,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
   const [paymentType, setPaymentType] = useState<PaymentType>('without_invoice');
   const [priceSubType, setPriceSubType] = useState<PriceSubType>('gros');
   const [invoicePaymentMethod, setInvoicePaymentMethod] = useState<InvoicePaymentMethod | null>(null);
+  const [invoicePaymentSubType, setInvoicePaymentSubType] = useState<'cash' | 'doc' | null>(null);
   const [invoiceNumber, setInvoiceNumber] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
@@ -652,17 +653,38 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       }
     }
 
+    // إلزام Cash/Doc فقط مع Virement
+    if (paymentType === 'with_invoice' && invoicePaymentMethod === 'transfer' && !invoicePaymentSubType) {
+      toast.error('يرجى اختيار نوع الاستلام: Cash أو Doc');
+      return;
+    }
+
     // CRITICAL: Freeze the current values into state BEFORE opening dialog
-    // React 18 batches these setState calls, so all values are consistent in the next render
     setFrozenPaymentType(paymentType);
     setFrozenInvoiceMethod(invoicePaymentMethod);
-    console.log('[DirectSale] FROZEN VALUES SET:', JSON.stringify({
-      paymentType: paymentType,
-      invoiceMethod: invoicePaymentMethod,
-    }));
 
-    if (paymentType === 'with_invoice' && (invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'transfer' || invoicePaymentMethod === 'check')) {
+    // التوجيه:
+    //  - Chèque / Versement (مستند دائماً) → ReceiptPaymentDialog
+    //  - Virement + Doc → ReceiptPaymentDialog
+    //  - Virement + Cash → نافذة الدفع العادية (Facture2)
+    //  - Espèces → نافذة الدفع العادية
+    if (paymentType === 'with_invoice' && (invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'check')) {
       setShowReceiptPaymentDialog(true);
+    } else if (paymentType === 'with_invoice' && invoicePaymentMethod === 'transfer') {
+      if (invoicePaymentSubType === 'cash') {
+        // احفظ علامة paid_by_cash مسبقاً لتُسجَّل مع الطلب
+        setPendingDocVerification({
+          verification: {
+            type: 'transfer',
+            paid_by_cash: true,
+            verified_at: new Date().toISOString(),
+          },
+          status: 'none',
+        });
+        setShowPaymentDialog(true);
+      } else {
+        setShowReceiptPaymentDialog(true);
+      }
     } else {
       setShowPaymentDialog(true);
     }
@@ -1241,7 +1263,9 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                   <>
                     <InvoicePaymentMethodSelect
                       value={invoicePaymentMethod}
-                      onChange={setInvoicePaymentMethod}
+                      onChange={(m) => { setInvoicePaymentMethod(m); setInvoicePaymentSubType(null); }}
+                      subType={invoicePaymentSubType}
+                      onSubTypeChange={setInvoicePaymentSubType}
                     />
                     <div className="space-y-1">
                       <Label className="text-xs font-medium">رقم الفاتورة (اختياري)</Label>
