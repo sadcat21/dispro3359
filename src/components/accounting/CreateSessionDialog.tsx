@@ -539,7 +539,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
         </DialogHeader>
 
         <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-3" style={{ WebkitOverflowScrolling: 'touch' }}>
-          <SwipeStack enabled={swipeMode}>
+          <SwipeStack enabled={swipeMode} initialIndex={1}>
 
             {/* ━━━ Step 1: Period ━━━ */}
             <StepSection step={1} title={t('accounting.period') || 'الفترة'} color="primary">
