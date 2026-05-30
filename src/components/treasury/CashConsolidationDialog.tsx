@@ -118,21 +118,22 @@ const CashConsolidationDialog = ({ open, onOpenChange, summary }: Props) => {
       title="تجميع الكاش → Versement Doc"
       submitLabel="تجميع وتحويل"
       saving={saving}
+      editableSources
       initialCustomerName=""
-      initialInvoiceTotal={cashInvoice1Remaining + stampRemaining}
+      initialInvoiceTotal={cashInvoice1Remaining + stampRemaining + versementCashRemaining}
       initialSources={{
         cashInvoice1: cashInvoice1Remaining,
         stamp: stampRemaining,
-        receiptCash: 0,
+        receiptCash: versementCashRemaining,
         cashInvoice2: 0,
       }}
       sourceLimits={{
         cashInvoice1: cashInvoice1Remaining,
         stamp: stampRemaining,
-        receiptCash: 0,
+        receiptCash: versementCashRemaining,
         cashInvoice2: cashInvoice2Remaining,
       }}
-      versementCashWarningAmount={versementCashRemaining}
+      versementCashWarningAmount={0}
       onSubmit={handleConsolidate}
     />
   );
