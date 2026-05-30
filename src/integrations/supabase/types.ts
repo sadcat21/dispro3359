@@ -5787,9 +5787,13 @@ export type Database = {
           gift_boxes: number
           gift_pieces: number
           id: string
+          invoice_payment_method: string | null
+          invoice_payment_subtype: string | null
           notes: string | null
           order_id: string | null
           order_item_id: string | null
+          payment_group_key: string | null
+          payment_type: string | null
           pieces_per_box: number
           product_id: string | null
           product_name: string | null
@@ -5814,9 +5818,13 @@ export type Database = {
           gift_boxes?: number
           gift_pieces?: number
           id?: string
+          invoice_payment_method?: string | null
+          invoice_payment_subtype?: string | null
           notes?: string | null
           order_id?: string | null
           order_item_id?: string | null
+          payment_group_key?: string | null
+          payment_type?: string | null
           pieces_per_box?: number
           product_id?: string | null
           product_name?: string | null
@@ -5841,9 +5849,13 @@ export type Database = {
           gift_boxes?: number
           gift_pieces?: number
           id?: string
+          invoice_payment_method?: string | null
+          invoice_payment_subtype?: string | null
           notes?: string | null
           order_id?: string | null
           order_item_id?: string | null
+          payment_group_key?: string | null
+          payment_type?: string | null
           pieces_per_box?: number
           product_id?: string | null
           product_name?: string | null
