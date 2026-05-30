@@ -73,6 +73,22 @@ export const useTrackVisit = () => {
     }
 
     try {
+      if (params.operationId) {
+        const dedupeSince = new Date(Date.now() - 15_000).toISOString();
+        const { data: existing } = await supabase
+          .from('visit_tracking')
+          .select('id')
+          .eq('worker_id', workerId)
+          .eq('operation_type', params.operationType)
+          .eq('operation_id', params.operationId)
+          .gte('created_at', dedupeSince)
+          .limit(1);
+
+        if ((existing?.length || 0) > 0) {
+          return;
+        }
+      }
+
       await supabase.from('visit_tracking').insert({
         worker_id: workerId,
         customer_id: params.customerId || null,

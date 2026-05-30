@@ -61,6 +61,29 @@ type AchievementOrderDetails = OrderWithDetails & {
   _hideModifyAction?: boolean;
 };
 
+const getAchievementVisitDedupKey = (visit: any) => {
+  const entityId = visit.operation_id || visit.entity_id || visit.reference_id || visit.order_id;
+  if (entityId) return `${visit.operation_type}::${entityId}`;
+
+  return [
+    visit.operation_type || '',
+    visit.customer_id || '',
+    visit.created_at || '',
+    visit.notes || '',
+  ].join('::');
+};
+
+const dedupeAchievementVisits = <T extends Record<string, any>>(items: T[]): T[] => {
+  const seen = new Set<string>();
+
+  return items.filter((item) => {
+    const key = getAchievementVisitDedupKey(item);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
+
 const AchievementDetailContent: React.FC<{ visit: any; onClose: () => void }> = ({ visit, onClose }) => {
   return (
     <>
@@ -564,7 +587,7 @@ const MyAchievements: React.FC = () => {
           .map((v: any) => v.operation_id)
           .filter(Boolean)
       );
-      const mergedVisits = [
+      const mergedVisits = dedupeAchievementVisits([
         ...visitList,
         ...((directDebtCollections || [])
           .filter((collection: any) => !visitDebtCollectionIds.has(collection.debt_id))
@@ -593,14 +616,7 @@ const MyAchievements: React.FC = () => {
             created_at: o.created_at,
             branch_id: o.branch_id || activeBranch?.id || null,
           }))),
-      ].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-        .filter((v: any, _i: number, arr: any[]) => {
-          // Dedupe by operation_type + operation_id (keep most recent, which is first after sort desc)
-          if (!v.operation_id) return true;
-          const key = `${v.operation_type}::${v.operation_id}`;
-          const firstIdx = arr.findIndex((x: any) => x.operation_id && `${x.operation_type}::${x.operation_id}` === key);
-          return arr.indexOf(v) === firstIdx;
-        });
+      ].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
 
       const customerIds = [...new Set((mergedVisits || []).filter((v) => v.customer_id).map((v) => v.customer_id!))];
       const orderLinkedTypes = new Set<OperationType>(['order', 'direct_sale', 'delivery']);
@@ -789,12 +805,12 @@ const MyAchievements: React.FC = () => {
   const rawVisits = data?.visits || [];
   // عند تحديد جلسات محاسبية، قيِّد كل البيانات بأوقات الجلسات (وليس بالتاريخ فقط)
   const visits = useMemo(() => {
-    if (selectedSessionRanges.length === 0) return rawVisits;
+    if (selectedSessionRanges.length === 0) return dedupeAchievementVisits(rawVisits);
     const ranges = selectedSessionRanges.map(r => ({ s: new Date(r.start).getTime(), e: new Date(r.end).getTime() }));
-    return rawVisits.filter((v: any) => {
+    return dedupeAchievementVisits(rawVisits.filter((v: any) => {
       const t = new Date(v.created_at).getTime();
       return ranges.some(r => t >= r.s && t <= r.e);
-    });
+    }));
   }, [rawVisits, selectedSessionRanges]);
   const counts = useMemo(() => {
     if (selectedSessionRanges.length === 0) return data?.counts || {};
@@ -859,7 +875,7 @@ const MyAchievements: React.FC = () => {
       });
     }
 
-    return result;
+    return dedupeAchievementVisits(result);
   }, [visits, activeFilter, searchQuery, invoiceMode, selectedProductIds, selectedSessionRanges]);
 
   const debtNewCount = useMemo(() => visits.filter((visit: any) => isDebtNewAchievement(visit)).length, [visits]);
