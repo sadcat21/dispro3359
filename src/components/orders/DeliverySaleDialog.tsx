@@ -43,7 +43,7 @@ import CustomerDistanceIndicator from './CustomerDistanceIndicator';
 import SimpleProductPickerDialog from '@/components/stock/SimpleProductPickerDialog';
 import { cn } from '@/lib/utils';
 import { getCustomerTypesArray } from '@/utils/customerTypes';
-import { toStoredOrderItemQuantity } from '@/utils/orderItemQuantities';
+import { getOrderItemTotalPieces, getDeliveredSoldPieces, toStoredOrderItemQuantity } from '@/utils/orderItemQuantities';
 
 interface DeliverySaleDialogProps {
   open: boolean;
@@ -795,6 +795,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
             // Update changed quantity
             await supabase.from('order_items').update({
               quantity: toStoredOrderItemQuantity(item.quantity, item.piecesPerBox, item.isUnitSale),
+              is_unit_sale: !!item.isUnitSale,
               unit_price: item.unitPrice,
               total_price: item.totalPrice,
               gift_quantity: item.giftQuantity || 0,
@@ -812,6 +813,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
             order_id: order.id,
             product_id: item.productId,
             quantity: toStoredOrderItemQuantity(item.quantity, item.piecesPerBox, item.isUnitSale),
+            is_unit_sale: !!item.isUnitSale,
             unit_price: item.unitPrice,
             total_price: item.totalPrice,
             gift_quantity: item.giftQuantity || 0,
@@ -919,9 +921,11 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
         // stock deduction until confirmation.
         const extraGiftBoxes = useRecalc ? Math.max(0, effGiftBoxes - storedGiftBoxes) : 0;
         const qtyRounded = Math.round(Number(item.quantity || 0) * 100) / 100;
-        const qtyBoxesPart = Math.floor(qtyRounded);
-        const qtyPiecesPart = Math.round((qtyRounded - qtyBoxesPart) * 100);
-        const qtyTotalPieces = qtyBoxesPart * ppb + qtyPiecesPart;
+        const qtyTotalPieces = getOrderItemTotalPieces({
+          quantity: qtyRounded,
+          pieces_per_box: ppb,
+          is_unit_sale: item.isUnitSale,
+        });
         // For deferred: subtract gift boxes from deduction (they will deduct on confirmation).
         // Gift PIECES are tracked separately and are NOT included in item.quantity / qtyTotalPieces,
         // so we must not subtract them here — doing so produced phantom "0.19" sales for 1-box deliveries.
@@ -1124,7 +1128,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
               weight_per_box: diff.weightPerBox ?? null,
               pieces_per_box: diff.piecesPerBox ?? null,
             }));
-            await supabase.from('order_items').insert(newItems);
+            await (supabase as any).from('order_items').insert(newItems.map((item) => ({ ...item, is_unit_sale: !!item.isUnitSale })) as any);
             const newTotal = newItems.reduce((s, i) => s + i.total_price, 0);
             await supabase.from('orders').update({ total_amount: newTotal }).eq('id', newOrder.id);
             toast.success(`تم إنشاء طلبية جديدة بالفارق (${partialDeliveryDiff.map(d => `${d.diffQty} ${d.productName}`).join(', ')})`);
