@@ -185,9 +185,9 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
 
       let query = supabase
         .from('orders')
-        .select(
-          'id, total_amount, payment_status, partial_amount, payment_type, invoice_payment_method, created_at, customer_id, document_verification, assigned_worker_id, customer:customers(name, store_name), order_items(total_price)',
-        )
+          .select(
+            'id, total_amount, payment_status, partial_amount, payment_type, invoice_payment_method, created_at, delivery_date, customer_id, document_verification, assigned_worker_id, customer:customers(name, store_name), order_items(total_price)',
+          )
         .eq('status', 'delivered')
         .order('created_at', { ascending: false });
 
