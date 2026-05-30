@@ -5,6 +5,16 @@ import { Badge } from '@/components/ui/badge';
 
 export type SalePaymentStatus = 'paid' | 'partial' | 'debt';
 
+export interface SaleSuccessSplitGroup {
+  badge: string;
+  label: string;
+  total: number;
+  paidAmount: number;
+  remainingDebt: number;
+  paymentMethod: string;
+  status: SalePaymentStatus;
+}
+
 export interface SaleSuccessInfo {
   amount: number;
   customerName: string;
@@ -16,6 +26,7 @@ export interface SaleSuccessInfo {
   paymentStatus?: SalePaymentStatus | null;
   paidAmount?: number | null;
   remainingAmount?: number | null;
+  splitGroups?: SaleSuccessSplitGroup[] | null;
 }
 
 interface Props {
