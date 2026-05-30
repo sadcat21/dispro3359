@@ -1434,6 +1434,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
         defaultPaymentType={paymentType}
         defaultPriceSubType={priceSubType}
         defaultInvoicePaymentMethod={invoicePaymentMethod}
+        defaultInvoicePaymentSubType={invoicePaymentSubType}
         initialQuantity={editingInitialQuantity}
         initialGiftPieces={editingInitialGiftPieces}
         initialGiftOfferId={editingInitialGiftOfferId}
