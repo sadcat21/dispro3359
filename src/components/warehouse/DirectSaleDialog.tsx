@@ -1135,7 +1135,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           })
         : null;
       const frLabelFor = (g: GroupPaymentResult): string => {
-        if (g.group.paymentType !== 'with_invoice') return 'Invoice 2';
+        if (g.group.paymentType !== 'with_invoice') return 'FACTURE 2';
         const m = g.group.invoicePaymentMethod;
         const mLabel = m === 'receipt' ? 'VRST' : m === 'check' ? 'CHQ' : m === 'transfer' ? 'VIR' : m === 'cash' ? 'Cash' : '—';
         const sub = m === 'receipt' && g.group.invoicePaymentSubType
