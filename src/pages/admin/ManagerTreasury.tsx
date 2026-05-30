@@ -825,7 +825,7 @@ const ManagerTreasury = () => {
                                 }
                               }}
                             >
-                              {isDebtInserted ? 'إزالة تحصيلات الديون' : 'إدراج تحصيلات الديون'}
+                              {isDebtInserted ? 'إزالة تحصيلات الديون' : 'تحصيلات الديون'}
                             </Button>
                             <Button
                               type="button" size="sm"
