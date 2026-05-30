@@ -352,9 +352,9 @@ const WarehouseStock: React.FC = () => {
       };
     }
 
-    // فلتر النوافذ (جلسات الاستلام). عند تفعيله نُجمّع فقط الأحداث التي تقع داخل النوافذ.
-    const inWindow = (iso: string | null | undefined) =>
-      !hasReceiptFilter || isInRanges(iso || null, selectedReceiptRanges);
+    // تم إزالة فلتر جلسات الاستلام: نُجمّع كل الأحداث دون قيود زمنية.
+    const inWindow = (_iso: string | null | undefined) => true;
+
 
     // Received
     for (const r of (summaryData?.receipts || [])) {
