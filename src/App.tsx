@@ -315,6 +315,12 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
 
+      <Route path="/handover-approvals" element={
+        <ProtectedRoute allowedRoles={['admin', 'project_manager']}>
+          <HandoverApprovals />
+        </ProtectedRoute>
+      } />
+
       <Route path="/permissions" element={
         <ProtectedRoute allowedRoles={['admin', 'project_manager']}>
           <Permissions />
