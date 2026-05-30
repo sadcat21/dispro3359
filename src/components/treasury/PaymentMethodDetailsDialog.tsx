@@ -16,7 +16,7 @@ import TreasuryConsolidationEditDialog from '@/components/treasury/TreasuryConso
 import OrderDetailsDialog from '@/components/orders/OrderDetailsDialog';
 import { OrderWithDetails } from '@/types/database';
 import { formatAmountWithMaxFraction } from '@/utils/amountFormatting';
-import { orderAccountingTime, TreasuryDateRange } from '@/hooks/useManagerTreasury';
+import { orderAccountingTime, parseAccountingTime, TreasuryDateRange } from '@/hooks/useManagerTreasury';
 
 type PaymentCategory =
   | 'cash_invoice1'
@@ -86,7 +86,8 @@ const MoneyValue = ({ value, className = '' }: { value: number; className?: stri
 );
 
 const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashInvoice2Amount: handedCashInvoice2AmountProp = 0, range }: Props) => {
-  const { workerId, activeBranch } = useAuth();
+  const { workerId, activeBranch, role } = useAuth();
+  const perManager = role === "branch_admin" && workerId ? workerId : null;
   const queryClient = useQueryClient();
   const config = categoryConfig[category];
   const Icon = config.icon;
@@ -95,8 +96,8 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
   const isReceiptCash = category === 'bank_receipt_cash';
   const isBankReceipt = category === 'bank_receipt';
   const { data: stampTiers } = useActiveStampTiers();
-  const rangeFromTs = useMemo(() => (range?.from ? orderAccountingTime({ delivery_date: range.from }) : null), [range?.from]);
-  const rangeToTs = useMemo(() => (range?.to ? orderAccountingTime({ delivery_date: range.to }) + (24 * 60 * 60 * 1000) - 1 : null), [range?.to]);
+  const rangeFromTs = useMemo(() => (range?.from ? new Date(`${range.from}T00:00:00`).getTime() : null), [range?.from]);
+  const rangeToTs = useMemo(() => (range?.to ? new Date(`${range.to}T23:59:59`).getTime() : null), [range?.to]);
 
   // Consolidation edit state
   const [editConsolId, setEditConsolId] = useState<string | null>(null);
@@ -123,6 +124,21 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
     queryFn: async () => {
       let query = supabase.from('manager_handovers').select('cash_invoice2');
       if (activeBranch?.id) query = query.eq('branch_id', activeBranch.id);
+      let sessionWindows: Array<{ worker_id: string; start: number; end: number }> = [];
+      if (perManager) {
+        let sessQuery = supabase
+          .from("accounting_sessions")
+          .select("worker_id, period_start, period_end")
+          .eq("status", "completed")
+          .eq("manager_id", perManager);
+        if (activeBranch?.id) sessQuery = sessQuery.eq("branch_id", activeBranch.id);
+        const { data: sessions } = await sessQuery;
+        sessionWindows = (sessions || []).map((s: any) => ({
+          worker_id: s.worker_id,
+          start: parseAccountingTime(s.period_start),
+          end: parseAccountingTime(s.period_end),
+        }));
+      }
       const { data, error } = await query;
       if (error) throw error;
       const handed = (data || []).reduce((sum: number, handover: any) => sum + Number(handover.cash_invoice2 || 0), 0);
@@ -147,13 +163,14 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
   const handedCashInvoice2Amount = isCashInvoice2 ? handedCashInvoice2AmountFromQuery : handedCashInvoice2AmountProp;
 
   const { data: customerGroupsData, isLoading } = useQuery<CustomerGroupsResult>({
-    queryKey: ['treasury-details', category, activeBranch?.id, stampTiers?.length, handedCashInvoice2Amount, range?.from || null, range?.to || null],
+    queryKey: ['treasury-details', category, activeBranch?.id, perManager, stampTiers?.length, handedCashInvoice2Amount, range?.from || null, range?.to || null],
     enabled: open && (isCashInvoice1 ? !!stampTiers : true),
     queryFn: async () => {
       let handedQuery = supabase
         .from('handover_items')
-        .select('order_id, payment_method, handover:manager_handovers!inner(branch_id)');
+        .select('order_id, payment_method, handover:manager_handovers!inner(branch_id, manager_id)');
       if (activeBranch?.id) handedQuery = handedQuery.eq('handover.branch_id', activeBranch.id);
+      if (perManager) handedQuery = handedQuery.eq('handover.manager_id', perManager);
       const { data: handedItems, error: handedError } = await handedQuery;
       if (handedError) throw handedError;
 
@@ -168,9 +185,9 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
 
       let query = supabase
         .from('orders')
-        .select(
-          'id, total_amount, payment_status, partial_amount, payment_type, invoice_payment_method, created_at, customer_id, document_verification, customer:customers(name, store_name), order_items(total_price)',
-        )
+          .select(
+            'id, total_amount, payment_status, partial_amount, payment_type, invoice_payment_method, created_at, delivery_date, customer_id, document_verification, assigned_worker_id, customer:customers(name, store_name), order_items(total_price)',
+          )
         .eq('status', 'delivered')
         .order('created_at', { ascending: false });
 
@@ -197,6 +214,21 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
           break;
       }
 
+      let sessionWindows: Array<{ worker_id: string; start: number; end: number }> = [];
+      if (perManager) {
+        let sessQuery = supabase
+          .from("accounting_sessions")
+          .select("worker_id, period_start, period_end")
+          .eq("status", "completed")
+          .eq("manager_id", perManager);
+        if (activeBranch?.id) sessQuery = sessQuery.eq("branch_id", activeBranch.id);
+        const { data: sessions } = await sessQuery;
+        sessionWindows = (sessions || []).map((s: any) => ({
+          worker_id: s.worker_id,
+          start: parseAccountingTime(s.period_start),
+          end: parseAccountingTime(s.period_end),
+        }));
+      }
       const { data, error } = await query;
       if (error) throw error;
 
@@ -207,6 +239,11 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
         const orderTs = orderAccountingTime(o);
         if (!isCashInvoice2 && rangeFromTs !== null && orderTs < rangeFromTs) return;
         if (!isCashInvoice2 && rangeToTs !== null && orderTs > rangeToTs) return;
+        if (perManager) {
+          if (!o.assigned_worker_id) return;
+          const isCovered = sessionWindows.some((w) => w.worker_id === o.assigned_worker_id && orderTs >= w.start && orderTs <= w.end);
+          if (!isCovered) return;
+        }
 
         const receiptBucket = resolveReceiptBucket(o.document_verification);
         const verification =
