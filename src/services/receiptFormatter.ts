@@ -537,7 +537,11 @@ export function formatReceiptForPrint(data: ReceiptData): Uint8Array {
   if (data.notes) {
     add(ALIGN_LEFT);
     addText(separator());
-    addText(`Note: ${sanitizeForPrint(data.notes)}`);
+    addText('Note:');
+    const noteLines = sanitizeForPrint(data.notes).split('\n');
+    for (const ln of noteLines) {
+      addText(ln.replace(/\*\*/g, ''));
+    }
   }
 
   // ═══════ FOOTER ═══════
