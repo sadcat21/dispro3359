@@ -902,7 +902,7 @@ const ManagerTreasury = () => {
             <CardContent className="p-4 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <Wallet className="w-6 h-6 text-primary" />
-                <span className="text-sm font-bold text-primary">إجمالي الخزينة المتبقي</span>
+                <span className="text-sm font-bold text-primary">رصيد الكاش</span>
               </div>
               <MoneyValue value={overallRemaining} currency={cur} className="text-2xl font-extrabold text-primary" />
             </CardContent>
