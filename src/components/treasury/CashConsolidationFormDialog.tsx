@@ -189,6 +189,17 @@ const CashConsolidationFormDialog = ({
               {renderSourceAmount(stamp, setStamp, stampValue, 'text-amber-700')}
             </div>
 
+            <div className="rounded-xl border border-orange-200 bg-orange-50/50 dark:bg-orange-900/10 p-3 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Wallet className="w-4 h-4 text-orange-600" />
+                <div>
+                  <span className="text-sm">التحصيلات (Versement Cash)</span>
+                  {editableSources && <p className="text-[10px] text-muted-foreground mt-0.5">المتاح: {formatAmountWithMaxFraction(limits.receiptCash)} DA</p>}
+                </div>
+              </div>
+              {renderSourceAmount(receiptCash, setReceiptCash, receiptCashValue, 'text-orange-700', lockedSources?.receiptCash === true)}
+            </div>
+
             <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 dark:bg-emerald-900/10 p-3">
               <div className="flex items-center justify-between mb-2 gap-3">
                 <div className="flex items-center gap-2">
