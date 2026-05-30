@@ -611,6 +611,26 @@ const AdminHome: React.FC = () => {
         </button>
       )}
 
+      {isProjectManager && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button
+            onClick={() => navigate('/handover-approvals')}
+            className="flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 px-4 py-3 text-white shadow-md shadow-amber-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
+          >
+            <CheckSquare className="w-5 h-5" />
+            <span className="text-base font-bold">موافقات التسليمات</span>
+          </button>
+          <button
+            onClick={() => navigate('/project-manager-treasury')}
+            className="flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 px-4 py-3 text-white shadow-md shadow-emerald-500/30 hover:shadow-lg hover:scale-[1.01] transition-all"
+          >
+            <Vault className="w-5 h-5" />
+            <span className="text-base font-bold">خزينة مدير المشروع</span>
+          </button>
+        </div>
+      )}
+
+
       {isProjectManager && (() => {
         const rangeOptions: { key: typeof pmRange; label: string }[] = [
           { key: 'day', label: t('admin_home.range_day') || 'يوم' },
