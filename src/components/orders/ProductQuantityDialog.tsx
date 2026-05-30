@@ -607,7 +607,9 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
               {itemPaymentType === 'with_invoice' && invoiceSaleAllowed && (
                 <InvoicePaymentMethodSelect
                   value={itemInvoicePaymentMethod}
-                  onChange={setItemInvoicePaymentMethod}
+                  onChange={(m) => { setItemInvoicePaymentMethod(m); setItemInvoicePaymentSubType(null); }}
+                  subType={itemInvoicePaymentSubType}
+                  onSubTypeChange={setItemInvoicePaymentSubType}
                 />
               )}
               {hasCustomUnitPrice && (
