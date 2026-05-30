@@ -114,6 +114,19 @@ const ProjectManagerTreasury = () => {
     },
   });
 
+  const { data: expensesTotal } = useQuery({
+    queryKey: ['pmt-expenses', dateFrom, dateTo, branchId],
+    queryFn: async () => {
+      let q = supabase.from('expenses').select('amount, branch_id, expense_date').eq('status', 'approved');
+      if (dateFrom) q = q.gte('expense_date', dateFrom);
+      if (dateTo) q = q.lte('expense_date', dateTo);
+      if (branchId !== 'all') q = q.eq('branch_id', branchId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return (data || []).reduce((s: number, e: any) => s + Number(e.amount || 0), 0);
+    },
+  });
+
   const totals = useMemo(() => {
     const init = {
       cash_invoice1: 0,
