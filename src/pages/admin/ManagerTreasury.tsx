@@ -643,14 +643,8 @@ const ManagerTreasury = () => {
             </Button>
           )}
         </div>
-        <div className="flex flex-wrap gap-1.5 pb-1 sm:gap-2">
-          <Button size="sm" variant="outline" className="h-8 gap-1 rounded-full px-2.5 text-[10px] sm:h-9 sm:px-3 sm:text-[11px] border-amber-300 text-amber-700 hover:bg-amber-50" onClick={() => setConsolidationOpen(true)}>
-            <Wallet className="w-4 h-4" /><span>تجميع الكاش</span>
-          </Button>
+        <div className="hidden">
           <Dialog open={handoverOpen} onOpenChange={setHandoverOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="h-8 gap-1 rounded-full px-2.5 text-[10px] sm:h-9 sm:px-3 sm:text-[11px]"><Send className="w-4 h-4" /><span>تسليم</span></Button>
-            </DialogTrigger>
             <DialogContent dir={dir} className="max-h-[90vh] overflow-y-auto">
               <DialogHeader><DialogTitle>{t('treasury.handover_to_upper')}</DialogTitle></DialogHeader>
               <div className="space-y-4">
