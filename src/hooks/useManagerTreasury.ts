@@ -322,23 +322,8 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
         end: parseAccountingTime(s.period_end),
       }));
 
-      // For worker-held calculation we must consider sessions completed by ANY manager
-      // in the branch, otherwise switching managers inflates the "held by workers" number
-      // with orders that were already settled by a different manager.
-      let allSessionWindows = sessionWindows;
-      if (perManager) {
-        let allSessQuery = supabase
-          .from('accounting_sessions')
-          .select('worker_id, period_start, period_end')
-          .eq('status', 'completed');
-        if (activeBranch?.id) allSessQuery = allSessQuery.eq('branch_id', activeBranch.id);
-        const { data: allSessions } = await allSessQuery;
-        allSessionWindows = (allSessions || []).map((s: any) => ({
-          worker_id: s.worker_id,
-          start: parseAccountingTime(s.period_start),
-          end: parseAccountingTime(s.period_end),
-        }));
-      }
+
+
 
       // For worker-held calculation we must consider ALL completed sessions in the branch
       // (any manager). Use shared util so the card matches the dialog exactly.
