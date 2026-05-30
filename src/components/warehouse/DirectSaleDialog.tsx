@@ -88,6 +88,12 @@ interface OrderItemWithPrice {
   itemInvoicePaymentSubType?: 'cash' | 'doc' | null;
 }
 
+const toStoredBpQuantity = (quantity: number, piecesPerBox: number, isUnitSale?: boolean): number => {
+  const qty = Math.max(0, Number(quantity || 0));
+  if (isUnitSale) return qty;
+  return Number(boxesToBP(qty, Math.max(1, Number(piecesPerBox || 1))));
+};
+
 const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
   open,
   onOpenChange,
@@ -886,13 +892,9 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       const orderItemsData = orderItems.map(item => {
         const prod = availableProducts.find(p => p.id === item.productId);
         const ppb = Math.max(1, Math.round(item.piecesPerBox ?? prod?.pieces_per_box ?? 1));
-        let qty: number = Number(item.quantity || 0);
+        let qty: number = toStoredBpQuantity(item.quantity, ppb, item.isUnitSale);
         let unitPrice: number = Number(item.unitPrice || 0);
         let pricingUnit: string = item.pricingUnit || prod?.pricing_unit || 'box';
-        // Store non-unit sales in B.P notation so 10/20 becomes 0.10, not 0.5.
-        if (!item.isUnitSale && qty > 0) {
-          qty = Number(boxesToBP(qty, ppb));
-        }
         return {
           order_id: order.id,
           product_id: item.productId,
@@ -931,7 +933,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
             return {
               productId: item.productId,
               productName: prod?.name || null,
-              quantity: item.quantity,
+              quantity: toStoredBpQuantity(item.quantity, item.piecesPerBox ?? prod?.pieces_per_box ?? 20, item.isUnitSale),
               giftBoxes: Number(item.giftQuantity || 0),
               giftPieces: Number(item.giftPieces || 0),
               piecesPerBox: item.piecesPerBox ?? prod?.pieces_per_box ?? 20,
@@ -962,7 +964,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       // Deduct from stock & log movements. Deferred gifts stay out until confirmation.
       for (const item of orderItems) {
         const isDeferredItem = !!((item as any).giftOfferId && deferredOfferIdSet2.has((item as any).giftOfferId));
-        const qtyRounded = Math.round(Number(item.quantity || 0) * 100) / 100;
+        const storedQty = toStoredBpQuantity(item.quantity, item.piecesPerBox || 1, item.isUnitSale);
+        const qtyRounded = Math.round(Number(storedQty || 0) * 100) / 100;
         const stockMovementQty = isDeferredItem ? Math.max(0, qtyRounded - Number(item.giftQuantity || 0)) : qtyRounded;
         const ws = stockItems.find(s => s.product_id === item.productId);
         if (ws) {
@@ -972,8 +975,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           const giftPiecesQty = isDeferredItem ? 0 : Number(item.giftPieces || 0);
 
           // Convert sold quantity (box.pieces format) to total pieces, including gift pieces
-          const soldBoxes = Math.floor(Math.round(Number(item.quantity || 0) * 100) / 100);
-          const soldDec = Math.round((Math.round(Number(item.quantity || 0) * 100) / 100 - soldBoxes) * 100);
+          const soldBoxes = Math.floor(qtyRounded);
+          const soldDec = Math.round((qtyRounded - soldBoxes) * 100);
           const soldPieces = soldBoxes * piecesPerBox + soldDec - (isDeferredItem ? (Number(item.giftQuantity || 0) * piecesPerBox) : 0) + giftPiecesQty;
 
           // Convert current stock to total pieces
@@ -1114,7 +1117,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         return {
           productId: item.productId,
           productName: getProductName(item.productId),
-          quantity: item.quantity,
+          quantity: toStoredBpQuantity(item.quantity, item.piecesPerBox ?? prod?.pieces_per_box ?? 1, item.isUnitSale),
           unitPrice: item.unitPrice,
           totalPrice: item.totalPrice,
           giftQuantity: item.giftQuantity,
