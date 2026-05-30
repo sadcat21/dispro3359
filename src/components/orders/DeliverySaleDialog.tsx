@@ -793,7 +793,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
             (item.giftOfferId || null) !== (((orderItems || []).find((oi: any) => oi.id === item.originalItemId) as any)?.gift_offer_id || null)
           ) {
             // Update changed quantity
-            await supabase.from('order_items').update({
+            await (supabase as any).from('order_items').update({
               quantity: toStoredOrderItemQuantity(item.quantity, item.piecesPerBox, item.isUnitSale),
               is_unit_sale: !!item.isUnitSale,
               unit_price: item.unitPrice,
@@ -809,7 +809,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
           }
         } else if (item.quantity > 0) {
           // Insert new item
-          await supabase.from('order_items').insert({
+          await (supabase as any).from('order_items').insert({
             order_id: order.id,
             product_id: item.productId,
             quantity: toStoredOrderItemQuantity(item.quantity, item.piecesPerBox, item.isUnitSale),
@@ -1122,13 +1122,14 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
               order_id: newOrder.id,
               product_id: diff.productId,
               quantity: toStoredOrderItemQuantity(diff.diffQty, diff.piecesPerBox, diff.isUnitSale),
+              is_unit_sale: !!diff.isUnitSale,
               unit_price: diff.unitPrice,
               total_price: diff.diffQty * diff.unitPrice,
               pricing_unit: diff.pricingUnit || 'box',
               weight_per_box: diff.weightPerBox ?? null,
               pieces_per_box: diff.piecesPerBox ?? null,
             }));
-            await (supabase as any).from('order_items').insert(newItems.map((item) => ({ ...item, is_unit_sale: !!item.isUnitSale })) as any);
+            await (supabase as any).from('order_items').insert(newItems as any);
             const newTotal = newItems.reduce((s, i) => s + i.total_price, 0);
             await supabase.from('orders').update({ total_amount: newTotal }).eq('id', newOrder.id);
             toast.success(`تم إنشاء طلبية جديدة بالفارق (${partialDeliveryDiff.map(d => `${d.diffQty} ${d.productName}`).join(', ')})`);
