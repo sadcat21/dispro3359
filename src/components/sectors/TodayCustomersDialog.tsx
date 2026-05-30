@@ -918,15 +918,12 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
 
         (orderStatuses || []).forEach((o: any) => {
           if (o.status === 'cancelled' || Number(o.total_amount || 0) === 0) cancelledOrderIds.add(o.id);
-          // Supervisor-assigned orders (status='assigned' and created by someone other than the worker
-          // without a direct-sale note) are NOT direct sales — they belong to the regular delivery tab.
+          // Only orders explicitly marked as direct sale (via notes) belong to the "Sold" tab.
+          // - Orders created by the worker themselves without the marker → "Orders" tab.
+          // - Orders created by the sales representative for the worker → "Deliveries" tab.
           const noteStr = String(o.notes || '');
           const hasDirectNote = /بيع مباشر|بيع مخزن|Vente Directe|Vente Dépôt|Vente Depot/i.test(noteStr);
-          if (
-            (!isAdmin || hasSpecificWorker) &&
-            o.created_by !== effectiveWorkerId &&
-            !hasDirectNote
-          ) {
+          if (!hasDirectNote) {
             notDirectSaleOrderIds.add(o.id);
           }
         });
