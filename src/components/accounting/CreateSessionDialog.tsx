@@ -176,6 +176,37 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
               refDate = (ca && !isNaN(ca.getTime())) ? ca : (pe && !isNaN(pe.getTime())) ? pe : null;
             }
 
+            // Also look for any delivered order for this worker whose updated_at
+            // pre-dates refDate but was never covered by an existing session window.
+            // Without this, "held" orders that slipped through past sessions would
+            // never appear in any future session.
+            const { data: allSessions } = await supabase
+              .from('accounting_sessions')
+              .select('period_start, period_end')
+              .eq('worker_id', selectedWorkerId)
+              .eq('status', 'completed');
+            const windows = (allSessions || [])
+              .map((s: any) => ({ start: new Date(s.period_start).getTime(), end: new Date(s.period_end).getTime() }))
+              .filter((w) => !isNaN(w.start) && !isNaN(w.end));
+            const { data: deliveredOrders } = await supabase
+              .from('orders')
+              .select('updated_at')
+              .eq('assigned_worker_id', selectedWorkerId)
+              .eq('status', 'delivered')
+              .order('updated_at', { ascending: true })
+              .limit(500);
+            let earliestUncovered: Date | null = null;
+            for (const o of deliveredOrders || []) {
+              const t = o.updated_at ? new Date(o.updated_at) : null;
+              if (!t || isNaN(t.getTime())) continue;
+              const ms = t.getTime();
+              const covered = windows.some((w) => ms >= w.start && ms <= w.end);
+              if (!covered) { earliestUncovered = t; break; }
+            }
+            if (earliestUncovered && (!refDate || earliestUncovered.getTime() < refDate.getTime())) {
+              refDate = earliestUncovered;
+            }
+
             if (refDate) {
               const algeriaOffset = 1 * 60;
               const localMs = refDate.getTime() + (algeriaOffset + refDate.getTimezoneOffset()) * 60000;
@@ -184,6 +215,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             } else {
               setPeriodStart(todayStart());
             }
+
           } else {
             // No prior completed session: fall back to the earliest unsettled delivery
             // so we capture all outstanding liability instead of only today.
