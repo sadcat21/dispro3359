@@ -111,20 +111,13 @@ const cardField: Record<Exclude<CardType, 'expenses'>, string> = {
 
 const ProjectManagerTreasury = () => {
   const navigate = useNavigate();
+  const { activeBranch } = useAuth();
+  const branchId = activeBranch?.id || 'all';
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-  const [branchId, setBranchId] = useState<string>('all');
   const [selected, setSelected] = useState<any>(null);
   const [openCard, setOpenCard] = useState<CardType | null>(null);
 
-  const { data: branches } = useQuery({
-    queryKey: ['pmt-branches'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('branches').select('id, name').order('name');
-      if (error) throw error;
-      return data || [];
-    },
-  });
 
   const { data: handovers, isLoading } = useQuery({
     queryKey: ['project-manager-treasury', dateFrom, dateTo, branchId],
