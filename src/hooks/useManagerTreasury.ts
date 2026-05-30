@@ -407,8 +407,8 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
         coinBillsReturned,
         total: 0, handedOver: 0, remaining: 0,
         totalSales, totalDebts, collectedDebts, uncollectedDebts,
-        debtCashCollected: noReviewedSessions ? 0 : debtCashCollected,
-        totalExpenses: noReviewedSessions ? 0 : totalExpenses,
+        debtCashCollected: effectiveDebtCashCollected,
+        totalExpenses: effectiveTotalExpenses,
         totalGiftsValue,
         workerHeldAmount, orderUnpaidAmount,
       };
