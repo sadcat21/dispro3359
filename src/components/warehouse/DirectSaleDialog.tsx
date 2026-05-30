@@ -1116,7 +1116,30 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           piecesPerBox: item.piecesPerBox ?? prod?.pieces_per_box ?? null,
         };
       });
-      const combinedNotes = [notes, offerNotes].filter(Boolean).join(' | ');
+      // Build split-payment breakdown (only when >1 groups were confirmed)
+      const splitResults = splitResultsRef.current;
+      const splitGroupsInfo = splitResults && splitResults.length > 1
+        ? splitResults.map((r) => {
+            const total = r.group.subtotal + (stampByGroupKey[r.key] || 0);
+            const status: 'paid' | 'partial' | 'debt' =
+              r.isNoPayment ? 'debt' : r.isFullPayment ? 'paid' : 'partial';
+            return {
+              badge: r.group.badge,
+              label: r.group.label,
+              total,
+              paidAmount: r.paidAmount,
+              remainingDebt: r.remainingDebt,
+              paymentMethod: r.paymentMethod,
+              status,
+            };
+          })
+        : null;
+      const splitNote = splitGroupsInfo
+        ? splitGroupsInfo.map((g) =>
+            `${g.label}: ${g.total.toLocaleString()} DA — مدفوع ${g.paidAmount.toLocaleString()} / متبقي ${g.remainingDebt.toLocaleString()}`
+          ).join(' | ')
+        : null;
+      const combinedNotes = [notes, offerNotes, splitNote].filter(Boolean).join(' | ');
 
       const isWarehouseSrcReceipt = stockSource === 'warehouse' || isWarehouseManager;
       // Check if a manual invoice request was created (for invoice 1 only).
@@ -1177,8 +1200,10 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         paymentStatus: saleStatus,
         paidAmount: paymentData.paidAmount,
         remainingAmount: paymentData.remainingAmount,
+        splitGroups: splitGroupsInfo,
       });
       setShowSuccessDialog(true);
+      splitResultsRef.current = null;
       // لا نغلق النافذة الأصلية حتى يغلق المستخدم وصل الطباعة
     } catch (error: any) {
       console.error('Direct sale error:', error);
