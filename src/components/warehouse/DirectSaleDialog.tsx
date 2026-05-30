@@ -1146,10 +1146,10 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       const splitNote = splitResults && splitResults.length > 1
         ? splitResults.map((r) => {
             const total = r.group.subtotal + (stampByGroupKey[r.key] || 0);
-            return `**${frLabelFor(r)}:** ${total.toLocaleString()} DA — Payé ${r.paidAmount.toLocaleString()} / Reste ${r.remainingDebt.toLocaleString()}`;
-          }).join('\n')
+            return `**${frLabelFor(r)}:**\n${total.toLocaleString()} DA - Paye ${r.paidAmount.toLocaleString()} / Reste ${r.remainingDebt.toLocaleString()}`;
+          }).join('\n- - - - - - - - - - - -\n')
         : null;
-      const combinedNotes = [notes, offerNotes, splitNote].filter(Boolean).join(' | ');
+      const combinedNotes = [notes, offerNotes, splitNote].filter(Boolean).join('\n');
 
       const isWarehouseSrcReceipt = stockSource === 'warehouse' || isWarehouseManager;
       // Check if a manual invoice request was created (for invoice 1 only).
