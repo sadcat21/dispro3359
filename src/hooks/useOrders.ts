@@ -169,7 +169,7 @@ export const useCreateOrder = () => {
       prepaidAmount
     }: { 
       customerId: string; 
-      items: { productId: string; quantity: number; unitPrice?: number; totalPrice?: number; giftQuantity?: number; giftPieces?: number; giftOfferId?: string; itemPaymentType?: string; itemInvoicePaymentMethod?: string | null; itemPriceSubType?: string; pricingUnit?: string; weightPerBox?: number | null; piecesPerBox?: number }[];
+      items: { productId: string; quantity: number; unitPrice?: number; totalPrice?: number; giftQuantity?: number; giftPieces?: number; giftOfferId?: string; itemPaymentType?: string; itemInvoicePaymentMethod?: string | null; itemInvoicePaymentSubType?: string | null; itemPriceSubType?: string; pricingUnit?: string; weightPerBox?: number | null; piecesPerBox?: number }[];
       notes?: string;
       deliveryDate?: string;
       paymentType?: 'with_invoice' | 'without_invoice';
@@ -223,6 +223,9 @@ export const useCreateOrder = () => {
         gift_offer_id: item.giftOfferId || null,
         payment_type: item.itemPaymentType || null,
         invoice_payment_method: item.itemInvoicePaymentMethod || null,
+        paid_by_cash: item.itemInvoicePaymentMethod === 'receipt'
+          ? item.itemInvoicePaymentSubType === 'cash'
+          : null,
         price_subtype: item.itemPriceSubType || null,
         pricing_unit: item.pricingUnit || 'box',
         weight_per_box: item.weightPerBox || null,
