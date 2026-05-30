@@ -121,6 +121,7 @@ const DataManagement: React.FC = () => {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showConfirm, setShowConfirm] = useState(false);
   const [showRelated, setShowRelated] = useState(false);
+  const [showDeliveryDebtChoice, setShowDeliveryDebtChoice] = useState(false);
   const [relatedSuggestions, setRelatedSuggestions] = useState<{ id: string; reason: string }[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deletionProgress, setDeletionProgress] = useState('');
