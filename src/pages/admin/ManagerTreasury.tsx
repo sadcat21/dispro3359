@@ -885,6 +885,28 @@ const ManagerTreasury = () => {
         </div>
       </div>
 
+      {/* Total Remaining Treasury */}
+      {(() => {
+        const totalRemaining =
+          Math.max((summary?.cash_invoice1 || 0) + (summary?.cash_invoice1_stamp || 0) - ((summary?.cash_invoice1_handed || 0) + (summary?.cash_invoice1_stamp || 0)), 0) +
+          Math.max((summary?.cash_invoice2 || 0) - (summary?.cash_invoice2_handed || 0), 0) +
+          Math.max((summary?.check || 0) - (summary?.check_handed || 0), 0) +
+          Math.max((summary?.receipt_cash || 0) - (summary?.receipt_cash_handed || 0), 0) +
+          Math.max((summary?.bank_receipt || 0) - (summary?.receipt_handed || 0), 0) +
+          Math.max((summary?.bank_transfer || 0) - (summary?.transfer_handed || 0), 0);
+        return (
+          <Card className="border-2 border-primary/40 bg-gradient-to-br from-primary/10 to-primary/5">
+            <CardContent className="p-4 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Wallet className="w-6 h-6 text-primary" />
+                <span className="text-sm font-bold text-primary">إجمالي الخزينة المتبقي</span>
+              </div>
+              <MoneyValue value={totalRemaining} currency={cur} className="text-2xl font-extrabold text-primary" />
+            </CardContent>
+          </Card>
+        );
+      })()}
+
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-3">
         <TreasuryCard
