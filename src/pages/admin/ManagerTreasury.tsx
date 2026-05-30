@@ -938,7 +938,7 @@ const ManagerTreasury = () => {
         />
         <TreasuryCard
           icon={<CreditCard className="w-5 h-5 text-blue-500" />}
-          label={`${t('treasury.checks')} (${remainingChecksCount})`}
+          label={t('treasury.checks')}
           total={summary?.check || 0}
           handed={summary?.check_handed || 0}
           colorClass="blue-500"
