@@ -1084,7 +1084,7 @@ const ManagerTreasury = () => {
         />
         <TreasuryCard
           icon={<Wallet className="w-5 h-5 text-amber-600" />}
-          label="المصاريف المعتمدة"
+          label="المصاريف"
           total={summary?.totalExpenses || 0}
           handed={0}
           colorClass="amber-600"
