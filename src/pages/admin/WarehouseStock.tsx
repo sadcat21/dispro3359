@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import StockEmptyDialog from '@/components/warehouse/StockEmptyDialog';
 import StockManualEditDialog from '@/components/warehouse/StockManualEditDialog';
@@ -107,7 +107,35 @@ const WarehouseStock: React.FC = () => {
   const [metricLog, setMetricLog] = useState<{ product: ProductSummary; metric: MetricKind } | null>(null);
   const [showReceiptSessionsDialog, setShowReceiptSessionsDialog] = useState(false);
   const [selectedReceiptRanges, setSelectedReceiptRanges] = useState<SelectedReceiptRange[]>([]);
+  const [receiptDefaultsApplied, setReceiptDefaultsApplied] = useState(false);
   const hasReceiptFilter = selectedReceiptRanges.length > 0;
+
+  // Default: select ALL receipt sessions on first load and apply the filter automatically.
+  useEffect(() => {
+    if (!branchId || receiptDefaultsApplied) return;
+    (async () => {
+      const { data, error } = await supabase
+        .from('stock_receipts')
+        .select('id, created_at')
+        .eq('branch_id', branchId)
+        .order('created_at', { ascending: false })
+        .limit(120);
+      if (error || !data || data.length === 0) {
+        setReceiptDefaultsApplied(true);
+        return;
+      }
+      const sorted = [...data].sort(
+        (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      );
+      const ranges: SelectedReceiptRange[] = sorted.map((r: any, idx: number) => ({
+        id: r.id,
+        start: r.created_at,
+        end: idx === 0 ? new Date().toISOString() : sorted[idx - 1].created_at,
+      }));
+      setSelectedReceiptRanges(ranges);
+      setReceiptDefaultsApplied(true);
+    })();
+  }, [branchId, receiptDefaultsApplied]);
 
   // Fetch aggregated data for summary
   const { data: summaryData, isLoading: summaryLoading } = useQuery({
