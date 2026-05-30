@@ -76,7 +76,16 @@ export async function computeWorkerHeld(
     const delta = a.adjustment_type === 'add' ? Number(a.amount || 0) : -Number(a.amount || 0);
     if (!delta) return;
     const cur = byWorker.get(a.worker_id) || { cash: 0, document: 0, total: 0 };
-    cur.cash += delta;
+    // Distribute delta proportionally over cash + document so manual zeroing
+    // collapses both buckets, not only the cash bucket.
+    const gross = Math.abs(cur.cash) + Math.abs(cur.document);
+    if (gross > 0) {
+      const cashShare = Math.abs(cur.cash) / gross;
+      cur.cash += delta * cashShare;
+      cur.document += delta * (1 - cashShare);
+    } else {
+      cur.cash += delta;
+    }
     cur.total += delta;
     byWorker.set(a.worker_id, cur);
     total += delta;
