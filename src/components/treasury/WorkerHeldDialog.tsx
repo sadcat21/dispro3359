@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Card, CardContent } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { orderAccountingTime, parseAccountingTime } from '@/hooks/useManagerTreasury';
 const MoneyValue = ({ value, currency, className = '' }: { value: number; currency: string; className?: string }) => (
   <span className={className}>{Number(value).toLocaleString()} {currency}</span>
 );
@@ -40,8 +41,8 @@ const WorkerHeldDialog: React.FC<Props> = ({ open, onOpenChange, range, currency
 
       const windows = (sessions || []).map((s: any) => ({
         worker_id: s.worker_id,
-        start: new Date(s.period_start).getTime(),
-        end: new Date(s.period_end).getTime(),
+        start: parseAccountingTime(s.period_start),
+        end: parseAccountingTime(s.period_end),
       }));
 
       const byWorker = new Map<string, { cash: number; document: number; total: number }>();
@@ -51,7 +52,7 @@ const WorkerHeldDialog: React.FC<Props> = ({ open, onOpenChange, range, currency
         if (o.payment_status === 'partial') paid = Number(o.partial_amount || 0);
         else if (o.payment_status === 'debt') paid = 0;
         if (paid <= 0) return;
-        const t = new Date(o.delivery_date || o.created_at).getTime();
+        const t = orderAccountingTime(o);
         const covered = windows.some(w => w.worker_id === o.assigned_worker_id && t >= w.start && t <= w.end);
         if (covered) return;
         const method = String(o.invoice_payment_method || '').toLowerCase();
