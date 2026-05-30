@@ -914,7 +914,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
     }
     if (
       paymentType === 'with_invoice' &&
-      invoicePaymentMethod === 'transfer' &&
+      invoicePaymentMethod === 'receipt' &&
       !invoicePaymentSubType
     ) {
       toast.error('يرجى اختيار نوع الاستلام: Cash أو Doc');
