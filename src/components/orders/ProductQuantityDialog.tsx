@@ -18,7 +18,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useHasPermission } from '@/hooks/usePermissions';
 import { getProductDisplayName } from '@/utils/productDisplayName';
 import ProductOfferBadge, { preloadProductOffersForBadge } from '@/components/offers/ProductOfferBadge';
-import InvoicePaymentMethodSelect from '@/components/orders/InvoicePaymentMethodSelect';
+import InvoicePaymentMethodSelect, { InvoicePaymentSubType } from '@/components/orders/InvoicePaymentMethodSelect';
 import { parseBP } from '@/utils/boxPieceInput';
 import { ProductOfferWithDetails } from '@/types/productOffer';
 import { getProductOfferLookupKey } from '@/utils/productOffers';
