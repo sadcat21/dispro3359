@@ -1071,7 +1071,30 @@ const ManagerTreasury = () => {
           showDetails={showCardDetails}
           badgeText={transferBadge}
         />
+        <TreasuryCard
+          icon={<Coins className="w-5 h-5 text-rose-500" />}
+          label="تحصيلات الديون"
+          total={summary?.debtCashCollected || 0}
+          handed={0}
+          colorClass="rose-500"
+          borderClass="border-rose-500/30 bg-rose-500/5"
+          onClick={() => setCollectedDebtsOpen(true)}
+          currency={cur}
+          showDetails={false}
+        />
+        <TreasuryCard
+          icon={<Wallet className="w-5 h-5 text-amber-600" />}
+          label="المصاريف المعتمدة"
+          total={summary?.totalExpenses || 0}
+          handed={0}
+          colorClass="amber-600"
+          borderClass="border-amber-500/30 bg-amber-500/5"
+          onClick={() => navigate('/expenses-management')}
+          currency={cur}
+          showDetails={false}
+        />
       </div>
+
 
       {detailsCategory && (
         <PaymentMethodDetailsDialog

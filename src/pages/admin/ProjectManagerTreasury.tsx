@@ -114,6 +114,19 @@ const ProjectManagerTreasury = () => {
     },
   });
 
+  const { data: expensesTotal } = useQuery({
+    queryKey: ['pmt-expenses', dateFrom, dateTo, branchId],
+    queryFn: async () => {
+      let q = supabase.from('expenses').select('amount, branch_id, expense_date').eq('status', 'approved');
+      if (dateFrom) q = q.gte('expense_date', dateFrom);
+      if (dateTo) q = q.lte('expense_date', dateTo);
+      if (branchId !== 'all') q = q.eq('branch_id', branchId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return (data || []).reduce((s: number, e: any) => s + Number(e.amount || 0), 0);
+    },
+  });
+
   const totals = useMemo(() => {
     const init = {
       cash_invoice1: 0,
@@ -260,6 +273,14 @@ const ProjectManagerTreasury = () => {
           color="indigo"
           count={(handovers || []).filter((h: any) => Number(h.stamp_amount) > 0).length}
         />
+        <TreasuryCard
+          icon={<Wallet className="w-4 h-4 text-amber-700" />}
+          label="المصاريف المعتمدة"
+          total={Number(expensesTotal || 0)}
+          color="amber"
+          count={0}
+        />
+
       </div>
 
 
