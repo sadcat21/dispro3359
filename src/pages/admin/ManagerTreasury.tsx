@@ -529,14 +529,14 @@ const ManagerTreasury = () => {
   const remainingReceiptCashCount = remainingCounts?.receipt_cash?.operations ?? (((summary?.receipt_cash || 0) - (summary?.receipt_cash_handed || 0)) > 1 ? (summary?.receiptCashCount || 0) : 0);
   const remainingReceiptDocCount = remainingCounts?.receipt?.operations ?? (((summary?.bank_receipt || 0) - (summary?.receipt_handed || 0)) > 1 ? (summary?.receiptCount || 0) : 0);
   const remainingTransferCount = remainingCounts?.transfer?.operations ?? (((summary?.bank_transfer || 0) - (summary?.transfer_handed || 0)) > 1 ? (summary?.transferCount || 0) : 0);
-  const buildBadgeText = (bucket?: { clients: number; operations: number }) =>
-    bucket ? `العمليات: ${bucket.operations} | العملاء: ${bucket.clients}` : undefined;
-  const cashInvoice1Badge = buildBadgeText(remainingCounts?.cash_invoice1);
-  const cashInvoice2Badge = buildBadgeText(remainingCounts?.cash_invoice2);
-  const checksBadge = buildBadgeText(remainingCounts?.check);
-  const receiptCashBadge = buildBadgeText(remainingCounts?.receipt_cash);
-  const receiptDocBadge = buildBadgeText(remainingCounts?.receipt);
-  const transferBadge = buildBadgeText(remainingCounts?.transfer);
+  const buildBadgeText = (bucket: { clients: number; operations: number } | undefined, remainingAmount: number) =>
+    bucket && bucket.operations > 0 && remainingAmount > 0 ? `العمليات: ${bucket.operations} | العملاء: ${bucket.clients}` : undefined;
+  const cashInvoice1Badge = buildBadgeText(remainingCounts?.cash_invoice1, Math.max((summary?.cash_invoice1 || 0) + (summary?.cash_invoice1_stamp || 0) - (summary?.cash_invoice1_handed || 0), 0));
+  const cashInvoice2Badge = buildBadgeText(remainingCounts?.cash_invoice2, Math.max((summary?.cash_invoice2 || 0) - (summary?.cash_invoice2_handed || 0), 0));
+  const checksBadge = buildBadgeText(remainingCounts?.check, Math.max((summary?.check || 0) - (summary?.check_handed || 0), 0));
+  const receiptCashBadge = buildBadgeText(remainingCounts?.receipt_cash, Math.max((summary?.receipt_cash || 0) - (summary?.receipt_cash_handed || 0), 0));
+  const receiptDocBadge = buildBadgeText(remainingCounts?.receipt, Math.max((summary?.bank_receipt || 0) - (summary?.receipt_handed || 0), 0));
+  const transferBadge = buildBadgeText(remainingCounts?.transfer, Math.max((summary?.bank_transfer || 0) - (summary?.transfer_handed || 0), 0));
 
   const handleHandover = async () => {
     const finalCash1 = invoice1CashAmountWithStamp;
