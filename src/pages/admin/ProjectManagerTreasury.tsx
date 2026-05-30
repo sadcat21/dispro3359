@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   Banknote,
   Coins,
@@ -111,20 +111,13 @@ const cardField: Record<Exclude<CardType, 'expenses'>, string> = {
 
 const ProjectManagerTreasury = () => {
   const navigate = useNavigate();
+  const { activeBranch } = useAuth();
+  const branchId = activeBranch?.id || 'all';
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-  const [branchId, setBranchId] = useState<string>('all');
   const [selected, setSelected] = useState<any>(null);
   const [openCard, setOpenCard] = useState<CardType | null>(null);
 
-  const { data: branches } = useQuery({
-    queryKey: ['pmt-branches'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('branches').select('id, name').order('name');
-      if (error) throw error;
-      return data || [];
-    },
-  });
 
   const { data: handovers, isLoading } = useQuery({
     queryKey: ['project-manager-treasury', dateFrom, dateTo, branchId],
@@ -225,7 +218,7 @@ const ProjectManagerTreasury = () => {
 
       {/* Filters */}
       <Card>
-        <CardContent className="p-3 grid grid-cols-1 md:grid-cols-4 gap-3">
+        <CardContent className="p-3 grid grid-cols-1 md:grid-cols-3 gap-3">
           <div>
             <Label className="text-xs">من تاريخ</Label>
             <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
@@ -234,20 +227,15 @@ const ProjectManagerTreasury = () => {
             <Label className="text-xs">إلى تاريخ</Label>
             <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
           </div>
-          <div className="md:col-span-2">
-            <Label className="text-xs">الفرع</Label>
-            <Select value={branchId} onValueChange={setBranchId}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">جميع الفروع</SelectItem>
-                {(branches || []).map((b: any) => (
-                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex items-end">
+            <div className="text-xs text-muted-foreground">
+              الفرع: <span className="font-bold text-foreground">{activeBranch?.name || 'جميع الفروع'}</span>
+              <span className="block text-[10px]">(يُحدَّد من شارات الفروع في الأعلى)</span>
+            </div>
           </div>
         </CardContent>
       </Card>
+
 
       {/* Totals header */}
       <Card className="border-primary/40 bg-primary/5">
