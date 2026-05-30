@@ -322,6 +322,12 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
 
+      <Route path="/project-manager-treasury" element={
+        <ProtectedRoute allowedRoles={['admin', 'project_manager']}>
+          <ProjectManagerTreasury />
+        </ProtectedRoute>
+      } />
+
       <Route path="/permissions" element={
         <ProtectedRoute allowedRoles={['admin', 'project_manager']}>
           <Permissions />
