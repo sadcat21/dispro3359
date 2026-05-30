@@ -712,7 +712,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
                   <div className="bg-emerald-50 dark:bg-emerald-900/10 rounded-lg p-2.5 text-center">
                     <p className="text-[10px] text-muted-foreground">الكاش المقبوض</p>
                     <p className="font-bold text-lg text-emerald-600">
-                      {fmt((calc.invoice2?.cash || 0) + (calc.invoice1?.espaceCash || 0) + (calc.invoice1?.versementCash || 0))} DA
+                      {fmt((calc.invoice2?.cash || 0) + (calc.invoice1?.espaceCash || 0) + (calc.invoice1?.versementCash || 0) + (calc.debtCollections?.cash || 0))} DA
                     </p>
                   </div>
                   <div className="bg-orange-50 dark:bg-orange-900/10 rounded-lg p-2.5 text-center">
