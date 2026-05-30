@@ -46,6 +46,8 @@ import { sendSmsDirectly, buildDeliveryConfirmationSms } from '@/utils/smsHelper
 import { loadSmsSettings, buildSmsFromTemplate, openSmsApp } from '@/components/settings/SmsSettingsCard';
 import { useProductOffers } from '@/hooks/useProductOffers';
 import { getGiftTotalPieces, getPaidQuantity as getStoredPaidQuantity } from '@/utils/orderItemQuantities';
+import { splitOrderByPaymentGroup, buildPaymentKey } from '@/utils/splitOrderByPaymentGroup';
+import SplitPaymentConfirmDialog, { GroupPaymentResult } from '@/components/sales/SplitPaymentConfirmDialog';
 
 interface StockItem {
   id: string;
@@ -161,6 +163,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
   const [showOverflowDialog, setShowOverflowDialog] = useState(false);
   const [showAddCustomerDialog, setShowAddCustomerDialog] = useState(false);
   const [overflowData, setOverflowData] = useState<any>(null);
+  const [showSplitDialog, setShowSplitDialog] = useState(false);
+  const splitResultsRef = React.useRef<GroupPaymentResult[] | null>(null);
 
   // Derived
   const selectedCustomer = useMemo(() =>
