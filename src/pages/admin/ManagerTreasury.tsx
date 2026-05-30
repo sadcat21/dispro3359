@@ -570,6 +570,7 @@ const ManagerTreasury = () => {
         amount: total,
         cash_invoice1: finalCash1,
         cash_invoice2: finalCash2,
+        debt_cash_amount: debtCashHandoverAmount,
         checks_amount: checksAmount,
         check_count: pickedChecks.length,
         receipts_amount: receiptsAmount,
@@ -906,7 +907,7 @@ const ManagerTreasury = () => {
         const nonCash = (summary?.check || 0) + (summary?.bank_receipt || 0) + (summary?.bank_transfer || 0);
         const nonCashHanded = (summary?.check_handed || 0) + (summary?.receipt_handed || 0) + (summary?.transfer_handed || 0);
         const cashHanded = (handovers || []).reduce((sum: number, handover: any) => (
-          sum + Number(handover.cash_invoice1 || 0) + Number(handover.cash_invoice2 || 0)
+          sum + Number(handover.cash_invoice1 || 0) + Number(handover.cash_invoice2 || 0) + Number(handover.debt_cash_amount || 0)
         ), 0);
         const physicalRemaining = cashAvailableBeforeHandover - cashHanded;
         const nonCashPending = nonCash - nonCashHanded;

@@ -2765,6 +2765,7 @@ export type Database = {
           check_count: number | null
           checks_amount: number
           created_at: string
+          debt_cash_amount: number
           delivery_method: string
           handover_date: string
           id: string
@@ -2796,6 +2797,7 @@ export type Database = {
           check_count?: number | null
           checks_amount?: number
           created_at?: string
+          debt_cash_amount?: number
           delivery_method?: string
           handover_date?: string
           id?: string
@@ -2827,6 +2829,7 @@ export type Database = {
           check_count?: number | null
           checks_amount?: number
           created_at?: string
+          debt_cash_amount?: number
           delivery_method?: string
           handover_date?: string
           id?: string
