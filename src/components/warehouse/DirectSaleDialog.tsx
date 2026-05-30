@@ -910,7 +910,11 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       });
 
       const { error: itemsErr } = await (supabase as any).from('order_items').insert(orderItemsData as any);
-      if (itemsErr) throw new Error('فشل في حفظ بنود الطلب: ' + itemsErr.message);
+      if (itemsErr) {
+        // Rollback: حذف الطلبية اليتيمة لمنع ظهورها كطلبية بدون منتجات
+        await supabase.from('orders').delete().eq('id', order.id);
+        throw new Error('فشل في حفظ بنود الطلب: ' + itemsErr.message);
+      }
 
       // Sales tracking ledger
       try {
