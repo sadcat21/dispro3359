@@ -633,14 +633,14 @@ const ManagerTreasury = () => {
         <div className="fixed bottom-16 left-0 right-0 z-40 px-3 pointer-events-none">
           <div className="mx-auto max-w-md flex items-center justify-center gap-1.5 rounded-full bg-background/95 backdrop-blur border shadow-lg p-1.5 pointer-events-auto" dir={dir}>
             <Button
-              size="icon"
+              size="sm"
               variant="outline"
-              className={`h-8 w-8 rounded-full shrink-0 ${(handovers && handovers.length > 0) ? 'border-destructive text-destructive hover:bg-destructive/10' : 'border-green-500 text-green-600 hover:bg-green-500/10'}`}
+              className={`h-8 gap-1 rounded-full px-2.5 text-[11px] shrink-0 ${(handovers && handovers.length > 0) ? 'border-destructive text-destructive hover:bg-destructive/10' : 'border-green-500 text-green-600 hover:bg-green-500/10'}`}
               onClick={() => setHandoversListOpen(true)}
-              title="التسليمات"
-              aria-label="التسليمات"
+              title="سجل التسليمات"
+              aria-label="سجل التسليمات"
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-4 h-4" /><span>سجل التسليمات</span>
             </Button>
             <Button size="sm" className="h-8 gap-1 rounded-full px-2.5 text-[11px] bg-blue-600 hover:bg-blue-700 text-white border-blue-600" onClick={() => setConsolidationOpen(true)}>
               <Wallet className="w-4 h-4" /><span>تجميع الكاش</span>
