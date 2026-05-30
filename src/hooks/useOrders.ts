@@ -216,6 +216,7 @@ export const useCreateOrder = () => {
         order_id: order.id,
         product_id: item.productId,
         quantity: item.quantity,
+        is_unit_sale: item.pricingUnit === 'unit',
         unit_price: item.unitPrice || 0,
         total_price: item.totalPrice || 0,
         gift_quantity: item.giftQuantity || 0,
@@ -229,10 +230,10 @@ export const useCreateOrder = () => {
         pieces_per_box: item.piecesPerBox || null,
       }));
 
-      const { data: insertedItems, error: itemsError } = await supabase
+      const { data: insertedItems, error: itemsError } = await (supabase as any)
         .from('order_items')
-        .insert(orderItems)
-        .select('id, product_id, quantity, gift_quantity, gift_pieces, gift_offer_id, pieces_per_box');
+        .insert(orderItems as any)
+        .select('id, product_id, quantity, is_unit_sale, gift_quantity, gift_pieces, gift_offer_id, pieces_per_box');
 
       if (itemsError) throw itemsError;
 
@@ -254,7 +255,7 @@ export const useCreateOrder = () => {
             if (o.is_deferred_confirmation) deferredMap.set(o.id, o);
           }
           if (deferredMap.size > 0) {
-            const productIds = Array.from(new Set(giftRows.map((g: any) => g.product_id)));
+            const productIds = Array.from(new Set(giftRows.map((g: any) => g.product_id))) as string[];
             const { data: prods } = await supabase.from('products').select('id, name, app_name').in('id', productIds);
             const productNameMap = new Map<string, string>(((prods || []) as any[]).map((p) => [p.id, p.app_name || p.name]));
 
@@ -284,8 +285,8 @@ export const useCreateOrder = () => {
                 giftProductName: offer.gift_product?.app_name || offer.gift_product?.name || productNameMap.get(g.product_id) || null,
                 giftBoxes: Number(g.gift_quantity || 0),
                 giftPieces: Number(g.gift_pieces || 0),
-                purchasedBoxes: Math.max(0, Math.floor(Number(g.quantity || 0) - Number(g.gift_quantity || 0))),
-                purchasedPieces: Math.round((Number(g.quantity || 0) - Math.floor(Number(g.quantity || 0))) * 100),
+                purchasedBoxes: (g as any).is_unit_sale ? 0 : Math.max(0, Math.floor(Number(g.quantity || 0) - Number(g.gift_quantity || 0))),
+                purchasedPieces: (g as any).is_unit_sale ? Math.max(0, Math.round(Number(g.quantity || 0))) : Math.round((Number(g.quantity || 0) - Math.floor(Number(g.quantity || 0))) * 100),
                 customerId,
                 customerName,
                 workerId: resolvedWorkerId,

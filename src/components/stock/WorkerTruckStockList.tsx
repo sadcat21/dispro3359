@@ -37,8 +37,11 @@ const deliveredSaleBreakdown = (item: any, ppb: number) => {
   // اعتمد الكمية المدفوعة كما هي في order_items بدل التقييد بـ stock_movements،
   // لأن بعض الحركات قد تُحذف وتُعاد بصيغة جزئية عند تصحيح رصيد الشاحنة، مما
   // يُظهر «القسم» أقل من الحقيقة (مثلاً 2 بدل 100). الهدية تُعالَج مستقلًا.
-  const paidFromOrder = Math.max(0, dbBPToBoxes(Number(getPaidQuantity(item) || 0), ppb));
-  const paidCapped = Math.max(0, dbBPToBoxes(Number(getDeliveredPaidQuantity(item) || 0), ppb));
+  const isUnitSale = !!item?.is_unit_sale;
+  const paidFromOrderRaw = Math.max(0, Number(getPaidQuantity(item) || 0));
+  const paidCappedRaw = Math.max(0, Number(getDeliveredPaidQuantity(item) || 0));
+  const paidFromOrder = isUnitSale ? (paidFromOrderRaw / Math.max(1, ppb)) : dbBPToBoxes(paidFromOrderRaw, ppb);
+  const paidCapped = isUnitSale ? (paidCappedRaw / Math.max(1, ppb)) : dbBPToBoxes(paidCappedRaw, ppb);
   const paid = Math.max(paidFromOrder, paidCapped);
   const gift = confirmedGiftFractional(item, ppb);
   return {

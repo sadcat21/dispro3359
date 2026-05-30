@@ -72,6 +72,36 @@ export const getPaidQuantity = (item: GiftBreakdownInput): number => {
   return 0;
 };
 
+export const getOrderItemTotalPieces = (item: GiftBreakdownInput): number => {
+  const piecesPerBox = Math.max(1, toNumber(item.pieces_per_box) || 1);
+  const rawQuantity = Math.max(0, toNumber(item.quantity));
+
+  if (item.is_unit_sale) {
+    return Math.round(rawQuantity);
+  }
+
+  const boxes = Math.floor(rawQuantity);
+  const pieces = Math.round((rawQuantity - boxes) * 100);
+  return (boxes * piecesPerBox) + pieces;
+};
+
+export const getDeliveredSoldPieces = (item: GiftBreakdownInput): number => {
+  const movementQuantity = item.delivered_quantity ?? item.stock_movement_quantity;
+  if (movementQuantity !== undefined && movementQuantity !== null) {
+    return getOrderItemTotalPieces({
+      quantity: movementQuantity,
+      pieces_per_box: item.pieces_per_box,
+      is_unit_sale: item.is_unit_sale,
+    });
+  }
+
+  return getOrderItemTotalPieces({
+    quantity: getPaidQuantity(item),
+    pieces_per_box: item.pieces_per_box,
+    is_unit_sale: item.is_unit_sale,
+  });
+};
+
 export const getDeliveredPaidQuantity = (item: GiftBreakdownInput): number => {
   const paidQuantity = getPaidQuantity(item);
   const movementQuantity = item.delivered_quantity ?? item.stock_movement_quantity;

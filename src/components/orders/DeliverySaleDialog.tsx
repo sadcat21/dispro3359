@@ -43,7 +43,7 @@ import CustomerDistanceIndicator from './CustomerDistanceIndicator';
 import SimpleProductPickerDialog from '@/components/stock/SimpleProductPickerDialog';
 import { cn } from '@/lib/utils';
 import { getCustomerTypesArray } from '@/utils/customerTypes';
-import { toStoredOrderItemQuantity } from '@/utils/orderItemQuantities';
+import { getOrderItemTotalPieces, getDeliveredSoldPieces, toStoredOrderItemQuantity } from '@/utils/orderItemQuantities';
 
 interface DeliverySaleDialogProps {
   open: boolean;
@@ -793,8 +793,9 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
             (item.giftOfferId || null) !== (((orderItems || []).find((oi: any) => oi.id === item.originalItemId) as any)?.gift_offer_id || null)
           ) {
             // Update changed quantity
-            await supabase.from('order_items').update({
+            await (supabase as any).from('order_items').update({
               quantity: toStoredOrderItemQuantity(item.quantity, item.piecesPerBox, item.isUnitSale),
+              is_unit_sale: !!item.isUnitSale,
               unit_price: item.unitPrice,
               total_price: item.totalPrice,
               gift_quantity: item.giftQuantity || 0,
@@ -808,10 +809,11 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
           }
         } else if (item.quantity > 0) {
           // Insert new item
-          await supabase.from('order_items').insert({
+          await (supabase as any).from('order_items').insert({
             order_id: order.id,
             product_id: item.productId,
             quantity: toStoredOrderItemQuantity(item.quantity, item.piecesPerBox, item.isUnitSale),
+            is_unit_sale: !!item.isUnitSale,
             unit_price: item.unitPrice,
             total_price: item.totalPrice,
             gift_quantity: item.giftQuantity || 0,
@@ -869,6 +871,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
               productId: item.productId,
               productName: item.productName || null,
               quantity: item.quantity,
+              isUnitSale: !!item.isUnitSale,
               giftBoxes: Number(item.giftQuantity || 0),
               giftPieces: Number((item as any).giftPieces || 0),
               piecesPerBox: ppb,
@@ -919,9 +922,11 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
         // stock deduction until confirmation.
         const extraGiftBoxes = useRecalc ? Math.max(0, effGiftBoxes - storedGiftBoxes) : 0;
         const qtyRounded = Math.round(Number(item.quantity || 0) * 100) / 100;
-        const qtyBoxesPart = Math.floor(qtyRounded);
-        const qtyPiecesPart = Math.round((qtyRounded - qtyBoxesPart) * 100);
-        const qtyTotalPieces = qtyBoxesPart * ppb + qtyPiecesPart;
+        const qtyTotalPieces = getOrderItemTotalPieces({
+          quantity: qtyRounded,
+          pieces_per_box: ppb,
+          is_unit_sale: item.isUnitSale,
+        });
         // For deferred: subtract gift boxes from deduction (they will deduct on confirmation).
         // Gift PIECES are tracked separately and are NOT included in item.quantity / qtyTotalPieces,
         // so we must not subtract them here — doing so produced phantom "0.19" sales for 1-box deliveries.
@@ -1118,13 +1123,14 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
               order_id: newOrder.id,
               product_id: diff.productId,
               quantity: toStoredOrderItemQuantity(diff.diffQty, diff.piecesPerBox, diff.isUnitSale),
+              is_unit_sale: !!diff.isUnitSale,
               unit_price: diff.unitPrice,
               total_price: diff.diffQty * diff.unitPrice,
               pricing_unit: diff.pricingUnit || 'box',
               weight_per_box: diff.weightPerBox ?? null,
               pieces_per_box: diff.piecesPerBox ?? null,
             }));
-            await supabase.from('order_items').insert(newItems);
+            await (supabase as any).from('order_items').insert(newItems as any);
             const newTotal = newItems.reduce((s, i) => s + i.total_price, 0);
             await supabase.from('orders').update({ total_amount: newTotal }).eq('id', newOrder.id);
             toast.success(`تم إنشاء طلبية جديدة بالفارق (${partialDeliveryDiff.map(d => `${d.diffQty} ${d.productName}`).join(', ')})`);
