@@ -593,7 +593,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
     }
     if (
       paymentType === 'with_invoice' &&
-      (invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'check' || invoicePaymentMethod === 'transfer') &&
+      invoicePaymentMethod === 'transfer' &&
       !invoicePaymentSubType
     ) {
       toast.error('يرجى اختيار نوع الاستلام: Cash أو Doc');
@@ -604,6 +604,18 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
       // Don't auto-assign worker at creation - let the AssignWorkerAfterSaveDialog handle it
       const defaultWorkerId = selectedCustomer?.default_delivery_worker_id || undefined;
 
+      // paid_by_cash: مع Virement يعتمد على اختيار Cash/Doc؛
+      // مع Versement/Chèque دائماً مستند (doc) → paid_by_cash=false؛
+      // مع Espèces لا يُحفظ.
+      const computedPaidByCash =
+        paymentType === 'with_invoice'
+          ? invoicePaymentMethod === 'transfer'
+            ? invoicePaymentSubType === 'cash'
+            : invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'check'
+              ? false
+              : undefined
+          : undefined;
+
       const order = await createOrder.mutateAsync({
         customerId: selectedCustomerId,
         items: orderItems,
@@ -611,9 +623,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
         deliveryDate: deliveryDate ? (deliveryTime ? `${deliveryDate}T${deliveryTime}` : deliveryDate) : undefined,
         paymentType,
         invoicePaymentMethod: paymentType === 'with_invoice' ? invoicePaymentMethod : undefined,
-        paidByCash: paymentType === 'with_invoice' && (invoicePaymentMethod === 'receipt' || invoicePaymentMethod === 'check' || invoicePaymentMethod === 'transfer')
-          ? invoicePaymentSubType === 'cash'
-          : undefined,
+        paidByCash: computedPaidByCash,
         invoiceNumber: paymentType === 'with_invoice' ? invoiceNumber : undefined,
         totalAmount: orderTotals.totalAmount > 0 ? orderTotals.totalAmount : undefined,
         prepaidAmount: Number(prepaidAmount) || 0,
