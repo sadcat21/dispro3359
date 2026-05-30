@@ -147,6 +147,7 @@ const ManagerTreasury = () => {
 
   const [addOpen, setAddOpen] = useState(false);
   const [handoverOpen, setHandoverOpen] = useState(false);
+  const [cashBalanceOpen, setCashBalanceOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('handovers');
   const [showCardDetails, setShowCardDetails] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
@@ -896,19 +897,46 @@ const ManagerTreasury = () => {
         const cashHanded = (handovers || []).reduce((sum: number, handover: any) => (
           sum + Number(handover.cash_invoice1 || 0) + Number(handover.cash_invoice2 || 0)
         ), 0);
-        const overallRemaining = (cashAvailableBeforeHandover - cashHanded) + (nonCash - nonCashHanded);
+        const physicalRemaining = cashAvailableBeforeHandover - cashHanded;
+        const nonCashPending = nonCash - nonCashHanded;
+        const overallRemaining = physicalRemaining + nonCashPending;
         return (
-          <Card className="border-2 border-primary/40 bg-gradient-to-br from-primary/10 to-primary/5">
-            <CardContent className="p-4 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <Wallet className="w-6 h-6 text-primary" />
-                <span className="text-sm font-bold text-primary">رصيد الكاش</span>
-              </div>
-              <MoneyValue value={overallRemaining} currency={cur} className="text-2xl font-extrabold text-primary" />
-            </CardContent>
-          </Card>
+          <>
+            <Card className="border-2 border-primary/40 bg-gradient-to-br from-primary/10 to-primary/5 cursor-pointer hover:shadow-md transition-shadow" onClick={() => setCashBalanceOpen(true)}>
+              <CardContent className="p-4 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Wallet className="w-6 h-6 text-primary" />
+                  <span className="text-sm font-bold text-primary">رصيد الكاش</span>
+                </div>
+                <MoneyValue value={overallRemaining} currency={cur} className="text-2xl font-extrabold text-primary" />
+              </CardContent>
+            </Card>
+            <Dialog open={cashBalanceOpen} onOpenChange={setCashBalanceOpen}>
+              <DialogContent dir={dir}>
+                <DialogHeader>
+                  <DialogTitle>💰 الخزينة المتبقية</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between rounded-lg border border-primary/30 bg-primary/5 p-3">
+                    <span className="text-sm font-medium">الإجمالي المتبقي</span>
+                    <MoneyValue value={overallRemaining} currency={cur} className="text-lg font-bold text-primary" />
+                  </div>
+                  <div className="flex items-center justify-between rounded-lg border border-green-500/30 bg-green-500/5 p-3">
+                    <span className="text-sm font-medium">💵 الكاش المتبقي بعد التسليم</span>
+                    <MoneyValue value={physicalRemaining} currency={cur} className="text-lg font-bold text-green-600" />
+                  </div>
+                  <div className="flex items-center justify-between rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">
+                    <span className="text-sm font-medium">🏦 غير مسلَّم فعلياً (معلق)</span>
+                    <MoneyValue value={nonCashPending} currency={cur} className="text-lg font-bold text-amber-600" />
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </>
         );
       })()}
+
+
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-3">
