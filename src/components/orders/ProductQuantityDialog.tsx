@@ -107,6 +107,7 @@ interface ProductQuantityDialogProps {
   defaultPaymentType?: PaymentType;
   defaultPriceSubType?: PriceSubType;
   defaultInvoicePaymentMethod?: InvoicePaymentMethod | null;
+  defaultInvoicePaymentSubType?: InvoicePaymentSubType | null;
   initialQuantity?: number;
   initialCustomUnitPrice?: number;
   mode?: 'add' | 'edit';
