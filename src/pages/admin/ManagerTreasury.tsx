@@ -906,8 +906,10 @@ const ManagerTreasury = () => {
           (summary?.debtCashCollected || 0) - (summary?.coinExchangeOut || 0);
         const nonCash = (summary?.check || 0) + (summary?.bank_receipt || 0) + (summary?.bank_transfer || 0);
         const nonCashHanded = (summary?.check_handed || 0) + (summary?.receipt_handed || 0) + (summary?.transfer_handed || 0);
+        // Note: summary.debtCashCollected is already NET (gross - debt_cash_amount handed),
+        // so we MUST NOT subtract handover.debt_cash_amount again here — that would double-count.
         const cashHanded = (handovers || []).reduce((sum: number, handover: any) => (
-          sum + Number(handover.cash_invoice1 || 0) + Number(handover.cash_invoice2 || 0) + Number(handover.debt_cash_amount || 0)
+          sum + Number(handover.cash_invoice1 || 0) + Number(handover.cash_invoice2 || 0)
         ), 0);
         const physicalRemaining = cashAvailableBeforeHandover - cashHanded;
         const nonCashPending = nonCash - nonCashHanded;
