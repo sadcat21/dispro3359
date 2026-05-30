@@ -272,8 +272,9 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
       setItemPaymentType(defaultPaymentType === 'with_invoice' && !invoiceSaleAllowed ? 'without_invoice' : defaultPaymentType);
       setItemPriceSubType(defaultPriceSubType);
       setItemInvoicePaymentMethod(defaultPaymentType === 'with_invoice' && !invoiceSaleAllowed ? null : defaultInvoicePaymentMethod);
+      setItemInvoicePaymentSubType(defaultPaymentType === 'with_invoice' && !invoiceSaleAllowed ? null : defaultInvoicePaymentSubType);
     }
-  }, [defaultInvoicePaymentMethod, defaultPaymentType, defaultPriceSubType, invoiceSaleAllowed, open]);
+  }, [defaultInvoicePaymentMethod, defaultInvoicePaymentSubType, defaultPaymentType, defaultPriceSubType, invoiceSaleAllowed, open]);
 
   useEffect(() => {
     if (open) {
