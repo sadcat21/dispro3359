@@ -1200,6 +1200,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         paymentStatus: saleStatus,
         paidAmount: paymentData.paidAmount,
         remainingAmount: paymentData.remainingAmount,
+        splitGroups: splitGroupsInfo,
       });
       setShowSuccessDialog(true);
       // لا نغلق النافذة الأصلية حتى يغلق المستخدم وصل الطباعة
