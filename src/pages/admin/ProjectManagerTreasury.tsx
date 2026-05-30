@@ -143,18 +143,27 @@ const ProjectManagerTreasury = () => {
     },
   });
 
-  const { data: expensesTotal } = useQuery({
+  const { data: expensesList } = useQuery({
     queryKey: ['pmt-expenses', dateFrom, dateTo, branchId],
     queryFn: async () => {
-      let q = supabase.from('expenses').select('amount, branch_id, expense_date').eq('status', 'approved');
+      let q = supabase
+        .from('expenses')
+        .select('*, branch:branches(id, name)')
+        .eq('status', 'approved')
+        .order('expense_date', { ascending: false });
       if (dateFrom) q = q.gte('expense_date', dateFrom);
       if (dateTo) q = q.lte('expense_date', dateTo);
       if (branchId !== 'all') q = q.eq('branch_id', branchId);
       const { data, error } = await q;
       if (error) throw error;
-      return (data || []).reduce((s: number, e: any) => s + Number(e.amount || 0), 0);
+      return data || [];
     },
   });
+
+  const expensesTotal = useMemo(
+    () => (expensesList || []).reduce((s: number, e: any) => s + Number(e.amount || 0), 0),
+    [expensesList]
+  );
 
   const totals = useMemo(() => {
     const init = {
