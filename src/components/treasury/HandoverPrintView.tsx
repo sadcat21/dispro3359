@@ -397,28 +397,22 @@ const HandoverPrintView: React.FC<Props> = ({
                   <span>Espèces Facture 1:</span>
                   <span className="font-bold">{cashItemsTotal.toLocaleString()} DA</span>
                 </div>
-                {receiptCashTotal > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
-                    <span>Versement Cash:</span>
-                    <span className="font-bold">{receiptCashTotal.toLocaleString()} DA</span>
-                  </div>
-                )}
-                {cashItemsStampTotal > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
-                    <span>Timbre Facture 1:</span>
-                    <span className="font-bold">{cashItemsStampTotal.toLocaleString()} DA</span>
-                  </div>
-                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
+                  <span>Versement Cash:</span>
+                  <span className="font-bold">{receiptCashTotal.toLocaleString()} DA</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
+                  <span>Timbre Facture 1:</span>
+                  <span className="font-bold">{cashItemsStampTotal.toLocaleString()} DA</span>
+                </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
                   <span>Espèces Facture 2:</span>
                   <span className="font-bold">{cashInvoice2.toLocaleString()} DA</span>
                 </div>
-                {extraCashTotal > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
-                    <span>Recouvrement dettes / cash suppl.:</span>
-                    <span className="font-bold">{extraCashTotal.toLocaleString()} DA</span>
-                  </div>
-                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
+                  <span>Recouvrement dettes / cash suppl.:</span>
+                  <span className="font-bold">{extraCashTotal.toLocaleString()} DA</span>
+                </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginTop: '4px', paddingTop: '4px', borderTop: '1px solid black' }} className="font-bold">
                   <span>Total Espèces:</span>
                   <span>{(cashInvoice1 + cashInvoice2 + extraCashTotal).toLocaleString()} DA</span>
