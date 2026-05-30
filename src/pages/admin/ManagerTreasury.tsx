@@ -923,7 +923,7 @@ const ManagerTreasury = () => {
                   <Wallet className="w-6 h-6 text-primary" />
                   <span className="text-sm font-bold text-primary">رصيد الكاش</span>
                 </div>
-                <MoneyValue value={overallRemaining} currency={cur} className="text-2xl font-extrabold text-primary" />
+                <MoneyValue value={physicalRemaining} currency={cur} className="text-2xl font-extrabold text-primary" />
               </CardContent>
             </Card>
             <Dialog open={cashBalanceOpen} onOpenChange={setCashBalanceOpen}>
