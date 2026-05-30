@@ -421,33 +421,25 @@ const HandoverPrintView: React.FC<Props> = ({
             )}
           </div>
 
-          {(checksAmount > 0 || receiptsAmount > 0 || transfersAmount > 0) && (
-            <div className="border-2 border-black p-2" style={{ flex: 1 }}>
-              <h3 className="mb-1 text-center font-bold underline" style={{ fontSize: '11px' }}>VALEURS EN TRANSIT</h3>
-              {checksAmount > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
-                  <span>Chèques:</span>
-                  <span className="font-bold">{checksAmount.toLocaleString()} DA</span>
-                </div>
-              )}
-              {receiptsAmount > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
-                  <span>Versement Doc:</span>
-                  <span className="font-bold">{receiptsAmount.toLocaleString()} DA</span>
-                </div>
-              )}
-              {transfersAmount > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
-                  <span>Virements:</span>
-                  <span className="font-bold">{transfersAmount.toLocaleString()} DA</span>
-                </div>
-              )}
-              <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginTop: '4px', paddingTop: '4px', borderTop: '1px solid black' }} className="font-bold">
-                <span>Total Valeurs:</span>
-                <span>{(checksAmount + receiptsAmount + transfersAmount).toLocaleString()} DA</span>
-              </div>
+          <div className="border-2 border-black p-2" style={{ flex: 1 }}>
+            <h3 className="mb-1 text-center font-bold underline" style={{ fontSize: '11px' }}>VALEURS EN TRANSIT</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
+              <span>Chèques:</span>
+              <span className="font-bold">{checksAmount.toLocaleString()} DA</span>
             </div>
-          )}
+            <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
+              <span>Versement Doc:</span>
+              <span className="font-bold">{receiptsAmount.toLocaleString()} DA</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginBottom: '2px' }}>
+              <span>Virements:</span>
+              <span className="font-bold">{transfersAmount.toLocaleString()} DA</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr', marginTop: '4px', paddingTop: '4px', borderTop: '1px solid black' }} className="font-bold">
+              <span>Total Valeurs:</span>
+              <span>{(checksAmount + receiptsAmount + transfersAmount).toLocaleString()} DA</span>
+            </div>
+          </div>
         </div>
 
         <div className="border-2 border-black p-2" style={{ backgroundColor: '#f3f4f6' }}>
