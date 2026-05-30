@@ -838,7 +838,7 @@ export function formatReceiptForPreview(data: ReceiptData): string {
       </div>
 
       ${data.paymentMethod && !payLabel ? `<div style="text-align:center;font-size:10px;padding:2px 0;">Mode: ${{ cash: 'Espèces', check: 'Chèque', transfer: 'Virement', receipt: 'Versement' }[data.paymentMethod] || data.paymentMethod}</div>` : ''}
-      ${data.notes ? `<div style="border-top:1px dashed #000;padding-top:4px;font-size:10px;">Note: ${data.notes}</div>` : ''}
+      ${data.notes ? `<div style="border-top:1px dashed #000;padding-top:4px;font-size:10px;text-align:left;"><div>Note:</div><div>${data.notes.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>')}</div></div>` : ''}
 
       ${advancedHtml}
 
