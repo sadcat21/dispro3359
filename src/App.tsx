@@ -64,6 +64,7 @@ const WorkerLiability = lazy(() => import("./pages/admin/WorkerLiability"));
 const ShareTarget = lazy(() => import("./pages/ShareTarget"));
 const SharedInvoices = lazy(() => import("./pages/admin/SharedInvoices"));
 const AssistantApprovals = lazy(() => import("./pages/admin/AssistantApprovals"));
+const HandoverApprovals = lazy(() => import("./pages/admin/HandoverApprovals"));
 const Suppliers = lazy(() => import("./pages/admin/Suppliers"));
 const BranchInvoiceApprovals = lazy(() => import("./pages/admin/BranchInvoiceApprovals"));
 const BranchManagerApprovals = lazy(() => import("./pages/admin/BranchManagerApprovals"));
@@ -311,6 +312,12 @@ const AppRoutes = () => {
       <Route path="/branches" element={
         <ProtectedRoute allowedRoles={['admin', 'project_manager']}>
           <Branches />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/handover-approvals" element={
+        <ProtectedRoute allowedRoles={['admin', 'project_manager']}>
+          <HandoverApprovals />
         </ProtectedRoute>
       } />
 

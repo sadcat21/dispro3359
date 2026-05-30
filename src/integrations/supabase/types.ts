@@ -2753,6 +2753,10 @@ export type Database = {
       manager_handovers: {
         Row: {
           amount: number
+          approval_notes: string | null
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
           bank_account_id: string | null
           bank_transfer_reference: string | null
           branch_id: string | null
@@ -2780,6 +2784,10 @@ export type Database = {
         }
         Insert: {
           amount?: number
+          approval_notes?: string | null
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           bank_account_id?: string | null
           bank_transfer_reference?: string | null
           branch_id?: string | null
@@ -2807,6 +2815,10 @@ export type Database = {
         }
         Update: {
           amount?: number
+          approval_notes?: string | null
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           bank_account_id?: string | null
           bank_transfer_reference?: string | null
           branch_id?: string | null
