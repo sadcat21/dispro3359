@@ -619,16 +619,19 @@ const ManagerTreasury = () => {
   return (
     <div className="p-4 space-y-4 pb-24" dir={dir}>
       <div className="space-y-3">
+        <div className="flex items-center gap-2 flex-wrap">
+          <h1 className="text-xl font-bold">الخزينة</h1>
+          {!isSettingsHidden && (
+            <Button size="icon" variant="outline" className="h-8 w-8 rounded-full" onClick={() => setSettingsOpen(true)} title="إعدادات" aria-label="إعدادات">
+              <Settings className="w-4 h-4" />
+            </Button>
+          )}
+          <Button size="icon" variant="outline" className="h-8 w-8 rounded-full" onClick={syncOldSessions} disabled={syncing} title="مزامنة" aria-label="مزامنة">
+            <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
         <div className="fixed bottom-16 left-0 right-0 z-40 px-3 pointer-events-none">
           <div className="mx-auto max-w-md flex items-center justify-center gap-1.5 rounded-full bg-background/95 backdrop-blur border shadow-lg p-1.5 pointer-events-auto" dir={dir}>
-            {!isSettingsHidden && (
-              <Button size="icon" variant="outline" className="h-8 w-8 rounded-full shrink-0" onClick={() => setSettingsOpen(true)} title="إعدادات" aria-label="إعدادات">
-                <Settings className="w-4 h-4" />
-              </Button>
-            )}
-            <Button size="icon" variant="outline" className="h-8 w-8 rounded-full shrink-0" onClick={syncOldSessions} disabled={syncing} title="مزامنة" aria-label="مزامنة">
-              <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
-            </Button>
             <Button
               size="icon"
               variant="outline"
