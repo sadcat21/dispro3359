@@ -67,7 +67,25 @@ export async function computeWorkerHeld(
     total += paid;
   });
 
-  const workerIds = Array.from(byWorker.keys());
+  // Apply manual liability adjustments (subtract reduces what worker holds)
+  const { data: adjustments } = await supabase
+    .from('worker_liability_adjustments')
+    .select('worker_id, amount, adjustment_type')
+    .eq('branch_id', branchId);
+  (adjustments || []).forEach((a: any) => {
+    const delta = a.adjustment_type === 'add' ? Number(a.amount || 0) : -Number(a.amount || 0);
+    if (!delta) return;
+    const cur = byWorker.get(a.worker_id) || { cash: 0, document: 0, total: 0 };
+    cur.cash += delta;
+    cur.total += delta;
+    byWorker.set(a.worker_id, cur);
+    total += delta;
+  });
+
+  const workerIds = Array.from(byWorker.keys()).filter((id) => {
+    const v = byWorker.get(id)!;
+    return Math.abs(v.total) > 0.5;
+  });
   let nameMap = new Map<string, string>();
   if (workerIds.length) {
     const { data: workers } = await supabase
