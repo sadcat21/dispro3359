@@ -131,6 +131,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
   defaultPaymentType = 'with_invoice',
   defaultPriceSubType = 'gros',
   defaultInvoicePaymentMethod = null,
+  defaultInvoicePaymentSubType = null,
   initialQuantity = 0,
   initialCustomUnitPrice,
   mode = 'add',
