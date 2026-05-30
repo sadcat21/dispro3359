@@ -1719,6 +1719,7 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         orderTotal={orderTotals.totalAmount}
         customerName={selectedCustomer?.name || ''}
         paymentMethod={(frozenInvoiceMethod === 'transfer' ? 'transfer' : frozenInvoiceMethod === 'check' ? 'check' : 'receipt') as 'receipt' | 'transfer' | 'check'}
+        hideCash={frozenInvoiceMethod === 'receipt' && invoicePaymentSubType === 'doc'}
         onConfirm={handleReceiptPaymentConfirm}
       />
 
