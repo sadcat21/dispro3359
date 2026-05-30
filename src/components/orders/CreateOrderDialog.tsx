@@ -65,6 +65,7 @@ interface OrderItemWithPrice {
   isUnitSale?: boolean;
   itemPaymentType?: string;
   itemInvoicePaymentMethod?: string | null;
+  itemInvoicePaymentSubType?: 'cash' | 'doc' | null;
   itemPriceSubType?: string;
   pricingUnit?: string;
   weightPerBox?: number | null;
@@ -384,6 +385,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
         isUnitSale: true,
         itemPaymentType: perItemPricing?.paymentType || paymentType,
         itemInvoicePaymentMethod: perItemPricing?.invoicePaymentMethod,
+        itemInvoicePaymentSubType: perItemPricing?.invoicePaymentSubType,
         itemPriceSubType: perItemPricing?.priceSubType || priceSubType,
         pricingUnit: product.pricing_unit || 'box',
         weightPerBox: product.weight_per_box,
@@ -419,6 +421,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
       giftOfferId: giftInfo?.offerId,
       itemPaymentType: perItemPricing?.paymentType || paymentType,
       itemInvoicePaymentMethod: perItemPricing?.invoicePaymentMethod,
+      itemInvoicePaymentSubType: perItemPricing?.invoicePaymentSubType,
       itemPriceSubType: perItemPricing?.priceSubType || priceSubType,
       pricingUnit: product.pricing_unit || 'box',
       weightPerBox: product.weight_per_box,
@@ -1121,11 +1124,12 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                                 const effPt = (item.itemPaymentType as PaymentType | undefined) || paymentType;
                                 const effPst = (item.itemPriceSubType as PriceSubType | undefined) || priceSubType;
                                 const effPm = (item.itemInvoicePaymentMethod as InvoicePaymentMethod | undefined) || invoicePaymentMethod;
+                                const effSub = item.itemInvoicePaymentSubType || invoicePaymentSubType;
                                 const subMap: Record<string, string> = { gros: 'G', super_gros: 'SG', retail: 'D' };
                                 const methodMap: Record<string, string> = { receipt: 'VRST', check: 'CHK', cash: 'ESP', transfer: 'VRMT' };
                                 const subTypeMap: Record<string, string> = { cash: 'Cash', doc: 'Doc' };
                                 const methodSuffix = effPm
-                                  ? '-' + methodMap[effPm] + (effPm === 'receipt' && invoicePaymentSubType ? ' ' + subTypeMap[invoicePaymentSubType] : '')
+                                  ? '-' + methodMap[effPm] + (effPm === 'receipt' && effSub ? ' ' + subTypeMap[effSub] : '')
                                   : '';
                                 const code = effPt === 'with_invoice'
                                   ? `F1${methodSuffix}`

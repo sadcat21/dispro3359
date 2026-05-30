@@ -32,6 +32,7 @@ export interface GiftInfo {
 export interface PerItemPricing {
   paymentType: PaymentType;
   invoicePaymentMethod: InvoicePaymentMethod | null;
+  invoicePaymentSubType?: InvoicePaymentSubType | null;
   priceSubType: PriceSubType;
   customUnitPrice?: number;
 }
@@ -238,15 +239,18 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
     if (itemPaymentType !== defaultPaymentType) return true;
 
     if (itemPaymentType === 'with_invoice') {
-      return (itemInvoicePaymentMethod || null) !== (defaultInvoicePaymentMethod || null);
+      return (itemInvoicePaymentMethod || null) !== (defaultInvoicePaymentMethod || null)
+        || (itemInvoicePaymentSubType || null) !== (defaultInvoicePaymentSubType || null);
     }
 
     return itemPriceSubType !== defaultPriceSubType;
   }, [
     defaultInvoicePaymentMethod,
+    defaultInvoicePaymentSubType,
     defaultPaymentType,
     defaultPriceSubType,
     itemInvoicePaymentMethod,
+    itemInvoicePaymentSubType,
     itemPaymentType,
     itemPriceSubType,
   ]);
@@ -300,6 +304,7 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
       const perItemPricing: PerItemPricing | undefined = (hasPricingSelectionChanges || hasCustomUnitPrice) ? {
         paymentType: itemPaymentType,
         invoicePaymentMethod: itemPaymentType === 'with_invoice' ? itemInvoicePaymentMethod : null,
+        invoicePaymentSubType: itemPaymentType === 'with_invoice' ? itemInvoicePaymentSubType : null,
         priceSubType: itemPriceSubType,
         customUnitPrice: hasCustomUnitPrice ? customUnitPriceValue : undefined,
       } : undefined;
