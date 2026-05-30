@@ -691,6 +691,15 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       return;
     }
 
+    // Mixed payment groups → use split confirmation dialog
+    if (paymentGroups.length > 1) {
+      setFrozenPaymentType(paymentType);
+      setFrozenInvoiceMethod(invoicePaymentMethod);
+      splitResultsRef.current = null;
+      setShowSplitDialog(true);
+      return;
+    }
+
     // CRITICAL: Freeze the current values into state BEFORE opening dialog
     setFrozenPaymentType(paymentType);
     setFrozenInvoiceMethod(invoicePaymentMethod);
