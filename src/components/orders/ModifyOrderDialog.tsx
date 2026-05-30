@@ -1120,7 +1120,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
           operation: 'change_payment_setup',
           payment_type: paymentType,
           invoice_payment_method: invoicePaymentMethod || null,
-          paid_by_cash: invoicePaymentMethod === 'transfer' && invoicePaymentSubType === 'cash',
+          paid_by_cash: invoicePaymentMethod === 'receipt' && invoicePaymentSubType === 'cash',
           price_subtype: priceSubType,
         });
 
