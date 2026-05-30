@@ -1762,6 +1762,11 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
         defaultPaymentType={(order.payment_type as any) || 'with_invoice'}
         defaultPriceSubType={(orderItems?.[0]?.price_subtype as any) || (editingItem as any)?.priceSubType || 'gros'}
         defaultInvoicePaymentMethod={(order as any).invoice_payment_method || null}
+        defaultInvoicePaymentSubType={
+          (order as any).invoice_payment_method === 'receipt'
+            ? ((order as any).paid_by_cash === true ? 'cash' : (order as any).paid_by_cash === false ? 'doc' : null)
+            : null
+        }
         mode="edit"
         initialQuantity={editingInitialQuantity}
         initialGiftPieces={editingInitialGiftPieces}
