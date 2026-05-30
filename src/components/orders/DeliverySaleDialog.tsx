@@ -631,16 +631,26 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
     // Route based on invoice payment method
     const invoiceMethod = (order as any).invoice_payment_method;
     const dv: any = (order as any).document_verification;
-    const paidByCash = dv && typeof dv === 'object' && dv.paid_by_cash === true;
+    const dvObj = dv && typeof dv === 'object' ? dv : null;
+    // احترام اختيار العميل المحفوظ مسبقاً عند إنشاء الطلبية:
+    //  - Versement + Cash → paid_by_cash === true → نافذة الدفع العادية مباشرة
+    //  - Versement + Doc  → paid_by_cash === false → نافذة استلام المستند
+    //  - إذا لم يُحفظ الاختيار (طلبيات قديمة) → فقط حينها نعرض نافذة الاختيار
+    const explicitCash = dvObj?.paid_by_cash === true;
+    const explicitDoc = dvObj?.paid_by_cash === false;
     if (order.payment_type === 'with_invoice' && invoiceMethod === 'check') {
       setShowCheckDialog(true);
     } else if (order.payment_type === 'with_invoice' && invoiceMethod === 'transfer') {
-      // Virement دائماً مستند
-      setShowReceiptPaymentDialog(true);
-    } else if (order.payment_type === 'with_invoice' && invoiceMethod === 'receipt') {
-      // Versement: Cash → نافذة الدفع العادية (Facture2)، Doc → نافذة استلام المستند
-      if (paidByCash) {
+      if (explicitCash) {
         setShowPaymentDialog(true);
+      } else {
+        setShowReceiptPaymentDialog(true);
+      }
+    } else if (order.payment_type === 'with_invoice' && invoiceMethod === 'receipt') {
+      if (explicitCash) {
+        setShowPaymentDialog(true);
+      } else if (explicitDoc) {
+        setShowReceiptPaymentDialog(true);
       } else {
         setShowReceiptPaymentDialog(true);
       }
