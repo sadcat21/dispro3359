@@ -160,6 +160,29 @@ export const usePendingDocCollections = () => {
   });
 };
 
+// Fetch collection history for a single order
+export const useOrderDocCollections = (orderId: string | null) => {
+  return useQuery({
+    queryKey: ['order-doc-collections', orderId],
+    enabled: !!orderId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('document_collections')
+        .select('id, action, amount, collection_type, notes, created_at, status')
+        .eq('order_id', orderId!)
+        .eq('action', 'collected')
+        .in('status', ['pending', 'approved'])
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return (data || []) as Array<{
+        id: string; action: string; amount: number | null;
+        collection_type: 'cash' | 'doc' | null; notes: string | null;
+        created_at: string; status: string;
+      }>;
+    },
+  });
+};
+
 // Create a document collection record
 export const useCreateDocCollection = () => {
   const queryClient = useQueryClient();
@@ -171,22 +194,9 @@ export const useCreateDocCollection = () => {
       action: 'no_collection' | 'collected';
       nextDueDate?: string;
       notes?: string;
+      amount?: number;
+      collectionType?: 'cash' | 'doc';
     }) => {
-      // Guard: prevent duplicate collected records for the same order
-      if (params.action === 'collected') {
-        const { data: existing } = await supabase
-          .from('document_collections')
-          .select('id')
-          .eq('order_id', params.orderId)
-          .eq('action', 'collected')
-          .in('status', ['pending', 'approved'])
-          .maybeSingle();
-
-        if (existing) {
-          throw new Error('تم تحصيل هذا المستند مسبقاً');
-        }
-      }
-
       const { data, error } = await supabase
         .from('document_collections')
         .insert({
@@ -195,67 +205,83 @@ export const useCreateDocCollection = () => {
           action: params.action,
           next_due_date: params.nextDueDate || null,
           notes: params.notes || null,
-        })
+          amount: params.amount ?? null,
+          collection_type: params.collectionType ?? null,
+        } as any)
         .select()
         .single();
 
       if (error) throw error;
 
-      // If collected, update doc_due_date on order for next visit tracking
+      // If collected: only mark verified when total collected covers the order
       if (params.action === 'collected') {
-        await supabase
+        const { data: order } = await supabase
           .from('orders')
-          .update({ document_status: 'verified' })
-          .eq('id', params.orderId);
+          .select('total_amount, invoice_payment_method')
+          .eq('id', params.orderId)
+          .single();
 
-        // Auto-deduct linked debt: find debt for this order and register payment
-        // Only if debt is still unpaid (guard against double payment)
-        const { data: linkedDebt } = await supabase
-          .from('customer_debts')
-          .select('id, remaining_amount, paid_amount, total_amount, status')
+        const orderTotal = Number(order?.total_amount || 0);
+
+        const { data: allCollections } = await supabase
+          .from('document_collections')
+          .select('amount')
           .eq('order_id', params.orderId)
-          .in('status', ['active', 'partially_paid'])
-          .maybeSingle();
+          .eq('action', 'collected')
+          .in('status', ['pending', 'approved']);
 
-        if (linkedDebt && Number(linkedDebt.remaining_amount) > 0) {
-          // Check if auto-payment already exists for this debt from doc collection
-          const { data: existingPayment } = await supabase
-            .from('debt_payments')
-            .select('id')
-            .eq('debt_id', linkedDebt.id)
-            .ilike('notes', '%تسديد تلقائي - تحصيل مستند%')
+        const totalCollected = (allCollections || []).reduce(
+          (s, c: any) => s + Number(c.amount || 0), 0
+        );
+
+        // If amount was not provided (legacy / non-versement), treat as full
+        const isFullyCollected = (params.amount == null)
+          || (orderTotal > 0 && totalCollected >= orderTotal - 0.01);
+
+        if (isFullyCollected) {
+          await supabase
+            .from('orders')
+            .update({ document_status: 'verified' })
+            .eq('id', params.orderId);
+
+          // Auto-deduct linked debt (only when fully collected)
+          const { data: linkedDebt } = await supabase
+            .from('customer_debts')
+            .select('id, remaining_amount, paid_amount, total_amount, status')
+            .eq('order_id', params.orderId)
+            .in('status', ['active', 'partially_paid'])
             .maybeSingle();
 
-          if (!existingPayment) {
-            const { data: order } = await supabase
-              .from('orders')
-              .select('total_amount, invoice_payment_method')
-              .eq('id', params.orderId)
-              .single();
-
-            const amountToPay = Number(linkedDebt.remaining_amount);
-            const paymentMethod = order?.invoice_payment_method || 'check';
-
-            await supabase
+          if (linkedDebt && Number(linkedDebt.remaining_amount) > 0) {
+            const { data: existingPayment } = await supabase
               .from('debt_payments')
-              .insert({
-                debt_id: linkedDebt.id,
-                worker_id: params.workerId,
-                amount: amountToPay,
-                payment_method: paymentMethod,
-                notes: `تسديد تلقائي - تحصيل مستند للطلبية`,
-              });
+              .select('id')
+              .eq('debt_id', linkedDebt.id)
+              .ilike('notes', '%تسديد تلقائي - تحصيل مستند%')
+              .maybeSingle();
 
-            const newPaid = Number(linkedDebt.paid_amount) + amountToPay;
-            const newStatus = newPaid >= Number(linkedDebt.total_amount) ? 'paid' : 'partially_paid';
+            if (!existingPayment) {
+              const amountToPay = Number(linkedDebt.remaining_amount);
+              const paymentMethod = order?.invoice_payment_method || 'check';
 
-            await supabase
-              .from('customer_debts')
-              .update({
-                paid_amount: newPaid,
-                status: newStatus,
-              })
-              .eq('id', linkedDebt.id);
+              await supabase
+                .from('debt_payments')
+                .insert({
+                  debt_id: linkedDebt.id,
+                  worker_id: params.workerId,
+                  amount: amountToPay,
+                  payment_method: paymentMethod,
+                  notes: `تسديد تلقائي - تحصيل مستند للطلبية`,
+                });
+
+              const newPaid = Number(linkedDebt.paid_amount) + amountToPay;
+              const newStatus = newPaid >= Number(linkedDebt.total_amount) ? 'paid' : 'partially_paid';
+
+              await supabase
+                .from('customer_debts')
+                .update({ paid_amount: newPaid, status: newStatus })
+                .eq('id', linkedDebt.id);
+            }
           }
         }
       } else if (params.nextDueDate) {
