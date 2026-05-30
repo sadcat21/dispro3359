@@ -871,6 +871,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
               productId: item.productId,
               productName: item.productName || null,
               quantity: item.quantity,
+              isUnitSale: !!item.isUnitSale,
               giftBoxes: Number(item.giftQuantity || 0),
               giftPieces: Number((item as any).giftPieces || 0),
               piecesPerBox: ppb,
