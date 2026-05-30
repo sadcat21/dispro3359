@@ -1516,8 +1516,13 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                               const methodMap: Record<string, string> = { receipt: 'VRST', check: 'CHK', cash: 'ESP', transfer: 'VRMT' };
                               const subTypeMap: Record<string, string> = { cash: 'Cash', doc: 'Doc' };
                               const methodSuffix = item.itemPaymentType === 'with_invoice' && item.itemInvoicePaymentMethod
-                                ? `-${methodMap[item.itemInvoicePaymentMethod]}${item.itemInvoicePaymentMethod === 'receipt' && item.itemInvoicePaymentSubType ? ` ${subTypeMap[item.itemInvoicePaymentSubType]}` : ''}`
+                                ? `-${methodMap[item.itemInvoicePaymentMethod]}`
                                 : '';
+                              const subBadge = item.itemPaymentType === 'with_invoice'
+                                && item.itemInvoicePaymentMethod === 'receipt'
+                                && item.itemInvoicePaymentSubType
+                                ? subTypeMap[item.itemInvoicePaymentSubType]
+                                : null;
                               const code = item.itemPaymentType === 'with_invoice'
                                 ? `F1${methodSuffix}`
                                 : item.priceSubType === 'super_gros' ? 'SG'
@@ -1525,9 +1530,16 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
                                 : item.priceSubType === 'gros' ? 'G'
                                 : null;
                               return code ? (
-                                <Badge variant="secondary" className="me-1 text-[10px] px-1 py-0 font-bold">
-                                  {code}
-                                </Badge>
+                                <>
+                                  <Badge variant="secondary" className="me-1 text-[10px] px-1 py-0 font-bold">
+                                    {code}
+                                  </Badge>
+                                  {subBadge && (
+                                    <Badge variant="outline" className="me-1 text-[10px] px-1 py-0 font-bold">
+                                      {subBadge}
+                                    </Badge>
+                                  )}
+                                </>
                               ) : null;
                             })()}
                             {item.customUnitPrice !== undefined && (
