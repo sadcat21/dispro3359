@@ -91,10 +91,11 @@ const Invoice1StatusDialog: React.FC<Props> = ({ open, onOpenChange, branchId })
         const invoiceReceived = !!o.invoice_received_at;
         const attached = dv.attached_to_invoice === true;
 
+        // payment_type='with_invoice' is already enforced in the query, so the
+        // invoice always exists conceptually. Document received → ready (both).
         let bucket: Bucket;
-        if (attached || (docReceived && invoiceReceived)) bucket = 'both';
+        if (attached || docReceived) bucket = 'both';
         else if (invoiceReceived && !docReceived) bucket = 'invoice_no_doc';
-        else if (docReceived && !invoiceReceived) bucket = 'doc_no_invoice';
         else bucket = 'invoice_no_doc';
 
         const ipm = o.invoice_payment_method;
