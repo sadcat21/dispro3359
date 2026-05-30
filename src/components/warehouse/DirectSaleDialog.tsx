@@ -888,6 +888,9 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           customerName: selectedCustomer?.name || null,
           items: orderItems.map((item) => {
             const prod = availableProducts.find((p) => p.id === item.productId);
+            const pt = (item.itemPaymentType ?? frozenPaymentType) as any;
+            const im = (item.itemInvoicePaymentMethod !== undefined ? item.itemInvoicePaymentMethod : frozenInvoiceMethod) as any;
+            const is = (item.itemInvoicePaymentSubType !== undefined ? item.itemInvoicePaymentSubType : invoicePaymentSubType) as any;
             return {
               productId: item.productId,
               productName: prod?.name || null,
@@ -898,6 +901,10 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
               unitPrice: item.unitPrice,
               totalPrice: item.totalPrice,
               offerId: (item as any).giftOfferId || null,
+              paymentType: pt || null,
+              invoicePaymentMethod: im || null,
+              invoicePaymentSubType: is || null,
+              paymentGroupKey: buildPaymentKey(pt, im, is),
             };
           }),
         });
