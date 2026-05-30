@@ -914,41 +914,31 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
         const isDeferred = !!(effOfferId && deferredOfferIdSet.has(effOfferId));
         if (isDeferred) { effGiftBoxes = 0; effGiftPieces = 0; }
 
-        // item.quantity (b.p) = paidBoxes + storedGiftBoxes (+ gift pieces in decimal).
-        // For deferred offers, full gift boxes AND gift pieces must stay out of
-        // stock deduction until confirmation.
+        // item.quantity is stored as fractional boxes (e.g. 0.5 box = 10 pieces when ppb=20).
+        // paid pieces = (paidBoxes + storedGiftBoxes) * ppb. For deferred offers, gift boxes
+        // and gift pieces must stay out of stock deduction until confirmation.
         const extraGiftBoxes = useRecalc ? Math.max(0, effGiftBoxes - storedGiftBoxes) : 0;
-        const qtyRounded = Math.round(Number(item.quantity || 0) * 100) / 100;
-        const qtyBoxesPart = Math.floor(qtyRounded);
-        const qtyPiecesPart = Math.round((qtyRounded - qtyBoxesPart) * 100);
-        const qtyTotalPieces = qtyBoxesPart * ppb + qtyPiecesPart;
-        // For deferred: subtract gift boxes from deduction (they will deduct on confirmation).
-        // Gift PIECES are tracked separately and are NOT included in item.quantity / qtyTotalPieces,
-        // so we must not subtract them here — doing so produced phantom "0.19" sales for 1-box deliveries.
+        const qtyRounded = Math.max(0, Number(item.quantity || 0));
+        const qtyTotalPieces = Math.round(qtyRounded * ppb);
         const deductTotalPieces = isDeferred
           ? Math.max(0, qtyTotalPieces - storedGiftBoxes * ppb)
           : qtyTotalPieces;
         const soldPieces = deductTotalPieces;
         const stockDeductQty = isDeferred
-          ? Math.floor(deductTotalPieces / ppb) + (deductTotalPieces % ppb) / 100
+          ? deductTotalPieces / ppb
           : qtyRounded;
         const totalDeductPieces = soldPieces + extraGiftBoxes * ppb + effGiftPieces;
 
         const ws = stockItems?.find(s => s.product_id === item.productId);
         if (ws) {
-          const stockRounded = Math.round(Number(ws.quantity || 0) * 100) / 100;
-          const stockBoxes = Math.floor(stockRounded);
-          const stockDec = Math.round((stockRounded - stockBoxes) * 100);
-          const stockPieces = stockBoxes * ppb + stockDec;
+          const stockPieces = Math.round(Number(ws.quantity || 0) * ppb);
           const remainingPieces = Math.max(0, stockPieces - totalDeductPieces);
-          const newBoxes = Math.floor(remainingPieces / ppb);
-          const newRem = Math.round(remainingPieces % ppb);
-          const newQty = newBoxes + newRem / 100;
+          const newQty = remainingPieces / ppb;
           const stockTable = isWarehouseManager ? 'warehouse_stock' : 'worker_stock';
           await supabase.from(stockTable).update({ quantity: newQty }).eq('id', ws.id);
         }
-        // Record stock movement (in b.p form, including gift portion)
-        const movementQty = stockDeductQty + extraGiftBoxes + (effGiftPieces / 100);
+        // Record stock movement (fractional boxes, including gift portion)
+        const movementQty = stockDeductQty + extraGiftBoxes + (effGiftPieces / ppb);
         await supabase.from('stock_movements').insert({
           product_id: item.productId,
           branch_id: order.branch_id || activeBranch?.id || null,
