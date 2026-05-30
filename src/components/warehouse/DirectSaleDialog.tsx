@@ -45,7 +45,7 @@ import { useTrackVisit } from '@/hooks/useVisitTracking';
 import { sendSmsDirectly, buildDeliveryConfirmationSms } from '@/utils/smsHelper';
 import { loadSmsSettings, buildSmsFromTemplate, openSmsApp } from '@/components/settings/SmsSettingsCard';
 import { useProductOffers } from '@/hooks/useProductOffers';
-import { getGiftTotalPieces, getPaidQuantity as getStoredPaidQuantity } from '@/utils/orderItemQuantities';
+import { getGiftTotalPieces, getPaidQuantity as getStoredPaidQuantity, toStoredOrderItemQuantity } from '@/utils/orderItemQuantities';
 import { boxesToBP } from '@/utils/boxPieceInput';
 import { splitOrderByPaymentGroup, buildPaymentKey } from '@/utils/splitOrderByPaymentGroup';
 import SplitPaymentConfirmDialog, { GroupPaymentResult } from '@/components/sales/SplitPaymentConfirmDialog';
@@ -89,9 +89,7 @@ interface OrderItemWithPrice {
 }
 
 const toStoredBpQuantity = (quantity: number, piecesPerBox: number, isUnitSale?: boolean): number => {
-  const qty = Math.max(0, Number(quantity || 0));
-  if (isUnitSale) return qty;
-  return Number(boxesToBP(qty, Math.max(1, Number(piecesPerBox || 1))));
+  return toStoredOrderItemQuantity(quantity, piecesPerBox, isUnitSale);
 };
 
 const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({

@@ -43,6 +43,7 @@ import CustomerDistanceIndicator from './CustomerDistanceIndicator';
 import SimpleProductPickerDialog from '@/components/stock/SimpleProductPickerDialog';
 import { cn } from '@/lib/utils';
 import { getCustomerTypesArray } from '@/utils/customerTypes';
+import { toStoredOrderItemQuantity } from '@/utils/orderItemQuantities';
 
 interface DeliverySaleDialogProps {
   open: boolean;
@@ -66,6 +67,7 @@ interface SaleItem {
   piecesPerBox: number;
   pricingUnit?: string;
   weightPerBox?: number | null;
+  isUnitSale?: boolean;
 }
 
 const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
@@ -353,6 +355,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
           piecesPerBox: ppb,
           pricingUnit: (item as any).pricing_unit || item.product?.pricing_unit || 'box',
           weightPerBox: (item as any).weight_per_box ?? item.product?.weight_per_box ?? null,
+          isUnitSale: !!(item as any).is_unit_sale,
         };
       }));
       setNotes(order.notes || '');
@@ -586,6 +589,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
       pricingUnit?: string;
       weightPerBox?: number | null;
       piecesPerBox?: number;
+      isUnitSale?: boolean;
     }[] = [];
     for (const item of saleItems) {
       if (item.originalItemId && item.originalQuantity > 0 && item.quantity < item.originalQuantity) {
@@ -599,6 +603,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
           pricingUnit: item.pricingUnit,
           weightPerBox: item.weightPerBox,
           piecesPerBox: item.piecesPerBox,
+          isUnitSale: item.isUnitSale,
         });
       }
     }
@@ -789,7 +794,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
           ) {
             // Update changed quantity
             await supabase.from('order_items').update({
-              quantity: item.quantity,
+              quantity: toStoredOrderItemQuantity(item.quantity, item.piecesPerBox, item.isUnitSale),
               unit_price: item.unitPrice,
               total_price: item.totalPrice,
               gift_quantity: item.giftQuantity || 0,
@@ -806,7 +811,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
           await supabase.from('order_items').insert({
             order_id: order.id,
             product_id: item.productId,
-            quantity: item.quantity,
+            quantity: toStoredOrderItemQuantity(item.quantity, item.piecesPerBox, item.isUnitSale),
             unit_price: item.unitPrice,
             total_price: item.totalPrice,
             gift_quantity: item.giftQuantity || 0,
@@ -1112,7 +1117,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
             const newItems = partialDeliveryDiff.map(diff => ({
               order_id: newOrder.id,
               product_id: diff.productId,
-              quantity: diff.diffQty,
+              quantity: toStoredOrderItemQuantity(diff.diffQty, diff.piecesPerBox, diff.isUnitSale),
               unit_price: diff.unitPrice,
               total_price: diff.diffQty * diff.unitPrice,
               pricing_unit: diff.pricingUnit || 'box',

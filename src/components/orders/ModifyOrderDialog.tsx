@@ -29,7 +29,7 @@ import FrozenWorkerBadge from '@/components/workers/FrozenWorkerBadge';
 import { useActiveStampTiers, calculateStampAmount } from '@/hooks/useStampTiers';
 import ProductQuantityDialog from '@/components/orders/ProductQuantityDialog';
 import SimpleProductPickerDialog from '@/components/stock/SimpleProductPickerDialog';
-import { getGiftTotalBoxes, getGiftTotalPieces, getPaidQuantity as getStoredPaidQuantity } from '@/utils/orderItemQuantities';
+import { getGiftTotalBoxes, getGiftTotalPieces, getPaidQuantity as getStoredPaidQuantity, toStoredOrderItemQuantity } from '@/utils/orderItemQuantities';
 import { boxesToBP, boxesToBPAlways } from '@/utils/boxPieceInput';
 import { getCustomerTypesArray } from '@/utils/customerTypes';
 import { restoreStockFromMovements, type StockMovementForReversal } from '@/utils/stockMovementReversal';
@@ -999,7 +999,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
             const boxPrice = item.unit_price * multiplier;
 
             await updateOrderItemWithFallback(item.id, {
-              quantity: item.new_quantity,
+              quantity: toStoredOrderItemQuantity(item.new_quantity, item.pieces_per_box, item.is_unit_sale),
               gift_quantity: item.gift_quantity || 0,
               gift_pieces: item.gift_pieces || 0,
               unit_price: boxPrice,
@@ -1031,7 +1031,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
           await insertOrderItemWithFallback({
             order_id: order.id,
             product_id: item.product_id,
-            quantity: item.new_quantity,
+            quantity: toStoredOrderItemQuantity(item.new_quantity, item.pieces_per_box, item.is_unit_sale),
             gift_quantity: item.gift_quantity || 0,
             gift_pieces: item.gift_pieces || 0,
             unit_price: boxPrice,

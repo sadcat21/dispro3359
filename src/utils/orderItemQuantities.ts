@@ -27,6 +27,25 @@ export const getGiftTotalBoxes = (item: GiftBreakdownInput): number => {
   return getGiftTotalPieces(item) / piecesPerBox;
 };
 
+export const toStoredOrderItemQuantity = (
+  quantity: number | null | undefined,
+  piecesPerBox: number | null | undefined,
+  isUnitSale?: boolean | null,
+): number => {
+  const safeQuantity = Math.max(0, toNumber(quantity));
+  const safePiecesPerBox = Math.max(1, toNumber(piecesPerBox) || 1);
+
+  if (isUnitSale) {
+    return safeQuantity;
+  }
+
+  const boxes = Math.floor(safeQuantity);
+  const fractionalBoxes = safeQuantity - boxes;
+  const pieces = Math.round(fractionalBoxes * safePiecesPerBox);
+
+  return Number(`${boxes}.${String(Math.max(0, pieces)).padStart(2, '0')}`);
+};
+
 export const getPaidQuantity = (item: GiftBreakdownInput): number => {
   const piecesPerBox = Math.max(1, toNumber(item.pieces_per_box) || 1);
   const rawQuantity = Math.max(0, toNumber(item.quantity));
