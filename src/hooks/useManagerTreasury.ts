@@ -145,7 +145,11 @@ export const useManagerTreasury = (range?: TreasuryDateRange) => {
           .from('accounting_sessions')
           .select('id, manager_id, branch_id, completed_at, items:accounting_session_items(item_type, actual_amount)')
           .eq('manager_id', perManager)
-          .eq('status', 'completed');
+          .eq('status', 'completed')
+          // Gate: only sessions whose review has been confirmed by the manager
+          // flow into treasury. Unreviewed sessions must NOT appear here.
+          .eq('is_treasury_posted', true)
+          .not('review_session_id', 'is', null);
         if (activeBranch?.id) sessionQuery = sessionQuery.eq('branch_id', activeBranch.id);
         if (range?.from) sessionQuery = sessionQuery.gte('completed_at', `${range.from}T00:00:00`);
         if (range?.to) sessionQuery = sessionQuery.lte('completed_at', `${range.to}T23:59:59`);
