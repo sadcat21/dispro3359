@@ -868,7 +868,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                   className={cn(
                     'relative mx-auto flex h-12 w-12 items-center justify-center rounded-lg transition-all active:scale-95',
                     item.path === '/'
-                      ? (isActive ? 'bg-yellow-500/15 text-yellow-500' : 'text-yellow-500 hover:bg-yellow-500/10')
+                      ? (isActive ? 'bg-purple-500/15 text-purple-500' : 'text-purple-500 hover:bg-purple-500/10')
                       : isActive
                         ? 'bg-sidebar-primary/15 text-sidebar-primary'
                         : 'text-sidebar-foreground/65 hover:bg-sidebar-accent hover:text-sidebar-foreground'
