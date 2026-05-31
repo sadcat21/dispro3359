@@ -895,13 +895,13 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
             <th style="text-align:left;padding-left:8px">Vendeur</th>
             <th>Ventes</th>
             <th>Dépenses</th>
-            <th>Écart</th>
+            <th>Dettes</th>
             <th>Docs (Chèq.+Vir.)</th>
             <th>Ventes Cash</th>
             <th>Recouvrement</th>
             <th>Espèces</th>
             <th>Reçu Réel</th>
-            <th>Nouvelles Dettes</th>
+            <th>Écart</th>
             <th>Total</th>
           </tr>
         </thead>
