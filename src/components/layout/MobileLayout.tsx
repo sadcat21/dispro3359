@@ -900,8 +900,9 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                 ) : (
                   <Link
                     to={centerAction.to}
+                    {...(isBranchAdmin && centerAction.to === '/accounting' ? makeLongPress('accounting') : {})}
                     className={cn(
-                      'relative flex h-12 w-12 items-center justify-center rounded-lg text-sidebar-primary-foreground shadow-lg transition-transform active:scale-95 hover:scale-105',
+                      'relative flex h-12 w-12 items-center justify-center rounded-lg text-sidebar-primary-foreground shadow-lg transition-transform active:scale-95 hover:scale-105 select-none',
                       centerAction.color === 'blue' ? 'bg-blue-600 hover:bg-blue-700 text-white' : centerAction.color === 'red' ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-sidebar-primary',
                     )}
                     title={centerAction.label}
