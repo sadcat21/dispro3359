@@ -1067,6 +1067,58 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
             )}
         </div>
 
+          {/* فقاعة الضغط المطوّل */}
+          {bubbleMenu && (
+            <div className="fixed inset-0 z-[110]" onClick={() => setBubbleMenu(null)}>
+              <div className="absolute inset-0 bg-black/30" />
+              <div
+                className="absolute left-1/2 -translate-x-1/2 bg-popover text-popover-foreground rounded-2xl shadow-2xl border border-border p-2 flex gap-2 animate-in fade-in zoom-in duration-150"
+                style={{ bottom: `calc(72px + env(safe-area-inset-bottom))` }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {bubbleMenu === 'accounting' ? (
+                  <>
+                    <Link
+                      to="/manager-treasury"
+                      onClick={() => setBubbleMenu(null)}
+                      className="flex flex-col items-center gap-1 rounded-xl px-4 py-3 hover:bg-amber-500/10 text-amber-600 min-w-[96px]"
+                    >
+                      <Wallet className="h-6 w-6" />
+                      <span className="text-xs font-medium">خزينة المدير</span>
+                    </Link>
+                    <Link
+                      to="/manager-accounting-review"
+                      onClick={() => setBubbleMenu(null)}
+                      className="flex flex-col items-center gap-1 rounded-xl px-4 py-3 hover:bg-emerald-500/10 text-emerald-600 min-w-[96px]"
+                    >
+                      <BookOpenCheck className="h-6 w-6" />
+                      <span className="text-xs font-medium">تدقيق الحسابات</span>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="/warehouse-review"
+                      onClick={() => setBubbleMenu(null)}
+                      className="flex flex-col items-center gap-1 rounded-xl px-4 py-3 hover:bg-teal-500/10 text-teal-600 min-w-[96px]"
+                    >
+                      <ShieldCheck className="h-6 w-6" />
+                      <span className="text-xs font-medium">مراجعة المخزون</span>
+                    </Link>
+                    <Link
+                      to="/surplus-deficit"
+                      onClick={() => setBubbleMenu(null)}
+                      className="flex flex-col items-center gap-1 rounded-xl px-4 py-3 hover:bg-amber-500/10 text-amber-600 min-w-[96px]"
+                    >
+                      <Wallet className="h-6 w-6" />
+                      <span className="text-xs font-medium">خزينة الفائض والعجز</span>
+                    </Link>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* قائمة المزيد */}
           {moreOpen && (
             <div className="fixed inset-0 z-[100]" onClick={() => setMoreOpen(false)}>
