@@ -892,6 +892,8 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
             <th>Horodatage</th>
             <th style="text-align:left;padding-left:8px">Vendeur</th>
             <th>Ventes</th>
+            <th>Docs (Chèq.+Vir.)</th>
+            <th>Ventes Cash</th>
             <th>Espèces</th>
             <th>Écart</th>
             <th>Nouvelles Dettes</th>
