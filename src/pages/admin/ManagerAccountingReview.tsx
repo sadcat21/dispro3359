@@ -892,7 +892,6 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
       <table>
         <thead>
           <tr>
-            <th>Horodatage</th>
             <th style="text-align:left;padding-left:8px">Vendeur</th>
             <th>Ventes</th>
             <th>Dépenses</th>
@@ -901,6 +900,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
             <th>Ventes Cash</th>
             <th>Recouvrement</th>
             <th>Espèces</th>
+            <th>Reçu Réel</th>
             <th>Nouvelles Dettes</th>
             <th>Total</th>
           </tr>
