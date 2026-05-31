@@ -204,6 +204,36 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   const [todayCustomersOpen, setTodayCustomersOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [invoice1Open, setInvoice1Open] = useState(false);
+  const [bubbleMenu, setBubbleMenu] = useState<null | 'accounting' | 'warehouse'>(null);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressTriggeredRef = useRef(false);
+  const makeLongPress = (key: 'accounting' | 'warehouse') => ({
+    onPointerDown: () => {
+      longPressTriggeredRef.current = false;
+      if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = setTimeout(() => {
+        longPressTriggeredRef.current = true;
+        setBubbleMenu(key);
+      }, 450);
+    },
+    onPointerUp: () => {
+      if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+    },
+    onPointerLeave: () => {
+      if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+    },
+    onPointerCancel: () => {
+      if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+    },
+    onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
+    onClick: (e: React.MouseEvent) => {
+      if (longPressTriggeredRef.current) {
+        e.preventDefault();
+        e.stopPropagation();
+        longPressTriggeredRef.current = false;
+      }
+    },
+  });
   const showInvoiceButton = isAdminRole(role);
   const { totalUnread } = useChat();
   const { startTracking } = useLocationBroadcast();
@@ -870,8 +900,9 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                 ) : (
                   <Link
                     to={centerAction.to}
+                    {...(isBranchAdmin && centerAction.to === '/accounting' ? makeLongPress('accounting') : {})}
                     className={cn(
-                      'relative flex h-12 w-12 items-center justify-center rounded-lg text-sidebar-primary-foreground shadow-lg transition-transform active:scale-95 hover:scale-105',
+                      'relative flex h-12 w-12 items-center justify-center rounded-lg text-sidebar-primary-foreground shadow-lg transition-transform active:scale-95 hover:scale-105 select-none',
                       centerAction.color === 'blue' ? 'bg-blue-600 hover:bg-blue-700 text-white' : centerAction.color === 'red' ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-sidebar-primary',
                     )}
                     title={centerAction.label}
@@ -945,8 +976,9 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
             {isBranchAdmin ? (
               <Link
                 to="/warehouse"
+                {...makeLongPress('warehouse')}
                 className={cn(
-                  'relative mx-auto flex h-12 w-12 items-center justify-center rounded-lg transition-all active:scale-95',
+                  'relative mx-auto flex h-12 w-12 items-center justify-center rounded-lg transition-all active:scale-95 select-none',
                   location.pathname === '/warehouse'
                     ? 'bg-emerald-500/15 text-emerald-600'
                     : 'text-emerald-600/80 hover:bg-emerald-500/10 hover:text-emerald-600'
@@ -1034,6 +1066,58 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
               </React.Suspense>
             )}
         </div>
+
+          {/* فقاعة الضغط المطوّل */}
+          {bubbleMenu && (
+            <div className="fixed inset-0 z-[110]" onClick={() => setBubbleMenu(null)}>
+              <div className="absolute inset-0 bg-black/30" />
+              <div
+                className="absolute left-1/2 -translate-x-1/2 bg-popover text-popover-foreground rounded-2xl shadow-2xl border border-border p-2 flex gap-2 animate-in fade-in zoom-in duration-150"
+                style={{ bottom: `calc(72px + env(safe-area-inset-bottom))` }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {bubbleMenu === 'accounting' ? (
+                  <>
+                    <Link
+                      to="/manager-treasury"
+                      onClick={() => setBubbleMenu(null)}
+                      className="flex flex-col items-center gap-1 rounded-xl px-4 py-3 hover:bg-amber-500/10 text-amber-600 min-w-[96px]"
+                    >
+                      <Wallet className="h-6 w-6" />
+                      <span className="text-xs font-medium">خزينة المدير</span>
+                    </Link>
+                    <Link
+                      to="/manager-accounting-review"
+                      onClick={() => setBubbleMenu(null)}
+                      className="flex flex-col items-center gap-1 rounded-xl px-4 py-3 hover:bg-emerald-500/10 text-emerald-600 min-w-[96px]"
+                    >
+                      <BookOpenCheck className="h-6 w-6" />
+                      <span className="text-xs font-medium">تدقيق الحسابات</span>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="/warehouse-review"
+                      onClick={() => setBubbleMenu(null)}
+                      className="flex flex-col items-center gap-1 rounded-xl px-4 py-3 hover:bg-teal-500/10 text-teal-600 min-w-[96px]"
+                    >
+                      <ShieldCheck className="h-6 w-6" />
+                      <span className="text-xs font-medium">مراجعة المخزون</span>
+                    </Link>
+                    <Link
+                      to="/surplus-deficit"
+                      onClick={() => setBubbleMenu(null)}
+                      className="flex flex-col items-center gap-1 rounded-xl px-4 py-3 hover:bg-amber-500/10 text-amber-600 min-w-[96px]"
+                    >
+                      <Wallet className="h-6 w-6" />
+                      <span className="text-xs font-medium">خزينة الفائض والعجز</span>
+                    </Link>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* قائمة المزيد */}
           {moreOpen && (
