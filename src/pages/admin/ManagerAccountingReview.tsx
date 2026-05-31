@@ -747,13 +747,14 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
     const documents = get('invoice1_check') + get('invoice1_receipt') + get('invoice1_transfer');
     const ventesCash = get('total_sales') - documents;
     const ts = session.completed_at ? new Date(session.completed_at) : null;
-    const tsCell = ts
-      ? `<div style="color:#b91c1c;font-weight:800">${format(ts, 'HH:mm')}</div><div style="color:#0f172a;font-size:8px">${format(ts, 'yyyy-MM-dd')}</div>`
-      : '—';
+    const workerName = escapeHtml(session.worker?.full_name || session.worker?.username || '—');
+    const vendeurCell = ts
+      ? `<div style="font-weight:700;color:#0f172a;line-height:1.2">${workerName}</div><div style="color:#64748b;font-size:8px;margin-top:1px">${format(ts, 'yyyy-MM-dd HH:mm')}</div>`
+      : workerName;
+    const recuReel = get('physical_cash');
     return `
       <tr>
-        <td style="white-space:nowrap">${tsCell}</td>
-        <td>${escapeHtml(session.worker?.full_name || session.worker?.username || '—')}</td>
+        <td style="text-align:left;padding-left:8px">${vendeurCell}</td>
         <td>${get('total_sales').toLocaleString()}</td>
         <td>${get('expenses').toLocaleString()}</td>
         <td style="color:${diff >= 0 ? '#15803d' : '#b91c1c'};font-weight:800">${diff >= 0 ? '+' : ''}${diff.toLocaleString()}</td>
@@ -761,6 +762,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         <td style="font-weight:700;color:#059669">${ventesCash.toLocaleString()}</td>
         <td>${get('debt_collections_total').toLocaleString()}</td>
         <td>${get('physical_cash').toLocaleString()}</td>
+        <td style="font-weight:700;color:#7c3aed">${recuReel.toLocaleString()}</td>
         <td>${get('new_debts').toLocaleString()}</td>
         <td style="font-weight:800;color:#0369a1">${sessionTotal.toLocaleString()}</td>
       </tr>`;
@@ -782,7 +784,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
   const tTotal = tSales + tRecov - tExp - tNewDebts + tDiff;
   const totalRow = `
     <tr class="total-row" style="background:#fef2f2;font-weight:900;color:#000">
-      <td colspan="2" style="text-align:right;padding-right:8px;color:#dc2626">TOTAL</td>
+      <td style="text-align:right;padding-right:8px;color:#dc2626">TOTAL</td>
       <td>${tSales.toLocaleString()}</td>
       <td>${tExp.toLocaleString()}</td>
       <td style="color:${tDiff >= 0 ? '#15803d' : '#b91c1c'}">${tDiff >= 0 ? '+' : ''}${tDiff.toLocaleString()}</td>
@@ -790,6 +792,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
       <td style="color:#059669">${tVentesCash.toLocaleString()}</td>
       <td>${tRecov.toLocaleString()}</td>
       <td>${tCash.toLocaleString()}</td>
+      <td style="color:#7c3aed">${tCash.toLocaleString()}</td>
       <td>${tNewDebts.toLocaleString()}</td>
       <td style="color:#0369a1">${tTotal.toLocaleString()}</td>
     </tr>`;
@@ -889,7 +892,6 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
       <table>
         <thead>
           <tr>
-            <th>Horodatage</th>
             <th style="text-align:left;padding-left:8px">Vendeur</th>
             <th>Ventes</th>
             <th>Dépenses</th>
@@ -898,6 +900,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
             <th>Ventes Cash</th>
             <th>Recouvrement</th>
             <th>Espèces</th>
+            <th>Reçu Réel</th>
             <th>Nouvelles Dettes</th>
             <th>Total</th>
           </tr>
