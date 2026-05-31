@@ -118,7 +118,7 @@ export const useNavigation = () => {
       return {
         main: [
           { path: '/', icon: Home, label: t('nav.home') },
-          { path: '/promo-table', icon: FileSpreadsheet, label: t('nav.table') },
+          { path: '/surplus-deficit', icon: Scale, label: t('nav.surplus_deficit') },
           { path: '/stats', icon: BarChart3, label: t('nav.stats') },
         ],
         more: [
