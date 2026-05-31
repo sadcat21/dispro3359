@@ -593,9 +593,9 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[92dvh] min-h-0 overflow-hidden flex flex-col">
+      <DialogContent className="max-w-md max-h-[92dvh] min-h-0 overflow-hidden flex flex-col p-0">
         {!expandedProduct && (
-          <DialogHeader>
+          <DialogHeader className="shrink-0 px-6 pt-6 pb-2">
             <DialogTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <ShoppingBag className="w-5 h-5 text-primary" />
@@ -608,6 +608,9 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
             </DialogTitle>
           </DialogHeader>
         )}
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y px-6 pb-6">
+        <div className="flex flex-col min-h-full">
+        
 
         {!expandedProduct && (
           <div className="flex flex-wrap gap-1.5 items-center text-xs mb-3">
