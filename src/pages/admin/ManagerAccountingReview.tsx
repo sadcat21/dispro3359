@@ -761,7 +761,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         <td style="color:#1d4ed8">${documents.toLocaleString()}</td>
         <td style="font-weight:700;color:#059669">${ventesCash.toLocaleString()}</td>
         <td>${get('debt_collections_total').toLocaleString()}</td>
-        <td>${get('physical_cash').toLocaleString()}</td>
+        <td>${get('physical_cash', 'expected_amount').toLocaleString()}</td>
         <td style="font-weight:700;color:#7c3aed">${recuReel.toLocaleString()}</td>
         <td style="color:${diff >= 0 ? '#15803d' : '#b91c1c'};font-weight:800">${diff >= 0 ? '+' : ''}${diff.toLocaleString()}</td>
         <td style="font-weight:800;color:#0369a1">${sessionTotal.toLocaleString()}</td>
@@ -791,7 +791,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
       <td style="color:#1d4ed8">${tDocs.toLocaleString()}</td>
       <td style="color:#059669">${tVentesCash.toLocaleString()}</td>
       <td>${tRecov.toLocaleString()}</td>
-      <td>${tCash.toLocaleString()}</td>
+      <td>${sumField('physical_cash', 'expected_amount').toLocaleString()}</td>
       <td style="color:#7c3aed">${tCash.toLocaleString()}</td>
       <td style="color:${tDiff >= 0 ? '#15803d' : '#b91c1c'}">${tDiff >= 0 ? '+' : ''}${tDiff.toLocaleString()}</td>
       <td style="color:#0369a1">${tTotal.toLocaleString()}</td>
