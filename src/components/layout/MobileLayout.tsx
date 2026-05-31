@@ -942,24 +942,40 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
             ) : <div />}
 
             {/* زر إنجازات اليوم — أحمر */}
-            <Link
-              to="/my-achievements"
-              className={cn(
-                'relative mx-auto flex h-12 w-12 items-center justify-center rounded-lg transition-all active:scale-95',
-                location.pathname === '/my-achievements'
-                  ? 'bg-red-500/15 text-red-500'
-                  : 'text-red-500/80 hover:bg-red-500/10 hover:text-red-500'
-              )}
-              title={t('worker_home.today_achievements') || 'إنجازات اليوم'}
-              aria-label={t('worker_home.today_achievements') || 'إنجازات اليوم'}
-            >
-              <Trophy className="h-[23px] w-[23px]" strokeWidth={location.pathname === '/my-achievements' ? 2.45 : 1.85} />
-              {achievementsBadgeCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-sidebar bg-red-500 px-1 text-[10px] font-bold text-white">
-                  {achievementsBadgeCount > 99 ? '99+' : achievementsBadgeCount}
-                </span>
-              )}
-            </Link>
+            {isBranchAdmin ? (
+              <Link
+                to="/warehouse"
+                className={cn(
+                  'relative mx-auto flex h-12 w-12 items-center justify-center rounded-lg transition-all active:scale-95',
+                  location.pathname === '/warehouse'
+                    ? 'bg-emerald-500/15 text-emerald-600'
+                    : 'text-emerald-600/80 hover:bg-emerald-500/10 hover:text-emerald-600'
+                )}
+                title="مخزون الفرع"
+                aria-label="مخزون الفرع"
+              >
+                <Package className="h-[23px] w-[23px]" strokeWidth={location.pathname === '/warehouse' ? 2.45 : 1.85} />
+              </Link>
+            ) : (
+              <Link
+                to="/my-achievements"
+                className={cn(
+                  'relative mx-auto flex h-12 w-12 items-center justify-center rounded-lg transition-all active:scale-95',
+                  location.pathname === '/my-achievements'
+                    ? 'bg-red-500/15 text-red-500'
+                    : 'text-red-500/80 hover:bg-red-500/10 hover:text-red-500'
+                )}
+                title={t('worker_home.today_achievements') || 'إنجازات اليوم'}
+                aria-label={t('worker_home.today_achievements') || 'إنجازات اليوم'}
+              >
+                <Trophy className="h-[23px] w-[23px]" strokeWidth={location.pathname === '/my-achievements' ? 2.45 : 1.85} />
+                {achievementsBadgeCount > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-sidebar bg-red-500 px-1 text-[10px] font-bold text-white">
+                    {achievementsBadgeCount > 99 ? '99+' : achievementsBadgeCount}
+                  </span>
+                )}
+              </Link>
+            )}
 
             {mainNavItems[3] ? (
               <Link
