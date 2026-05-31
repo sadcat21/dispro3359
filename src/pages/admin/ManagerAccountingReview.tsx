@@ -744,6 +744,8 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
     };
     const diff = get('physical_cash') - get('physical_cash', 'expected_amount');
     const sessionTotal = get('total_sales') + get('debt_collections_total') - get('expenses') - get('new_debts') + diff;
+    const documents = get('invoice1_check') + get('invoice1_receipt') + get('invoice1_transfer');
+    const ventesCash = get('total_sales') - documents;
     const ts = session.completed_at ? new Date(session.completed_at) : null;
     const tsCell = ts
       ? `<div style="color:#b91c1c;font-weight:800">${format(ts, 'HH:mm')}</div><div style="color:#0f172a;font-size:8px">${format(ts, 'yyyy-MM-dd')}</div>`
@@ -753,6 +755,8 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         <td style="white-space:nowrap">${tsCell}</td>
         <td>${escapeHtml(session.worker?.full_name || session.worker?.username || '—')}</td>
         <td>${get('total_sales').toLocaleString()}</td>
+        <td style="color:#1d4ed8">${documents.toLocaleString()}</td>
+        <td style="font-weight:700;color:#059669">${ventesCash.toLocaleString()}</td>
         <td>${get('physical_cash').toLocaleString()}</td>
         <td style="color:${diff >= 0 ? '#15803d' : '#b91c1c'};font-weight:800">${diff >= 0 ? '+' : ''}${diff.toLocaleString()}</td>
         <td>${get('new_debts').toLocaleString()}</td>
