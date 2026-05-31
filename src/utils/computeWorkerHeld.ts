@@ -32,6 +32,25 @@ export async function computeWorkerHeld(
   if (range?.from) filtered = filtered.filter((o: any) => (o.delivery_date || '') >= range.from!);
   if (range?.to) filtered = filtered.filter((o: any) => (o.delivery_date || '') <= range.to!);
 
+  // Only count orders that have an approved delivery stock_movement — this is the
+  // source of truth aligned with SalesDetailsSummary. Orders flipped to delivered
+  // without producing a delivery movement (e.g. deferred-offer confirms, manual
+  // state restores) must be excluded to keep cash-held in sync with sales details.
+  const orderIds = filtered.map((o: any) => o.id).filter(Boolean);
+  const deliveredIds = new Set<string>();
+  const chunkSize = 500;
+  for (let i = 0; i < orderIds.length; i += chunkSize) {
+    const chunk = orderIds.slice(i, i + chunkSize);
+    const { data: sm } = await supabase
+      .from('stock_movements')
+      .select('order_id')
+      .eq('movement_type', 'delivery')
+      .eq('status', 'approved')
+      .in('order_id', chunk);
+    (sm || []).forEach((r: any) => { if (r.order_id) deliveredIds.add(r.order_id); });
+  }
+  filtered = filtered.filter((o: any) => deliveredIds.has(o.id));
+
   const { data: sessions } = await supabase
     .from('accounting_sessions')
     .select('worker_id, period_start, period_end')
