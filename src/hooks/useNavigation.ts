@@ -118,10 +118,11 @@ export const useNavigation = () => {
       return {
         main: [
           { path: '/', icon: Home, label: t('nav.home') },
-          { path: '/promo-table', icon: FileSpreadsheet, label: t('nav.table') },
+          { path: '/surplus-deficit', icon: Scale, label: t('nav.surplus_deficit') },
           { path: '/stats', icon: BarChart3, label: t('nav.stats') },
         ],
         more: [
+          { path: '/promo-table', icon: FileSpreadsheet, label: t('nav.table') },
           { path: '/orders', icon: ShoppingCart, label: t('nav.orders') },
           { path: '/order-tracking', icon: Radar, label: t('nav.order_tracking') },
           { path: '/my-deliveries', icon: Truck, label: t('nav.my_deliveries') },
