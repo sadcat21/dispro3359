@@ -593,9 +593,9 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[92dvh] min-h-0 overflow-hidden flex flex-col">
+      <DialogContent className="max-w-md max-h-[92dvh] min-h-0 overflow-hidden flex flex-col p-0">
         {!expandedProduct && (
-          <DialogHeader>
+          <DialogHeader className="shrink-0 px-6 pt-6 pb-2">
             <DialogTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <ShoppingBag className="w-5 h-5 text-primary" />
@@ -608,6 +608,9 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
             </DialogTitle>
           </DialogHeader>
         )}
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y px-6 pb-6">
+        <div className="flex flex-col min-h-full">
+        
 
         {!expandedProduct && (
           <div className="flex flex-wrap gap-1.5 items-center text-xs mb-3">
@@ -726,7 +729,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
         )}
 
         {!expandedProduct && salesData?.items?.length ? (
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col">
             <TabsList className="w-full shrink-0 grid grid-cols-4">
               <TabsTrigger value="products" className="text-xs">{t('sales_summary.tab_products')}</TabsTrigger>
               <TabsTrigger value="promos" className="text-xs">
@@ -741,8 +744,8 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
               <TabsTrigger value="groups" className="text-xs">{t('sales_summary.tab_groups')}</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="products" className="mt-1 flex min-h-0 flex-1 flex-col overflow-hidden">
-              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain touch-pan-y pe-1">
+            <TabsContent value="products" className="mt-1">
+              <div className="pe-1">
                 <div className="grid grid-cols-3 gap-2 pb-4">
                   {salesData.items.map((item) => (
                     <div
@@ -786,8 +789,8 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
               </div>
             </TabsContent>
 
-            <TabsContent value="promos" className="mt-1 flex min-h-0 flex-1 flex-col overflow-hidden">
-              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain touch-pan-y pe-1">
+            <TabsContent value="promos" className="mt-1">
+              <div className="pe-1">
                 {promoData?.promoTracking?.length ? (
                   <PromoTrackingSummary
                     items={promoData.promoTracking}
@@ -807,14 +810,14 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
               </div>
             </TabsContent>
 
-            <TabsContent value="pricing" className="mt-1 flex min-h-0 flex-1 flex-col overflow-hidden">
-              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain touch-pan-y pe-1">
+            <TabsContent value="pricing" className="mt-1">
+              <div className="pe-1">
                 <PriceTrackingTab priceTracking={salesData.priceTracking || []} />
               </div>
             </TabsContent>
 
-            <TabsContent value="groups" className="mt-1 flex min-h-0 flex-1 flex-col overflow-hidden">
-              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain touch-pan-y pe-1">
+            <TabsContent value="groups" className="mt-1">
+              <div className="pe-1">
                 <PricingGroupsSummary
                   workerId={workerId!}
                   periodStart={lastAccounting || new Date().toISOString().split('T')[0]}
@@ -824,7 +827,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
             </TabsContent>
           </Tabs>
         ) : (
-          <ScrollArea className="flex-1 min-h-0">
+          <ScrollArea className="">
             {isLoading ? (
               <div className="flex justify-center py-8">
                 <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
@@ -845,6 +848,8 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
             ) : null}
           </ScrollArea>
         )}
+        </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
