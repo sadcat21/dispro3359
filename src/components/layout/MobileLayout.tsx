@@ -897,14 +897,14 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
             {showInvoiceButton ? (
               isBranchAdmin ? (
                 <Link
-                  to="/branch-invoice-approvals"
+                  to="/branch-approvals"
                   className="relative mx-auto flex h-12 w-12 items-center justify-center rounded-lg text-sidebar-foreground/65 transition-all hover:bg-sidebar-accent hover:text-sidebar-foreground active:scale-95"
-                  title={t("tooltip.invoice_request")}
+                  title="صفحة الموافقات"
                 >
-                  <Receipt className="h-[23px] w-[23px]" strokeWidth={1.85} />
-                  {(pendingInvoiceCount || 0) > 0 && (
-                    <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-sidebar-primary text-[9px] font-bold text-sidebar-primary-foreground">
-                      {pendingInvoiceCount}
+                  <ShieldCheck className="h-[23px] w-[23px]" strokeWidth={1.85} />
+                  {(branchApprovalsPendingCount || 0) > 0 && (
+                    <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-sidebar bg-red-500 px-1 text-[10px] font-bold text-white">
+                      {(branchApprovalsPendingCount || 0) > 99 ? '99+' : branchApprovalsPendingCount}
                     </span>
                   )}
                 </Link>
