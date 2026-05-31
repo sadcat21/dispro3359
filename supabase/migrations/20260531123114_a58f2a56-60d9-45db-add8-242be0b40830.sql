@@ -1,0 +1,2 @@
+ALTER TABLE public.stock_confirmations DROP CONSTRAINT IF EXISTS stock_confirmations_status_check;
+ALTER TABLE public.stock_confirmations ADD CONSTRAINT stock_confirmations_status_check CHECK (status = ANY (ARRAY['pending'::text, 'approved'::text, 'rejected'::text, 'amended'::text, 'cancelled'::text]));
