@@ -976,8 +976,9 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
             {isBranchAdmin ? (
               <Link
                 to="/warehouse"
+                {...makeLongPress('warehouse')}
                 className={cn(
-                  'relative mx-auto flex h-12 w-12 items-center justify-center rounded-lg transition-all active:scale-95',
+                  'relative mx-auto flex h-12 w-12 items-center justify-center rounded-lg transition-all active:scale-95 select-none',
                   location.pathname === '/warehouse'
                     ? 'bg-emerald-500/15 text-emerald-600'
                     : 'text-emerald-600/80 hover:bg-emerald-500/10 hover:text-emerald-600'
