@@ -757,13 +757,13 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         <td style="text-align:left;padding-left:8px">${vendeurCell}</td>
         <td>${get('total_sales').toLocaleString()}</td>
         <td>${get('expenses').toLocaleString()}</td>
-        <td style="color:${diff >= 0 ? '#15803d' : '#b91c1c'};font-weight:800">${diff >= 0 ? '+' : ''}${diff.toLocaleString()}</td>
+        <td>${get('new_debts').toLocaleString()}</td>
         <td style="color:#1d4ed8">${documents.toLocaleString()}</td>
         <td style="font-weight:700;color:#059669">${ventesCash.toLocaleString()}</td>
         <td>${get('debt_collections_total').toLocaleString()}</td>
         <td>${get('physical_cash').toLocaleString()}</td>
         <td style="font-weight:700;color:#7c3aed">${recuReel.toLocaleString()}</td>
-        <td>${get('new_debts').toLocaleString()}</td>
+        <td style="color:${diff >= 0 ? '#15803d' : '#b91c1c'};font-weight:800">${diff >= 0 ? '+' : ''}${diff.toLocaleString()}</td>
         <td style="font-weight:800;color:#0369a1">${sessionTotal.toLocaleString()}</td>
       </tr>`;
   }).join('');
@@ -787,13 +787,13 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
       <td style="text-align:right;padding-right:8px;color:#dc2626">TOTAL</td>
       <td>${tSales.toLocaleString()}</td>
       <td>${tExp.toLocaleString()}</td>
-      <td style="color:${tDiff >= 0 ? '#15803d' : '#b91c1c'}">${tDiff >= 0 ? '+' : ''}${tDiff.toLocaleString()}</td>
+      <td>${tNewDebts.toLocaleString()}</td>
       <td style="color:#1d4ed8">${tDocs.toLocaleString()}</td>
       <td style="color:#059669">${tVentesCash.toLocaleString()}</td>
       <td>${tRecov.toLocaleString()}</td>
       <td>${tCash.toLocaleString()}</td>
       <td style="color:#7c3aed">${tCash.toLocaleString()}</td>
-      <td>${tNewDebts.toLocaleString()}</td>
+      <td style="color:${tDiff >= 0 ? '#15803d' : '#b91c1c'}">${tDiff >= 0 ? '+' : ''}${tDiff.toLocaleString()}</td>
       <td style="color:#0369a1">${tTotal.toLocaleString()}</td>
     </tr>`;
 
@@ -895,13 +895,13 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
             <th style="text-align:left;padding-left:8px">Vendeur</th>
             <th>Ventes</th>
             <th>Dépenses</th>
-            <th>Écart</th>
+            <th>Dettes</th>
             <th>Docs (Chèq.+Vir.)</th>
             <th>Ventes Cash</th>
             <th>Recouvrement</th>
             <th>Espèces</th>
             <th>Reçu Réel</th>
-            <th>Nouvelles Dettes</th>
+            <th>Écart</th>
             <th>Total</th>
           </tr>
         </thead>
