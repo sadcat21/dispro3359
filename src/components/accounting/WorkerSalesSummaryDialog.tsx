@@ -848,6 +848,8 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
             ) : null}
           </ScrollArea>
         )}
+        </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
