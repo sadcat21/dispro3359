@@ -757,13 +757,13 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         <td style="text-align:left;padding-left:8px">${vendeurCell}</td>
         <td>${get('total_sales').toLocaleString()}</td>
         <td>${get('expenses').toLocaleString()}</td>
-        <td style="color:${diff >= 0 ? '#15803d' : '#b91c1c'};font-weight:800">${diff >= 0 ? '+' : ''}${diff.toLocaleString()}</td>
+        <td>${get('new_debts').toLocaleString()}</td>
         <td style="color:#1d4ed8">${documents.toLocaleString()}</td>
         <td style="font-weight:700;color:#059669">${ventesCash.toLocaleString()}</td>
         <td>${get('debt_collections_total').toLocaleString()}</td>
         <td>${get('physical_cash').toLocaleString()}</td>
         <td style="font-weight:700;color:#7c3aed">${recuReel.toLocaleString()}</td>
-        <td>${get('new_debts').toLocaleString()}</td>
+        <td style="color:${diff >= 0 ? '#15803d' : '#b91c1c'};font-weight:800">${diff >= 0 ? '+' : ''}${diff.toLocaleString()}</td>
         <td style="font-weight:800;color:#0369a1">${sessionTotal.toLocaleString()}</td>
       </tr>`;
   }).join('');
