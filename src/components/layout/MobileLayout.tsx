@@ -204,6 +204,36 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   const [todayCustomersOpen, setTodayCustomersOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [invoice1Open, setInvoice1Open] = useState(false);
+  const [bubbleMenu, setBubbleMenu] = useState<null | 'accounting' | 'warehouse'>(null);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressTriggeredRef = useRef(false);
+  const makeLongPress = (key: 'accounting' | 'warehouse') => ({
+    onPointerDown: () => {
+      longPressTriggeredRef.current = false;
+      if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = setTimeout(() => {
+        longPressTriggeredRef.current = true;
+        setBubbleMenu(key);
+      }, 450);
+    },
+    onPointerUp: () => {
+      if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+    },
+    onPointerLeave: () => {
+      if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+    },
+    onPointerCancel: () => {
+      if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+    },
+    onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
+    onClick: (e: React.MouseEvent) => {
+      if (longPressTriggeredRef.current) {
+        e.preventDefault();
+        e.stopPropagation();
+        longPressTriggeredRef.current = false;
+      }
+    },
+  });
   const showInvoiceButton = isAdminRole(role);
   const { totalUnread } = useChat();
   const { startTracking } = useLocationBroadcast();
