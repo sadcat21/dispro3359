@@ -34,6 +34,9 @@ import { boxesToBP, boxesToBPAlways } from '@/utils/boxPieceInput';
 import { getCustomerTypesArray } from '@/utils/customerTypes';
 import { restoreStockFromMovements, type StockMovementForReversal } from '@/utils/stockMovementReversal';
 import { SaleSuccessDialog, SaleSuccessInfo, SalePaymentStatus } from '@/components/sales/SaleSuccessDialog';
+import ReceiptPaymentDialog from '@/components/orders/ReceiptPaymentDialog';
+import SplitPaymentConfirmDialog, { GroupPaymentResult } from '@/components/sales/SplitPaymentConfirmDialog';
+import { splitOrderByPaymentGroup } from '@/utils/splitOrderByPaymentGroup';
 
 interface ModifyOrderDialogProps {
   open: boolean;
@@ -163,6 +166,8 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCancellingOrder, setIsCancellingOrder] = useState(false);
   const [successInfo, setSuccessInfo] = useState<SaleSuccessInfo | null>(null);
+  const [showReceiptPaymentDialog, setShowReceiptPaymentDialog] = useState(false);
+  const [showSplitPaymentDialog, setShowSplitPaymentDialog] = useState(false);
 
   const showSaleSuccess = useCallback(async (mode: 'modify' | 'resume') => {
     try {
@@ -920,6 +925,38 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
       difference: i.new_quantity - i.original_quantity,
     }));
 
+  // Build payment groups for confirmation dialogs based on current items.
+  // Existing items keep their per-row payment metadata (order_items.payment_type /
+  // invoice_payment_method); new items fall back to the global selection.
+  const paymentGroupsForConfirmation = useMemo(() => {
+    const byProductId = new Map<string, any>();
+    for (const oi of orderItems) {
+      if (!byProductId.has(oi.product_id)) byProductId.set(oi.product_id, oi);
+    }
+    const splittable = items
+      .filter((it) => Number(it.new_quantity || 0) > 0 || Number(it.gift_pieces || 0) > 0)
+      .map((it) => {
+        const src: any = byProductId.get(it.product_id);
+        const itemPaymentType = (src?.payment_type as PaymentType | undefined) ?? (paymentType as PaymentType);
+        const itemInvoiceMethod = (src?.invoice_payment_method as InvoicePaymentMethod | null | undefined) ?? invoicePaymentMethod ?? null;
+        return {
+          productId: it.product_id,
+          productName: it.product_name,
+          quantity: Number(it.new_quantity || 0),
+          totalPrice: Number(it.new_quantity || 0) * Number(it.unit_price || 0),
+          itemPaymentType,
+          itemInvoicePaymentMethod: itemInvoiceMethod,
+          itemInvoicePaymentSubType: invoicePaymentSubType ?? null,
+        };
+      });
+    return splitOrderByPaymentGroup(splittable, {
+      paymentType: paymentType as PaymentType,
+      invoicePaymentMethod: (invoicePaymentMethod as InvoicePaymentMethod | null) ?? null,
+      invoicePaymentSubType: invoicePaymentSubType ?? null,
+    });
+  }, [items, orderItems, paymentType, invoicePaymentMethod, invoicePaymentSubType]);
+
+
   const loadCustomerFinancialContext = useCallback(async () => {
     const resolvedCustomerId = order.customer_id || order.customer?.id;
 
@@ -973,6 +1010,30 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
     }
     if (isSold) {
       await loadCustomerFinancialContext();
+
+      // Build payment groups from existing order_items (per-item payment metadata)
+      // plus any new items (inherit current global selection).
+      const groups = paymentGroupsForConfirmation;
+
+      // Multi-invoice payment confirmation (Cheque + Versement + ...)
+      if (groups.length > 1) {
+        setShowSplitPaymentDialog(true);
+        return;
+      }
+
+      // Cheque / Virement / Versement-Doc → dedicated receipt payment dialog
+      const isReceiptDocFlow =
+        paymentType === 'with_invoice' && (
+          invoicePaymentMethod === 'check' ||
+          invoicePaymentMethod === 'transfer' ||
+          (invoicePaymentMethod === 'receipt' && invoicePaymentSubType === 'doc')
+        );
+      if (isReceiptDocFlow) {
+        setShowReceiptPaymentDialog(true);
+        return;
+      }
+
+      // Default: adjustment / diff confirmation
       setConfirmMode('adjustment');
       setConfirmChanges(productChanges);
       setConfirmOriginalTotal(originalTotal);
@@ -995,6 +1056,35 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
 
     await handleSave(diffPaymentType, paidAmount);
   };
+
+  // Map payment-dialog result (absolute paid amount) into the diff-based
+  // contract expected by handleSave / executeConfirmedCancellation.
+  const mapPaidToDiff = (paid: number): { kind: 'full' | 'partial' | 'no_payment'; amount?: number } => {
+    if (paid <= 0) return { kind: 'no_payment' };
+    if (paid >= orderTotal - 0.009) return { kind: 'full' };
+    return { kind: 'partial', amount: paid };
+  };
+
+  const handleReceiptPaymentConfirm = async (data: {
+    receiptReceived: boolean;
+    paidByCash: boolean;
+    receiptAmount: number;
+    cashAmount: number;
+    remainingDebt: number;
+  }) => {
+    setShowReceiptPaymentDialog(false);
+    const paid = (data.receiptAmount || 0) + (data.cashAmount || 0);
+    const { kind, amount } = mapPaidToDiff(paid);
+    await handleSave(kind, amount);
+  };
+
+  const handleSplitPaymentConfirm = async (results: GroupPaymentResult[]) => {
+    setShowSplitPaymentDialog(false);
+    const paid = results.reduce((s, r) => s + (r.paidAmount || 0), 0);
+    const { kind, amount } = mapPaidToDiff(paid);
+    await handleSave(kind, amount);
+  };
+
 
   const handleSave = async (diffPaymentType?: 'full' | 'partial' | 'no_payment', paidAmount?: number) => {
     if (!hasChanges || !workerId) return;
@@ -2563,6 +2653,26 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
         customerHasDebt={customerDebtTotal > 0}
         customerDebtAmount={customerDebtTotal}
         customerCreditBalance={customerCreditTotal}
+      />
+
+      {/* Cheque / Virement / Versement-Doc payment confirmation */}
+      <ReceiptPaymentDialog
+        open={showReceiptPaymentDialog}
+        onOpenChange={setShowReceiptPaymentDialog}
+        orderTotal={orderTotal}
+        customerName={order.customer?.store_name || order.customer?.name || '—'}
+        paymentMethod={(invoicePaymentMethod === 'check' || invoicePaymentMethod === 'transfer' || invoicePaymentMethod === 'receipt') ? invoicePaymentMethod : 'receipt'}
+        hideCash={invoicePaymentMethod === 'receipt' && invoicePaymentSubType === 'doc'}
+        onConfirm={handleReceiptPaymentConfirm}
+      />
+
+      {/* Multi-invoice payment confirmation */}
+      <SplitPaymentConfirmDialog
+        open={showSplitPaymentDialog}
+        onOpenChange={setShowSplitPaymentDialog}
+        customerName={order.customer?.store_name || order.customer?.name || '—'}
+        groups={paymentGroupsForConfirmation as any}
+        onConfirmAll={handleSplitPaymentConfirm}
       />
 
       <SimpleProductPickerDialog
