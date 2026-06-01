@@ -482,6 +482,9 @@ export const WorkerBreakdown: React.FC<{ sessions: any[] }> = ({ sessions }) => 
               <MiniBox label="ديون جديدة" value={get('new_debts')} color="red" />
               <MiniBox label="تحصيل ديون" value={get('debt_collections_total')} color="orange" />
               <MiniBox label="مصاريف" value={expensesTotal} color="orange" />
+              <MiniBox label="شيك" value={get('invoice1_check') + get('debt_collections_check')} color="blue" />
+              <MiniBox label="فيرسمو" value={get('invoice1_receipt') + get('debt_collections_receipt')} color="blue" />
+              <MiniBox label="فيرمو" value={get('invoice1_transfer') + get('debt_collections_transfer')} color="blue" />
             </div>
             {expensesTotal > 0 && session.worker?.id && session.period_start && session.period_end && (
               <Collapsible>
