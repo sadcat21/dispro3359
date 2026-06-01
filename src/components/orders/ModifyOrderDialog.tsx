@@ -2149,8 +2149,21 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
         return sum + (paidQty * Number(item.unit_price || 0));
       }, 0);
 
+      const clampedPaid = Math.max(0, Math.min(Number(paidAmount || 0), totalAmount));
+      const remainingAmount = Math.max(0, totalAmount - clampedPaid);
+      const nextPaymentStatus = remainingAmount <= 0
+        ? 'cash'
+        : clampedPaid <= 0
+          ? 'pending'
+          : 'partial';
+
       await supabase.from('orders')
-        .update({ status: 'delivered', total_amount: totalAmount, payment_status: 'pending', partial_amount: null } as any)
+        .update({
+          status: 'delivered',
+          total_amount: totalAmount,
+          payment_status: nextPaymentStatus,
+          partial_amount: nextPaymentStatus === 'partial' ? clampedPaid : null,
+        } as any)
         .eq('id', order.id);
 
       const resolvedCustomerId = order.customer_id || order.customer?.id;
@@ -2163,24 +2176,24 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
 
         if (existingDebt) {
           await supabase.from('customer_debts')
-            .update({ total_amount: totalAmount, paid_amount: 0, remaining_amount: totalAmount, status: 'active', worker_id: effectiveWorkerId } as any)
+            .update({ total_amount: totalAmount, paid_amount: clampedPaid, remaining_amount: remainingAmount, status: remainingAmount <= 0 ? 'paid' : 'active', worker_id: effectiveWorkerId } as any)
             .eq('id', existingDebt.id);
-        } else if (totalAmount > 0) {
+        } else if (remainingAmount > 0) {
           await supabase.from('customer_debts').insert({
             customer_id: resolvedCustomerId,
             order_id: order.id,
             worker_id: effectiveWorkerId,
             branch_id: order.branch_id,
             total_amount: totalAmount,
-            paid_amount: 0,
-            remaining_amount: totalAmount,
+            paid_amount: clampedPaid,
+            remaining_amount: remainingAmount,
             status: 'active',
           } as any);
         }
       }
 
       await supabase.from('receipts')
-        .update({ total_amount: totalAmount, paid_amount: 0, remaining_amount: totalAmount } as any)
+        .update({ total_amount: totalAmount, paid_amount: clampedPaid, remaining_amount: remainingAmount } as any)
         .eq('order_id', order.id);
 
       await logActivity.mutateAsync({
