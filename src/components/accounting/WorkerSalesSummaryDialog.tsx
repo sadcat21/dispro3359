@@ -737,7 +737,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
                   <div className="bg-emerald-50 dark:bg-emerald-900/10 rounded-lg p-2.5 text-center">
                     <p className="text-[10px] text-muted-foreground">الكاش المقبوض</p>
                     <p className="font-bold text-lg text-emerald-600">
-                      {fmt((calc.invoice2?.cash || 0) + (calc.invoice1?.espaceCash || 0) + (calc.invoice1?.versementCash || 0) + (calc.debtCollections?.cash || 0))} DA
+                      {fmt((calc.invoice2?.cash || 0) + (calc.invoice1?.espaceCash || 0) + (calc.invoice1?.versementCash || 0))} DA
                     </p>
                   </div>
                   <div className="bg-orange-50 dark:bg-orange-900/10 rounded-lg p-2.5 text-center">
@@ -748,24 +748,30 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
                     <p className="text-[10px] text-muted-foreground">المصاريف</p>
                     <p className="font-bold text-lg text-orange-700">{fmt(calc.expenses || 0)} DA</p>
                   </div>
-                  <div className="bg-blue-50 dark:bg-blue-900/10 rounded-lg p-2.5 text-center">
-                    <p className="text-[10px] text-muted-foreground">شيك</p>
-                    <p className="font-bold text-lg text-blue-600">
-                      {fmt((calc.invoice1?.check || 0) + (calc.debtCollections?.check || 0))} DA
-                    </p>
-                  </div>
-                  <div className="bg-indigo-50 dark:bg-indigo-900/10 rounded-lg p-2.5 text-center">
-                    <p className="text-[10px] text-muted-foreground">فيرسمو (وصل)</p>
-                    <p className="font-bold text-lg text-indigo-600">
-                      {fmt((calc.invoice1?.receipt || 0) + (calc.debtCollections?.receipt || 0))} DA
-                    </p>
-                  </div>
-                  <div className="bg-purple-50 dark:bg-purple-900/10 rounded-lg p-2.5 text-center">
-                    <p className="text-[10px] text-muted-foreground">فيرمو (تحويل)</p>
-                    <p className="font-bold text-lg text-purple-600">
-                      {fmt((calc.invoice1?.transfer || 0) + (calc.debtCollections?.transfer || 0))} DA
-                    </p>
-                  </div>
+                  {(() => {
+                    const check = (calc.invoice1?.check || 0) + (calc.debtCollections?.check || 0);
+                    const receipt = (calc.invoice1?.receipt || 0) + (calc.debtCollections?.receipt || 0);
+                    const transfer = (calc.invoice1?.transfer || 0) + (calc.debtCollections?.transfer || 0);
+                    return (
+                      <div className="col-span-2 bg-blue-50 dark:bg-blue-900/10 rounded-lg p-2.5">
+                        <p className="text-[10px] text-muted-foreground text-center mb-1.5">مدفوعات وثائقية (Doc Payments)</p>
+                        <div className="grid grid-cols-3 gap-1.5 text-center">
+                          <div>
+                            <p className="text-[9px] text-muted-foreground">شيك</p>
+                            <p className="font-bold text-sm text-blue-600">{fmt(check)}</p>
+                          </div>
+                          <div>
+                            <p className="text-[9px] text-muted-foreground">فيرسمو</p>
+                            <p className="font-bold text-sm text-indigo-600">{fmt(receipt)}</p>
+                          </div>
+                          <div>
+                            <p className="text-[9px] text-muted-foreground">فيرمو</p>
+                            <p className="font-bold text-sm text-purple-600">{fmt(transfer)}</p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             );
