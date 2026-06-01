@@ -661,9 +661,16 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       const p = it.products || {};
       const ppb = Math.max(1, Number(p.pieces_per_box || 1));
       productMap.set(it.product_id, { name: p.app_name || p.name || '—', ppb });
-      // Convert DB-stored B.P quantities to fractional boxes so aggregation is correct
-      const qty = dbBPToBoxes(Number(it.quantity || 0), ppb);
-      const giftBoxes = dbBPToBoxes(Number(it.gift_quantity || 0), ppb);
+      // When pricing_unit is 'unit'/'piece', quantity is stored as raw pieces.
+      // Otherwise it's stored as B.P (boxes.pieces) format.
+      const itemPU = (it.pricing_unit || p.pricing_unit || 'box').toString().toLowerCase();
+      const isUnitSale = itemPU === 'unit' || itemPU === 'piece';
+      const qty = isUnitSale
+        ? Number(it.quantity || 0) / ppb
+        : dbBPToBoxes(Number(it.quantity || 0), ppb);
+      const giftBoxes = isUnitSale
+        ? Number(it.gift_quantity || 0) / ppb
+        : dbBPToBoxes(Number(it.gift_quantity || 0), ppb);
       const giftPiecesAsBoxes = Number(it.gift_pieces || 0) / ppb;
       const gift = giftBoxes + giftPiecesAsBoxes;
       const sub = (it.price_subtype || '').toLowerCase();
