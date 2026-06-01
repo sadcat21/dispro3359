@@ -2081,7 +2081,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
       queryClient.invalidateQueries({ queryKey: ['order-debt-details'] });
       queryClient.invalidateQueries({ queryKey: ['receipts'] });
       toast.success('تم استئناف المبيعة بنجاح');
-      onOpenChange(false);
+      await showSaleSuccess('resume');
     } catch (error: any) {
       toast.error(error.message || 'حدث خطأ');
     } finally {
