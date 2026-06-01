@@ -219,7 +219,8 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
   }, [order]);
   const [assignedWorkerId, setAssignedWorkerId] = useState(order.assigned_worker_id || '');
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [confirmMode, setConfirmMode] = useState<'adjustment' | 'cancel' | null>(null);
+  const [confirmMode, setConfirmMode] = useState<'adjustment' | 'cancel' | 'resume' | null>(null);
+  const pendingPaymentActionRef = useRef<null | 'save' | 'cancel' | 'resume'>(null);
   const [confirmChanges, setConfirmChanges] = useState<Array<{
     product_name: string;
     original_quantity: number;
@@ -1010,18 +1011,13 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
     }
     if (isSold) {
       await loadCustomerFinancialContext();
+      pendingPaymentActionRef.current = 'save';
 
-      // Build payment groups from existing order_items (per-item payment metadata)
-      // plus any new items (inherit current global selection).
       const groups = paymentGroupsForConfirmation;
-
-      // Multi-invoice payment confirmation (Cheque + Versement + ...)
       if (groups.length > 1) {
         setShowSplitPaymentDialog(true);
         return;
       }
-
-      // Cheque / Virement / Versement-Doc → dedicated receipt payment dialog
       const isReceiptDocFlow =
         paymentType === 'with_invoice' && (
           invoicePaymentMethod === 'check' ||
@@ -1032,8 +1028,6 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
         setShowReceiptPaymentDialog(true);
         return;
       }
-
-      // Default: adjustment / diff confirmation
       setConfirmMode('adjustment');
       setConfirmChanges(productChanges);
       setConfirmOriginalTotal(originalTotal);
@@ -1046,11 +1040,19 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
 
   const handlePostDeliveryConfirm = async (diffPaymentType: 'full' | 'partial' | 'no_payment', paidAmount?: number) => {
     const mode = confirmMode;
+    const action = pendingPaymentActionRef.current;
+    pendingPaymentActionRef.current = null;
     setShowConfirmDialog(false);
     setConfirmMode(null);
 
     if (mode === 'cancel') {
       await executeConfirmedCancellation(diffPaymentType, paidAmount);
+      return;
+    }
+    if (mode === 'resume' || action === 'resume') {
+      const total = Number(order.total_amount || orderTotal || 0);
+      const paid = diffPaymentType === 'full' ? total : diffPaymentType === 'no_payment' ? 0 : Number(paidAmount || 0);
+      await executeResume(paid);
       return;
     }
 
@@ -1065,6 +1067,17 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
     return { kind: 'partial', amount: paid };
   };
 
+  const dispatchPaymentResult = async (paid: number) => {
+    const action = pendingPaymentActionRef.current;
+    pendingPaymentActionRef.current = null;
+    if (action === 'resume') {
+      await executeResume(paid);
+      return;
+    }
+    const { kind, amount } = mapPaidToDiff(paid);
+    await handleSave(kind, amount);
+  };
+
   const handleReceiptPaymentConfirm = async (data: {
     receiptReceived: boolean;
     paidByCash: boolean;
@@ -1074,15 +1087,13 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
   }) => {
     setShowReceiptPaymentDialog(false);
     const paid = (data.receiptAmount || 0) + (data.cashAmount || 0);
-    const { kind, amount } = mapPaidToDiff(paid);
-    await handleSave(kind, amount);
+    await dispatchPaymentResult(paid);
   };
 
   const handleSplitPaymentConfirm = async (results: GroupPaymentResult[]) => {
     setShowSplitPaymentDialog(false);
     const paid = results.reduce((s, r) => s + (r.paidAmount || 0), 0);
-    const { kind, amount } = mapPaidToDiff(paid);
-    await handleSave(kind, amount);
+    await dispatchPaymentResult(paid);
   };
 
 
@@ -2077,6 +2088,35 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
       return;
     }
 
+    // Resuming a cancelled order: open the appropriate payment confirmation
+    // dialog FIRST, then run the DB resume inside executeResume(paidAmount).
+    await loadCustomerFinancialContext();
+    pendingPaymentActionRef.current = 'resume';
+
+    const groups = paymentGroupsForConfirmation;
+    if (groups.length > 1) {
+      setShowSplitPaymentDialog(true);
+      return;
+    }
+    const isReceiptDocFlow =
+      paymentType === 'with_invoice' && (
+        invoicePaymentMethod === 'check' ||
+        invoicePaymentMethod === 'transfer' ||
+        (invoicePaymentMethod === 'receipt' && invoicePaymentSubType === 'doc')
+      );
+    if (isReceiptDocFlow) {
+      setShowReceiptPaymentDialog(true);
+      return;
+    }
+    setConfirmMode('resume');
+    setConfirmChanges([]);
+    setConfirmOriginalTotal(0);
+    setConfirmNewTotal(Number(order.total_amount || 0));
+    setShowConfirmDialog(true);
+  };
+
+  const executeResume = async (paidAmount: number) => {
+    if (!workerId || !effectiveWorkerId) return;
     setIsCancellingOrder(true);
     try {
       const { data: currentItems, error: itemsError } = await supabase
@@ -2119,8 +2159,21 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
         return sum + (paidQty * Number(item.unit_price || 0));
       }, 0);
 
+      const clampedPaid = Math.max(0, Math.min(Number(paidAmount || 0), totalAmount));
+      const remainingAmount = Math.max(0, totalAmount - clampedPaid);
+      const nextPaymentStatus = remainingAmount <= 0
+        ? 'cash'
+        : clampedPaid <= 0
+          ? 'pending'
+          : 'partial';
+
       await supabase.from('orders')
-        .update({ status: 'delivered', total_amount: totalAmount, payment_status: 'pending', partial_amount: null } as any)
+        .update({
+          status: 'delivered',
+          total_amount: totalAmount,
+          payment_status: nextPaymentStatus,
+          partial_amount: nextPaymentStatus === 'partial' ? clampedPaid : null,
+        } as any)
         .eq('id', order.id);
 
       const resolvedCustomerId = order.customer_id || order.customer?.id;
@@ -2133,24 +2186,24 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
 
         if (existingDebt) {
           await supabase.from('customer_debts')
-            .update({ total_amount: totalAmount, paid_amount: 0, remaining_amount: totalAmount, status: 'active', worker_id: effectiveWorkerId } as any)
+            .update({ total_amount: totalAmount, paid_amount: clampedPaid, remaining_amount: remainingAmount, status: remainingAmount <= 0 ? 'paid' : 'active', worker_id: effectiveWorkerId } as any)
             .eq('id', existingDebt.id);
-        } else if (totalAmount > 0) {
+        } else if (remainingAmount > 0) {
           await supabase.from('customer_debts').insert({
             customer_id: resolvedCustomerId,
             order_id: order.id,
             worker_id: effectiveWorkerId,
             branch_id: order.branch_id,
             total_amount: totalAmount,
-            paid_amount: 0,
-            remaining_amount: totalAmount,
+            paid_amount: clampedPaid,
+            remaining_amount: remainingAmount,
             status: 'active',
           } as any);
         }
       }
 
       await supabase.from('receipts')
-        .update({ total_amount: totalAmount, paid_amount: 0, remaining_amount: totalAmount } as any)
+        .update({ total_amount: totalAmount, paid_amount: clampedPaid, remaining_amount: remainingAmount } as any)
         .eq('order_id', order.id);
 
       await logActivity.mutateAsync({
