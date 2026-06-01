@@ -133,12 +133,12 @@ const NavButton: React.FC<{
         isAchievements
           ? 'bg-green-500 hover:bg-green-600'
           : isHome
-            ? 'bg-red-500 hover:bg-red-600'
+            ? 'bg-yellow-400 hover:bg-yellow-500'
             : 'hover:bg-white/5',
       )}
       style={
         isAchievements ? { boxShadow: '0 6px 16px rgba(34,197,94,0.35)' }
-        : isHome ? { boxShadow: '0 6px 16px rgba(239,68,68,0.35)' }
+        : isHome ? { boxShadow: '0 6px 16px rgba(250,204,21,0.4)' }
         : undefined
       }
     >
@@ -147,9 +147,11 @@ const NavButton: React.FC<{
         strokeWidth={isActive ? 2.2 : 1.8}
         className={cn(
           'transition-colors duration-200',
-          isAchievements || isHome
+          isAchievements
             ? 'text-white'
-            : isActive ? (item.activeColor ?? 'text-red-500') : 'text-gray-400',
+            : isHome
+              ? 'text-gray-900'
+              : isActive ? (item.activeColor ?? 'text-red-500') : 'text-gray-400',
         )}
       />
       {item.badge ? (
