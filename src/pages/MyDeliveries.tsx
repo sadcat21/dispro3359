@@ -630,11 +630,11 @@ const MyDeliveries: React.FC = () => {
 
   // Tab definitions
   const tabs: { value: TabStatus; label: string; short: string; icon: React.ElementType; color: string }[] = [
-    { value: 'all', label: t('deliveries.tab_all'), short: 'الكل', icon: ListFilter, color: 'text-foreground' },
-    { value: 'pending', label: t('orders.pending'), short: 'انتظار', icon: Clock, color: 'text-yellow-600' },
-    { value: 'assigned', label: t('orders.assigned'), short: 'تعيين', icon: UserCheck, color: 'text-blue-600' },
-    { value: 'delivered', label: t('orders.delivered'), short: 'تم', icon: CheckCircle, color: 'text-green-600' },
-    { value: 'cancelled', label: t('orders.cancelled'), short: 'ملغي', icon: XCircle, color: 'text-red-600' },
+    { value: 'all', label: t('deliveries.tab_all'), short: t('deliveries.short_all'), icon: ListFilter, color: 'text-foreground' },
+    { value: 'pending', label: t('orders.pending'), short: t('deliveries.short_pending'), icon: Clock, color: 'text-yellow-600' },
+    { value: 'assigned', label: t('orders.assigned'), short: t('deliveries.short_assigned'), icon: UserCheck, color: 'text-blue-600' },
+    { value: 'delivered', label: t('orders.delivered'), short: t('deliveries.short_delivered'), icon: CheckCircle, color: 'text-green-600' },
+    { value: 'cancelled', label: t('orders.cancelled'), short: t('deliveries.short_cancelled'), icon: XCircle, color: 'text-red-600' },
   ];
 
   if (isLoading) {
@@ -688,23 +688,23 @@ const MyDeliveries: React.FC = () => {
             <div className="col-span-3 mt-1 pt-1 border-t border-dashed border-muted-foreground/20 grid grid-cols-2 gap-x-2 text-[10px] text-muted-foreground">
               <span className="inline-flex items-center gap-1 min-w-0">
                 <Calendar className="w-3 h-3 shrink-0" />
-                <span className="truncate">{t('orders.created_at') || 'تاريخ الإنشاء'}: {format(new Date(order.created_at), 'dd/MM/yyyy', { locale: getDateLocale(language) })}</span>
+                <span className="truncate">{t('orders.created_at')}: {format(new Date(order.created_at), 'dd/MM/yyyy', { locale: getDateLocale(language) })}</span>
               </span>
               <span className="inline-flex items-center gap-1 min-w-0 justify-end">
                 <Truck className="w-3 h-3 shrink-0" />
-                <span className="truncate">{t('orders.delivery_date') || 'تاريخ التوصيل'}: {order.delivery_date ? format(new Date(order.delivery_date), 'dd/MM/yyyy', { locale: getDateLocale(language) }) : '—'}</span>
+                <span className="truncate">{t('orders.delivery_date')}: {order.delivery_date ? format(new Date(order.delivery_date), 'dd/MM/yyyy', { locale: getDateLocale(language) }) : '—'}</span>
               </span>
             </div>
           </div>
 
           {/* Actions strip */}
           <div className="px-2 py-1.5 border-t bg-muted/20 flex items-center justify-end gap-1 overflow-x-auto">
-            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" title={t('common.details') || 'تفاصيل'} onClick={() => { setSelectedOrderId(order.id); setShowDetailsDialog(true); }}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" title={t('common.details')} onClick={() => { setSelectedOrderId(order.id); setShowDetailsDialog(true); }}>
               <Package className="w-4 h-4" />
             </Button>
 
             {(order.status === 'assigned' || order.status === 'in_progress') && order.customer?.latitude && order.customer?.longitude && (
-              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-blue-600" title={t('deliveries.navigate') || 'توجيه'} onClick={() => setNavigationTarget({
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-blue-600" title={t('deliveries.navigate')} onClick={() => setNavigationTarget({
                 lat: order.customer!.latitude!,
                 lng: order.customer!.longitude!,
                 name: order.customer!.name,
@@ -715,7 +715,7 @@ const MyDeliveries: React.FC = () => {
             )}
 
             {!isModifyHidden && (order.status === 'delivered' || ((order.status === 'pending' || order.status === 'assigned' || order.status === 'in_progress') && order.payment_type !== 'with_invoice')) && (
-              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" title={t('common.edit') || 'تعديل'} onClick={() => setModifyOrder(order)}>
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" title={t('common.edit')} onClick={() => setModifyOrder(order)}>
                 <Edit2 className="w-4 h-4" />
               </Button>
             )}
@@ -796,15 +796,15 @@ const MyDeliveries: React.FC = () => {
         <TabsList className="w-full h-10 p-1 bg-muted/60">
           <TabsTrigger value="orders" className="flex-1 gap-1.5 data-[state=active]:shadow-sm">
             <Truck className="w-4 h-4" />
-            <span className="text-xs font-bold">توصيلات ({orderTypeCount})</span>
+            <span className="text-xs font-bold">{t('deliveries.tab_deliveries')} ({orderTypeCount})</span>
           </TabsTrigger>
           <TabsTrigger value="postponed" className="flex-1 gap-1.5 data-[state=active]:shadow-sm">
             <CalendarClock className="w-4 h-4" />
-            <span className="text-xs font-bold">مؤجل ({postponedCount})</span>
+            <span className="text-xs font-bold">{t('deliveries.tab_postponed')} ({postponedCount})</span>
           </TabsTrigger>
           <TabsTrigger value="direct_sales" className="flex-1 gap-1.5 data-[state=active]:shadow-sm">
             <ShoppingCart className="w-4 h-4" />
-            <span className="text-xs font-bold">مباشر ({directSaleCount})</span>
+            <span className="text-xs font-bold">{t('deliveries.tab_direct_sale')} ({directSaleCount})</span>
           </TabsTrigger>
         </TabsList>
       </Tabs>
