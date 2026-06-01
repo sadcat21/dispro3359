@@ -857,48 +857,30 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
       }
       const { data: rData } = await rQuery;
 
-      // 3. Sales ledger source: covers direct sales even when the user-entered
-      // order note does not include the default direct-sale marker.
-      let stQuery = supabase
-        .from('sales_tracking' as any)
-        .select('customer_id, order_id, sold_at, created_at')
-        .in('source', ['direct_sale', 'warehouse_sale'])
-        .gte('sold_at', todayStart)
-        .lte('sold_at', selectedDayBounds.end);
-      if (!isAdmin || hasSpecificWorker) {
-        stQuery = stQuery.eq('worker_id', effectiveWorkerId!);
-      }
-      const { data: stData } = await stQuery;
-      const stResults = (stData || []).map((s: any) => ({
-        customer_id: s.customer_id,
-        order_id: s.order_id,
-        created_at: s.sold_at || s.created_at,
-        items: null,
-        total_amount: null,
-        customer_name: null,
-      }));
-
       // Exclude cancelled direct sales so a cancelled sale returns to direct-sale customers
       const orderIds = [...new Set([
         ...(vtResults.map(v => v.order_id)),
         ...((rData || []).map((r: any) => r.order_id)),
-        ...(stResults.map((s: any) => s.order_id)),
       ].filter(Boolean))] as string[];
 
-      const cancelledOrderIds = new Set<string>();
+      const validDirectSaleOrderIds = new Set<string>();
       if (orderIds.length > 0) {
         const { data: orderStatuses } = await supabase
           .from('orders')
-          .select('id, status, total_amount')
+          .select('id, status, total_amount, created_by, assigned_worker_id')
           .in('id', orderIds);
 
         (orderStatuses || []).forEach((o: any) => {
-          if (o.status === 'cancelled' || Number(o.total_amount || 0) === 0) cancelledOrderIds.add(o.id);
+          const isActive = o.status !== 'cancelled' && Number(o.total_amount || 0) > 0;
+          const isSelfOwnedSale = !!o.created_by && !!o.assigned_worker_id && o.created_by === o.assigned_worker_id;
+          if (isActive && isSelfOwnedSale) {
+            validDirectSaleOrderIds.add(o.id);
+          }
         });
       }
 
       const isActiveSale = (orderId?: string | null) =>
-        !orderId || !cancelledOrderIds.has(orderId);
+        !!orderId && validDirectSaleOrderIds.has(orderId);
 
       // Merge: include ALL direct sales (don't dedupe by customer) so every
       // order_id is captured. A customer can have multiple direct sales in a
@@ -913,13 +895,6 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
         if (seenOrderIds.has(receiptOrderId)) return;
         seenOrderIds.add(receiptOrderId);
         merged.push(r);
-      });
-      stResults.forEach((s: any) => {
-        if (!s.customer_id) return;
-        if (!isActiveSale(s.order_id)) return;
-        if (s.order_id && seenOrderIds.has(s.order_id)) return;
-        if (s.order_id) seenOrderIds.add(s.order_id);
-        merged.push(s);
       });
       vtResults.forEach(v => {
         if (!v.customer_id) return;
