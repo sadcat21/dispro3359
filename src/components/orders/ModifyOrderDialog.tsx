@@ -2655,6 +2655,26 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
         customerCreditBalance={customerCreditTotal}
       />
 
+      {/* Cheque / Virement / Versement-Doc payment confirmation */}
+      <ReceiptPaymentDialog
+        open={showReceiptPaymentDialog}
+        onOpenChange={setShowReceiptPaymentDialog}
+        orderTotal={orderTotal}
+        customerName={order.customer?.store_name || order.customer?.name || '—'}
+        paymentMethod={(invoicePaymentMethod === 'check' || invoicePaymentMethod === 'transfer' || invoicePaymentMethod === 'receipt') ? invoicePaymentMethod : 'receipt'}
+        hideCash={invoicePaymentMethod === 'receipt' && invoicePaymentSubType === 'doc'}
+        onConfirm={handleReceiptPaymentConfirm}
+      />
+
+      {/* Multi-invoice payment confirmation */}
+      <SplitPaymentConfirmDialog
+        open={showSplitPaymentDialog}
+        onOpenChange={setShowSplitPaymentDialog}
+        customerName={order.customer?.store_name || order.customer?.name || '—'}
+        groups={paymentGroupsForConfirmation as any}
+        onConfirmAll={handleSplitPaymentConfirm}
+      />
+
       <SimpleProductPickerDialog
         open={showProductPicker}
         onOpenChange={setShowProductPicker}
