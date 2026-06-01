@@ -563,38 +563,30 @@ const WarehouseStock: React.FC = () => {
       </div>
 
       {/* فلتر التوقيت (من-إلى) */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Calendar className="w-3.5 h-3.5" />
-          <span>الفترة:</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs text-muted-foreground">من</span>
-          <Input
-            type="date"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-            className="h-8 w-[140px] text-xs"
-          />
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs text-muted-foreground">إلى</span>
-          <Input
-            type="date"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-            className="h-8 w-[140px] text-xs"
-          />
-        </div>
+      <div className="flex flex-nowrap items-center gap-1.5 overflow-x-auto">
+        <span className="text-xs text-muted-foreground shrink-0">من</span>
+        <Input
+          type="date"
+          value={dateFrom}
+          onChange={(e) => setDateFrom(e.target.value)}
+          className="h-8 min-w-0 flex-1 text-xs"
+        />
+        <span className="text-xs text-muted-foreground shrink-0">إلى</span>
+        <Input
+          type="date"
+          value={dateTo}
+          onChange={(e) => setDateTo(e.target.value)}
+          className="h-8 min-w-0 flex-1 text-xs"
+        />
         {hasReceiptFilter && (
           <Button
-            size="sm"
+            size="icon"
             variant="ghost"
-            className="h-8 px-2 text-xs"
+            className="h-8 w-8 shrink-0"
             onClick={() => { setDateFrom(''); setDateTo(''); }}
+            aria-label="مسح"
           >
-            <X className="w-3.5 h-3.5 ml-1" />
-            مسح
+            <X className="w-4 h-4" />
           </Button>
         )}
       </div>
