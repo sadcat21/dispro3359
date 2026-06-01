@@ -2153,18 +2153,12 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
     await loadCustomerFinancialContext();
     pendingPaymentActionRef.current = 'resume';
 
-    const groups = paymentGroupsForConfirmation;
-    if (groups.length > 1) {
+    const confirmationTarget = resolvePaymentConfirmationTarget();
+    if (confirmationTarget.type === 'split') {
       setShowSplitPaymentDialog(true);
       return;
     }
-    const isReceiptDocFlow =
-      paymentType === 'with_invoice' && (
-        invoicePaymentMethod === 'check' ||
-        invoicePaymentMethod === 'transfer' ||
-        (invoicePaymentMethod === 'receipt' && invoicePaymentSubType === 'doc')
-      );
-    if (isReceiptDocFlow) {
+    if (confirmationTarget.type === 'receipt') {
       setShowReceiptPaymentDialog(true);
       return;
     }
@@ -2676,9 +2670,9 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
       <PostDeliveryConfirmDialog
         open={showConfirmDialog}
         onOpenChange={setShowConfirmDialog}
-        changes={productChanges}
-        originalTotal={originalTotal}
-        newTotal={orderTotal}
+        changes={confirmChanges}
+        originalTotal={confirmOriginalTotal}
+        newTotal={confirmNewTotal}
         onConfirm={handlePostDeliveryConfirm}
         isSubmitting={isSubmitting}
         customerHasDebt={customerDebtTotal > 0}
@@ -2690,10 +2684,10 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
       <ReceiptPaymentDialog
         open={showReceiptPaymentDialog}
         onOpenChange={setShowReceiptPaymentDialog}
-        orderTotal={orderTotal}
+        orderTotal={confirmNewTotal > 0 ? confirmNewTotal : orderTotal}
         customerName={order.customer?.store_name || order.customer?.name || '—'}
-        paymentMethod={(invoicePaymentMethod === 'check' || invoicePaymentMethod === 'transfer' || invoicePaymentMethod === 'receipt') ? invoicePaymentMethod : 'receipt'}
-        hideCash={invoicePaymentMethod === 'receipt' && invoicePaymentSubType === 'doc'}
+        paymentMethod={resolvePaymentConfirmationTarget().type === 'receipt' ? resolvePaymentConfirmationTarget().paymentMethod : 'receipt'}
+        hideCash={resolvePaymentConfirmationTarget().type === 'receipt' ? resolvePaymentConfirmationTarget().hideCash : false}
         onConfirm={handleReceiptPaymentConfirm}
       />
 
