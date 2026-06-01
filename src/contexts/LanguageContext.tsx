@@ -114,32 +114,43 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
-  const t = (key: string): string => {
-    const translation = translations[key];
-    if (!translation) {
-      console.warn(`Missing translation for key: ${key}`);
-      return key;
-    }
-    return translation[language];
+  const applyVars = (str: string, vars?: Record<string, string | number>): string => {
+    if (!vars) return str;
+    return str.replace(/\{(\w+)\}/g, (_, k) => (k in vars ? String(vars[k]) : `{${k}}`));
   };
 
-  const tp = (key: string): string => {
+  const t = (key: string, vars?: Record<string, string | number>): string => {
     const translation = translations[key];
     if (!translation) {
       console.warn(`Missing translation for key: ${key}`);
       return key;
     }
-    return translation[printLanguage];
+    return applyVars(translation[language], vars);
+  };
+
+  const tArr = (key: string, separator = '|'): string[] => {
+    const value = t(key);
+    return value.split(separator).map(s => s.trim()).filter(Boolean);
+  };
+
+  const tp = (key: string, vars?: Record<string, string | number>): string => {
+    const translation = translations[key];
+    if (!translation) {
+      console.warn(`Missing translation for key: ${key}`);
+      return key;
+    }
+    return applyVars(translation[printLanguage], vars);
   };
 
   const dir = language === 'ar' ? 'rtl' : 'ltr';
   const printDir = printLanguage === 'ar' ? 'rtl' : 'ltr';
 
   return (
-    <LanguageContext.Provider value={{ 
-      language, 
-      setLanguage, 
-      t, 
+    <LanguageContext.Provider value={{
+      language,
+      setLanguage,
+      t,
+      tArr,
       dir,
       printLanguage,
       setPrintLanguage,
