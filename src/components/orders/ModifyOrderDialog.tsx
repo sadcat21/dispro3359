@@ -2610,6 +2610,12 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
         }}
       />
     </Dialog>
+    <SaleSuccessDialog
+      open={!!successInfo}
+      info={successInfo}
+      onClose={() => { setSuccessInfo(null); onOpenChange(false); }}
+    />
+    </>
   );
 };
 
