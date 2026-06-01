@@ -699,7 +699,7 @@ const MyDeliveries: React.FC = () => {
 
           {/* Actions strip */}
           <div className="px-2 py-1.5 border-t bg-muted/20 flex items-center justify-end gap-1 overflow-x-auto">
-            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" title={t('common.details') || 'تفاصيل'} onClick={() => { setSelectedOrderId(order.id); setShowDetailsDialog(true); }}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" title={t('common.details')} onClick={() => { setSelectedOrderId(order.id); setShowDetailsDialog(true); }}>
               <Package className="w-4 h-4" />
             </Button>
 
