@@ -1077,18 +1077,12 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
       await loadCustomerFinancialContext();
       pendingPaymentActionRef.current = 'save';
 
-      const groups = paymentGroupsForConfirmation;
-      if (groups.length > 1) {
+      const confirmationTarget = resolvePaymentConfirmationTarget();
+      if (confirmationTarget.type === 'split') {
         setShowSplitPaymentDialog(true);
         return;
       }
-      const isReceiptDocFlow =
-        paymentType === 'with_invoice' && (
-          invoicePaymentMethod === 'check' ||
-          invoicePaymentMethod === 'transfer' ||
-          (invoicePaymentMethod === 'receipt' && invoicePaymentSubType === 'doc')
-        );
-      if (isReceiptDocFlow) {
+      if (confirmationTarget.type === 'receipt') {
         setShowReceiptPaymentDialog(true);
         return;
       }
@@ -1223,6 +1217,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
               price_subtype: itemSubtype,
               payment_type: itemPayType,
               invoice_payment_method: itemInvMethod,
+              invoice_payment_subtype: itemPayType === 'with_invoice' ? (item.item_invoice_payment_sub_type ?? null) : null,
             });
 
             changes.push({
@@ -1258,6 +1253,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
             price_subtype: itemSubtype,
             payment_type: itemPayType,
             invoice_payment_method: itemInvMethod,
+            invoice_payment_subtype: itemPayType === 'with_invoice' ? (item.item_invoice_payment_sub_type ?? null) : null,
           });
 
           changes.push({
