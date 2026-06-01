@@ -105,9 +105,11 @@ const WarehouseStock: React.FC = () => {
   const [workersForProduct, setWorkersForProduct] = useState<ProductSummary | null>(null);
   const [soldForProduct, setSoldForProduct] = useState<ProductSummary | null>(null);
   const [metricLog, setMetricLog] = useState<{ product: ProductSummary; metric: MetricKind } | null>(null);
-  // فلتر جلسات الاستلام أُزيل — نُبقي على ثوابت فارغة لتفادي تعديلات واسعة.
+  // فلتر التوقيت (من-إلى) — يطبَّق على المُستلم/المباع/الهدايا/الفروقات.
+  const [dateFrom, setDateFrom] = useState<string>('');
+  const [dateTo, setDateTo] = useState<string>('');
   const selectedReceiptRanges: SelectedReceiptRange[] = [];
-  const hasReceiptFilter = false;
+  const hasReceiptFilter = Boolean(dateFrom || dateTo);
 
 
   // Fetch aggregated data for summary
