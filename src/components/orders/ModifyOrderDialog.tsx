@@ -162,6 +162,56 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
   const [showProductPicker, setShowProductPicker] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCancellingOrder, setIsCancellingOrder] = useState(false);
+  const [successInfo, setSuccessInfo] = useState<SaleSuccessInfo | null>(null);
+
+  const showSaleSuccess = useCallback(async (mode: 'modify' | 'resume') => {
+    try {
+      const [{ data: ord }, { data: oi }] = await Promise.all([
+        supabase.from('orders').select('total_amount, payment_status, partial_amount, payment_type, invoice_payment_method').eq('id', order.id).maybeSingle(),
+        supabase.from('order_items').select('product:products(name)').eq('order_id', order.id),
+      ]);
+      const total = Number(ord?.total_amount ?? order.total_amount ?? 0);
+      const ps = String(ord?.payment_status || order.payment_status || '').toLowerCase();
+      const partial = Number(ord?.partial_amount ?? order.partial_amount ?? 0);
+      let status: SalePaymentStatus = 'paid';
+      let paid = total;
+      let remaining = 0;
+      if (['pending', 'payment_pending', 'no_payment', 'credit'].includes(ps)) {
+        status = 'debt'; paid = 0; remaining = total;
+      } else if (['partial', 'payment_partial'].includes(ps)) {
+        status = 'partial'; paid = partial; remaining = Math.max(0, total - partial);
+      }
+      const productNames = ((oi || []) as any[]).map(r => r.product?.name).filter(Boolean);
+      setSuccessInfo({
+        amount: total,
+        customerName: order.customer?.store_name || order.customer?.name || '—',
+        productNames,
+        paymentMethod: (ord?.payment_type === 'with_invoice' ? null : (ord?.invoice_payment_method || ord?.payment_type)) || (order as any).payment_method || null,
+        paymentType: ord?.payment_type || order.payment_type || null,
+        invoiceMethod: ord?.invoice_payment_method || order.invoice_payment_method || null,
+        invoiceRequestSent: null,
+        paymentStatus: status,
+        paidAmount: paid,
+        remainingAmount: remaining,
+        splitGroups: null,
+      });
+    } catch (e) {
+      // fallback minimal info
+      setSuccessInfo({
+        amount: Number(order.total_amount || 0),
+        customerName: order.customer?.store_name || order.customer?.name || '—',
+        productNames: [],
+        paymentMethod: null,
+        paymentType: order.payment_type || null,
+        invoiceMethod: order.invoice_payment_method || null,
+        invoiceRequestSent: null,
+        paymentStatus: 'paid',
+        paidAmount: Number(order.total_amount || 0),
+        remainingAmount: 0,
+        splitGroups: null,
+      });
+    }
+  }, [order]);
   const [assignedWorkerId, setAssignedWorkerId] = useState(order.assigned_worker_id || '');
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [confirmMode, setConfirmMode] = useState<'adjustment' | 'cancel' | null>(null);
