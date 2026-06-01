@@ -407,6 +407,11 @@ export const translations: Translations = {
   'promos.from_date': { ar: 'من تاريخ', fr: 'À partir de', en: 'From Date' },
   'promos.to_date': { ar: 'إلى تاريخ', fr: 'Jusqu\'à', en: 'To Date' },
   'promos.all_periods': { ar: 'كل الفترات', fr: 'Toutes les périodes', en: 'All Periods' },
+  'promos.by_customer': { ar: 'حسب العملاء', fr: 'Par client', en: 'By Customer' },
+  'promos.by_worker': { ar: 'حسب العمال', fr: 'Par employé', en: 'By Worker' },
+  'common.box_short': { ar: 'ص', fr: 'b', en: 'b' },
+  'common.piece_short': { ar: 'ق', fr: 'p', en: 'p' },
+
 
   // ==================== Orders ====================
   'orders.title': { ar: 'الطلبيات', fr: 'Commandes', en: 'Orders' },
