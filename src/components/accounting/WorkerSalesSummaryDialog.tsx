@@ -556,7 +556,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
         const lineTotal = totalPrice > 0 ? totalPrice : paidQty * unitPrice;
 
         if (!priceMap[productName]) {
-          priceMap[productName] = { productName, quantity: 0, totalValue: 0, pricingRows: [] };
+          priceMap[productName] = { productName, imageUrl: prod?.image_url || null, quantity: 0, totalValue: 0, pricingRows: [] };
         }
         priceMap[productName].quantity += paidQty;
         priceMap[productName].totalValue += lineTotal;
