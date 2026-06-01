@@ -1040,11 +1040,19 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
 
   const handlePostDeliveryConfirm = async (diffPaymentType: 'full' | 'partial' | 'no_payment', paidAmount?: number) => {
     const mode = confirmMode;
+    const action = pendingPaymentActionRef.current;
+    pendingPaymentActionRef.current = null;
     setShowConfirmDialog(false);
     setConfirmMode(null);
 
     if (mode === 'cancel') {
       await executeConfirmedCancellation(diffPaymentType, paidAmount);
+      return;
+    }
+    if (mode === 'resume' || action === 'resume') {
+      const total = Number(order.total_amount || orderTotal || 0);
+      const paid = diffPaymentType === 'full' ? total : diffPaymentType === 'no_payment' ? 0 : Number(paidAmount || 0);
+      await executeResume(paid);
       return;
     }
 
@@ -1059,6 +1067,17 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
     return { kind: 'partial', amount: paid };
   };
 
+  const dispatchPaymentResult = async (paid: number) => {
+    const action = pendingPaymentActionRef.current;
+    pendingPaymentActionRef.current = null;
+    if (action === 'resume') {
+      await executeResume(paid);
+      return;
+    }
+    const { kind, amount } = mapPaidToDiff(paid);
+    await handleSave(kind, amount);
+  };
+
   const handleReceiptPaymentConfirm = async (data: {
     receiptReceived: boolean;
     paidByCash: boolean;
@@ -1068,8 +1087,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
   }) => {
     setShowReceiptPaymentDialog(false);
     const paid = (data.receiptAmount || 0) + (data.cashAmount || 0);
-    const { kind, amount } = mapPaidToDiff(paid);
-    await handleSave(kind, amount);
+    await dispatchPaymentResult(paid);
   };
 
   const handleSplitPaymentConfirm = async (results: GroupPaymentResult[]) => {
