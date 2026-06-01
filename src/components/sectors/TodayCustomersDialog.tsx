@@ -863,20 +863,24 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
         ...((rData || []).map((r: any) => r.order_id)),
       ].filter(Boolean))] as string[];
 
-      const cancelledOrderIds = new Set<string>();
+      const validDirectSaleOrderIds = new Set<string>();
       if (orderIds.length > 0) {
         const { data: orderStatuses } = await supabase
           .from('orders')
-          .select('id, status, total_amount')
+          .select('id, status, total_amount, created_by, assigned_worker_id')
           .in('id', orderIds);
 
         (orderStatuses || []).forEach((o: any) => {
-          if (o.status === 'cancelled' || Number(o.total_amount || 0) === 0) cancelledOrderIds.add(o.id);
+          const isActive = o.status !== 'cancelled' && Number(o.total_amount || 0) > 0;
+          const isSelfOwnedSale = !!o.created_by && !!o.assigned_worker_id && o.created_by === o.assigned_worker_id;
+          if (isActive && isSelfOwnedSale) {
+            validDirectSaleOrderIds.add(o.id);
+          }
         });
       }
 
       const isActiveSale = (orderId?: string | null) =>
-        !orderId || !cancelledOrderIds.has(orderId);
+        !!orderId && validDirectSaleOrderIds.has(orderId);
 
       // Merge: include ALL direct sales (don't dedupe by customer) so every
       // order_id is captured. A customer can have multiple direct sales in a
