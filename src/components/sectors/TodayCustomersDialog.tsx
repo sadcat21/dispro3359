@@ -886,28 +886,19 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
       ].filter(Boolean))] as string[];
 
       const cancelledOrderIds = new Set<string>();
-      const notDirectSaleOrderIds = new Set<string>();
       if (orderIds.length > 0) {
         const { data: orderStatuses } = await supabase
           .from('orders')
-          .select('id, status, total_amount, created_by, notes')
+          .select('id, status, total_amount')
           .in('id', orderIds);
 
         (orderStatuses || []).forEach((o: any) => {
           if (o.status === 'cancelled' || Number(o.total_amount || 0) === 0) cancelledOrderIds.add(o.id);
-          // Only orders explicitly marked as direct sale (via notes) belong to the "Sold" tab.
-          // - Orders created by the worker themselves without the marker → "Orders" tab.
-          // - Orders created by the sales representative for the worker → "Deliveries" tab.
-          const noteStr = String(o.notes || '');
-          const hasDirectNote = /بيع مباشر|بيع مخزن|Vente Directe|Vente Dépôt|Vente Depot/i.test(noteStr);
-          if (!hasDirectNote) {
-            notDirectSaleOrderIds.add(o.id);
-          }
         });
       }
 
       const isActiveSale = (orderId?: string | null) =>
-        !orderId || (!cancelledOrderIds.has(orderId) && !notDirectSaleOrderIds.has(orderId));
+        !orderId || !cancelledOrderIds.has(orderId);
 
       // Merge: include ALL direct sales (don't dedupe by customer) so every
       // order_id is captured. A customer can have multiple direct sales in a
