@@ -105,9 +105,11 @@ const WarehouseStock: React.FC = () => {
   const [workersForProduct, setWorkersForProduct] = useState<ProductSummary | null>(null);
   const [soldForProduct, setSoldForProduct] = useState<ProductSummary | null>(null);
   const [metricLog, setMetricLog] = useState<{ product: ProductSummary; metric: MetricKind } | null>(null);
-  // فلتر جلسات الاستلام أُزيل — نُبقي على ثوابت فارغة لتفادي تعديلات واسعة.
+  // فلتر التوقيت (من-إلى) — يطبَّق على المُستلم/المباع/الهدايا/الفروقات.
+  const [dateFrom, setDateFrom] = useState<string>('');
+  const [dateTo, setDateTo] = useState<string>('');
   const selectedReceiptRanges: SelectedReceiptRange[] = [];
-  const hasReceiptFilter = false;
+  const hasReceiptFilter = Boolean(dateFrom || dateTo);
 
 
   // Fetch aggregated data for summary
@@ -325,8 +327,17 @@ const WarehouseStock: React.FC = () => {
       };
     }
 
-    // تم إزالة فلتر جلسات الاستلام: نُجمّع كل الأحداث دون قيود زمنية.
-    const inWindow = (_iso: string | null | undefined) => true;
+    // فلتر زمني: من بداية يوم dateFrom حتى نهاية يوم dateTo (شامل).
+    const fromMs = dateFrom ? new Date(`${dateFrom}T00:00:00`).getTime() : null;
+    const toMs = dateTo ? new Date(`${dateTo}T23:59:59.999`).getTime() : null;
+    const inWindow = (iso: string | null | undefined) => {
+      if (!fromMs && !toMs) return true;
+      if (!iso) return false;
+      const t = new Date(iso).getTime();
+      if (fromMs && t < fromMs) return false;
+      if (toMs && t > toMs) return false;
+      return true;
+    };
 
 
     // Received
@@ -462,7 +473,7 @@ const WarehouseStock: React.FC = () => {
     return Object.values(summaries)
       .filter(s => s.received + s.workerStock + s.sold + s.gifts + s.damaged + s.factoryReturn + s.compensation + s.surplus + s.deficit + s.offers + s.remaining > 0)
       .sort((a, b) => a.productName.localeCompare(b.productName));
-  }, [products, summaryData, soldData, warehouseStock, warehouseSalesData, movementsData, hasReceiptFilter, selectedReceiptRanges]);
+  }, [products, summaryData, soldData, warehouseStock, warehouseSalesData, movementsData, hasReceiptFilter, selectedReceiptRanges, dateFrom, dateTo]);
 
   const filteredSummaries = useMemo(() => {
     if (!search.trim()) return productSummaries;
@@ -549,6 +560,43 @@ const WarehouseStock: React.FC = () => {
           onChange={e => setSearch(e.target.value)}
           className="pr-9"
         />
+      </div>
+
+      {/* فلتر التوقيت (من-إلى) */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Calendar className="w-3.5 h-3.5" />
+          <span>الفترة:</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs text-muted-foreground">من</span>
+          <Input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="h-8 w-[140px] text-xs"
+          />
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs text-muted-foreground">إلى</span>
+          <Input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="h-8 w-[140px] text-xs"
+          />
+        </div>
+        {hasReceiptFilter && (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 px-2 text-xs"
+            onClick={() => { setDateFrom(''); setDateTo(''); }}
+          >
+            <X className="w-3.5 h-3.5 ml-1" />
+            مسح
+          </Button>
+        )}
       </div>
 
       {/* Product Summary Table */}
