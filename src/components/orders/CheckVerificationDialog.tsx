@@ -324,6 +324,29 @@ const CheckVerificationDialog: React.FC<CheckVerificationDialogProps> = ({
 
               {!(documentType === 'check' && isBlankCheck) && !itemsLoading && (
                 <div className="space-y-4">
+                  {(checkboxItems.length > 0 || dateItems.length > 0) && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="w-full h-9 text-xs font-semibold border-primary/40 text-primary hover:bg-primary/5"
+                      onClick={() => {
+                        setVerification(prev => {
+                          const next = { ...prev };
+                          const today = new Date().toISOString().slice(0, 10);
+                          checkboxItems.forEach(i => { next[i.id] = true; });
+                          dateItems.forEach(i => {
+                            next[`${i.id}_checked`] = true;
+                            if (!next[i.id]) next[i.id] = today;
+                          });
+                          return next;
+                        });
+                      }}
+                    >
+                      <CheckCircle className="w-4 h-4 ms-1" />
+                      تحديد كل الخيارات
+                    </Button>
+                  )}
                   {Object.entries(groups).map(([groupTitle, groupItems]) => (
                     <div key={groupTitle} className="space-y-2">
                       <h4 className="text-xs font-bold text-muted-foreground">{groupTitle}</h4>
