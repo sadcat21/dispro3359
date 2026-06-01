@@ -878,59 +878,27 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
         customer_name: null,
       }));
 
-      // 4. Tertiary source: orders flagged as direct sale via notes
-      // (e.g. "بيع مباشر من الشاحنة") that may not have a visit_tracking
-      // or receipt row yet — they must NOT leak into the regular orders tab.
-      let oQuery = supabase
-        .from('orders')
-        .select('id, customer_id, created_at, notes')
-        .gte('created_at', todayStart)
-        .lte('created_at', selectedDayBounds.end)
-        .or('notes.ilike.%بيع مباشر%,notes.ilike.%بيع مخزن%,notes.ilike.%Vente Directe%,notes.ilike.%Vente Dépôt%,notes.ilike.%Vente Depot%');
-      if (!isAdmin || hasSpecificWorker) {
-        oQuery = oQuery.eq('created_by', effectiveWorkerId!);
-      }
-      const { data: oData } = await oQuery;
-      const oResults = (oData || []).map((o: any) => ({
-        customer_id: o.customer_id,
-        order_id: o.id,
-        created_at: o.created_at,
-        items: null,
-        total_amount: null,
-        customer_name: null,
-      }));
-
       // Exclude cancelled direct sales so a cancelled sale returns to direct-sale customers
       const orderIds = [...new Set([
         ...(vtResults.map(v => v.order_id)),
         ...((rData || []).map((r: any) => r.order_id)),
         ...(stResults.map((s: any) => s.order_id)),
-        ...(oResults.map(o => o.order_id)),
       ].filter(Boolean))] as string[];
 
       const cancelledOrderIds = new Set<string>();
-      const notDirectSaleOrderIds = new Set<string>();
       if (orderIds.length > 0) {
         const { data: orderStatuses } = await supabase
           .from('orders')
-          .select('id, status, total_amount, created_by, notes')
+          .select('id, status, total_amount')
           .in('id', orderIds);
 
         (orderStatuses || []).forEach((o: any) => {
           if (o.status === 'cancelled' || Number(o.total_amount || 0) === 0) cancelledOrderIds.add(o.id);
-          // Only orders explicitly marked as direct sale (via notes) belong to the "Sold" tab.
-          // - Orders created by the worker themselves without the marker → "Orders" tab.
-          // - Orders created by the sales representative for the worker → "Deliveries" tab.
-          const noteStr = String(o.notes || '');
-          const hasDirectNote = /بيع مباشر|بيع مخزن|Vente Directe|Vente Dépôt|Vente Depot/i.test(noteStr);
-          if (!hasDirectNote) {
-            notDirectSaleOrderIds.add(o.id);
-          }
         });
       }
 
       const isActiveSale = (orderId?: string | null) =>
-        !orderId || (!cancelledOrderIds.has(orderId) && !notDirectSaleOrderIds.has(orderId));
+        !orderId || !cancelledOrderIds.has(orderId);
 
       // Merge: include ALL direct sales (don't dedupe by customer) so every
       // order_id is captured. A customer can have multiple direct sales in a
@@ -959,13 +927,6 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
         if (v.order_id && seenOrderIds.has(v.order_id)) return;
         if (v.order_id) seenOrderIds.add(v.order_id);
         merged.push(v);
-      });
-      oResults.forEach(o => {
-        if (!o.customer_id) return;
-        if (!isActiveSale(o.order_id)) return;
-        if (o.order_id && seenOrderIds.has(o.order_id)) return;
-        if (o.order_id) seenOrderIds.add(o.order_id);
-        merged.push(o);
       });
       return merged;
     },
