@@ -147,9 +147,11 @@ const NavButton: React.FC<{
         strokeWidth={isActive ? 2.2 : 1.8}
         className={cn(
           'transition-colors duration-200',
-          isAchievements || isHome
+          isAchievements
             ? 'text-white'
-            : isActive ? (item.activeColor ?? 'text-red-500') : 'text-gray-400',
+            : isHome
+              ? 'text-gray-900'
+              : isActive ? (item.activeColor ?? 'text-red-500') : 'text-gray-400',
         )}
       />
       {item.badge ? (
