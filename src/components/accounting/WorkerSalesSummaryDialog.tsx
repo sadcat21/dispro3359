@@ -249,7 +249,7 @@ const PriceTrackingTab: React.FC<{ priceTracking: PriceTrackedProduct[] }> = ({ 
                 <span className="font-medium text-sm text-wrap">{product.productName}</span>
                 <span className="flex items-center gap-1.5 shrink-0 ms-2">
                   <span className="text-xs text-muted-foreground">{fmtQty(product.quantity)} {t('sales_summary.box')}</span>
-                  <span className="text-xs font-bold">DA {product.totalValue.toLocaleString()}</span>
+                  <span className="text-xs font-bold">{product.totalValue.toLocaleString()} DA</span>
                   <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
                 </span>
               </div>
@@ -301,7 +301,7 @@ const PriceTrackingTab: React.FC<{ priceTracking: PriceTrackedProduct[] }> = ({ 
 
       <div className="grid grid-cols-2 gap-2 text-xs text-center font-bold border-t-2 pt-1 bg-primary/5 rounded p-1.5">
         <span className="text-start">{t('sales_summary.total')}: {fmtQty(totalQty)} {t('sales_summary.box')}</span>
-        <span className="text-primary">DA {totalValue.toLocaleString()}</span>
+        <span className="text-primary">{totalValue.toLocaleString()} DA</span>
       </div>
     </div>
   );
@@ -515,7 +515,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
 
       for (const item of (items || [])) {
         const prod = (item as any).product;
-        const productName = prod?.name || '';
+        const productName = getProductDisplayName(prod);
         if (!productName) continue;
 
         const rawQty = Number(item.quantity || 0);
