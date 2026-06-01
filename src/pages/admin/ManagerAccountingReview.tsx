@@ -660,7 +660,6 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       if (!it.product_id) return;
       const p = it.products || {};
       const ppb = Math.max(1, Number(p.pieces_per_box || 1));
-      const wpb = Math.max(1, Number(p.weight_per_box || 1));
       productMap.set(it.product_id, { name: p.app_name || p.name || '—', ppb });
       // Quantity storage convention depends on pricing_unit:
       //  - 'unit'/'piece' → raw pieces (display = qty / pieces_per_box)
