@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Loader2, MapPin, ShoppingCart, Truck, Package, UserPlus, Edit2, Banknote, Eye, CalendarCheck, ClipboardList, ChevronLeft, ChevronRight, Filter, Gift, X, Search, Clock } from 'lucide-react';
 import { getOperationLabel, type OperationType } from '@/hooks/useVisitTracking';
 import OrderDetailsDialog from '@/components/orders/OrderDetailsDialog';
+import { SaleSuccessDialog, SaleSuccessInfo, SalePaymentStatus } from '@/components/sales/SaleSuccessDialog';
 import CollectedDebtOperationDialog, { TodayDebtCollectionOperation } from '@/components/debts/CollectedDebtOperationDialog';
 import WorkerHandoverPreviewDialog from '@/components/accounting/WorkerHandoverPreviewDialog';
 import WorkerSalesSummaryDialog from '@/components/accounting/WorkerSalesSummaryDialog';
@@ -455,6 +456,7 @@ const MyAchievements: React.FC = () => {
   const [showSalesSummary, setShowSalesSummary] = useState(false);
   const [showOrdersSummary, setShowOrdersSummary] = useState(false);
   const [showDebtAggregates, setShowDebtAggregates] = useState(false);
+  const [resumeSuccessInfo, setResumeSuccessInfo] = useState<SaleSuccessInfo | null>(null);
   const queryClient = useQueryClient();
   const cancelOrder = useCancelOrder();
   const resumeOrder = useResumeOrder();
@@ -474,10 +476,43 @@ const MyAchievements: React.FC = () => {
   }, [cancelOrder]);
 
   const handleResumeOrder = useCallback(async (orderId: string) => {
+    const snapshot = selectedOrderDetails;
     await resumeOrder.mutateAsync(orderId);
     toast.success('تم استئناف الطلبية بنجاح');
+    try {
+      const [{ data: ord }, { data: oi }] = await Promise.all([
+        supabase.from('orders').select('total_amount, payment_status, partial_amount, payment_type, invoice_payment_method, customer:customers(name, store_name)').eq('id', orderId).maybeSingle(),
+        supabase.from('order_items').select('product:products(name)').eq('order_id', orderId),
+      ]);
+      const total = Number((ord as any)?.total_amount ?? snapshot?.total_amount ?? 0);
+      const ps = String((ord as any)?.payment_status || snapshot?.payment_status || '').toLowerCase();
+      const partial = Number((ord as any)?.partial_amount ?? snapshot?.partial_amount ?? 0);
+      let status: SalePaymentStatus = 'paid';
+      let paid = total;
+      let remaining = 0;
+      if (['pending', 'payment_pending', 'no_payment', 'credit'].includes(ps)) {
+        status = 'debt'; paid = 0; remaining = total;
+      } else if (['partial', 'payment_partial'].includes(ps)) {
+        status = 'partial'; paid = partial; remaining = Math.max(0, total - partial);
+      }
+      const cust = (ord as any)?.customer || snapshot?.customer;
+      setResumeSuccessInfo({
+        amount: total,
+        customerName: cust?.store_name || cust?.name || '—',
+        productNames: ((oi || []) as any[]).map(r => r.product?.name).filter(Boolean),
+        paymentMethod: (ord as any)?.invoice_payment_method || (ord as any)?.payment_type || null,
+        paymentType: (ord as any)?.payment_type || snapshot?.payment_type || null,
+        invoiceMethod: (ord as any)?.invoice_payment_method || snapshot?.invoice_payment_method || null,
+        invoiceRequestSent: null,
+        paymentStatus: status,
+        paidAmount: paid,
+        remainingAmount: remaining,
+        splitGroups: null,
+      });
+    } catch { /* ignore */ }
     setSelectedOrderDetails(null);
-  }, [resumeOrder]);
+  }, [resumeOrder, selectedOrderDetails]);
+
 
   const prefetchOrderDialogData = useCallback((orderId: string) => {
     if (!orderId) return;
@@ -1561,6 +1596,11 @@ const MyAchievements: React.FC = () => {
         collection={selectedDebtCollection}
       />
 
+      <SaleSuccessDialog
+        open={!!resumeSuccessInfo}
+        info={resumeSuccessInfo}
+        onClose={() => setResumeSuccessInfo(null)}
+      />
       <WorkerHandoverPreviewDialog open={showHandoverSummary} onOpenChange={setShowHandoverSummary} />
       <WorkerSalesSummaryDialog open={showSalesSummary} onOpenChange={setShowSalesSummary} workerId={targetWorkerId || undefined} workerName={targetWorkerName || undefined} defaultPeriodFrom={periodFrom} defaultPeriodTo={periodTo} />
       <AccountingSessionsTimelineDialog
