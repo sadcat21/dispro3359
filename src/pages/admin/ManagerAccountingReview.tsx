@@ -693,15 +693,26 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       bumpWorker(o.assigned_worker_id, it.product_id, qty);
       bumpWorkerOffered(o.assigned_worker_id, it.product_id, gift);
       bumpWorkerAmount(o.assigned_worker_id, it.product_id, lineAmount);
-      if (isInvoice1) {
+      // Resolve effective method: prefer explicit subtype, otherwise infer from unit price vs catalog
+      const resolvedSubtype = isInvoice1
+        ? 'invoice'
+        : inferPricingSubtype({
+            itemPaymentType: o.payment_type,
+            unitPrice: Number(it.unit_price || 0),
+            explicitSubtype: it.price_subtype,
+            product: p,
+            pricingUnit: it.pricing_unit,
+            piecesPerBox: p.pieces_per_box,
+          });
+      if (resolvedSubtype === 'invoice') {
         bump('invoice1', it.product_id, qty);
         bumpWorkerMethod(o.assigned_worker_id, 'invoice1', lineAmount);
         bumpWMP(o.assigned_worker_id, 'invoice1', it.product_id, qty);
-      } else if (sub.includes('super')) {
+      } else if (resolvedSubtype === 'super_gros') {
         bump('super_gros', it.product_id, qty);
         bumpWorkerMethod(o.assigned_worker_id, 'super_gros', lineAmount);
         bumpWMP(o.assigned_worker_id, 'super_gros', it.product_id, qty);
-      } else if (sub.includes('gros')) {
+      } else if (resolvedSubtype === 'gros') {
         bump('gros', it.product_id, qty);
         bumpWorkerMethod(o.assigned_worker_id, 'gros', lineAmount);
         bumpWMP(o.assigned_worker_id, 'gros', it.product_id, qty);
