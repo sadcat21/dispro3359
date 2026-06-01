@@ -630,11 +630,11 @@ const MyDeliveries: React.FC = () => {
 
   // Tab definitions
   const tabs: { value: TabStatus; label: string; short: string; icon: React.ElementType; color: string }[] = [
-    { value: 'all', label: t('deliveries.tab_all'), short: 'الكل', icon: ListFilter, color: 'text-foreground' },
-    { value: 'pending', label: t('orders.pending'), short: 'انتظار', icon: Clock, color: 'text-yellow-600' },
-    { value: 'assigned', label: t('orders.assigned'), short: 'تعيين', icon: UserCheck, color: 'text-blue-600' },
-    { value: 'delivered', label: t('orders.delivered'), short: 'تم', icon: CheckCircle, color: 'text-green-600' },
-    { value: 'cancelled', label: t('orders.cancelled'), short: 'ملغي', icon: XCircle, color: 'text-red-600' },
+    { value: 'all', label: t('deliveries.tab_all'), short: t('deliveries.short_all'), icon: ListFilter, color: 'text-foreground' },
+    { value: 'pending', label: t('orders.pending'), short: t('deliveries.short_pending'), icon: Clock, color: 'text-yellow-600' },
+    { value: 'assigned', label: t('orders.assigned'), short: t('deliveries.short_assigned'), icon: UserCheck, color: 'text-blue-600' },
+    { value: 'delivered', label: t('orders.delivered'), short: t('deliveries.short_delivered'), icon: CheckCircle, color: 'text-green-600' },
+    { value: 'cancelled', label: t('orders.cancelled'), short: t('deliveries.short_cancelled'), icon: XCircle, color: 'text-red-600' },
   ];
 
   if (isLoading) {
