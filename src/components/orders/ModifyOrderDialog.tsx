@@ -2078,6 +2078,35 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
       return;
     }
 
+    // Resuming a cancelled order: open the appropriate payment confirmation
+    // dialog FIRST, then run the DB resume inside executeResume(paidAmount).
+    await loadCustomerFinancialContext();
+    pendingPaymentActionRef.current = 'resume';
+
+    const groups = paymentGroupsForConfirmation;
+    if (groups.length > 1) {
+      setShowSplitPaymentDialog(true);
+      return;
+    }
+    const isReceiptDocFlow =
+      paymentType === 'with_invoice' && (
+        invoicePaymentMethod === 'check' ||
+        invoicePaymentMethod === 'transfer' ||
+        (invoicePaymentMethod === 'receipt' && invoicePaymentSubType === 'doc')
+      );
+    if (isReceiptDocFlow) {
+      setShowReceiptPaymentDialog(true);
+      return;
+    }
+    setConfirmMode('resume');
+    setConfirmChanges([]);
+    setConfirmOriginalTotal(0);
+    setConfirmNewTotal(Number(order.total_amount || 0));
+    setShowConfirmDialog(true);
+  };
+
+  const executeResume = async (paidAmount: number) => {
+    if (!workerId || !effectiveWorkerId) return;
     setIsCancellingOrder(true);
     try {
       const { data: currentItems, error: itemsError } = await supabase
