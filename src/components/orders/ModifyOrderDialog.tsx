@@ -33,6 +33,7 @@ import { getGiftTotalBoxes, getGiftTotalPieces, getPaidQuantity as getStoredPaid
 import { boxesToBP, boxesToBPAlways } from '@/utils/boxPieceInput';
 import { getCustomerTypesArray } from '@/utils/customerTypes';
 import { restoreStockFromMovements, type StockMovementForReversal } from '@/utils/stockMovementReversal';
+import { SaleSuccessDialog, SaleSuccessInfo, SalePaymentStatus } from '@/components/sales/SaleSuccessDialog';
 
 interface ModifyOrderDialogProps {
   open: boolean;
