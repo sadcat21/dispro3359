@@ -11,8 +11,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { ShoppingBag, Package, User, Clock, Calendar, ChevronLeft, ChevronRight, ChevronDown, TrendingUp, Tag, ArrowUpCircle, Wallet } from 'lucide-react';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { inferPricingSubtype } from '@/utils/pricingSubtype';
-import { buildPricingGroups } from './PricingGroupsSummary';
-import PricingGroupsSummary from './PricingGroupsSummary';
 import PromoTrackingSummary from './PromoTrackingSummary';
 import { fetchSessionCalculations } from '@/hooks/useSessionCalculations';
 import { getGiftTotalPieces, getPaidQuantity } from '@/utils/orderItemQuantities';
@@ -21,6 +19,11 @@ import { getProductDisplayName } from '@/utils/productDisplayName';
 
 const getLocaleCode = (language: string): string =>
   language === 'fr' ? 'fr-DZ' : language === 'en' ? 'en-US' : 'ar-DZ';
+/** Format currency with DA symbol on the right side of the amount visually,
+ *  regardless of LTR/RTL direction. In RTL containers we must put "DA" before
+ *  the number in source so it ends up on the right visually. */
+const formatDA = (formatted: string | number, language: string): string =>
+  language === 'ar' ? `DA ${formatted}` : `${formatted} DA`;
 /** Format quantity as boxes.pieces (e.g. 1.05 = 1 box + 5 pieces) */
 const formatBoxPieces = (qty: number, piecesPerBox: number | null): string => {
   if (!piecesPerBox || piecesPerBox <= 0) return String(qty);
@@ -217,7 +220,7 @@ const subtypeColorMap: Record<string, string> = {
 };
 
 const PriceTrackingTab: React.FC<{ priceTracking: PriceTrackedProduct[] }> = ({ priceTracking }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const subtypeLabelsMap: Record<string, string> = {
     retail: t('sales_summary.subtype_retail'),
     gros: t('sales_summary.subtype_gros'),
@@ -249,7 +252,7 @@ const PriceTrackingTab: React.FC<{ priceTracking: PriceTrackedProduct[] }> = ({ 
                 <span className="font-medium text-sm text-wrap">{product.productName}</span>
                 <span className="flex items-center gap-1.5 shrink-0 ms-2">
                   <span className="text-xs text-muted-foreground">{fmtQty(product.quantity)} {t('sales_summary.box')}</span>
-                  <span className="text-xs font-bold">{product.totalValue.toLocaleString()} DA</span>
+                  <span className="text-xs font-bold">{formatDA(product.totalValue.toLocaleString(), language)}</span>
                   <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
                 </span>
               </div>
@@ -301,7 +304,7 @@ const PriceTrackingTab: React.FC<{ priceTracking: PriceTrackedProduct[] }> = ({ 
 
       <div className="grid grid-cols-2 gap-2 text-xs text-center font-bold border-t-2 pt-1 bg-primary/5 rounded p-1.5">
         <span className="text-start">{t('sales_summary.total')}: {fmtQty(totalQty)} {t('sales_summary.box')}</span>
-        <span className="text-primary">{totalValue.toLocaleString()} DA</span>
+        <span className="text-primary">{formatDA(totalValue.toLocaleString(), language)}</span>
       </div>
     </div>
   );
@@ -697,22 +700,22 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
                       <ArrowUpCircle className="w-5 h-5 text-white" />
                       <span className="font-bold text-sm text-white">{t('accounting.total_sales')}</span>
                     </div>
-                    <span className="text-xl font-bold text-white">{fmt(calc.totalSales)} DA</span>
+                    <span className="text-xl font-bold text-white">{formatDA(fmt(calc.totalSales), language)}</span>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="bg-green-50 dark:bg-green-900/10 rounded-lg p-2.5 text-center">
                     <p className="text-[10px] text-muted-foreground">{t('accounting.total_paid')}</p>
-                    <p className="font-bold text-lg text-green-600">{fmt(calc.totalPaid)} DA</p>
+                    <p className="font-bold text-lg text-green-600">{formatDA(fmt(calc.totalPaid), language)}</p>
                   </div>
                   <div className="bg-destructive/5 rounded-lg p-2.5 text-center">
                     <p className="text-[10px] text-muted-foreground">{t('accounting.new_debts')}</p>
-                    <p className="font-bold text-lg text-destructive">{fmt(calc.newDebts)} DA</p>
+                    <p className="font-bold text-lg text-destructive">{formatDA(fmt(calc.newDebts), language)}</p>
                   </div>
                   <div className="bg-emerald-50 dark:bg-emerald-900/10 rounded-lg p-2.5 text-center">
                     <p className="text-[10px] text-muted-foreground">الكاش المقبوض</p>
                     <p className="font-bold text-lg text-emerald-600">
-                      {fmt((calc.invoice2?.cash || 0) + (calc.invoice1?.espaceCash || 0) + (calc.invoice1?.versementCash || 0))} DA
+                      {formatDA(fmt((calc.invoice2?.cash || 0) + (calc.invoice1?.espaceCash || 0) + (calc.invoice1?.versementCash || 0)), language)}
                     </p>
                   </div>
                   {(() => {
@@ -723,7 +726,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
                     return (
                       <div className="bg-blue-50 dark:bg-blue-900/10 rounded-lg p-2.5 text-center">
                         <p className="text-[10px] text-muted-foreground">مدفوعات وثائقية (Doc Payments)</p>
-                        <p className="font-bold text-lg text-blue-600">{fmt(total)} DA</p>
+                        <p className="font-bold text-lg text-blue-600">{formatDA(fmt(total), language)}</p>
                         <p className="text-[9px] text-muted-foreground mt-0.5">
                           شيك {fmt(check)} · فيرسمو {fmt(receipt)} · فيرمو {fmt(transfer)}
                         </p>
@@ -732,11 +735,11 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
                   })()}
                   <div className="bg-orange-50 dark:bg-orange-900/10 rounded-lg p-2.5 text-center">
                     <p className="text-[10px] text-muted-foreground">المصاريف</p>
-                    <p className="font-bold text-lg text-orange-700">{fmt(calc.expenses || 0)} DA</p>
+                    <p className="font-bold text-lg text-orange-700">{formatDA(fmt(calc.expenses || 0), language)}</p>
                   </div>
                   <div className="bg-orange-50 dark:bg-orange-900/10 rounded-lg p-2.5 text-center">
                     <p className="text-[10px] text-muted-foreground">الديون المحصلة</p>
-                    <p className="font-bold text-lg text-orange-600">{fmt(calc.debtCollections?.total || 0)} DA</p>
+                    <p className="font-bold text-lg text-orange-600">{formatDA(fmt(calc.debtCollections?.total || 0), language)}</p>
                   </div>
                 </div>
                 <div className="relative overflow-hidden rounded-xl p-3 bg-gradient-to-l from-indigo-600 via-purple-600 to-fuchsia-600 shadow-lg shadow-purple-500/30 ring-2 ring-purple-300">
@@ -752,7 +755,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
                         <span className="font-bold text-sm text-white">الكاش المسلم للمدير</span>
                       </div>
                     </div>
-                    <span className="text-2xl font-extrabold text-white drop-shadow">{fmt(calc.physicalCash)} DA</span>
+                    <span className="text-2xl font-extrabold text-white drop-shadow">{formatDA(fmt(calc.physicalCash), language)}</span>
                   </div>
                 </div>
 
@@ -763,7 +766,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
 
         {!expandedProduct && salesData?.items?.length ? (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col">
-            <TabsList className="w-full shrink-0 grid grid-cols-4">
+            <TabsList className="w-full shrink-0 grid grid-cols-3">
               <TabsTrigger value="products" className="text-xs">{t('sales_summary.tab_products')}</TabsTrigger>
               <TabsTrigger value="promos" className="text-xs">
                 {t('sales_summary.tab_promos')}
@@ -774,7 +777,6 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
                 ) : null}
               </TabsTrigger>
               <TabsTrigger value="pricing" className="text-xs">{t('sales_summary.tab_pricing')}</TabsTrigger>
-              <TabsTrigger value="groups" className="text-xs">{t('sales_summary.tab_groups')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="products" className="mt-1">
@@ -846,16 +848,6 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
             <TabsContent value="pricing" className="mt-1">
               <div className="pe-1">
                 <PriceTrackingTab priceTracking={salesData.priceTracking || []} />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="groups" className="mt-1">
-              <div className="pe-1">
-                <PricingGroupsSummary
-                  workerId={workerId!}
-                  periodStart={lastAccounting || new Date().toISOString().split('T')[0]}
-                  periodEnd={new Date().toISOString()}
-                />
               </div>
             </TabsContent>
           </Tabs>
