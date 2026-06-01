@@ -934,13 +934,18 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         if (wid) workerDebts[wid] = (workerDebts[wid] || 0) + v;
         totalDebtsAll += v;
       });
-      const amountTriple = (totalSales: number, debts: number) => {
-        const cash = totalSales - debts;
-        const cell = (v: number, color: string) => `<td colspan="${products.length}" style="text-align:right;padding-right:8px;color:${color};font-weight:700">${Math.round(v).toLocaleString()} DA</td>`;
+      const amountTriple = (totalSales: number, debts: number, perProduct: number[]) => {
+        const total = perProduct.reduce((a, b) => a + b, 0);
+        const debtCells = total > 0
+          ? perProduct.map(v => (v / total) * debts)
+          : perProduct.map(() => 0);
+        const cashCells = perProduct.map((v, i) => v - debtCells[i]);
+        const row = (label: string, bg: string, color: string, cells: number[], totalVal: number) =>
+          `<tr style="background:${bg}"><td style="text-align:left;padding-left:8px;font-weight:700;color:${color}">${label}</td>${cells.map(v => `<td style="color:${color};font-weight:600">${Math.round(v).toLocaleString()}</td>`).join('')}</tr>`;
         return (
-          `<tr style="background:#ecfdf5"><td style="text-align:left;padding-left:8px;font-weight:700;color:#047857">Ventes (Cash)</td>${cell(cash, '#047857')}</tr>` +
-          `<tr style="background:#fef3c7"><td style="text-align:left;padding-left:8px;font-weight:700;color:#b45309">Dettes</td>${cell(debts, '#b45309')}</tr>` +
-          `<tr style="background:#f0f9ff"><td style="text-align:left;padding-left:8px;font-weight:700;color:#0369a1">Total Ventes</td>${cell(totalSales, '#0369a1')}</tr>`
+          row('Ventes (Cash)', '#ecfdf5', '#047857', cashCells, totalSales - debts) +
+          row('Dettes', '#fef3c7', '#b45309', debtCells, debts) +
+          row('Total Ventes', '#f0f9ff', '#0369a1', perProduct, totalSales)
         );
       };
       const blocks = productMatrix.workers.map(w => {
@@ -961,7 +966,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         const totalsCells = products.map(p => methods.reduce((a, [k]) => a + Number(mQty[k]?.[p.id] || 0), 0));
         const amountRow = `<tr style="background:#f0f9ff"><td style="text-align:left;padding-left:8px;font-weight:700;color:#0369a1">Montant (DA)</td>${amountCells.map(v => `<td style="color:#0369a1;font-weight:600">${Math.round(v).toLocaleString()}</td>`).join('')}</tr>`;
         const totalRow = `<tr style="background:#fef2f2;font-weight:900"><td style="text-align:right;padding-right:8px;color:#dc2626">TOTAL</td>${totalsCells.map((v, i) => `<td>${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
-        return headerRow + methodRows + offeredRow + totalRow + amountRow + amountTriple(workerTotalAmount, workerDebts[w.id] || 0);
+        return headerRow + methodRows + offeredRow + totalRow + amountRow + amountTriple(workerTotalAmount, workerDebts[w.id] || 0, amountCells);
       }).join('');
 
 
@@ -996,7 +1001,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
       const gAmountRow = `<tr style="background:#f0f9ff"><td style="text-align:left;padding-left:8px;font-weight:700;color:#0369a1">Montant (DA)</td>${gAmountCells.map(v => `<td style="color:#0369a1;font-weight:600">${Math.round(v).toLocaleString()}</td>`).join('')}</tr>`;
       const gTotalRow = `<tr style="background:#fef2f2;font-weight:900"><td style="text-align:right;padding-right:8px;color:#dc2626">TOTAL</td>${gTotalsCells.map((v, i) => `<td>${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
       const gTotalSales = gAmountCells.reduce((a, b) => a + b, 0);
-      const grandBlock = gHeader + gMethodRows + gOfferedRow + gTotalRow + gAmountRow + amountTriple(gTotalSales, totalDebtsAll);
+      const grandBlock = gHeader + gMethodRows + gOfferedRow + gTotalRow + gAmountRow + amountTriple(gTotalSales, totalDebtsAll, gAmountCells);
 
       return `<div class="block">
         <div class="block-title" style="background:#dcfce7">Total Général (Tous les Vendeurs)</div>
