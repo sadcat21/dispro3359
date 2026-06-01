@@ -1741,7 +1741,11 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
       queryClient.invalidateQueries({ queryKey: ['worker-achievements'] });
 
       toast.success(allItemsRemoved ? t('orders.cancel_success') : t('orders.order_modified'));
-      onOpenChange(false);
+      if (allItemsRemoved) {
+        onOpenChange(false);
+      } else {
+        await showSaleSuccess('modify');
+      }
     } catch (error: any) {
       toast.error(error.message);
     } finally {
