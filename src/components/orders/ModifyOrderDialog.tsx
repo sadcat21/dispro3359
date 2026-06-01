@@ -62,6 +62,9 @@ interface ModifiedItem {
   weight_per_box: number;
   item_subtype?: string; // per-item override: 'super_gros' | 'gros' | 'retail' | 'invoice'
   original_item_subtype?: string;
+  item_payment_type?: PaymentType;
+  item_invoice_payment_method?: InvoicePaymentMethod | null;
+  item_invoice_payment_sub_type?: 'cash' | 'doc' | null;
   is_unit_sale?: boolean;
   custom_unit_price?: number;
 }
@@ -322,6 +325,16 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
           weight_per_box: weightPerBox,
           item_subtype: ((item as any).price_subtype as string | undefined) || undefined,
           original_item_subtype: ((item as any).price_subtype as string | undefined) || undefined,
+          item_payment_type: ((item as any).payment_type as PaymentType | undefined) || undefined,
+          item_invoice_payment_method: ((item as any).invoice_payment_method as InvoicePaymentMethod | null | undefined) ?? null,
+          item_invoice_payment_sub_type: (((item as any).invoice_payment_subtype as 'cash' | 'doc' | null | undefined)
+            ?? (((item as any).document_verification && typeof (item as any).document_verification === 'object')
+              ? (((item as any).document_verification as any).paid_by_cash === true
+                ? 'cash'
+                : ((item as any).document_verification as any).paid_by_cash === false
+                  ? 'doc'
+                  : null)
+              : null)),
           is_unit_sale: false,
         };
       }));
@@ -518,7 +531,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
     quantity: number,
     giftInfo?: { giftQuantity: number; giftPieces: number; offerId?: string },
     isUnitSale?: boolean,
-    perItemPricing?: { paymentType: PaymentType; invoicePaymentMethod: InvoicePaymentMethod | null; priceSubType: PriceSubType; customUnitPrice?: number }
+    perItemPricing?: { paymentType: PaymentType; invoicePaymentMethod: InvoicePaymentMethod | null; invoicePaymentSubType?: 'cash' | 'doc' | null; priceSubType: PriceSubType; customUnitPrice?: number }
   ) => {
     const product = getProductById(productId);
     if (!product) return;
@@ -553,6 +566,15 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
         gift_pieces: giftPiecesRemainder,
         unit_price: isUnitSale ? resolveCustomSalePrice(product, rawUnitPrice, true) : rawUnitPrice,
         item_subtype: nextSubtype,
+        item_payment_type: perItemPricing ? perItemPricing.paymentType : item.item_payment_type,
+        item_invoice_payment_method: perItemPricing
+          ? (perItemPricing.paymentType === 'with_invoice' ? perItemPricing.invoicePaymentMethod : null)
+          : item.item_invoice_payment_method,
+        item_invoice_payment_sub_type: perItemPricing
+          ? (perItemPricing.paymentType === 'with_invoice'
+            ? ((perItemPricing as any).invoicePaymentSubType ?? null)
+            : null)
+          : item.item_invoice_payment_sub_type,
         is_unit_sale: !!isUnitSale,
         custom_unit_price: perItemPricing ? perItemPricing.customUnitPrice : item.custom_unit_price,
       };
@@ -938,8 +960,19 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
       .filter((it) => Number(it.new_quantity || 0) > 0 || Number(it.gift_pieces || 0) > 0)
       .map((it) => {
         const src: any = byProductId.get(it.product_id);
-        const itemPaymentType = (src?.payment_type as PaymentType | undefined) ?? (paymentType as PaymentType);
-        const itemInvoiceMethod = (src?.invoice_payment_method as InvoicePaymentMethod | null | undefined) ?? invoicePaymentMethod ?? null;
+        const itemPaymentType = it.item_payment_type ?? (src?.payment_type as PaymentType | undefined) ?? (paymentType as PaymentType);
+        const itemInvoiceMethod = it.item_invoice_payment_method ?? (src?.invoice_payment_method as InvoicePaymentMethod | null | undefined) ?? invoicePaymentMethod ?? null;
+        const itemInvoiceSubType = it.item_invoice_payment_sub_type
+          ?? ((src?.invoice_payment_subtype as 'cash' | 'doc' | null | undefined)
+            ?? ((src?.document_verification && typeof src.document_verification === 'object')
+              ? (src.document_verification.paid_by_cash === true
+                ? 'cash'
+                : src.document_verification.paid_by_cash === false
+                  ? 'doc'
+                  : null)
+              : null))
+          ?? invoicePaymentSubType
+          ?? null;
         return {
           productId: it.product_id,
           productName: it.product_name,
@@ -947,7 +980,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
           totalPrice: Number(it.new_quantity || 0) * Number(it.unit_price || 0),
           itemPaymentType,
           itemInvoicePaymentMethod: itemInvoiceMethod,
-          itemInvoicePaymentSubType: invoicePaymentSubType ?? null,
+          itemInvoicePaymentSubType: itemInvoiceSubType,
         };
       });
     return splitOrderByPaymentGroup(splittable, {
@@ -956,6 +989,37 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
       invoicePaymentSubType: invoicePaymentSubType ?? null,
     });
   }, [items, orderItems, paymentType, invoicePaymentMethod, invoicePaymentSubType]);
+
+  const resolvePaymentConfirmationTarget = useCallback(() => {
+    const groups = paymentGroupsForConfirmation;
+    if (groups.length > 1) {
+      return { type: 'split' as const };
+    }
+
+    const group = groups[0];
+    const effectivePaymentType = group?.paymentType ?? (paymentType as PaymentType);
+    const effectiveInvoiceMethod = group?.invoicePaymentMethod ?? invoicePaymentMethod ?? null;
+    const effectiveInvoiceSubType = group?.invoicePaymentSubType ?? invoicePaymentSubType ?? null;
+
+    const isReceiptDocFlow =
+      effectivePaymentType === 'with_invoice' && (
+        effectiveInvoiceMethod === 'check' ||
+        effectiveInvoiceMethod === 'transfer' ||
+        (effectiveInvoiceMethod === 'receipt' && effectiveInvoiceSubType === 'doc')
+      );
+
+    if (isReceiptDocFlow) {
+      return {
+        type: 'receipt' as const,
+        paymentMethod: (effectiveInvoiceMethod === 'check' || effectiveInvoiceMethod === 'transfer' || effectiveInvoiceMethod === 'receipt')
+          ? effectiveInvoiceMethod
+          : 'receipt',
+        hideCash: effectiveInvoiceMethod === 'receipt' && effectiveInvoiceSubType === 'doc',
+      };
+    }
+
+    return { type: 'post_delivery' as const };
+  }, [invoicePaymentMethod, invoicePaymentSubType, paymentGroupsForConfirmation, paymentType]);
 
 
   const loadCustomerFinancialContext = useCallback(async () => {
@@ -1013,18 +1077,12 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
       await loadCustomerFinancialContext();
       pendingPaymentActionRef.current = 'save';
 
-      const groups = paymentGroupsForConfirmation;
-      if (groups.length > 1) {
+      const confirmationTarget = resolvePaymentConfirmationTarget();
+      if (confirmationTarget.type === 'split') {
         setShowSplitPaymentDialog(true);
         return;
       }
-      const isReceiptDocFlow =
-        paymentType === 'with_invoice' && (
-          invoicePaymentMethod === 'check' ||
-          invoicePaymentMethod === 'transfer' ||
-          (invoicePaymentMethod === 'receipt' && invoicePaymentSubType === 'doc')
-        );
-      if (isReceiptDocFlow) {
+      if (confirmationTarget.type === 'receipt') {
         setShowReceiptPaymentDialog(true);
         return;
       }
@@ -1125,8 +1183,10 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
 
       for (const item of items) {
         const itemSubtype = getCurrentItemSubtype(item);
-        const itemPayType = itemSubtype === 'invoice' ? 'with_invoice' : 'without_invoice';
-        const itemInvMethod = itemSubtype === 'invoice' ? (invoicePaymentMethod || null) : null;
+        const itemPayType = item.item_payment_type ?? (itemSubtype === 'invoice' ? 'with_invoice' : 'without_invoice');
+        const itemInvMethod = itemPayType === 'with_invoice'
+          ? (item.item_invoice_payment_method ?? invoicePaymentMethod ?? null)
+          : null;
         const itemChanged =
           item.new_quantity !== item.original_quantity ||
           (item.gift_quantity || 0) !== (item.original_gift_quantity || 0) ||
@@ -1159,6 +1219,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
               price_subtype: itemSubtype,
               payment_type: itemPayType,
               invoice_payment_method: itemInvMethod,
+              invoice_payment_subtype: itemPayType === 'with_invoice' ? (item.item_invoice_payment_sub_type ?? null) : null,
             });
 
             changes.push({
@@ -1194,6 +1255,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
             price_subtype: itemSubtype,
             payment_type: itemPayType,
             invoice_payment_method: itemInvMethod,
+            invoice_payment_subtype: itemPayType === 'with_invoice' ? (item.item_invoice_payment_sub_type ?? null) : null,
           });
 
           changes.push({
@@ -2093,18 +2155,12 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
     await loadCustomerFinancialContext();
     pendingPaymentActionRef.current = 'resume';
 
-    const groups = paymentGroupsForConfirmation;
-    if (groups.length > 1) {
+    const confirmationTarget = resolvePaymentConfirmationTarget();
+    if (confirmationTarget.type === 'split') {
       setShowSplitPaymentDialog(true);
       return;
     }
-    const isReceiptDocFlow =
-      paymentType === 'with_invoice' && (
-        invoicePaymentMethod === 'check' ||
-        invoicePaymentMethod === 'transfer' ||
-        (invoicePaymentMethod === 'receipt' && invoicePaymentSubType === 'doc')
-      );
-    if (isReceiptDocFlow) {
+    if (confirmationTarget.type === 'receipt') {
       setShowReceiptPaymentDialog(true);
       return;
     }
@@ -2233,6 +2289,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
   };
 
   const availableProducts = products.filter(p => !items.some(i => i.product_id === p.id));
+  const paymentConfirmationTarget = resolvePaymentConfirmationTarget();
   const selectedNewProduct = products.find((p) => p.id === newProductId);
   const canToggleNewProductUnit = supportsUnitSale(selectedNewProduct);
   const editingItem = useMemo(() => {
@@ -2616,9 +2673,9 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
       <PostDeliveryConfirmDialog
         open={showConfirmDialog}
         onOpenChange={setShowConfirmDialog}
-        changes={productChanges}
-        originalTotal={originalTotal}
-        newTotal={orderTotal}
+        changes={confirmChanges}
+        originalTotal={confirmOriginalTotal}
+        newTotal={confirmNewTotal}
         onConfirm={handlePostDeliveryConfirm}
         isSubmitting={isSubmitting}
         customerHasDebt={customerDebtTotal > 0}
@@ -2630,10 +2687,10 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
       <ReceiptPaymentDialog
         open={showReceiptPaymentDialog}
         onOpenChange={setShowReceiptPaymentDialog}
-        orderTotal={orderTotal}
+        orderTotal={confirmNewTotal > 0 ? confirmNewTotal : orderTotal}
         customerName={order.customer?.store_name || order.customer?.name || '—'}
-        paymentMethod={(invoicePaymentMethod === 'check' || invoicePaymentMethod === 'transfer' || invoicePaymentMethod === 'receipt') ? invoicePaymentMethod : 'receipt'}
-        hideCash={invoicePaymentMethod === 'receipt' && invoicePaymentSubType === 'doc'}
+        paymentMethod={paymentConfirmationTarget.type === 'receipt' ? paymentConfirmationTarget.paymentMethod : 'receipt'}
+        hideCash={paymentConfirmationTarget.type === 'receipt' ? paymentConfirmationTarget.hideCash : false}
         onConfirm={handleReceiptPaymentConfirm}
       />
 
