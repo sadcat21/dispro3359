@@ -327,8 +327,17 @@ const WarehouseStock: React.FC = () => {
       };
     }
 
-    // تم إزالة فلتر جلسات الاستلام: نُجمّع كل الأحداث دون قيود زمنية.
-    const inWindow = (_iso: string | null | undefined) => true;
+    // فلتر زمني: من بداية يوم dateFrom حتى نهاية يوم dateTo (شامل).
+    const fromMs = dateFrom ? new Date(`${dateFrom}T00:00:00`).getTime() : null;
+    const toMs = dateTo ? new Date(`${dateTo}T23:59:59.999`).getTime() : null;
+    const inWindow = (iso: string | null | undefined) => {
+      if (!fromMs && !toMs) return true;
+      if (!iso) return false;
+      const t = new Date(iso).getTime();
+      if (fromMs && t < fromMs) return false;
+      if (toMs && t > toMs) return false;
+      return true;
+    };
 
 
     // Received
