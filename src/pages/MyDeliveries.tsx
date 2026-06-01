@@ -704,7 +704,7 @@ const MyDeliveries: React.FC = () => {
             </Button>
 
             {(order.status === 'assigned' || order.status === 'in_progress') && order.customer?.latitude && order.customer?.longitude && (
-              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-blue-600" title={t('deliveries.navigate') || 'توجيه'} onClick={() => setNavigationTarget({
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-blue-600" title={t('deliveries.navigate')} onClick={() => setNavigationTarget({
                 lat: order.customer!.latitude!,
                 lng: order.customer!.longitude!,
                 name: order.customer!.name,
