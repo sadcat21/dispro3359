@@ -1159,7 +1159,7 @@ const MyAchievements: React.FC = () => {
 
   return (
     <div
-      className="p-2 sm:p-3 flex h-[100dvh] flex-col gap-1.5 overflow-hidden"
+      className="p-2 sm:p-3 flex h-[calc(100dvh-5rem-env(safe-area-inset-bottom))] md:h-[100dvh] flex-col gap-1.5 overflow-hidden"
       style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}
      
     >
