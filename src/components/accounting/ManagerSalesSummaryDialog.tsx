@@ -339,6 +339,14 @@ const fetchWorkerSalesSummary = async (
   lastAccounting?: string | null,
   branchId?: string | null,
 ) => {
+  const clampPeriodStart = (() => {
+    if (!periodStart) return null;
+    if (!lastAccounting) return periodStart;
+    const periodStartMs = new Date(periodStart).getTime();
+    const lastAccountingMs = new Date(lastAccounting).getTime();
+    return new Date(Math.max(periodStartMs, lastAccountingMs)).toISOString();
+  })();
+
   const baseQuery = () =>
     supabase
       .from('orders')
@@ -350,8 +358,8 @@ const fetchWorkerSalesSummary = async (
 
   if (periodStart && periodEnd) {
     const [{ data: createdOrders, error: createdError }, { data: updatedOrders, error: updatedError }] = await Promise.all([
-      baseQuery().gte('created_at', periodStart).lte('created_at', periodEnd),
-      baseQuery().gte('updated_at', periodStart).lte('updated_at', periodEnd),
+      baseQuery().gt('created_at', clampPeriodStart || periodStart).lte('created_at', periodEnd),
+      baseQuery().gt('updated_at', clampPeriodStart || periodStart).lte('updated_at', periodEnd),
     ]);
 
     if (createdError) throw createdError;
@@ -364,7 +372,7 @@ const fetchWorkerSalesSummary = async (
   } else {
     let query = baseQuery();
     if (lastAccounting) {
-      query = query.gte('updated_at', lastAccounting);
+      query = query.gt('updated_at', lastAccounting);
     }
     const { data: fallbackOrders, error } = await query;
     if (error) throw error;
@@ -689,7 +697,12 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
           const lastAccounting = accounting?.completed_at || null;
           const normalized = normalizePeriodRange(periodFrom, periodTo);
           const periodStart = normalized
-            ? normalized.start.toISOString()
+            ? new Date(
+                Math.max(
+                  normalized.start.getTime(),
+                  lastAccounting ? new Date(lastAccounting).getTime() : normalized.start.getTime(),
+                ),
+              ).toISOString()
             : (lastAccounting || '1970-01-01T00:00:00Z');
           const periodEnd = normalized
             ? normalized.end.toISOString()
