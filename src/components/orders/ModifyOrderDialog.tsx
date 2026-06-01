@@ -631,9 +631,6 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
       pieces_per_box: piecesPerBox,
       pricing_unit: pricingUnit,
       weight_per_box: weightPerBox,
-      item_payment_type: paymentType as PaymentType,
-      item_invoice_payment_method: paymentType === 'with_invoice' ? (invoicePaymentMethod ?? null) : null,
-      item_invoice_payment_sub_type: paymentType === 'with_invoice' ? (invoicePaymentSubType ?? null) : null,
       is_unit_sale: isUnitSale,
     }]);
     setNewProductId('');
@@ -2745,9 +2742,6 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
               pieces_per_box: piecesPerBox,
               pricing_unit: pricingUnit,
               weight_per_box: weightPerBox,
-              item_payment_type: paymentType as PaymentType,
-              item_invoice_payment_method: paymentType === 'with_invoice' ? (invoicePaymentMethod ?? null) : null,
-              item_invoice_payment_sub_type: paymentType === 'with_invoice' ? (invoicePaymentSubType ?? null) : null,
             }]);
             setNewProductId('');
           }
