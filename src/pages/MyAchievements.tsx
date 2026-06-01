@@ -1481,8 +1481,9 @@ const MyAchievements: React.FC = () => {
                           <span className="text-[10px] text-muted-foreground truncate max-w-[100px]">{visit.customer_real_name}</span>
                         )}
                       </div>
-                      <span className="shrink-0 text-[10px] text-muted-foreground tabular-nums" dir="ltr">
-                        {format(new Date(visit.created_at), 'dd/MM/yyyy')}
+                      <span className="shrink-0 text-[10px] tabular-nums flex items-center gap-1" dir="ltr">
+                        <span className="text-red-600 font-semibold">{format(new Date(visit.created_at), 'HH:mm')}</span>
+                        <span className="text-muted-foreground">{format(new Date(visit.created_at), 'dd/MM/yyyy')}</span>
                       </span>
                     </div>
 
