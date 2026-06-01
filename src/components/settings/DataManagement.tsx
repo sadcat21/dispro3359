@@ -550,7 +550,7 @@ const DataManagement: React.FC = () => {
     return groups;
   }, []);
 
-  const groupOrder = ['sales', 'finance', 'stock', 'system', 'master'];
+  const groupOrder = ['sales', 'finance', 'stock', 'hr', 'ops', 'system', 'master'];
 
   return (
     <Card className="border-destructive/30">
