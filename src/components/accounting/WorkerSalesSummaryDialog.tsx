@@ -752,23 +752,14 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
                     const check = (calc.invoice1?.check || 0) + (calc.debtCollections?.check || 0);
                     const receipt = (calc.invoice1?.receipt || 0) + (calc.debtCollections?.receipt || 0);
                     const transfer = (calc.invoice1?.transfer || 0) + (calc.debtCollections?.transfer || 0);
+                    const total = check + receipt + transfer;
                     return (
-                      <div className="col-span-2 bg-blue-50 dark:bg-blue-900/10 rounded-lg p-2.5">
-                        <p className="text-[10px] text-muted-foreground text-center mb-1.5">مدفوعات وثائقية (Doc Payments)</p>
-                        <div className="grid grid-cols-3 gap-1.5 text-center">
-                          <div>
-                            <p className="text-[9px] text-muted-foreground">شيك</p>
-                            <p className="font-bold text-sm text-blue-600">{fmt(check)}</p>
-                          </div>
-                          <div>
-                            <p className="text-[9px] text-muted-foreground">فيرسمو</p>
-                            <p className="font-bold text-sm text-indigo-600">{fmt(receipt)}</p>
-                          </div>
-                          <div>
-                            <p className="text-[9px] text-muted-foreground">فيرمو</p>
-                            <p className="font-bold text-sm text-purple-600">{fmt(transfer)}</p>
-                          </div>
-                        </div>
+                      <div className="col-span-2 bg-blue-50 dark:bg-blue-900/10 rounded-lg p-2.5 text-center">
+                        <p className="text-[10px] text-muted-foreground">مدفوعات وثائقية (Doc Payments)</p>
+                        <p className="font-bold text-lg text-blue-600">{fmt(total)} DA</p>
+                        <p className="text-[9px] text-muted-foreground mt-0.5">
+                          شيك {fmt(check)} · فيرسمو {fmt(receipt)} · فيرمو {fmt(transfer)}
+                        </p>
                       </div>
                     );
                   })()}
