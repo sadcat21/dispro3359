@@ -248,8 +248,15 @@ const PriceTrackingTab: React.FC<{ priceTracking: PriceTrackedProduct[] }> = ({ 
         <Collapsible key={product.productName}>
           <div className="border rounded-lg overflow-hidden">
             <CollapsibleTrigger className="w-full flex flex-col gap-1 p-2 text-start hover:bg-muted/30 transition-colors">
-              <div className="flex items-center justify-between w-full">
-                <span className="font-medium text-sm text-wrap">{product.productName}</span>
+              <div className="flex items-center justify-between w-full gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  {product.imageUrl ? (
+                    <img src={product.imageUrl} alt={product.productName} className="w-8 h-8 rounded object-cover border shrink-0" loading="lazy" />
+                  ) : (
+                    <div className="w-8 h-8 rounded bg-muted shrink-0" />
+                  )}
+                  <span className="font-medium text-sm text-wrap">{product.productName}</span>
+                </div>
                 <span className="flex items-center gap-1.5 shrink-0 ms-2">
                   <span className="text-xs text-muted-foreground">{fmtQty(product.quantity)} {t('sales_summary.box')}</span>
                   <span className="text-xs font-bold">{formatDA(product.totalValue.toLocaleString(), language)}</span>
