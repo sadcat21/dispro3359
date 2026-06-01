@@ -654,7 +654,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
               onChange={e => setPeriodTo(e.target.value)}
             />
 
-            <Button onClick={resetFilters} size="sm" variant="outline" className="text-xs px-2 py-1 h-auto">{t('sales_summary.reset')}</Button>
+            
           </div>
         )}
 
