@@ -222,7 +222,7 @@ const subtypeColorMap: Record<string, string> = {
 };
 
 const PriceTrackingTab: React.FC<{ priceTracking: PriceTrackedProduct[] }> = ({ priceTracking }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const subtypeLabelsMap: Record<string, string> = {
     retail: t('sales_summary.subtype_retail'),
     gros: t('sales_summary.subtype_gros'),
