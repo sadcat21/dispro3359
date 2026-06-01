@@ -473,7 +473,7 @@ const WarehouseStock: React.FC = () => {
     return Object.values(summaries)
       .filter(s => s.received + s.workerStock + s.sold + s.gifts + s.damaged + s.factoryReturn + s.compensation + s.surplus + s.deficit + s.offers + s.remaining > 0)
       .sort((a, b) => a.productName.localeCompare(b.productName));
-  }, [products, summaryData, soldData, warehouseStock, warehouseSalesData, movementsData, hasReceiptFilter, selectedReceiptRanges]);
+  }, [products, summaryData, soldData, warehouseStock, warehouseSalesData, movementsData, hasReceiptFilter, selectedReceiptRanges, dateFrom, dateTo]);
 
   const filteredSummaries = useMemo(() => {
     if (!search.trim()) return productSummaries;
