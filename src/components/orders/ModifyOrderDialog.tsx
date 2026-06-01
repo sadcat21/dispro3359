@@ -34,6 +34,9 @@ import { boxesToBP, boxesToBPAlways } from '@/utils/boxPieceInput';
 import { getCustomerTypesArray } from '@/utils/customerTypes';
 import { restoreStockFromMovements, type StockMovementForReversal } from '@/utils/stockMovementReversal';
 import { SaleSuccessDialog, SaleSuccessInfo, SalePaymentStatus } from '@/components/sales/SaleSuccessDialog';
+import ReceiptPaymentDialog from '@/components/orders/ReceiptPaymentDialog';
+import SplitPaymentConfirmDialog, { GroupPaymentResult } from '@/components/sales/SplitPaymentConfirmDialog';
+import { splitOrderByPaymentGroup } from '@/utils/splitOrderByPaymentGroup';
 
 interface ModifyOrderDialogProps {
   open: boolean;
