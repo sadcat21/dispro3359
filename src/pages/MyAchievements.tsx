@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Loader2, MapPin, ShoppingCart, Truck, Package, UserPlus, Edit2, Banknote, Eye, CalendarCheck, ClipboardList, ChevronLeft, ChevronRight, Filter, Gift, X, Search, Clock } from 'lucide-react';
 import { getOperationLabel, type OperationType } from '@/hooks/useVisitTracking';
 import OrderDetailsDialog from '@/components/orders/OrderDetailsDialog';
+import { SaleSuccessDialog, SaleSuccessInfo, SalePaymentStatus } from '@/components/sales/SaleSuccessDialog';
 import CollectedDebtOperationDialog, { TodayDebtCollectionOperation } from '@/components/debts/CollectedDebtOperationDialog';
 import WorkerHandoverPreviewDialog from '@/components/accounting/WorkerHandoverPreviewDialog';
 import WorkerSalesSummaryDialog from '@/components/accounting/WorkerSalesSummaryDialog';
