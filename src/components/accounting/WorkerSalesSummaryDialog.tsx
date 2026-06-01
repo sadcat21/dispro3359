@@ -17,6 +17,7 @@ import PromoTrackingSummary from './PromoTrackingSummary';
 import { fetchSessionCalculations } from '@/hooks/useSessionCalculations';
 import { getGiftTotalPieces, getPaidQuantity } from '@/utils/orderItemQuantities';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { getProductDisplayName } from '@/utils/productDisplayName';
 
 const getLocaleCode = (language: string): string =>
   language === 'fr' ? 'fr-DZ' : language === 'en' ? 'en-US' : 'ar-DZ';
