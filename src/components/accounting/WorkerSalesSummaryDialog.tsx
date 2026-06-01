@@ -768,7 +768,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
 
         {!expandedProduct && salesData?.items?.length ? (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col">
-            <TabsList className="w-full shrink-0 grid grid-cols-4">
+            <TabsList className="w-full shrink-0 grid grid-cols-3">
               <TabsTrigger value="products" className="text-xs">{t('sales_summary.tab_products')}</TabsTrigger>
               <TabsTrigger value="promos" className="text-xs">
                 {t('sales_summary.tab_promos')}
@@ -779,7 +779,6 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
                 ) : null}
               </TabsTrigger>
               <TabsTrigger value="pricing" className="text-xs">{t('sales_summary.tab_pricing')}</TabsTrigger>
-              <TabsTrigger value="groups" className="text-xs">{t('sales_summary.tab_groups')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="products" className="mt-1">
