@@ -203,7 +203,7 @@ const ExpandedCarousel: React.FC<{
 };
 
 interface PriceTrackingRow { subtype: string; quantity: number; unitPrice: number; total: number; pricingUnit: string | null; weightPerBox: number | null; piecesPerBox: number | null; }
-interface PriceTrackedProduct { productName: string; quantity: number; totalValue: number; pricingRows: PriceTrackingRow[]; }
+interface PriceTrackedProduct { productName: string; imageUrl?: string | null; quantity: number; totalValue: number; pricingRows: PriceTrackingRow[]; }
 
 const fmtQty = (v: number): string => {
   const rounded = Math.round(v * 100) / 100;
