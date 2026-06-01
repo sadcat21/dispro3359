@@ -400,15 +400,21 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
         .or(`assigned_worker_id.eq.${workerId!},created_by.eq.${workerId!}`);
 
       const normalized = normalizePeriodRange(periodFrom, periodTo);
+      // Clamp the start to the last completed accounting session so orders
+      // belonging to the previously closed session never leak into the open one.
+      if (normalized && lastAccounting) {
+        const lastAccDate = new Date(lastAccounting);
+        if (normalized.start < lastAccDate) normalized.start = lastAccDate;
+      }
       let orders: any[] | null = null;
 
       if (normalized) {
         const [createdRes, updatedRes] = await Promise.all([
           buildOrdersQuery()
-            .gte('created_at', normalized.start.toISOString())
+            .gt('created_at', normalized.start.toISOString())
             .lte('created_at', normalized.end.toISOString()),
           buildOrdersQuery()
-            .gte('updated_at', normalized.start.toISOString())
+            .gt('updated_at', normalized.start.toISOString())
             .lte('updated_at', normalized.end.toISOString()),
         ]);
 
@@ -421,7 +427,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
         });
         orders = Array.from(byId.values());
       } else if (lastAccounting) {
-        const { data, error } = await buildOrdersQuery().gte('updated_at', lastAccounting);
+        const { data, error } = await buildOrdersQuery().gt('updated_at', lastAccounting);
         if (error) throw error;
         orders = data || [];
       } else {
