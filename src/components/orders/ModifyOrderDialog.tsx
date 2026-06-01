@@ -1183,8 +1183,10 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
 
       for (const item of items) {
         const itemSubtype = getCurrentItemSubtype(item);
-        const itemPayType = itemSubtype === 'invoice' ? 'with_invoice' : 'without_invoice';
-        const itemInvMethod = itemSubtype === 'invoice' ? (invoicePaymentMethod || null) : null;
+        const itemPayType = item.item_payment_type ?? (itemSubtype === 'invoice' ? 'with_invoice' : 'without_invoice');
+        const itemInvMethod = itemPayType === 'with_invoice'
+          ? (item.item_invoice_payment_method ?? invoicePaymentMethod ?? null)
+          : null;
         const itemChanged =
           item.new_quantity !== item.original_quantity ||
           (item.gift_quantity || 0) !== (item.original_gift_quantity || 0) ||
