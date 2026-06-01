@@ -850,16 +850,6 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
                 <PriceTrackingTab priceTracking={salesData.priceTracking || []} />
               </div>
             </TabsContent>
-
-            <TabsContent value="groups" className="mt-1">
-              <div className="pe-1">
-                <PricingGroupsSummary
-                  workerId={workerId!}
-                  periodStart={lastAccounting || new Date().toISOString().split('T')[0]}
-                  periodEnd={new Date().toISOString()}
-                />
-              </div>
-            </TabsContent>
           </Tabs>
         ) : (
           <ScrollArea className="">
