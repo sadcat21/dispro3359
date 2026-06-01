@@ -692,7 +692,7 @@ const MyDeliveries: React.FC = () => {
               </span>
               <span className="inline-flex items-center gap-1 min-w-0 justify-end">
                 <Truck className="w-3 h-3 shrink-0" />
-                <span className="truncate">{t('orders.delivery_date') || 'تاريخ التوصيل'}: {order.delivery_date ? format(new Date(order.delivery_date), 'dd/MM/yyyy', { locale: getDateLocale(language) }) : '—'}</span>
+                <span className="truncate">{t('orders.delivery_date')}: {order.delivery_date ? format(new Date(order.delivery_date), 'dd/MM/yyyy', { locale: getDateLocale(language) }) : '—'}</span>
               </span>
             </div>
           </div>
