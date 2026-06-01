@@ -978,6 +978,30 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
     }
     if (isSold) {
       await loadCustomerFinancialContext();
+
+      // Build payment groups from existing order_items (per-item payment metadata)
+      // plus any new items (inherit current global selection).
+      const groups = paymentGroupsForConfirmation;
+
+      // Multi-invoice payment confirmation (Cheque + Versement + ...)
+      if (groups.length > 1) {
+        setShowSplitPaymentDialog(true);
+        return;
+      }
+
+      // Cheque / Virement / Versement-Doc → dedicated receipt payment dialog
+      const isReceiptDocFlow =
+        paymentType === 'with_invoice' && (
+          invoicePaymentMethod === 'check' ||
+          invoicePaymentMethod === 'transfer' ||
+          (invoicePaymentMethod === 'receipt' && invoicePaymentSubType === 'doc')
+        );
+      if (isReceiptDocFlow) {
+        setShowReceiptPaymentDialog(true);
+        return;
+      }
+
+      // Default: adjustment / diff confirmation
       setConfirmMode('adjustment');
       setConfirmChanges(productChanges);
       setConfirmOriginalTotal(originalTotal);
