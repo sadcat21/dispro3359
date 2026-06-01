@@ -3653,6 +3653,7 @@ export type Database = {
           gift_quantity: number
           id: string
           invoice_payment_method: string | null
+          invoice_payment_subtype: string | null
           is_unit_sale: boolean
           order_id: string
           payment_type: string | null
@@ -3672,6 +3673,7 @@ export type Database = {
           gift_quantity?: number
           id?: string
           invoice_payment_method?: string | null
+          invoice_payment_subtype?: string | null
           is_unit_sale?: boolean
           order_id: string
           payment_type?: string | null
@@ -3691,6 +3693,7 @@ export type Database = {
           gift_quantity?: number
           id?: string
           invoice_payment_method?: string | null
+          invoice_payment_subtype?: string | null
           is_unit_sale?: boolean
           order_id?: string
           payment_type?: string | null
