@@ -382,21 +382,43 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
   const { data: salesData, isLoading } = useQuery({
     queryKey: ['worker-sales-summary', workerId, lastAccounting, periodFrom, periodTo],
     queryFn: async () => {
-      let ordersQuery = supabase
+      const buildOrdersQuery = () => supabase
         .from('orders')
         .select('id, status, payment_type, created_at, updated_at, customer_id, customer:customers(default_price_subtype)')
         .in('status', ['delivered', 'completed', 'confirmed'])
         .or(`assigned_worker_id.eq.${workerId!},created_by.eq.${workerId!}`);
 
       const normalized = normalizePeriodRange(periodFrom, periodTo);
+      let orders: any[] | null = null;
+
       if (normalized) {
-        ordersQuery = ordersQuery.gte('created_at', normalized.start.toISOString()).lte('created_at', normalized.end.toISOString());
+        const [createdRes, updatedRes] = await Promise.all([
+          buildOrdersQuery()
+            .gte('created_at', normalized.start.toISOString())
+            .lte('created_at', normalized.end.toISOString()),
+          buildOrdersQuery()
+            .gte('updated_at', normalized.start.toISOString())
+            .lte('updated_at', normalized.end.toISOString()),
+        ]);
+
+        if (createdRes.error) throw createdRes.error;
+        if (updatedRes.error) throw updatedRes.error;
+
+        const byId = new Map<string, any>();
+        [...(createdRes.data || []), ...(updatedRes.data || [])].forEach((order: any) => {
+          if (order?.id) byId.set(order.id, order);
+        });
+        orders = Array.from(byId.values());
       } else if (lastAccounting) {
-        ordersQuery = ordersQuery.gte('updated_at', lastAccounting);
+        const { data, error } = await buildOrdersQuery().gte('updated_at', lastAccounting);
+        if (error) throw error;
+        orders = data || [];
+      } else {
+        const { data, error } = await buildOrdersQuery();
+        if (error) throw error;
+        orders = data || [];
       }
 
-      const { data: orders, error } = await ordersQuery;
-      if (error) throw error;
       if (!orders || orders.length === 0) return { items: [], orderCount: 0, firstOrderTime: null, lastOrderTime: null, priceTracking: [] };
 
       const orderIds = orders.map(o => o.id);
