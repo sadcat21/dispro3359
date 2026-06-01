@@ -42,16 +42,17 @@ const PromoTable: React.FC = () => {
   const formatBP = (qty: number, piecesPerBox: number | null | undefined, unit?: string | null): string => {
     const q = Number(qty || 0);
     const ppb = Number(piecesPerBox || 0);
-    // If recorded as boxes, show as boxes directly
-    if (unit === 'box') return `${q} ص`;
-    // Recorded as pieces — convert to box.pieces if possible
-    if (!ppb || ppb <= 1) return `${q} ق`;
+    const sBox = t('common.box_short');
+    const sPiece = t('common.piece_short');
+    if (unit === 'box') return `${q} ${sBox}`;
+    if (!ppb || ppb <= 1) return `${q} ${sPiece}`;
     const boxes = Math.floor(q / ppb);
     const rem = q % ppb;
-    if (boxes === 0) return `${rem} ق`;
-    if (rem === 0) return `${boxes} ص`;
-    return `${boxes} ص ${rem} ق`;
+    if (boxes === 0) return `${rem} ${sPiece}`;
+    if (rem === 0) return `${boxes} ${sBox}`;
+    return `${boxes} ${sBox} ${rem} ${sPiece}`;
   };
+
   const [promos, setPromos] = useState<PromoWithDetails[]>([]);
   const [workers, setWorkers] = useState<Worker[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -207,17 +208,19 @@ const PromoTable: React.FC = () => {
     return products.find(p => p.id === selectedProduct)?.name || '';
   };
 
-  // Algerian French month names
+  // Algerian Arabic month names (used only for Arabic locale label)
   const algerianMonths = [
     'جانفي', 'فيفري', 'مارس', 'أفريل', 'ماي', 'جوان',
     'جويلية', 'أوت', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
   ];
 
   const formatAlgerianDate = (date: Date) => {
-    const month = algerianMonths[date.getMonth()];
-    const year = date.getFullYear();
-    return `${month} ${year}`;
+    if (language === 'ar') {
+      return `${algerianMonths[date.getMonth()]} ${date.getFullYear()}`;
+    }
+    return format(date, 'MMMM yyyy', { locale: getDateLocale(language) });
   };
+
 
   const getDateRangeText = () => {
     const now = new Date();
@@ -356,12 +359,13 @@ const PromoTable: React.FC = () => {
           <TabsList className="grid w-full sm:w-auto grid-cols-2">
             <TabsTrigger value="customer" className="gap-2">
               <User className="w-4 h-4" />
-              حسب العملاء
+              {t('promos.by_customer')}
             </TabsTrigger>
             <TabsTrigger value="worker" className="gap-2">
               <Users className="w-4 h-4" />
-              حسب العمال
+              {t('promos.by_worker')}
             </TabsTrigger>
+
           </TabsList>
         </Tabs>
       </div>
@@ -589,13 +593,14 @@ const PromoTable: React.FC = () => {
                     <TableCell className="text-sm" dir="ltr">{promo.customer?.phone || '-'}</TableCell>
                     <TableCell className="font-medium">{promo.product?.name || '-'}</TableCell>
                     <TableCell className="text-center">
-                      <span className="bg-primary/10 text-primary px-2 py-1 rounded font-bold" title={`${promo.vente_quantity} ${t('common.pieces') || 'قطعة'}`}>
+                      <span className="bg-primary/10 text-primary px-2 py-1 rounded font-bold" title={`${promo.vente_quantity} ${t('common.pieces')}`}>
                         {formatBP(promo.vente_quantity, promo.product?.pieces_per_box, (promo as any).sale_quantity_unit)}
                       </span>
                     </TableCell>
                     <TableCell className="text-center">
-                      <span className="bg-accent/50 text-accent-foreground px-2 py-1 rounded font-bold" title={`${promo.gratuite_quantity} ${t('common.pieces') || 'قطعة'}`}>
+                      <span className="bg-accent/50 text-accent-foreground px-2 py-1 rounded font-bold" title={`${promo.gratuite_quantity} ${t('common.pieces')}`}>
                         {formatBP(promo.gratuite_quantity, promo.product?.pieces_per_box, (promo as any).gift_quantity_unit)}
+
                       </span>
                     </TableCell>
                     <TableCell className="text-sm">{promo.worker?.full_name || '-'}</TableCell>
