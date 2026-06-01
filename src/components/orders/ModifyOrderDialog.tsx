@@ -219,7 +219,8 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
   }, [order]);
   const [assignedWorkerId, setAssignedWorkerId] = useState(order.assigned_worker_id || '');
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [confirmMode, setConfirmMode] = useState<'adjustment' | 'cancel' | null>(null);
+  const [confirmMode, setConfirmMode] = useState<'adjustment' | 'cancel' | 'resume' | null>(null);
+  const pendingPaymentActionRef = useRef<null | 'save' | 'cancel' | 'resume'>(null);
   const [confirmChanges, setConfirmChanges] = useState<Array<{
     product_name: string;
     original_quantity: number;
