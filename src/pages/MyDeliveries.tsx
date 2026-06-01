@@ -715,7 +715,7 @@ const MyDeliveries: React.FC = () => {
             )}
 
             {!isModifyHidden && (order.status === 'delivered' || ((order.status === 'pending' || order.status === 'assigned' || order.status === 'in_progress') && order.payment_type !== 'with_invoice')) && (
-              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" title={t('common.edit') || 'تعديل'} onClick={() => setModifyOrder(order)}>
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" title={t('common.edit')} onClick={() => setModifyOrder(order)}>
                 <Edit2 className="w-4 h-4" />
               </Button>
             )}
