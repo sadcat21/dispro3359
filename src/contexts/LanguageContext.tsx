@@ -5,12 +5,13 @@ import { supabase } from '@/integrations/supabase/client';
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: string) => string;
+  t: (key: string, vars?: Record<string, string | number>) => string;
+  tArr: (key: string, separator?: string) => string[];
   dir: 'rtl' | 'ltr';
   // Print settings
   printLanguage: Language;
   setPrintLanguage: (lang: Language, branchId?: string | null) => void;
-  tp: (key: string) => string; // translate for print
+  tp: (key: string, vars?: Record<string, string | number>) => string;
   printDir: 'rtl' | 'ltr';
   loadPrintSettingsFromDB: (branchId?: string | null) => Promise<void>;
 }
