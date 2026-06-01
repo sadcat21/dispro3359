@@ -428,7 +428,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
 
       const { data: itemsRaw, error: itemsError } = await supabase
         .from('order_items')
-        .select('order_id, product_id, quantity, gift_quantity, gift_pieces, unit_price, total_price, price_subtype, payment_type, pricing_unit, weight_per_box, pieces_per_box, product:products(name, pieces_per_box, image_url, pricing_unit, weight_per_box, price_retail, price_gros, price_super_gros, price_invoice)')
+        .select('order_id, product_id, quantity, gift_quantity, gift_pieces, unit_price, total_price, price_subtype, payment_type, pricing_unit, weight_per_box, pieces_per_box, product:products(name, app_name, pieces_per_box, image_url, pricing_unit, weight_per_box, price_retail, price_gros, price_super_gros, price_invoice)')
         .in('order_id', orderIds);
 
       if (itemsError) throw itemsError;
@@ -440,7 +440,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
         const prod = (item as any).product;
         if (prod?.name && !productInfoMap[item.product_id]) {
           productInfoMap[item.product_id] = {
-            name: prod.name,
+            name: getProductDisplayName(prod),
             pieces_per_box: prod.pieces_per_box || null,
             image_url: prod.image_url || null,
           };
