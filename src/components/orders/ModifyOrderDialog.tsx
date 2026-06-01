@@ -971,7 +971,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
       toast.error('يرجى اختيار نوع الاستلام: Cash أو Doc');
       return;
     }
-    if (isSold && Math.abs(orderTotal - originalTotal) > 0.009) {
+    if (isSold) {
       await loadCustomerFinancialContext();
       setConfirmMode('adjustment');
       setConfirmChanges(productChanges);
