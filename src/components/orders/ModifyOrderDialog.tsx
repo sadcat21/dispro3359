@@ -960,8 +960,19 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
       .filter((it) => Number(it.new_quantity || 0) > 0 || Number(it.gift_pieces || 0) > 0)
       .map((it) => {
         const src: any = byProductId.get(it.product_id);
-        const itemPaymentType = (src?.payment_type as PaymentType | undefined) ?? (paymentType as PaymentType);
-        const itemInvoiceMethod = (src?.invoice_payment_method as InvoicePaymentMethod | null | undefined) ?? invoicePaymentMethod ?? null;
+        const itemPaymentType = it.item_payment_type ?? (src?.payment_type as PaymentType | undefined) ?? (paymentType as PaymentType);
+        const itemInvoiceMethod = it.item_invoice_payment_method ?? (src?.invoice_payment_method as InvoicePaymentMethod | null | undefined) ?? invoicePaymentMethod ?? null;
+        const itemInvoiceSubType = it.item_invoice_payment_sub_type
+          ?? ((src?.invoice_payment_subtype as 'cash' | 'doc' | null | undefined)
+            ?? ((src?.document_verification && typeof src.document_verification === 'object')
+              ? (src.document_verification.paid_by_cash === true
+                ? 'cash'
+                : src.document_verification.paid_by_cash === false
+                  ? 'doc'
+                  : null)
+              : null))
+          ?? invoicePaymentSubType
+          ?? null;
         return {
           productId: it.product_id,
           productName: it.product_name,
@@ -969,7 +980,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
           totalPrice: Number(it.new_quantity || 0) * Number(it.unit_price || 0),
           itemPaymentType,
           itemInvoicePaymentMethod: itemInvoiceMethod,
-          itemInvoicePaymentSubType: invoicePaymentSubType ?? null,
+          itemInvoicePaymentSubType: itemInvoiceSubType,
         };
       });
     return splitOrderByPaymentGroup(splittable, {
@@ -978,6 +989,37 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
       invoicePaymentSubType: invoicePaymentSubType ?? null,
     });
   }, [items, orderItems, paymentType, invoicePaymentMethod, invoicePaymentSubType]);
+
+  const resolvePaymentConfirmationTarget = useCallback(() => {
+    const groups = paymentGroupsForConfirmation;
+    if (groups.length > 1) {
+      return { type: 'split' as const };
+    }
+
+    const group = groups[0];
+    const effectivePaymentType = group?.paymentType ?? (paymentType as PaymentType);
+    const effectiveInvoiceMethod = group?.invoicePaymentMethod ?? invoicePaymentMethod ?? null;
+    const effectiveInvoiceSubType = group?.invoicePaymentSubType ?? invoicePaymentSubType ?? null;
+
+    const isReceiptDocFlow =
+      effectivePaymentType === 'with_invoice' && (
+        effectiveInvoiceMethod === 'check' ||
+        effectiveInvoiceMethod === 'transfer' ||
+        (effectiveInvoiceMethod === 'receipt' && effectiveInvoiceSubType === 'doc')
+      );
+
+    if (isReceiptDocFlow) {
+      return {
+        type: 'receipt' as const,
+        paymentMethod: (effectiveInvoiceMethod === 'check' || effectiveInvoiceMethod === 'transfer' || effectiveInvoiceMethod === 'receipt')
+          ? effectiveInvoiceMethod
+          : 'receipt',
+        hideCash: effectiveInvoiceMethod === 'receipt' && effectiveInvoiceSubType === 'doc',
+      };
+    }
+
+    return { type: 'post_delivery' as const };
+  }, [invoicePaymentMethod, invoicePaymentSubType, paymentGroupsForConfirmation, paymentType]);
 
 
   const loadCustomerFinancialContext = useCallback(async () => {
