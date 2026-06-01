@@ -370,13 +370,26 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
       { table: 'expenses' },
       { table: 'manager_treasury' },
     ],
-    [['worker-sales-summary', workerId, periodFrom, periodTo], ['worker-sales-promo-summary', workerId, periodFrom, periodTo], ['worker-last-accounting-sales', workerId]],
+    [['worker-sales-summary', workerId, periodFrom, periodTo], ['worker-sales-promo-summary', workerId, periodFrom, periodTo], ['worker-sales-session-boundary', workerId]],
     open && !!workerId
   );
 
-  const { data: lastAccounting } = useQuery({
-    queryKey: ['worker-last-accounting-sales', workerId],
+  const { data: sessionBoundary } = useQuery({
+    queryKey: ['worker-sales-session-boundary', workerId],
     queryFn: async () => {
+      const { data: openSession } = await supabase
+        .from('accounting_sessions')
+        .select('period_start')
+        .eq('worker_id', workerId!)
+        .eq('status', 'open')
+        .order('period_start', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (openSession?.period_start) {
+        return { boundary: openSession.period_start, source: 'open' as const };
+      }
+
       const { data } = await supabase
         .from('accounting_sessions')
         .select('completed_at')
@@ -385,13 +398,15 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
         .order('completed_at', { ascending: false })
         .limit(1)
         .single();
-      return data?.completed_at || null;
+      return { boundary: data?.completed_at || null, source: 'completed' as const };
     },
     enabled: open && !!workerId,
   });
 
+  const lastAccounting = sessionBoundary?.boundary || null;
+
   const { data: salesData, isLoading } = useQuery({
-    queryKey: ['worker-sales-summary', workerId, lastAccounting, periodFrom, periodTo],
+    queryKey: ['worker-sales-summary', workerId, lastAccounting, sessionBoundary?.source, periodFrom, periodTo],
     queryFn: async () => {
       const buildOrdersQuery = () => supabase
         .from('orders')
@@ -595,7 +610,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
   });
 
   const { data: promoData } = useQuery({
-    queryKey: ['worker-sales-promo-summary', workerId, periodFrom, periodTo, lastAccounting],
+    queryKey: ['worker-sales-promo-summary', workerId, periodFrom, periodTo, lastAccounting, sessionBoundary?.source],
     queryFn: async () => {
       if (!workerId) return null;
 

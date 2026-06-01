@@ -685,6 +685,15 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
 
       const settled = await Promise.allSettled(
         availableWorkers.map(async (worker) => {
+          const { data: openSession } = await supabase
+            .from('accounting_sessions')
+            .select('period_start')
+            .eq('worker_id', worker.id)
+            .eq('status', 'open')
+            .order('period_start', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
           const { data: accounting } = await supabase
             .from('accounting_sessions')
             .select('completed_at')
@@ -694,16 +703,16 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
             .limit(1)
             .maybeSingle();
 
-          const lastAccounting = accounting?.completed_at || null;
+          const sessionBoundary = openSession?.period_start || accounting?.completed_at || null;
           const normalized = normalizePeriodRange(periodFrom, periodTo);
           const periodStart = normalized
             ? new Date(
                 Math.max(
                   normalized.start.getTime(),
-                  lastAccounting ? new Date(lastAccounting).getTime() : normalized.start.getTime(),
+                  sessionBoundary ? new Date(sessionBoundary).getTime() : normalized.start.getTime(),
                 ),
               ).toISOString()
-            : (lastAccounting || '1970-01-01T00:00:00Z');
+            : (sessionBoundary || '1970-01-01T00:00:00Z');
           const periodEnd = normalized
             ? normalized.end.toISOString()
             : new Date().toISOString();
@@ -711,7 +720,7 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
             worker.id,
             normalized ? periodStart : null,
             normalized ? periodEnd : null,
-            lastAccounting,
+            sessionBoundary,
             branchId || null,
           );
 
@@ -776,7 +785,7 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
 
           return {
             worker: worker as WorkerInfo,
-            lastAccounting,
+            lastAccounting: sessionBoundary,
             periodStart,
             periodEnd,
             orderCount: salesSummary.orderCount,
