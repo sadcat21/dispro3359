@@ -663,22 +663,12 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
             <Badge variant="secondary" className="text-xs">
               {salesData?.orderCount || 0} {t('sales_summary.orders_count')}
             </Badge>
-            <Badge variant="outline" className="text-xs">
-              {totalQty} {t('sales_summary.units')}
-            </Badge>
-            <Badge className="text-xs bg-primary/10 text-primary border-0">
-              {totalAmount.toLocaleString(localeCode)} {t('sales_summary.currency')}
-            </Badge>
             {promoData && promoData.promoTracking.length > 0 && (
               <Badge variant="outline" className="text-xs">
                 {promoData.promoTracking.length} {t('sales_summary.promos')}
               </Badge>
             )}
-            {lastAccounting && (
-              <Badge variant="outline" className="text-[10px] text-muted-foreground">
-                {t('sales_summary.since_last_accounting')}
-              </Badge>
-            )}
+
             {firstTime && (
               <span className="flex items-center gap-1 rounded-full px-2 py-0.5 bg-[hsl(var(--success)/0.18)] text-[hsl(var(--success-foreground))] font-semibold text-[11px]">
                 <Clock className="w-3 h-3" />
