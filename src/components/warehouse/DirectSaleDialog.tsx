@@ -787,6 +787,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       },
       status: docStatus,
     });
+    // أغلق نافذة استلام المستند قبل تشغيل عملية الحفظ حتى تظهر نافذة تأكيد البيع بشكل صحيح
+    setShowReceiptPaymentDialog(false);
     await handlePaymentConfirm({
       paidAmount: effective,
       remainingAmount: data.remainingDebt,
@@ -794,7 +796,6 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       isFullPayment: effective >= total,
       isNoPayment: paid === 0,
     });
-    setShowReceiptPaymentDialog(false);
   };
 
   const handlePaymentConfirm = async (paymentData: {
