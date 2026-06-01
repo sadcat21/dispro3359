@@ -415,7 +415,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                 <Button
                   className="h-11 flex-1 gap-2"
                   variant="default"
-                  onClick={() => setShowResumeConfirm(true)}
+                  onClick={() => setShowModifyDialog(true)}
                   disabled={isResuming}
                 >
                   <RotateCcw className="h-4 w-4" />
