@@ -166,6 +166,8 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCancellingOrder, setIsCancellingOrder] = useState(false);
   const [successInfo, setSuccessInfo] = useState<SaleSuccessInfo | null>(null);
+  const [showReceiptPaymentDialog, setShowReceiptPaymentDialog] = useState(false);
+  const [showSplitPaymentDialog, setShowSplitPaymentDialog] = useState(false);
 
   const showSaleSuccess = useCallback(async (mode: 'modify' | 'resume') => {
     try {
