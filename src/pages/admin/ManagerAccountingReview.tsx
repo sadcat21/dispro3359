@@ -587,7 +587,7 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
   const to = new Date(Math.max(...ends.map((d: string) => new Date(d).getTime()))).toISOString();
   const { data: orders } = await supabase
     .from('orders')
-    .select('id, payment_type, invoice_payment_method, assigned_worker_id, created_at, order_items(product_id, quantity, unit_price, total_price, pricing_unit, gift_quantity, gift_pieces, price_subtype, products(id, name, app_name, pieces_per_box, price_super_gros, price_gros, price_retail, price_invoice, price_no_invoice, pricing_unit))')
+    .select('id, payment_type, invoice_payment_method, assigned_worker_id, created_at, order_items(product_id, quantity, unit_price, total_price, pricing_unit, gift_quantity, gift_pieces, price_subtype, products(id, name, app_name, pieces_per_box, weight_per_box, price_super_gros, price_gros, price_retail, price_invoice, price_no_invoice, pricing_unit))')
     .in('assigned_worker_id', workerIds)
     .eq('status', 'delivered')
     .gte('created_at', from)
@@ -660,17 +660,22 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       if (!it.product_id) return;
       const p = it.products || {};
       const ppb = Math.max(1, Number(p.pieces_per_box || 1));
+      const wpb = Math.max(1, Number(p.weight_per_box || 1));
       productMap.set(it.product_id, { name: p.app_name || p.name || '—', ppb });
-      // When pricing_unit is 'unit'/'piece', quantity is stored as raw pieces.
-      // Otherwise it's stored as B.P (boxes.pieces) format.
+      // Quantity storage convention depends on pricing_unit:
+      //  - 'unit'/'piece' → raw pieces (boxes = qty / pieces_per_box)
+      //  - 'kg'           → raw kilograms (boxes = qty / weight_per_box)
+      //  - 'box' (default)→ B.P (boxes.pieces) decimal format
       const itemPU = (it.pricing_unit || p.pricing_unit || 'box').toString().toLowerCase();
       const isUnitSale = itemPU === 'unit' || itemPU === 'piece';
-      const qty = isUnitSale
-        ? Number(it.quantity || 0) / ppb
-        : dbBPToBoxes(Number(it.quantity || 0), ppb);
-      const giftBoxes = isUnitSale
-        ? Number(it.gift_quantity || 0) / ppb
-        : dbBPToBoxes(Number(it.gift_quantity || 0), ppb);
+      const isKgSale = itemPU === 'kg';
+      const toBoxes = (raw: number) => {
+        if (isUnitSale) return raw / ppb;
+        if (isKgSale) return raw / wpb;
+        return dbBPToBoxes(raw, ppb);
+      };
+      const qty = toBoxes(Number(it.quantity || 0));
+      const giftBoxes = toBoxes(Number(it.gift_quantity || 0));
       const giftPiecesAsBoxes = Number(it.gift_pieces || 0) / ppb;
       const gift = giftBoxes + giftPiecesAsBoxes;
       const sub = (it.price_subtype || '').toLowerCase();
