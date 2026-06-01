@@ -688,7 +688,7 @@ const MyDeliveries: React.FC = () => {
             <div className="col-span-3 mt-1 pt-1 border-t border-dashed border-muted-foreground/20 grid grid-cols-2 gap-x-2 text-[10px] text-muted-foreground">
               <span className="inline-flex items-center gap-1 min-w-0">
                 <Calendar className="w-3 h-3 shrink-0" />
-                <span className="truncate">{t('orders.created_at') || 'تاريخ الإنشاء'}: {format(new Date(order.created_at), 'dd/MM/yyyy', { locale: getDateLocale(language) })}</span>
+                <span className="truncate">{t('orders.created_at')}: {format(new Date(order.created_at), 'dd/MM/yyyy', { locale: getDateLocale(language) })}</span>
               </span>
               <span className="inline-flex items-center gap-1 min-w-0 justify-end">
                 <Truck className="w-3 h-3 shrink-0" />
