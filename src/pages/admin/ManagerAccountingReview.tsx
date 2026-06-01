@@ -660,18 +660,17 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       if (!it.product_id) return;
       const p = it.products || {};
       const ppb = Math.max(1, Number(p.pieces_per_box || 1));
-      const wpb = Math.max(1, Number(p.weight_per_box || 1));
       productMap.set(it.product_id, { name: p.app_name || p.name || '—', ppb });
       // Quantity storage convention depends on pricing_unit:
-      //  - 'unit'/'piece' → raw pieces (boxes = qty / pieces_per_box)
-      //  - 'kg'           → raw kilograms (boxes = qty / weight_per_box)
+      //  - 'unit'/'piece' → raw pieces (display = qty / pieces_per_box)
+      //  - 'kg'           → raw kilograms (display raw kg in review, like achievements/summary)
       //  - 'box' (default)→ B.P (boxes.pieces) decimal format
       const itemPU = (it.pricing_unit || p.pricing_unit || 'box').toString().toLowerCase();
       const isUnitSale = itemPU === 'unit' || itemPU === 'piece';
       const isKgSale = itemPU === 'kg';
       const toBoxes = (raw: number) => {
         if (isUnitSale) return raw / ppb;
-        if (isKgSale) return raw / wpb;
+        if (isKgSale) return raw;
         return dbBPToBoxes(raw, ppb);
       };
       const qty = toBoxes(Number(it.quantity || 0));
