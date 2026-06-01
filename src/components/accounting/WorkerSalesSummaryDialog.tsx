@@ -21,6 +21,11 @@ import { getProductDisplayName } from '@/utils/productDisplayName';
 
 const getLocaleCode = (language: string): string =>
   language === 'fr' ? 'fr-DZ' : language === 'en' ? 'en-US' : 'ar-DZ';
+/** Format currency with DA symbol on the right side of the amount visually,
+ *  regardless of LTR/RTL direction. In RTL containers we must put "DA" before
+ *  the number in source so it ends up on the right visually. */
+const formatDA = (formatted: string | number, language: string): string =>
+  language === 'ar' ? `DA ${formatted}` : `${formatted} DA`;
 /** Format quantity as boxes.pieces (e.g. 1.05 = 1 box + 5 pieces) */
 const formatBoxPieces = (qty: number, piecesPerBox: number | null): string => {
   if (!piecesPerBox || piecesPerBox <= 0) return String(qty);
