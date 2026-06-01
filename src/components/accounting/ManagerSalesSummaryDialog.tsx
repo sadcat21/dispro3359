@@ -697,7 +697,12 @@ export const ManagerSalesSummaryContent: React.FC<ContentProps> = ({ branchId, w
           const lastAccounting = accounting?.completed_at || null;
           const normalized = normalizePeriodRange(periodFrom, periodTo);
           const periodStart = normalized
-            ? normalized.start.toISOString()
+            ? new Date(
+                Math.max(
+                  normalized.start.getTime(),
+                  lastAccounting ? new Date(lastAccounting).getTime() : normalized.start.getTime(),
+                ),
+              ).toISOString()
             : (lastAccounting || '1970-01-01T00:00:00Z');
           const periodEnd = normalized
             ? normalized.end.toISOString()
