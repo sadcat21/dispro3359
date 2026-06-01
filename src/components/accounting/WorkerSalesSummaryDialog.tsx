@@ -744,6 +744,28 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
                     <p className="text-[10px] text-muted-foreground">الديون المحصلة</p>
                     <p className="font-bold text-lg text-orange-600">{fmt(calc.debtCollections?.total || 0)} DA</p>
                   </div>
+                  <div className="bg-orange-50 dark:bg-orange-900/10 rounded-lg p-2.5 text-center">
+                    <p className="text-[10px] text-muted-foreground">المصاريف</p>
+                    <p className="font-bold text-lg text-orange-700">{fmt(calc.expenses || 0)} DA</p>
+                  </div>
+                  <div className="bg-blue-50 dark:bg-blue-900/10 rounded-lg p-2.5 text-center">
+                    <p className="text-[10px] text-muted-foreground">شيك</p>
+                    <p className="font-bold text-lg text-blue-600">
+                      {fmt((calc.invoice1?.check || 0) + (calc.debtCollections?.check || 0))} DA
+                    </p>
+                  </div>
+                  <div className="bg-indigo-50 dark:bg-indigo-900/10 rounded-lg p-2.5 text-center">
+                    <p className="text-[10px] text-muted-foreground">فيرسمو (وصل)</p>
+                    <p className="font-bold text-lg text-indigo-600">
+                      {fmt((calc.invoice1?.receipt || 0) + (calc.debtCollections?.receipt || 0))} DA
+                    </p>
+                  </div>
+                  <div className="bg-purple-50 dark:bg-purple-900/10 rounded-lg p-2.5 text-center">
+                    <p className="text-[10px] text-muted-foreground">فيرمو (تحويل)</p>
+                    <p className="font-bold text-lg text-purple-600">
+                      {fmt((calc.invoice1?.transfer || 0) + (calc.debtCollections?.transfer || 0))} DA
+                    </p>
+                  </div>
                 </div>
               </div>
             );
