@@ -55,7 +55,7 @@ interface DataCategory {
   tables: string[];
   description: string;
   order: number;
-  group: 'sales' | 'finance' | 'stock' | 'system' | 'master';
+  group: 'sales' | 'finance' | 'stock' | 'hr' | 'ops' | 'system' | 'master';
 }
 
 // Related data dependencies map: category -> categories that should also be deleted
