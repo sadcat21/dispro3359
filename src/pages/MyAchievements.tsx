@@ -602,7 +602,7 @@ const MyAchievements: React.FC = () => {
         // visit_tracking row is missing (e.g. GPS/permissions blocked insert).
         supabase
           .from('orders')
-          .select('id, customer_id, branch_id, created_at, status')
+          .select('id, customer_id, branch_id, created_at, status, created_by, assigned_worker_id')
           .eq('assigned_worker_id', targetWorkerId)
           .gte('created_at', lowerBound)
           .lte('created_at', upperBound)
@@ -639,18 +639,24 @@ const MyAchievements: React.FC = () => {
         // Synthesize visit entries for assigned orders that never produced a
         // visit_tracking row (e.g. GPS denied), so achievements count matches
         // the real order count.
+        // If the order was created by another worker (e.g. a sales rep) and
+        // assigned/passed to this worker, classify it as a delivery — not a
+        // direct sale.
         ...((directOrders || [])
           .filter((o: any) => o.id && !trackedOrderIds.has(o.id))
-          .map((o: any) => ({
-            id: `order-${o.id}`,
-            worker_id: targetWorkerId,
-            customer_id: o.customer_id || null,
-            operation_type: 'direct_sale' as OperationType,
-            operation_id: o.id,
-            notes: null,
-            created_at: o.created_at,
-            branch_id: o.branch_id || activeBranch?.id || null,
-          }))),
+          .map((o: any) => {
+            const isDelivery = o.created_by && o.created_by !== targetWorkerId;
+            return {
+              id: `order-${o.id}`,
+              worker_id: targetWorkerId,
+              customer_id: o.customer_id || null,
+              operation_type: (isDelivery ? 'delivery' : 'direct_sale') as OperationType,
+              operation_id: o.id,
+              notes: null,
+              created_at: o.created_at,
+              branch_id: o.branch_id || activeBranch?.id || null,
+            };
+          })),
       ].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
 
       const customerIds = [...new Set((mergedVisits || []).filter((v) => v.customer_id).map((v) => v.customer_id!))];
