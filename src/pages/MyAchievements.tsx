@@ -456,6 +456,7 @@ const MyAchievements: React.FC = () => {
   const [showSalesSummary, setShowSalesSummary] = useState(false);
   const [showOrdersSummary, setShowOrdersSummary] = useState(false);
   const [showDebtAggregates, setShowDebtAggregates] = useState(false);
+  const [resumeSuccessInfo, setResumeSuccessInfo] = useState<SaleSuccessInfo | null>(null);
   const queryClient = useQueryClient();
   const cancelOrder = useCancelOrder();
   const resumeOrder = useResumeOrder();
