@@ -11,8 +11,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { ShoppingBag, Package, User, Clock, Calendar, ChevronLeft, ChevronRight, ChevronDown, TrendingUp, Tag, ArrowUpCircle, Wallet } from 'lucide-react';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { inferPricingSubtype } from '@/utils/pricingSubtype';
-import { buildPricingGroups } from './PricingGroupsSummary';
-import PricingGroupsSummary from './PricingGroupsSummary';
 import PromoTrackingSummary from './PromoTrackingSummary';
 import { fetchSessionCalculations } from '@/hooks/useSessionCalculations';
 import { getGiftTotalPieces, getPaidQuantity } from '@/utils/orderItemQuantities';
