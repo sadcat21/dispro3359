@@ -2292,6 +2292,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
   };
 
   const availableProducts = products.filter(p => !items.some(i => i.product_id === p.id));
+  const paymentConfirmationTarget = resolvePaymentConfirmationTarget();
   const selectedNewProduct = products.find((p) => p.id === newProductId);
   const canToggleNewProductUnit = supportsUnitSale(selectedNewProduct);
   const editingItem = useMemo(() => {
@@ -2691,8 +2692,8 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
         onOpenChange={setShowReceiptPaymentDialog}
         orderTotal={confirmNewTotal > 0 ? confirmNewTotal : orderTotal}
         customerName={order.customer?.store_name || order.customer?.name || '—'}
-        paymentMethod={resolvePaymentConfirmationTarget().type === 'receipt' ? resolvePaymentConfirmationTarget().paymentMethod : 'receipt'}
-        hideCash={resolvePaymentConfirmationTarget().type === 'receipt' ? resolvePaymentConfirmationTarget().hideCash : false}
+        paymentMethod={paymentConfirmationTarget.type === 'receipt' ? paymentConfirmationTarget.paymentMethod : 'receipt'}
+        hideCash={paymentConfirmationTarget.type === 'receipt' ? paymentConfirmationTarget.hideCash : false}
         onConfirm={handleReceiptPaymentConfirm}
       />
 
