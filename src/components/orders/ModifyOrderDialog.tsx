@@ -1093,8 +1093,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
   const handleSplitPaymentConfirm = async (results: GroupPaymentResult[]) => {
     setShowSplitPaymentDialog(false);
     const paid = results.reduce((s, r) => s + (r.paidAmount || 0), 0);
-    const { kind, amount } = mapPaidToDiff(paid);
-    await handleSave(kind, amount);
+    await dispatchPaymentResult(paid);
   };
 
 
