@@ -1596,6 +1596,11 @@ const MyAchievements: React.FC = () => {
         collection={selectedDebtCollection}
       />
 
+      <SaleSuccessDialog
+        open={!!resumeSuccessInfo}
+        info={resumeSuccessInfo}
+        onClose={() => setResumeSuccessInfo(null)}
+      />
       <WorkerHandoverPreviewDialog open={showHandoverSummary} onOpenChange={setShowHandoverSummary} />
       <WorkerSalesSummaryDialog open={showSalesSummary} onOpenChange={setShowSalesSummary} workerId={targetWorkerId || undefined} workerName={targetWorkerName || undefined} defaultPeriodFrom={periodFrom} defaultPeriodTo={periodTo} />
       <AccountingSessionsTimelineDialog
