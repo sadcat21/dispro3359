@@ -618,6 +618,14 @@ export const translations: Translations = {
   'deliveries.paid': { ar: 'مدفوع', fr: 'Payé', en: 'Paid' },
   'deliveries.unpaid': { ar: 'غير مدفوع', fr: 'Non payé', en: 'Unpaid' },
   'deliveries.partial': { ar: 'دفع جزئي', fr: 'Paiement partiel', en: 'Partial Payment' },
+  'deliveries.short_all': { ar: 'الكل', fr: 'Tout', en: 'All' },
+  'deliveries.short_pending': { ar: 'انتظار', fr: 'Attente', en: 'Pending' },
+  'deliveries.short_assigned': { ar: 'تعيين', fr: 'Assignées', en: 'Assigned' },
+  'deliveries.short_delivered': { ar: 'تم', fr: 'Livré', en: 'Done' },
+  'deliveries.short_cancelled': { ar: 'ملغي', fr: 'Annulé', en: 'Cancelled' },
+  'deliveries.tab_postponed': { ar: 'مؤجل', fr: 'Reporté', en: 'Postponed' },
+  'deliveries.tab_direct_sale': { ar: 'مباشر', fr: 'Direct', en: 'Direct' },
+  'deliveries.tab_deliveries': { ar: 'توصيلات', fr: 'Livraisons', en: 'Deliveries' },
 
   // ==================== Customer Accounts ====================
   'accounts.title': { ar: 'حسابات التجار', fr: 'Comptes clients', en: 'Customer Accounts' },
