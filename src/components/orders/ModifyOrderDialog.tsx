@@ -62,6 +62,9 @@ interface ModifiedItem {
   weight_per_box: number;
   item_subtype?: string; // per-item override: 'super_gros' | 'gros' | 'retail' | 'invoice'
   original_item_subtype?: string;
+  item_payment_type?: PaymentType;
+  item_invoice_payment_method?: InvoicePaymentMethod | null;
+  item_invoice_payment_sub_type?: 'cash' | 'doc' | null;
   is_unit_sale?: boolean;
   custom_unit_price?: number;
 }
@@ -322,6 +325,16 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
           weight_per_box: weightPerBox,
           item_subtype: ((item as any).price_subtype as string | undefined) || undefined,
           original_item_subtype: ((item as any).price_subtype as string | undefined) || undefined,
+          item_payment_type: ((item as any).payment_type as PaymentType | undefined) || undefined,
+          item_invoice_payment_method: ((item as any).invoice_payment_method as InvoicePaymentMethod | null | undefined) ?? null,
+          item_invoice_payment_sub_type: (((item as any).invoice_payment_subtype as 'cash' | 'doc' | null | undefined)
+            ?? (((item as any).document_verification && typeof (item as any).document_verification === 'object')
+              ? (((item as any).document_verification as any).paid_by_cash === true
+                ? 'cash'
+                : ((item as any).document_verification as any).paid_by_cash === false
+                  ? 'doc'
+                  : null)
+              : null)),
           is_unit_sale: false,
         };
       }));
@@ -553,6 +566,15 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
         gift_pieces: giftPiecesRemainder,
         unit_price: isUnitSale ? resolveCustomSalePrice(product, rawUnitPrice, true) : rawUnitPrice,
         item_subtype: nextSubtype,
+        item_payment_type: perItemPricing ? perItemPricing.paymentType : item.item_payment_type,
+        item_invoice_payment_method: perItemPricing
+          ? (perItemPricing.paymentType === 'with_invoice' ? perItemPricing.invoicePaymentMethod : null)
+          : item.item_invoice_payment_method,
+        item_invoice_payment_sub_type: perItemPricing
+          ? (perItemPricing.paymentType === 'with_invoice'
+            ? ((perItemPricing as any).invoicePaymentSubType ?? null)
+            : null)
+          : item.item_invoice_payment_sub_type,
         is_unit_sale: !!isUnitSale,
         custom_unit_price: perItemPricing ? perItemPricing.customUnitPrice : item.custom_unit_price,
       };
