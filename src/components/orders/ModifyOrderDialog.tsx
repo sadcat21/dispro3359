@@ -2099,7 +2099,8 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
   const editingSubtype = editingItem ? getCurrentItemSubtype(editingItem) : (paymentType === 'with_invoice' ? 'invoice' : priceSubType);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <>
+    <Dialog open={open && !successInfo} onOpenChange={onOpenChange}>
       <DialogContent className="flex h-[min(100dvh-0.75rem,56rem)] max-h-[100dvh-0.75rem] w-[calc(100vw-0.75rem)] max-w-[calc(100vw-0.75rem)] flex-col gap-0 overflow-hidden p-0 sm:h-auto sm:max-h-[90vh] sm:max-w-md" dir={dir}>
         <DialogHeader className="p-4 pb-2 border-b shrink-0">
           <DialogTitle className="flex items-center gap-2">
