@@ -1057,6 +1057,35 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
     await handleSave(diffPaymentType, paidAmount);
   };
 
+  // Map payment-dialog result (absolute paid amount) into the diff-based
+  // contract expected by handleSave / executeConfirmedCancellation.
+  const mapPaidToDiff = (paid: number): { kind: 'full' | 'partial' | 'no_payment'; amount?: number } => {
+    if (paid <= 0) return { kind: 'no_payment' };
+    if (paid >= orderTotal - 0.009) return { kind: 'full' };
+    return { kind: 'partial', amount: paid };
+  };
+
+  const handleReceiptPaymentConfirm = async (data: {
+    receiptReceived: boolean;
+    paidByCash: boolean;
+    receiptAmount: number;
+    cashAmount: number;
+    remainingDebt: number;
+  }) => {
+    setShowReceiptPaymentDialog(false);
+    const paid = (data.receiptAmount || 0) + (data.cashAmount || 0);
+    const { kind, amount } = mapPaidToDiff(paid);
+    await handleSave(kind, amount);
+  };
+
+  const handleSplitPaymentConfirm = async (results: GroupPaymentResult[]) => {
+    setShowSplitPaymentDialog(false);
+    const paid = results.reduce((s, r) => s + (r.paidAmount || 0), 0);
+    const { kind, amount } = mapPaidToDiff(paid);
+    await handleSave(kind, amount);
+  };
+
+
   const handleSave = async (diffPaymentType?: 'full' | 'partial' | 'no_payment', paidAmount?: number) => {
     if (!hasChanges || !workerId) return;
     setIsSubmitting(true);
