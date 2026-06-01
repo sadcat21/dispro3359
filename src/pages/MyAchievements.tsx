@@ -604,6 +604,7 @@ const MyAchievements: React.FC = () => {
           .from('orders')
           .select('id, customer_id, branch_id, created_at, status, created_by, assigned_worker_id')
           .eq('assigned_worker_id', targetWorkerId)
+          .eq('status', 'delivered')
           .gte('created_at', lowerBound)
           .lte('created_at', upperBound)
           .order('created_at', { ascending: false }),
