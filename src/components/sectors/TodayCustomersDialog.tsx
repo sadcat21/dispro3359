@@ -2498,12 +2498,12 @@ const TodayCustomersDialog: React.FC<TodayCustomersDialogProps> = ({
               <TabsTrigger value="sales" className="flex-1 gap-1 text-xs">
                 <ShoppingCart className="w-3.5 h-3.5" />
                 طلبات
-                {(isDeliveryRole ? salesWithOrders.length : salesCustomers.length) > 0 && <Badge variant="secondary" className="text-[10px] px-1">{isDeliveryRole ? salesWithOrders.length : salesCustomers.length}</Badge>}
+                {salesWithOrders.length > 0 && <Badge variant="secondary" className="text-[10px] px-1">{salesWithOrders.length}</Badge>}
               </TabsTrigger>
               <TabsTrigger value="direct-sale" className="flex-1 gap-1 text-xs">
                 <ShoppingBag className="w-3.5 h-3.5" />
                 {directSaleLabel}
-                {directSaleCustomers.length > 0 && <Badge className="text-[10px] px-1 bg-emerald-500">{directSaleCustomers.length}</Badge>}
+                {directSaleSold.length > 0 && <Badge className="text-[10px] px-1 bg-emerald-500">{directSaleSold.length}</Badge>}
               </TabsTrigger>
               <TabsTrigger value="debts" className="flex-1 gap-1 text-xs">
                 <Landmark className="w-3.5 h-3.5" />
