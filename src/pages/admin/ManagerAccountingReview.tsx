@@ -534,8 +534,8 @@ const SummaryRow: React.FC<{ label: string; value: number; color?: string }> = (
 };
 
 const MiniBox: React.FC<{ label: string; value: number; color?: string; showSign?: boolean }> = ({ label, value, color, showSign }) => {
-  const bg = color === 'green' ? 'bg-green-50' : color === 'red' ? 'bg-red-50' : color === 'orange' ? 'bg-orange-50' : 'bg-muted/30';
-  const text = color === 'green' ? 'text-green-700' : color === 'red' ? 'text-red-700' : color === 'orange' ? 'text-orange-700' : '';
+  const bg = color === 'green' ? 'bg-green-50' : color === 'red' ? 'bg-red-50' : color === 'orange' ? 'bg-orange-50' : color === 'blue' ? 'bg-blue-50' : 'bg-muted/30';
+  const text = color === 'green' ? 'text-green-700' : color === 'red' ? 'text-red-700' : color === 'orange' ? 'text-orange-700' : color === 'blue' ? 'text-blue-700' : '';
   return (
     <div className={`${bg} rounded p-1.5`}>
       <p className="text-muted-foreground truncate">{label}</p>
