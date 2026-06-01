@@ -925,6 +925,38 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
       difference: i.new_quantity - i.original_quantity,
     }));
 
+  // Build payment groups for confirmation dialogs based on current items.
+  // Existing items keep their per-row payment metadata (order_items.payment_type /
+  // invoice_payment_method); new items fall back to the global selection.
+  const paymentGroupsForConfirmation = useMemo(() => {
+    const byProductId = new Map<string, any>();
+    for (const oi of orderItems) {
+      if (!byProductId.has(oi.product_id)) byProductId.set(oi.product_id, oi);
+    }
+    const splittable = items
+      .filter((it) => Number(it.new_quantity || 0) > 0 || Number(it.gift_pieces || 0) > 0)
+      .map((it) => {
+        const src: any = byProductId.get(it.product_id);
+        const itemPaymentType = (src?.payment_type as PaymentType | undefined) ?? (paymentType as PaymentType);
+        const itemInvoiceMethod = (src?.invoice_payment_method as InvoicePaymentMethod | null | undefined) ?? invoicePaymentMethod ?? null;
+        return {
+          productId: it.product_id,
+          productName: it.product_name,
+          quantity: Number(it.new_quantity || 0),
+          totalPrice: Number(it.new_quantity || 0) * Number(it.unit_price || 0),
+          itemPaymentType,
+          itemInvoicePaymentMethod: itemInvoiceMethod,
+          itemInvoicePaymentSubType: invoicePaymentSubType ?? null,
+        };
+      });
+    return splitOrderByPaymentGroup(splittable, {
+      paymentType: paymentType as PaymentType,
+      invoicePaymentMethod: (invoicePaymentMethod as InvoicePaymentMethod | null) ?? null,
+      invoicePaymentSubType: invoicePaymentSubType ?? null,
+    });
+  }, [items, orderItems, paymentType, invoicePaymentMethod, invoicePaymentSubType]);
+
+
   const loadCustomerFinancialContext = useCallback(async () => {
     const resolvedCustomerId = order.customer_id || order.customer?.id;
 
