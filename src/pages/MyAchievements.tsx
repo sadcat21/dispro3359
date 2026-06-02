@@ -844,12 +844,6 @@ const MyAchievements: React.FC = () => {
         const note = String(visit.notes || '').trim().toLowerCase();
         const isFallbackVisit = note === 'auto: server fallback' || note === 'auto: backfill';
         if (!isFallbackVisit) return true;
-        return !!visit.orderMeta?.createdBy ? true : true;
-      }).filter((visit: any) => {
-        if (visit.operation_type !== 'direct_sale' || !visit.operation_id) return true;
-        const note = String(visit.notes || '').trim().toLowerCase();
-        const isFallbackVisit = note === 'auto: server fallback' || note === 'auto: backfill';
-        if (!isFallbackVisit) return true;
         const orderMeta = orderMetaMap.get(visit.operation_id);
         if (!orderMeta) return true;
         return !!orderMeta.createdBy && orderMeta.createdBy === targetWorkerId;
