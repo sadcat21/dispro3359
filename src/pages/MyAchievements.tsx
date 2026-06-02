@@ -623,20 +623,8 @@ const MyAchievements: React.FC = () => {
           .map((v: any) => v.operation_id)
           .filter(Boolean)
       );
-      const isRealDirectSaleVisit = (visit: any) => {
-        if (visit?.operation_type !== 'direct_sale' || !visit?.operation_id) return true;
-        const note = String(visit?.notes || '').trim().toLowerCase();
-        const isFallbackVisit = note === 'auto: server fallback' || note === 'auto: backfill';
-        if (!isFallbackVisit) return true;
-
-        const matchingOrder = (directOrders || []).find((o: any) => o.id === visit.operation_id);
-        if (!matchingOrder) return true;
-
-        return !!matchingOrder.created_by && matchingOrder.created_by === targetWorkerId;
-      };
-
       const mergedVisits = dedupeAchievementVisits([
-        ...visitList.filter((visit: any) => isRealDirectSaleVisit(visit)),
+        ...visitList,
         ...((directDebtCollections || [])
           .filter((collection: any) => !visitDebtCollectionIds.has(collection.debt_id))
           .map((collection: any) => ({
@@ -695,7 +683,7 @@ const MyAchievements: React.FC = () => {
           : Promise.resolve({ data: [] as any[] }),
         // 2. Orders
         orderIds.length
-          ? supabase.from('orders').select('id, total_amount, payment_type, invoice_payment_method, status').in('id', orderIds)
+          ? supabase.from('orders').select('id, total_amount, payment_type, invoice_payment_method, status, created_by, assigned_worker_id').in('id', orderIds)
           : Promise.resolve({ data: [] as any[] }),
         // 3. Order items (price_subtype + product/gift info for filtering & promo badge)
         orderIds.length
@@ -739,6 +727,8 @@ const MyAchievements: React.FC = () => {
         priceSubtype: string | null;
         isCancelled: boolean;
         status: string | null;
+        createdBy: string | null;
+        assignedWorkerId: string | null;
       }>();
       const debtCollectionStoreMap = new Map<string, string>();
       const debtCollectionAmountMap = new Map<string, number>();
@@ -775,6 +765,8 @@ const MyAchievements: React.FC = () => {
             priceSubtype: orderSubtypeMap.get(o.id) || null,
             isCancelled: orderStatus === 'cancelled',
             status: orderStatus,
+            createdBy: o.created_by || null,
+            assignedWorkerId: o.assigned_worker_id || null,
           });
         });
 
@@ -847,6 +839,20 @@ const MyAchievements: React.FC = () => {
           orderProductIds: visit.operation_id ? Array.from(orderProductsMap.get(visit.operation_id) || []) : [],
           promoCount: visit.operation_id ? (orderPromoCountMap.get(visit.operation_id) || 0) : 0,
         };
+      }).filter((visit: any) => {
+        if (visit.operation_type !== 'direct_sale' || !visit.operation_id) return true;
+        const note = String(visit.notes || '').trim().toLowerCase();
+        const isFallbackVisit = note === 'auto: server fallback' || note === 'auto: backfill';
+        if (!isFallbackVisit) return true;
+        return !!visit.orderMeta?.createdBy ? true : true;
+      }).filter((visit: any) => {
+        if (visit.operation_type !== 'direct_sale' || !visit.operation_id) return true;
+        const note = String(visit.notes || '').trim().toLowerCase();
+        const isFallbackVisit = note === 'auto: server fallback' || note === 'auto: backfill';
+        if (!isFallbackVisit) return true;
+        const orderMeta = orderMetaMap.get(visit.operation_id);
+        if (!orderMeta) return true;
+        return !!orderMeta.createdBy && orderMeta.createdBy === targetWorkerId;
       });
 
       const counts: Record<string, number> = {};
