@@ -1,0 +1,1 @@
+SELECT * FROM public.recalibrate_worker_stock('d1023b86-ed15-42f9-9a0a-3edf2b29dc78');
