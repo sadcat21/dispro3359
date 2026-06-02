@@ -623,8 +623,20 @@ const MyAchievements: React.FC = () => {
           .map((v: any) => v.operation_id)
           .filter(Boolean)
       );
+      const isRealDirectSaleVisit = (visit: any) => {
+        if (visit?.operation_type !== 'direct_sale' || !visit?.operation_id) return true;
+        const note = String(visit?.notes || '').trim().toLowerCase();
+        const isFallbackVisit = note === 'auto: server fallback' || note === 'auto: backfill';
+        if (!isFallbackVisit) return true;
+
+        const matchingOrder = (directOrders || []).find((o: any) => o.id === visit.operation_id);
+        if (!matchingOrder) return true;
+
+        return !!matchingOrder.created_by && matchingOrder.created_by === targetWorkerId;
+      };
+
       const mergedVisits = dedupeAchievementVisits([
-        ...visitList,
+        ...visitList.filter((visit: any) => isRealDirectSaleVisit(visit)),
         ...((directDebtCollections || [])
           .filter((collection: any) => !visitDebtCollectionIds.has(collection.debt_id))
           .map((collection: any) => ({
