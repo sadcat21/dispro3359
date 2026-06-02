@@ -247,11 +247,11 @@ const WorkerAchievementsDialog: React.FC<WorkerAchievementsDialogProps> = ({
         .map(v => v.operation_id)
         .filter(Boolean))] as string[];
       
-      let orderMap = new Map<string, { payment_type: string; total_amount: number; invoice_payment_method: string | null; isCancelled: boolean }>();
+      let orderMap = new Map<string, { payment_type: string; total_amount: number; invoice_payment_method: string | null; isCancelled: boolean; created_by: string | null; assigned_worker_id: string | null; status: string | null }>();
       if (orderEntityIds.length > 0) {
         const { data: orders } = await supabase
           .from('orders')
-          .select('id, payment_type, total_amount, invoice_payment_method, status')
+          .select('id, payment_type, total_amount, invoice_payment_method, status, created_by, assigned_worker_id')
           .in('id', orderEntityIds);
         for (const o of (orders || [])) {
           orderMap.set(o.id, {
@@ -259,11 +259,24 @@ const WorkerAchievementsDialog: React.FC<WorkerAchievementsDialogProps> = ({
             total_amount: Number(o.total_amount || 0),
             invoice_payment_method: o.invoice_payment_method,
             isCancelled: o.status === 'cancelled' || Number(o.total_amount || 0) === 0,
+            created_by: o.created_by || null,
+            assigned_worker_id: o.assigned_worker_id || null,
+            status: o.status || null,
           });
         }
       }
 
-      const enrichedVisits = (visits || []).map(v => {
+      const sanitizedVisits = (visits || []).filter((v: any) => {
+        if (v.operation_type !== 'direct_sale' || !v.operation_id) return true;
+        const note = String(v.notes || '').trim().toLowerCase();
+        const isFallbackVisit = note === 'auto: server fallback' || note === 'auto: backfill';
+        if (!isFallbackVisit) return true;
+        const orderInfo = orderMap.get(v.operation_id);
+        if (!orderInfo) return true;
+        return !!orderInfo.created_by && orderInfo.created_by === workerId;
+      });
+
+      const enrichedVisits = sanitizedVisits.map(v => {
         const cust = v.customer_id ? customerMap.get(v.customer_id) : null;
         const orderId = v.operation_id;
         const orderInfo = orderId ? orderMap.get(orderId) : null;
