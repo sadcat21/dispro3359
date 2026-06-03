@@ -575,7 +575,7 @@ export type ProductMatrix = {
   workers: { id: string; name: string }[];
   workerRows: Record<string, Record<string, number>>;
   workerMethodAmounts: Record<string, { invoice1: number; super_gros: number; gros: number; retail: number }>;
-  workerMethodProductQty: Record<string, { invoice1: Record<string, number>; super_gros: Record<string, number>; gros: Record<string, number>; retail: Record<string, number> }>;
+  workerMethodProductQty: Record<string, { invoice1: Record<string, { paid: number; debt: number }>; super_gros: Record<string, { paid: number; debt: number }>; gros: Record<string, { paid: number; debt: number }>; retail: Record<string, { paid: number; debt: number }> }>;
   workerOfferedQty: Record<string, Record<string, number>>;
   workerProductAmount: Record<string, Record<string, number>>;
 };
@@ -590,7 +590,7 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
   const to = new Date(Math.max(...ends.map((d: string) => new Date(d).getTime()))).toISOString();
   const { data: orders } = await supabase
     .from('orders')
-    .select('id, payment_type, invoice_payment_method, assigned_worker_id, created_at, order_items(product_id, quantity, unit_price, total_price, pricing_unit, gift_quantity, gift_pieces, price_subtype, products(id, name, app_name, pieces_per_box, weight_per_box, price_super_gros, price_gros, price_retail, price_invoice, price_no_invoice, pricing_unit))')
+    .select('id, payment_type, payment_status, invoice_payment_method, assigned_worker_id, created_at, order_items(product_id, quantity, unit_price, total_price, pricing_unit, gift_quantity, gift_pieces, price_subtype, products(id, name, app_name, pieces_per_box, weight_per_box, price_super_gros, price_gros, price_retail, price_invoice, price_no_invoice, pricing_unit))')
     .in('assigned_worker_id', workerIds)
     .eq('status', 'delivered')
     .gte('created_at', from)
@@ -621,11 +621,13 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
     if (!workerMethodAmounts[wid]) workerMethodAmounts[wid] = { invoice1: 0, super_gros: 0, gros: 0, retail: 0 };
     workerMethodAmounts[wid][method] += n;
   };
-  const workerMethodProductQty: Record<string, { invoice1: Record<string, number>; super_gros: Record<string, number>; gros: Record<string, number>; retail: Record<string, number> }> = {};
-  const bumpWMP = (wid: string, method: 'invoice1' | 'super_gros' | 'gros' | 'retail', pid: string, n: number) => {
+  const workerMethodProductQty: Record<string, { invoice1: Record<string, { paid: number; debt: number }>; super_gros: Record<string, { paid: number; debt: number }>; gros: Record<string, { paid: number; debt: number }>; retail: Record<string, { paid: number; debt: number }> }> = {};
+  const bumpWMP = (wid: string, method: 'invoice1' | 'super_gros' | 'gros' | 'retail', pid: string, n: number, isPaid: boolean) => {
     if (!n) return;
     if (!workerMethodProductQty[wid]) workerMethodProductQty[wid] = { invoice1: {}, super_gros: {}, gros: {}, retail: {} };
-    workerMethodProductQty[wid][method][pid] = (workerMethodProductQty[wid][method][pid] || 0) + n;
+    const bucket = workerMethodProductQty[wid][method][pid] || { paid: 0, debt: 0 };
+    if (isPaid) bucket.paid += n; else bucket.debt += n;
+    workerMethodProductQty[wid][method][pid] = bucket;
   };
   const workerOfferedQty: Record<string, Record<string, number>> = {};
   const bumpWorkerOffered = (wid: string, pid: string, n: number) => {
@@ -659,6 +661,7 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
     const t = new Date(o.created_at).getTime();
     if (!wins.some(([s, e]) => t >= s && t <= e)) return;
     const isInvoice1 = o.payment_type === 'with_invoice';
+    const isPaid = (o.payment_status || '').toLowerCase() !== 'pending';
     (o.order_items || []).forEach((it: any) => {
       if (!it.product_id) return;
       const p = it.products || {};
@@ -721,19 +724,19 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       if (resolvedSubtype === 'invoice') {
         bump('invoice1', it.product_id, qty);
         bumpWorkerMethod(o.assigned_worker_id, 'invoice1', lineAmount);
-        bumpWMP(o.assigned_worker_id, 'invoice1', it.product_id, qty);
+        bumpWMP(o.assigned_worker_id, 'invoice1', it.product_id, qty, isPaid);
       } else if (resolvedSubtype === 'super_gros') {
         bump('super_gros', it.product_id, qty);
         bumpWorkerMethod(o.assigned_worker_id, 'super_gros', lineAmount);
-        bumpWMP(o.assigned_worker_id, 'super_gros', it.product_id, qty);
+        bumpWMP(o.assigned_worker_id, 'super_gros', it.product_id, qty, isPaid);
       } else if (resolvedSubtype === 'gros') {
         bump('gros', it.product_id, qty);
         bumpWorkerMethod(o.assigned_worker_id, 'gros', lineAmount);
-        bumpWMP(o.assigned_worker_id, 'gros', it.product_id, qty);
+        bumpWMP(o.assigned_worker_id, 'gros', it.product_id, qty, isPaid);
       } else {
         bump('retail', it.product_id, qty);
         bumpWorkerMethod(o.assigned_worker_id, 'retail', lineAmount);
-        bumpWMP(o.assigned_worker_id, 'retail', it.product_id, qty);
+        bumpWMP(o.assigned_worker_id, 'retail', it.product_id, qty, isPaid);
       }
     });
   });
@@ -982,14 +985,19 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         const amountCells = products.map(p => Number(wAmt[p.id] || 0));
         const workerTotalAmount = amountCells.reduce((a, b) => a + b, 0);
         const headerRow = `<tr><td colspan="${colspan}" style="background:#0f172a;color:#dc2626;text-align:left;padding:4px 8px;font-weight:800;text-transform:uppercase;font-size:10px">${escapeHtml(w.name)} <span style="color:#dc2626;float:right;padding-right:8px">${Math.round(workerTotalAmount).toLocaleString()} DA</span></td></tr>`;
+        const getCell = (k: string, pid: string) => mQty[k as 'invoice1']?.[pid] || { paid: 0, debt: 0 };
         const methodRows = methods.map(([k, label]) => {
-          const cells = products.map(p => Number(mQty[k]?.[p.id] || 0));
-          if (cells.reduce((a, b) => a + b, 0) === 0) return '';
-          return `<tr><td style="text-align:left;padding-left:8px;font-weight:700;color:#0f172a">${label}</td>${cells.map((v, i) => `<td>${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
+          const paidCells = products.map(p => Number(getCell(k, p.id).paid || 0));
+          const debtCells = products.map(p => Number(getCell(k, p.id).debt || 0));
+          const sum = paidCells.reduce((a, b) => a + b, 0) + debtCells.reduce((a, b) => a + b, 0);
+          if (sum === 0) return '';
+          const paidRow = `<tr><td style="text-align:left;padding-left:8px;font-weight:700;color:#047857">${label} (Payé)</td>${paidCells.map((v, i) => `<td style="color:#047857">${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
+          const debtRow = `<tr><td style="text-align:left;padding-left:8px;font-weight:700;color:#b45309">${label} (Crédit)</td>${debtCells.map((v, i) => `<td style="color:#b45309">${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
+          return paidRow + debtRow;
         }).join('');
         const offeredSum = offeredCells.reduce((a, b) => a + b, 0);
         const offeredRow = offeredSum === 0 ? '' : `<tr style="background:#fef2f2"><td style="text-align:left;padding-left:8px;font-weight:700;color:#b91c1c">PROMO</td>${offeredCells.map((v, i) => `<td style="color:#dc2626">${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
-        const totalsCells = products.map(p => methods.reduce((a, [k]) => a + Number(mQty[k]?.[p.id] || 0), 0));
+        const totalsCells = products.map(p => methods.reduce((a, [k]) => a + Number(getCell(k, p.id).paid || 0) + Number(getCell(k, p.id).debt || 0), 0));
         const totalRow = `<tr style="background:#fef2f2;font-weight:900"><td style="text-align:right;padding-right:8px;color:#dc2626">TOTAL</td>${totalsCells.map((v, i) => `<td>${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
         return headerRow + methodRows + offeredRow + totalRow;
       }).join('');
@@ -997,7 +1005,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
 
       // Aggregate totals across all workers
       const aggMAmt = { invoice1: 0, super_gros: 0, gros: 0, retail: 0 } as Record<string, number>;
-      const aggMQty: Record<string, Record<string, number>> = { invoice1: {}, super_gros: {}, gros: {}, retail: {} };
+      const aggMQty: Record<string, Record<string, { paid: number; debt: number }>> = { invoice1: {}, super_gros: {}, gros: {}, retail: {} };
       const aggOffered: Record<string, number> = {};
       const aggAmount: Record<string, number> = {};
       productMatrix.workers.forEach(w => {
@@ -1007,7 +1015,11 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         const amt = productMatrix.workerProductAmount?.[w.id] || {};
         methods.forEach(([k]) => {
           aggMAmt[k] += mAmt[k] || 0;
-          products.forEach(p => { aggMQty[k][p.id] = (aggMQty[k][p.id] || 0) + Number(mQty[k]?.[p.id] || 0); });
+          products.forEach(p => {
+            const cur = aggMQty[k][p.id] || { paid: 0, debt: 0 };
+            const src = mQty[k as 'invoice1']?.[p.id] || { paid: 0, debt: 0 };
+            aggMQty[k][p.id] = { paid: cur.paid + Number(src.paid || 0), debt: cur.debt + Number(src.debt || 0) };
+          });
         });
         products.forEach(p => {
           aggOffered[p.id] = (aggOffered[p.id] || 0) + Number(off[p.id] || 0);
@@ -1015,13 +1027,17 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         });
       });
       const gHeader = `<tr><td colspan="${colspan}" style="background:#15803d;color:#fff;text-align:left;padding:4px 8px;font-weight:800;text-transform:uppercase;font-size:10px">Total Général (Tous les Vendeurs)</td></tr>`;
+      const gGet = (k: string, pid: string) => aggMQty[k]?.[pid] || { paid: 0, debt: 0 };
       const gMethodRows = methods.map(([k, label]) => {
-        const cells = products.map(p => Number(aggMQty[k]?.[p.id] || 0));
-        return `<tr><td style="text-align:left;padding-left:8px;font-weight:700;color:#0f172a">${label}</td>${cells.map((v, i) => `<td>${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
+        const paidCells = products.map(p => Number(gGet(k, p.id).paid || 0));
+        const debtCells = products.map(p => Number(gGet(k, p.id).debt || 0));
+        const paidRow = `<tr><td style="text-align:left;padding-left:8px;font-weight:700;color:#047857">${label} (Payé)</td>${paidCells.map((v, i) => `<td style="color:#047857">${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
+        const debtRow = `<tr><td style="text-align:left;padding-left:8px;font-weight:700;color:#b45309">${label} (Crédit)</td>${debtCells.map((v, i) => `<td style="color:#b45309">${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
+        return paidRow + debtRow;
       }).join('');
       const gOfferedCells = products.map(p => Number(aggOffered[p.id] || 0));
       const gOfferedRow = `<tr style="background:#fef2f2"><td style="text-align:left;padding-left:8px;font-weight:700;color:#b91c1c">PROMO</td>${gOfferedCells.map((v, i) => `<td style="color:#dc2626">${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
-      const gTotalsCells = products.map(p => methods.reduce((a, [k]) => a + Number(aggMQty[k]?.[p.id] || 0), 0));
+      const gTotalsCells = products.map(p => methods.reduce((a, [k]) => a + Number(gGet(k, p.id).paid || 0) + Number(gGet(k, p.id).debt || 0), 0));
       const gAmountCells = products.map(p => Number(aggAmount[p.id] || 0));
       const gTotalRow = `<tr style="background:#fef2f2;font-weight:900"><td style="text-align:right;padding-right:8px;color:#dc2626">TOTAL</td>${gTotalsCells.map((v, i) => `<td>${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
       const grandBlock = gHeader + gMethodRows + gOfferedRow + gTotalRow;
