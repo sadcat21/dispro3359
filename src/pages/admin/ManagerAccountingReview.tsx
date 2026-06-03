@@ -661,6 +661,7 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
     const t = new Date(o.created_at).getTime();
     if (!wins.some(([s, e]) => t >= s && t <= e)) return;
     const isInvoice1 = o.payment_type === 'with_invoice';
+    const isPaid = (o.payment_status || '').toLowerCase() !== 'pending';
     (o.order_items || []).forEach((it: any) => {
       if (!it.product_id) return;
       const p = it.products || {};
