@@ -217,23 +217,10 @@ const WarehouseProductMovementDialog: React.FC<Props> = ({
         }
       }
 
-      // إلغاء تكرار حركات "التفريغ من العامل": الاحتفاظ بالأقدم فقط لكل (عامل) لنفس المنتج،
-      // لأن التفريغات المتكررة تنتج عن إعادة معايرة مخزون العامل وليست عمليات حقيقية إضافية.
-      const oldestReturnByWorker = new Map<string, Mv>();
-      const nonReturn: Mv[] = [];
-      for (const entry of list) {
-        if (entry.type !== 'return') { nonReturn.push(entry); continue; }
-        const key = entry.whoId || `__no_worker__:${entry.id}`;
-        const existing = oldestReturnByWorker.get(key);
-        const entryTs = new Date(entry.when).getTime() || 0;
-        const existingTs = existing ? (new Date(existing.when).getTime() || 0) : Infinity;
-        if (!existing || entryTs < existingTs) {
-          oldestReturnByWorker.set(key, entry);
-        }
-      }
-      const deduped = [...nonReturn, ...oldestReturnByWorker.values()];
-      deduped.sort((a, b) => (new Date(b.when).getTime() || 0) - (new Date(a.when).getTime() || 0));
-      return deduped;
+      // لا نلغي تكرار التفريغ هنا: الحركات المرفوضة مستبعدة أصلًا من الاستعلام،
+      // وأي حذف إضافي على مستوى الواجهة قد يخفي تفريغات صحيحة ويشوّه المجاميع.
+      list.sort((a, b) => (new Date(b.when).getTime() || 0) - (new Date(a.when).getTime() || 0));
+      return list;
     },
   });
 
