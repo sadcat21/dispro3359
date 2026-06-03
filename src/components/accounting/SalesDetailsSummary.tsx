@@ -347,43 +347,75 @@ const SalesDetailsSummary: React.FC<SalesDetailsSummaryProps> = ({ workerId, per
         </Badge>
       </div>
 
-      {/* Collapsible Customer List */}
-      <Collapsible>
-        <CollapsibleTrigger className="w-full flex items-center justify-between p-2 rounded-lg border hover:bg-muted/50 transition-colors text-sm font-medium">
-          <span>{t('sales_details.show_customers')} ({totalCustomersCount})</span>
-          <ChevronDown className="w-4 h-4 text-muted-foreground" />
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <div className="space-y-1.5 mt-2">
-            {customerSummaries.map(customer => (
-              <button
-                key={customer.customer_id}
-                className="w-full flex items-center gap-3 p-2.5 rounded-lg border hover:bg-muted/50 transition-colors text-start active:scale-[0.99]"
-                onClick={() => setSelectedCustomer(customer)}
-              >
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                  <User className="w-4 h-4 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm text-wrap">{customer.customer_name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {customer.order_count} {t('accounting.orders_count')} • {customer.orders.reduce((s, o) => s + o.items.length, 0)} {t('accounting.products_count')}
-                  </p>
-                </div>
-                <div className="text-end shrink-0">
-                  <p className="font-bold text-sm">{customer.total_amount.toLocaleString()} DA</p>
-                  {customer.has_debt && (
-                    <Badge variant="destructive" className="text-[10px] px-1.5">
-                      {t('accounting.has_debt')}
-                    </Badge>
-                  )}
-                </div>
-                <ChevronLeft className="w-4 h-4 text-muted-foreground shrink-0" />
-              </button>
-            ))}
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
+      {/* Collapsible Customer List with Tabs (paid vs debt) */}
+      {(() => {
+        const paidCustomers = customerSummaries.filter(c => !c.has_debt);
+        const debtCustomers = customerSummaries.filter(c => c.has_debt);
+        const renderCustomerButton = (customer: CustomerSummary) => (
+          <button
+            key={customer.customer_id}
+            className="w-full flex items-center gap-3 p-2.5 rounded-lg border hover:bg-muted/50 transition-colors text-start active:scale-[0.99]"
+            onClick={() => setSelectedCustomer(customer)}
+          >
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <User className="w-4 h-4 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-sm text-wrap">{customer.customer_name}</p>
+              <p className="text-xs text-muted-foreground">
+                {customer.order_count} {t('accounting.orders_count')} • {customer.orders.reduce((s, o) => s + o.items.length, 0)} {t('accounting.products_count')}
+              </p>
+            </div>
+            <div className="text-end shrink-0">
+              <p className="font-bold text-sm">{customer.total_amount.toLocaleString()} DA</p>
+              {customer.has_debt && (
+                <Badge variant="destructive" className="text-[10px] px-1.5">
+                  {t('accounting.has_debt')}
+                </Badge>
+              )}
+            </div>
+            <ChevronLeft className="w-4 h-4 text-muted-foreground shrink-0" />
+          </button>
+        );
+        return (
+          <Collapsible>
+            <CollapsibleTrigger className="w-full flex items-center justify-between p-2 rounded-lg border hover:bg-muted/50 transition-colors text-sm font-medium">
+              <span>{t('sales_details.show_customers')} ({totalCustomersCount})</span>
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <Tabs defaultValue="paid" className="mt-2">
+                <TabsList className="grid w-full grid-cols-2 h-9">
+                  <TabsTrigger value="paid" className="text-xs">
+                    {dir === 'rtl' ? 'مدفوع كامل' : 'Payés'} ({paidCustomers.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="debt" className="text-xs">
+                    {dir === 'rtl' ? 'دين / جزئي' : 'Dette / Partiel'} ({debtCustomers.length})
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="paid">
+                  <div className="space-y-1.5 mt-2">
+                    {paidCustomers.length === 0 ? (
+                      <p className="text-center text-muted-foreground text-xs py-3">
+                        {t('accounting.no_sales_details')}
+                      </p>
+                    ) : paidCustomers.map(renderCustomerButton)}
+                  </div>
+                </TabsContent>
+                <TabsContent value="debt">
+                  <div className="space-y-1.5 mt-2">
+                    {debtCustomers.length === 0 ? (
+                      <p className="text-center text-muted-foreground text-xs py-3">
+                        {t('accounting.no_sales_details')}
+                      </p>
+                    ) : debtCustomers.map(renderCustomerButton)}
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </CollapsibleContent>
+          </Collapsible>
+        );
+      })()}
 
       {/* Totals */}
       <div className="border-2 border-primary/20 rounded-lg p-2.5 bg-primary/5">
