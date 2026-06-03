@@ -256,7 +256,6 @@ const ManagerAccountingReview: React.FC = () => {
           </TabsTrigger>
         </TabsList>
 
-        {/* Pending Tab */}
         <TabsContent value="pending" className="space-y-4 mt-4">
           {loadingPending ? (
             <div className="flex items-center justify-center py-16">
@@ -272,43 +271,87 @@ const ManagerAccountingReview: React.FC = () => {
             </Card>
           ) : (
             <>
-              {/* Warning banner */}
-              <Card className="border-amber-300 bg-amber-50">
-                <CardContent className="p-3 flex items-start gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
-                  <div className="text-xs text-amber-800">
-                    <p className="font-bold">مبالغ معلّقة</p>
-                    <p>هذه الجلسات لم تُسجّل بعد في الخزينة. يجب تأكيد المراجعة لإدراجها.</p>
-                  </div>
+              {/* Date/time filter */}
+              <Card>
+                <CardContent className="p-3 space-y-2">
+                  <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5" /> تصفية حسب التاريخ والوقت
+                  </p>
+                  <DateRangeFilter
+                    selectedPeriod={selectedPeriod}
+                    setSelectedPeriod={setSelectedPeriod}
+                    customDateFrom={customDateFrom}
+                    setCustomDateFrom={setCustomDateFrom}
+                    customDateTo={customDateTo}
+                    setCustomDateTo={setCustomDateTo}
+                  />
+                  <p className="text-[10px] text-muted-foreground">
+                    {filteredPendingSessions.length} من أصل {pendingSessions.length} جلسة • محدد: {selectedIds.size}
+                  </p>
                 </CardContent>
               </Card>
 
-              <SessionsSummary totals={pendingTotals} sessions={pendingSessions} />
+              {filteredPendingSessions.length === 0 ? (
+                <Card className="border-dashed">
+                  <CardContent className="py-10 text-center text-muted-foreground text-xs">
+                    لا توجد جلسات تطابق الفلتر المختار
+                  </CardContent>
+                </Card>
+              ) : (
+                <>
+                  {/* Warning banner */}
+                  <Card className="border-amber-300 bg-amber-50">
+                    <CardContent className="p-3 flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+                      <div className="text-xs text-amber-800">
+                        <p className="font-bold">مبالغ معلّقة</p>
+                        <p>اختر الجلسات المراد تأكيدها وإدراجها في الخزينة.</p>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-              {/* Confirm button */}
-              <Button
-                onClick={() => setShowConfirmDialog(true)}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
-                size="lg"
-                disabled={confirmMutation.isPending}
-              >
-                {confirmMutation.isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <FileCheck className="w-4 h-4" />
-                )}
-                تأكيد المراجعة وإدراج في الخزينة ({pendingSessions.length} جلسة)
-              </Button>
+                  {/* Select all */}
+                  <div className="flex items-center justify-between bg-muted/40 rounded-lg px-3 py-2">
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold">
+                      <Checkbox checked={allSelected} onCheckedChange={toggleAll} />
+                      {allSelected ? 'إلغاء تحديد الكل' : 'تحديد الكل'}
+                    </label>
+                    <span className="text-[11px] text-muted-foreground">{selectedIds.size} / {filteredPendingSessions.length}</span>
+                  </div>
 
-              <Button onClick={handlePrint} variant="outline" className="w-full gap-2" size="lg">
-                <Printer className="w-4 h-4" /> طباعة ملخص A4
-              </Button>
+                  <SessionsSummary totals={pendingTotals} sessions={selectedSessions} />
 
-              {/* Per-Worker Breakdown */}
-              <WorkerBreakdown sessions={pendingSessions} />
+                  {/* Confirm button */}
+                  <Button
+                    onClick={() => setShowConfirmDialog(true)}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
+                    size="lg"
+                    disabled={confirmMutation.isPending || selectedIds.size === 0}
+                  >
+                    {confirmMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <FileCheck className="w-4 h-4" />
+                    )}
+                    تأكيد المراجعة وإدراج في الخزينة ({selectedIds.size} جلسة)
+                  </Button>
+
+                  <Button onClick={handlePrint} variant="outline" className="w-full gap-2" size="lg" disabled={selectedSessions.length === 0}>
+                    <Printer className="w-4 h-4" /> طباعة ملخص A4
+                  </Button>
+
+                  {/* Per-Worker Breakdown with selection */}
+                  <WorkerBreakdown
+                    sessions={filteredPendingSessions}
+                    selectedIds={selectedIds}
+                    onToggleSelected={toggleSelected}
+                  />
+                </>
+              )}
             </>
           )}
         </TabsContent>
+
 
         {/* History Tab */}
         <TabsContent value="history" className="space-y-3 mt-4">
