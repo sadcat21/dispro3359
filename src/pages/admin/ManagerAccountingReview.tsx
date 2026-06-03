@@ -990,9 +990,8 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         const offeredSum = offeredCells.reduce((a, b) => a + b, 0);
         const offeredRow = offeredSum === 0 ? '' : `<tr style="background:#fef2f2"><td style="text-align:left;padding-left:8px;font-weight:700;color:#b91c1c">PROMO</td>${offeredCells.map((v, i) => `<td style="color:#dc2626">${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
         const totalsCells = products.map(p => methods.reduce((a, [k]) => a + Number(mQty[k]?.[p.id] || 0), 0));
-        const amountRow = `<tr style="background:#f0f9ff"><td style="text-align:left;padding-left:8px;font-weight:700;color:#0369a1">Montant (DA)</td>${amountCells.map(v => `<td style="color:#0369a1;font-weight:600">${Math.round(v).toLocaleString()}</td>`).join('')}</tr>`;
         const totalRow = `<tr style="background:#fef2f2;font-weight:900"><td style="text-align:right;padding-right:8px;color:#dc2626">TOTAL</td>${totalsCells.map((v, i) => `<td>${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
-        return headerRow + methodRows + offeredRow + totalRow + amountRow + amountTriple(workerTotalAmount, workerDebts[w.id] || 0, amountCells);
+        return headerRow + methodRows + offeredRow + totalRow;
       }).join('');
 
 
@@ -1024,10 +1023,8 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
       const gOfferedRow = `<tr style="background:#fef2f2"><td style="text-align:left;padding-left:8px;font-weight:700;color:#b91c1c">PROMO</td>${gOfferedCells.map((v, i) => `<td style="color:#dc2626">${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
       const gTotalsCells = products.map(p => methods.reduce((a, [k]) => a + Number(aggMQty[k]?.[p.id] || 0), 0));
       const gAmountCells = products.map(p => Number(aggAmount[p.id] || 0));
-      const gAmountRow = `<tr style="background:#f0f9ff"><td style="text-align:left;padding-left:8px;font-weight:700;color:#0369a1">Montant (DA)</td>${gAmountCells.map(v => `<td style="color:#0369a1;font-weight:600">${Math.round(v).toLocaleString()}</td>`).join('')}</tr>`;
       const gTotalRow = `<tr style="background:#fef2f2;font-weight:900"><td style="text-align:right;padding-right:8px;color:#dc2626">TOTAL</td>${gTotalsCells.map((v, i) => `<td>${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
-      const gTotalSales = gAmountCells.reduce((a, b) => a + b, 0);
-      const grandBlock = gHeader + gMethodRows + gOfferedRow + gTotalRow + gAmountRow + amountTriple(gTotalSales, totalDebtsAll, gAmountCells);
+      const grandBlock = gHeader + gMethodRows + gOfferedRow + gTotalRow;
 
       return `<div class="block">
         <div class="block-title" style="background:#dcfce7">Total Général (Tous les Vendeurs)</div>
