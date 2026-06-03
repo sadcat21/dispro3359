@@ -209,8 +209,9 @@ const SalesDetailsSummary: React.FC<SalesDetailsSummaryProps> = ({ workerId, per
         customerMap[custId].orders.push(order);
         customerMap[custId].total_amount += order.total_amount;
         customerMap[custId].order_count += 1;
-        const remaining = Number(o.total_amount || 0) - Number(o.partial_amount || 0);
-        if (['credit', 'partial'].includes(order.payment_status) || (order.payment_status !== 'paid' && remaining > 0.01)) {
+        const partial = Number(o.partial_amount || 0);
+        const isPartial = partial > 0 && partial < Number(o.total_amount || 0);
+        if (['credit', 'partial'].includes(order.payment_status) || isPartial) {
           customerMap[custId].has_debt = true;
         }
 
