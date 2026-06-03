@@ -667,15 +667,12 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       const p = it.products || {};
       const ppb = Math.max(1, Number(p.pieces_per_box || 1));
       productMap.set(it.product_id, { name: p.app_name || p.name || '—', ppb });
-      // Quantity storage convention depends on pricing_unit:
-      //  - 'unit'/'piece' → raw pieces (display = qty / pieces_per_box)
-      //  - 'kg'           → raw kilograms (display raw kg in review, like achievements/summary)
-      //  - 'box' (default)→ B.P (boxes.pieces) decimal format
+      // Quantity is stored as boxes (B.P decimal for 'box', raw boxes for 'unit'/'piece',
+      // raw kg for 'kg'). Verified against DB: unit_price equals the per-box price for
+      // pricing_unit='unit' products (e.g. AROMA 400/700 Gr), so quantity is boxes, not pieces.
       const itemPU = (it.pricing_unit || p.pricing_unit || 'box').toString().toLowerCase();
-      const isUnitSale = itemPU === 'unit' || itemPU === 'piece';
       const isKgSale = itemPU === 'kg';
       const toBoxes = (raw: number) => {
-        if (isUnitSale) return raw / ppb;
         if (isKgSale) return raw;
         return dbBPToBoxes(raw, ppb);
       };
