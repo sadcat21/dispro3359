@@ -1018,11 +1018,13 @@ const StepSection: React.FC<{
   important?: boolean;
   forceOpen?: boolean;
   hideHeader?: boolean;
+  defaultOpen?: boolean;
   children: React.ReactNode;
-}> = ({ step, title, color = 'primary', badge, important, forceOpen, hideHeader, children }) => {
+}> = ({ step, title, color = 'primary', badge, important, forceOpen, hideHeader, defaultOpen, children }) => {
   const colorClass = stepColors[color] || stepColors.primary;
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = React.useState(!!defaultOpen);
   React.useEffect(() => { if (forceOpen) setOpen(true); }, [forceOpen]);
+
   return (
     <Collapsible open={open} onOpenChange={setOpen} className={hideHeader ? 'space-y-2.5' : `rounded-xl border-2 p-3.5 space-y-2.5 ${important ? 'border-primary bg-primary/5' : 'border-border'}`}>
       {!hideHeader && (
