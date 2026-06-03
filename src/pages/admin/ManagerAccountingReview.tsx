@@ -1011,7 +1011,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         const offered = productMatrix.workerOfferedQty?.[w.id] || {};
         const wAmt = productMatrix.workerProductAmount?.[w.id] || {};
         const workerTotalAmount = products.reduce((a, p) => a + Number(wAmt[p.id] || 0), 0);
-        const headerRow = `<tr><td colspan="${totalCols}" style="background:#000;color:#fff;text-align:center;padding:6px 8px;font-weight:800;text-transform:uppercase;font-size:11px;letter-spacing:0.5px">${escapeHtml(w.name)}</td></tr>`;
+        const headerRow = `<tr class="worker-name-row"><td colspan="${totalCols}" style="background:#000 !important;color:#fff !important;text-align:center;padding:6px 8px;font-weight:800;text-transform:uppercase;font-size:11px;letter-spacing:0.5px;-webkit-print-color-adjust:exact;print-color-adjust:exact">${escapeHtml(w.name)}</td></tr>`;
         const body = renderBlock(
           (k, pid) => mQty[k as 'invoice1']?.[pid] || { paid: 0, debt: 0, paidAmt: 0, debtAmt: 0 },
           (pid) => Number((offered as any)[pid] || 0),
