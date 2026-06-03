@@ -593,7 +593,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             {calc && (
               <>
                 {/* ━━━ Step 2: Sales Overview ━━━ */}
-                <StepSection step={2} title={t('create_session.sales_summary')} color="primary">
+                <StepSection step={2} title={t('create_session.sales_summary')} color="primary" defaultOpen>
                   <div className="bg-black rounded-xl p-3 mb-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -1018,11 +1018,13 @@ const StepSection: React.FC<{
   important?: boolean;
   forceOpen?: boolean;
   hideHeader?: boolean;
+  defaultOpen?: boolean;
   children: React.ReactNode;
-}> = ({ step, title, color = 'primary', badge, important, forceOpen, hideHeader, children }) => {
+}> = ({ step, title, color = 'primary', badge, important, forceOpen, hideHeader, defaultOpen, children }) => {
   const colorClass = stepColors[color] || stepColors.primary;
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = React.useState(!!defaultOpen);
   React.useEffect(() => { if (forceOpen) setOpen(true); }, [forceOpen]);
+
   return (
     <Collapsible open={open} onOpenChange={setOpen} className={hideHeader ? 'space-y-2.5' : `rounded-xl border-2 p-3.5 space-y-2.5 ${important ? 'border-primary bg-primary/5' : 'border-border'}`}>
       {!hideHeader && (
