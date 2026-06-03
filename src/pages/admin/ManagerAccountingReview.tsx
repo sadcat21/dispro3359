@@ -834,7 +834,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Rapport de Révision des Comptes du Gérant</title>
+  <title>Rapport Quotidien</title>
   <style>
     @page { size: A4 portrait; margin: 5mm 2mm; }
     * { box-sizing: border-box; }
