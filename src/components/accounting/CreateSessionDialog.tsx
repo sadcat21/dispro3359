@@ -697,7 +697,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                     </div>
                   </div>
                   {/* Invoice 2 */}
-                  <div className="rounded-lg border p-3 space-y-1.5">
+                  <div className="rounded-lg border p-3 space-y-1.5 mb-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Banknote className="w-3.5 h-3.5 text-emerald-600" />
@@ -706,6 +706,22 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                       <span className="font-bold text-xs text-emerald-600">{fmt(calc.invoice2.total)} DA</span>
                     </div>
                     <PaymentRow label={t('accounting.method_direct_cash')} value={calc.invoice2.cash} highlight />
+                  </div>
+                  {/* Debt Collections */}
+                  <div className="rounded-lg border p-3 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <ArrowDownCircle className="w-3.5 h-3.5 text-orange-600" />
+                        <span className="font-bold text-xs">{t('accounting.debt_collections')}</span>
+                      </div>
+                      <span className="font-bold text-xs text-orange-600">{fmt(calc.debtCollections?.total || 0)} DA</span>
+                    </div>
+                    <div className="space-y-0.5">
+                      <PaymentRow label={t('accounting.method_cash')} value={calc.debtCollections?.cash || 0} highlight />
+                      <PaymentRow label={t('accounting.method_check')} value={calc.debtCollections?.check || 0} />
+                      <PaymentRow label={t('accounting.method_transfer')} value={calc.debtCollections?.transfer || 0} />
+                      <PaymentRow label={t('accounting.method_receipt')} value={calc.debtCollections?.receipt || 0} />
+                    </div>
                   </div>
                 </StepSection>
 
