@@ -4,11 +4,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { Loader2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { getEffectiveAccountingSessionEnd } from '@/utils/accountingSessionTime';
 
 interface DebtCollectionsSummaryProps {
   workerId: string;
   periodStart: string;
   periodEnd: string;
+  completedAt?: string | null;
 }
 
 interface CollectedDebtRow {
@@ -29,13 +31,14 @@ const extractDate = (v: string): string => {
   return cleaned.substring(0, 10);
 };
 
-const DebtCollectionsSummary: React.FC<DebtCollectionsSummaryProps> = ({ workerId, periodStart, periodEnd }) => {
+const DebtCollectionsSummary: React.FC<DebtCollectionsSummaryProps> = ({ workerId, periodStart, periodEnd, completedAt }) => {
   const { t } = useLanguage();
+  const effectiveEnd = getEffectiveAccountingSessionEnd(periodEnd, completedAt);
   const { data: rows, isLoading } = useQuery({
-    queryKey: ['session-debt-collections-detail', workerId, periodStart, periodEnd],
+    queryKey: ['session-debt-collections-detail', workerId, periodStart, effectiveEnd],
     queryFn: async () => {
       const startDate = extractDate(periodStart);
-      const endDate = extractDate(periodEnd);
+      const endDate = extractDate(effectiveEnd);
 
       // Use exact period timestamps for debt_payments (timestamp column)
       const toTz = (v: string, isEnd: boolean) => {
@@ -44,7 +47,7 @@ const DebtCollectionsSummary: React.FC<DebtCollectionsSummaryProps> = ({ workerI
         return isEnd ? v + 'T23:59:59+01:00' : v + 'T00:00:00+01:00';
       };
       const startTz = toTz(periodStart, false);
-      const endTz = toTz(periodEnd, true);
+      const endTz = toTz(effectiveEnd, true);
 
       const { data: payments, error } = await supabase
         .from('debt_payments')
