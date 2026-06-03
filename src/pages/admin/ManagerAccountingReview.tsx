@@ -621,12 +621,12 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
     if (!workerMethodAmounts[wid]) workerMethodAmounts[wid] = { invoice1: 0, super_gros: 0, gros: 0, retail: 0 };
     workerMethodAmounts[wid][method] += n;
   };
-  const workerMethodProductQty: Record<string, { invoice1: Record<string, { paid: number; debt: number }>; super_gros: Record<string, { paid: number; debt: number }>; gros: Record<string, { paid: number; debt: number }>; retail: Record<string, { paid: number; debt: number }> }> = {};
-  const bumpWMP = (wid: string, method: 'invoice1' | 'super_gros' | 'gros' | 'retail', pid: string, n: number, isPaid: boolean) => {
+  const workerMethodProductQty: Record<string, { invoice1: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>; super_gros: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>; gros: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>; retail: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }> }> = {};
+  const bumpWMP = (wid: string, method: 'invoice1' | 'super_gros' | 'gros' | 'retail', pid: string, n: number, amt: number, isPaid: boolean) => {
     if (!n) return;
     if (!workerMethodProductQty[wid]) workerMethodProductQty[wid] = { invoice1: {}, super_gros: {}, gros: {}, retail: {} };
-    const bucket = workerMethodProductQty[wid][method][pid] || { paid: 0, debt: 0 };
-    if (isPaid) bucket.paid += n; else bucket.debt += n;
+    const bucket = workerMethodProductQty[wid][method][pid] || { paid: 0, debt: 0, paidAmt: 0, debtAmt: 0 };
+    if (isPaid) { bucket.paid += n; bucket.paidAmt += amt; } else { bucket.debt += n; bucket.debtAmt += amt; }
     workerMethodProductQty[wid][method][pid] = bucket;
   };
   const workerOfferedQty: Record<string, Record<string, number>> = {};
