@@ -946,72 +946,67 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         ['retail', 'Détail'],
       ];
       const products = productMatrix.products;
-      const pctMethode = 12;
-      const pctProduct = (100 - pctMethode) / Math.max(1, products.length);
-      const colgroup = `<colgroup><col style="width:${pctMethode}%" />${products.map(() => `<col style="width:${pctProduct}%" />`).join('')}</colgroup>`;
-      const head = `<tr><th style="text-align:left;padding-left:8px">Méthode</th>${products.map(p => `<th>${escapeHtml(p.name)}</th>`).join('')}</tr>`;
-      const colspan = products.length + 1;
-      const workerDebts: Record<string, number> = {};
-      let totalDebtsAll = 0;
-      sessions.forEach((s: any) => {
-        const wid = s.worker_id || s.worker?.id;
-        const item = (s.items || []).find((i: any) => i.item_type === 'new_debts');
-        const v = item ? Number(item.actual_amount) : 0;
-        if (wid) workerDebts[wid] = (workerDebts[wid] || 0) + v;
-        totalDebtsAll += v;
-      });
-      const amountTriple = (totalSales: number, debts: number, perProduct: number[]) => {
-        const total = perProduct.reduce((a, b) => a + b, 0);
-        const debtCells = total > 0
-          ? perProduct.map(v => (v / total) * debts)
-          : perProduct.map(() => 0);
-        const cashCells = perProduct.map((v, i) => v - debtCells[i]);
-        const row = (label: string, bg: string, color: string, cells: number[], totalVal: number) =>
-          `<tr style="background:${bg}"><td style="text-align:left;padding-left:8px;font-weight:700;color:${color}">${label}</td>${cells.map(v => `<td style="color:${color};font-weight:600">${Math.round(v).toLocaleString()}</td>`).join('')}</tr>`;
-        return (
-          row('Ventes (Cash)', '#ecfdf5', '#047857', cashCells, totalSales - debts) +
-          row('Dettes', '#fef3c7', '#b45309', debtCells, debts) +
-          row('Total Ventes', '#f0f9ff', '#0369a1', perProduct, totalSales)
-        );
-      };
-      const blocks = productMatrix.workers.map(w => {
-        const mQty = productMatrix.workerMethodProductQty?.[w.id] || { invoice1: {}, super_gros: {}, gros: {}, retail: {} };
-        const offered = productMatrix.workerOfferedQty?.[w.id] || {};
-        const offeredCells = products.map(p => Number(offered[p.id] || 0));
-        const wAmt = productMatrix.workerProductAmount?.[w.id] || {};
-        const amountCells = products.map(p => Number(wAmt[p.id] || 0));
-        const workerTotalAmount = amountCells.reduce((a, b) => a + b, 0);
-        const headerRow = `<tr><td colspan="${colspan}" style="background:#0f172a;color:#dc2626;text-align:left;padding:4px 8px;font-weight:800;text-transform:uppercase;font-size:10px">${escapeHtml(w.name)} <span style="color:#dc2626;float:right;padding-right:8px">${Math.round(workerTotalAmount).toLocaleString()} DA</span></td></tr>`;
-        const getCell = (k: string, pid: string) => mQty[k as 'invoice1']?.[pid] || { paid: 0, debt: 0 };
-        const methodRows = methods.map(([k, label]) => {
-          const paidCells = products.map(p => Number(getCell(k, p.id).paid || 0));
-          const debtCells = products.map(p => Number(getCell(k, p.id).debt || 0));
-          const sum = paidCells.reduce((a, b) => a + b, 0) + debtCells.reduce((a, b) => a + b, 0);
-          if (sum === 0) return '';
-          const paidRow = `<tr><td style="text-align:left;padding-left:8px;font-weight:700;color:#047857">${label} (Payé)</td>${paidCells.map((v, i) => `<td style="color:#047857">${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
-          const debtRow = `<tr><td style="text-align:left;padding-left:8px;font-weight:700;color:#b45309">${label} (Crédit)</td>${debtCells.map((v, i) => `<td style="color:#b45309">${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
-          return paidRow + debtRow;
+      // Columns: Produit | (Méthode Payé | Méthode Crédit) x4 | PROMO | TOTAL
+      const totalCols = 1 + methods.length * 2 + 2;
+      const pctProduct = 18;
+      const pctOther = (100 - pctProduct) / (totalCols - 1);
+      const colgroup = `<colgroup><col style="width:${pctProduct}%" />${Array.from({ length: totalCols - 1 }).map(() => `<col style="width:${pctOther}%" />`).join('')}</colgroup>`;
+      const subHeaderColor = (c: string) => `style="background:#f8fafc;color:${c};font-weight:800;font-size:8px"`;
+      const head = `
+        <tr>
+          <th rowspan="2" style="text-align:left;padding-left:8px;vertical-align:middle">Produit</th>
+          ${methods.map(([, label]) => `<th colspan="2" style="background:#f1f5f9">${escapeHtml(label)}</th>`).join('')}
+          <th rowspan="2" style="vertical-align:middle;color:#b91c1c">PROMO</th>
+          <th rowspan="2" style="vertical-align:middle;color:#dc2626">TOTAL</th>
+        </tr>
+        <tr>
+          ${methods.map(() => `<th ${subHeaderColor('#047857')}>Payé</th><th ${subHeaderColor('#b45309')}>Crédit</th>`).join('')}
+        </tr>`;
+
+      const renderBlock = (
+        getCell: (k: string, pid: string) => { paid: number; debt: number },
+        getOffered: (pid: string) => number,
+      ) => {
+        return products.map(p => {
+          const cells = methods.map(([k]) => {
+            const c = getCell(k, p.id);
+            return { paid: Number(c.paid || 0), debt: Number(c.debt || 0) };
+          });
+          const offered = Number(getOffered(p.id) || 0);
+          const total = cells.reduce((a, c) => a + c.paid + c.debt, 0);
+          const ppb = p.piecesPerBox;
+          const fmt = (v: number) => v ? boxesToBPAlways(v, ppb) : '0';
+          const tds = cells.map(c => `<td style="color:#047857">${fmt(c.paid)}</td><td style="color:#b45309">${fmt(c.debt)}</td>`).join('');
+          return `<tr>
+            <td style="text-align:left;padding-left:8px;font-weight:700;color:#0f172a">${escapeHtml(p.name)}</td>
+            ${tds}
+            <td style="color:#dc2626">${fmt(offered)}</td>
+            <td style="font-weight:800;color:#0369a1">${fmt(total)}</td>
+          </tr>`;
         }).join('');
-        const offeredSum = offeredCells.reduce((a, b) => a + b, 0);
-        const offeredRow = offeredSum === 0 ? '' : `<tr style="background:#fef2f2"><td style="text-align:left;padding-left:8px;font-weight:700;color:#b91c1c">PROMO</td>${offeredCells.map((v, i) => `<td style="color:#dc2626">${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
-        const totalsCells = products.map(p => methods.reduce((a, [k]) => a + Number(getCell(k, p.id).paid || 0) + Number(getCell(k, p.id).debt || 0), 0));
-        const totalRow = `<tr style="background:#fef2f2;font-weight:900"><td style="text-align:right;padding-right:8px;color:#dc2626">TOTAL</td>${totalsCells.map((v, i) => `<td>${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
-        return headerRow + methodRows + offeredRow + totalRow;
+      };
+
+      // Per-worker blocks
+      const blocks = productMatrix.workers.map(w => {
+        const mQty = productMatrix.workerMethodProductQty?.[w.id] || { invoice1: {}, super_gros: {}, gros: {}, retail: {} } as any;
+        const offered = productMatrix.workerOfferedQty?.[w.id] || {};
+        const wAmt = productMatrix.workerProductAmount?.[w.id] || {};
+        const workerTotalAmount = products.reduce((a, p) => a + Number(wAmt[p.id] || 0), 0);
+        const headerRow = `<tr><td colspan="${totalCols}" style="background:#0f172a;color:#dc2626;text-align:left;padding:4px 8px;font-weight:800;text-transform:uppercase;font-size:10px">${escapeHtml(w.name)} <span style="color:#dc2626;float:right;padding-right:8px">${Math.round(workerTotalAmount).toLocaleString()} DA</span></td></tr>`;
+        const body = renderBlock(
+          (k, pid) => mQty[k as 'invoice1']?.[pid] || { paid: 0, debt: 0 },
+          (pid) => Number((offered as any)[pid] || 0),
+        );
+        return headerRow + body;
       }).join('');
 
-
       // Aggregate totals across all workers
-      const aggMAmt = { invoice1: 0, super_gros: 0, gros: 0, retail: 0 } as Record<string, number>;
       const aggMQty: Record<string, Record<string, { paid: number; debt: number }>> = { invoice1: {}, super_gros: {}, gros: {}, retail: {} };
       const aggOffered: Record<string, number> = {};
-      const aggAmount: Record<string, number> = {};
       productMatrix.workers.forEach(w => {
-        const mAmt = productMatrix.workerMethodAmounts?.[w.id] || { invoice1: 0, super_gros: 0, gros: 0, retail: 0 };
-        const mQty = productMatrix.workerMethodProductQty?.[w.id] || { invoice1: {}, super_gros: {}, gros: {}, retail: {} };
+        const mQty = productMatrix.workerMethodProductQty?.[w.id] || { invoice1: {}, super_gros: {}, gros: {}, retail: {} } as any;
         const off = productMatrix.workerOfferedQty?.[w.id] || {};
-        const amt = productMatrix.workerProductAmount?.[w.id] || {};
         methods.forEach(([k]) => {
-          aggMAmt[k] += mAmt[k] || 0;
           products.forEach(p => {
             const cur = aggMQty[k][p.id] || { paid: 0, debt: 0 };
             const src = mQty[k as 'invoice1']?.[p.id] || { paid: 0, debt: 0 };
@@ -1019,25 +1014,15 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
           });
         });
         products.forEach(p => {
-          aggOffered[p.id] = (aggOffered[p.id] || 0) + Number(off[p.id] || 0);
-          aggAmount[p.id] = (aggAmount[p.id] || 0) + Number(amt[p.id] || 0);
+          aggOffered[p.id] = (aggOffered[p.id] || 0) + Number((off as any)[p.id] || 0);
         });
       });
-      const gHeader = `<tr><td colspan="${colspan}" style="background:#15803d;color:#fff;text-align:left;padding:4px 8px;font-weight:800;text-transform:uppercase;font-size:10px">Total Général (Tous les Vendeurs)</td></tr>`;
-      const gGet = (k: string, pid: string) => aggMQty[k]?.[pid] || { paid: 0, debt: 0 };
-      const gMethodRows = methods.map(([k, label]) => {
-        const paidCells = products.map(p => Number(gGet(k, p.id).paid || 0));
-        const debtCells = products.map(p => Number(gGet(k, p.id).debt || 0));
-        const paidRow = `<tr><td style="text-align:left;padding-left:8px;font-weight:700;color:#047857">${label} (Payé)</td>${paidCells.map((v, i) => `<td style="color:#047857">${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
-        const debtRow = `<tr><td style="text-align:left;padding-left:8px;font-weight:700;color:#b45309">${label} (Crédit)</td>${debtCells.map((v, i) => `<td style="color:#b45309">${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
-        return paidRow + debtRow;
-      }).join('');
-      const gOfferedCells = products.map(p => Number(aggOffered[p.id] || 0));
-      const gOfferedRow = `<tr style="background:#fef2f2"><td style="text-align:left;padding-left:8px;font-weight:700;color:#b91c1c">PROMO</td>${gOfferedCells.map((v, i) => `<td style="color:#dc2626">${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
-      const gTotalsCells = products.map(p => methods.reduce((a, [k]) => a + Number(gGet(k, p.id).paid || 0) + Number(gGet(k, p.id).debt || 0), 0));
-      const gAmountCells = products.map(p => Number(aggAmount[p.id] || 0));
-      const gTotalRow = `<tr style="background:#fef2f2;font-weight:900"><td style="text-align:right;padding-right:8px;color:#dc2626">TOTAL</td>${gTotalsCells.map((v, i) => `<td>${v ? boxesToBPAlways(v, products[i].piecesPerBox) : '0'}</td>`).join('')}</tr>`;
-      const grandBlock = gHeader + gMethodRows + gOfferedRow + gTotalRow;
+      const gHeader = `<tr><td colspan="${totalCols}" style="background:#15803d;color:#fff;text-align:left;padding:4px 8px;font-weight:800;text-transform:uppercase;font-size:10px">Total Général (Tous les Vendeurs)</td></tr>`;
+      const gBody = renderBlock(
+        (k, pid) => aggMQty[k]?.[pid] || { paid: 0, debt: 0 },
+        (pid) => Number(aggOffered[pid] || 0),
+      );
+      const grandBlock = gHeader + gBody;
 
       return `<div class="block">
         <div class="block-title" style="background:#dcfce7">Total Général (Tous les Vendeurs)</div>
