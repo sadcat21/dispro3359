@@ -31,13 +31,14 @@ const extractDate = (v: string): string => {
   return cleaned.substring(0, 10);
 };
 
-const DebtCollectionsSummary: React.FC<DebtCollectionsSummaryProps> = ({ workerId, periodStart, periodEnd }) => {
+const DebtCollectionsSummary: React.FC<DebtCollectionsSummaryProps> = ({ workerId, periodStart, periodEnd, completedAt }) => {
   const { t } = useLanguage();
+  const effectiveEnd = getEffectiveAccountingSessionEnd(periodEnd, completedAt);
   const { data: rows, isLoading } = useQuery({
-    queryKey: ['session-debt-collections-detail', workerId, periodStart, periodEnd],
+    queryKey: ['session-debt-collections-detail', workerId, periodStart, effectiveEnd],
     queryFn: async () => {
       const startDate = extractDate(periodStart);
-      const endDate = extractDate(periodEnd);
+      const endDate = extractDate(effectiveEnd);
 
       // Use exact period timestamps for debt_payments (timestamp column)
       const toTz = (v: string, isEnd: boolean) => {
