@@ -1009,7 +1009,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         const offered = productMatrix.workerOfferedQty?.[w.id] || {};
         const wAmt = productMatrix.workerProductAmount?.[w.id] || {};
         const workerTotalAmount = products.reduce((a, p) => a + Number(wAmt[p.id] || 0), 0);
-        const headerRow = `<tr><td colspan="${totalCols}" style="background:#0f172a;color:#dc2626;text-align:left;padding:4px 8px;font-weight:800;text-transform:uppercase;font-size:10px">${escapeHtml(w.name)} <span style="color:#dc2626;float:right;padding-right:8px">${Math.round(workerTotalAmount).toLocaleString()} DA</span></td></tr>`;
+        const headerRow = `<tr><td colspan="${totalCols}" style="background:#000;color:#fff;text-align:center;padding:6px 8px;font-weight:800;text-transform:uppercase;font-size:11px;letter-spacing:0.5px">${escapeHtml(w.name)}</td></tr>`;
         const body = renderBlock(
           (k, pid) => mQty[k as 'invoice1']?.[pid] || { paid: 0, debt: 0, paidAmt: 0, debtAmt: 0 },
           (pid) => Number((offered as any)[pid] || 0),
