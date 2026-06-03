@@ -553,41 +553,40 @@ export const WorkerBreakdown: React.FC<{
 
       const dateStr = session.completed_at ? format(new Date(session.completed_at), 'yyyy-MM-dd') : '';
       const timeStr = session.completed_at ? format(new Date(session.completed_at), 'HH:mm') : '';
-      let pressTimer: any = null;
-      const startPress = () => {
-        if (!selectable) return;
-        pressTimer = setTimeout(() => { onToggleSelected?.(session.id); }, 500);
-      };
-      const cancelPress = () => { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } };
 
       return (
         <Card
           key={session.id}
           className={`rounded-xl border cursor-pointer hover:border-primary/60 hover:shadow-sm transition select-none ${selectable && isChecked ? 'border-emerald-400 bg-emerald-50/30 ring-2 ring-emerald-400' : ''}`}
           onClick={() => setSelectedSession(session)}
-          onMouseDown={startPress}
-          onMouseUp={cancelPress}
-          onMouseLeave={cancelPress}
-          onTouchStart={startPress}
-          onTouchEnd={cancelPress}
-          onTouchMove={cancelPress}
-          onContextMenu={(e) => { if (selectable) { e.preventDefault(); onToggleSelected?.(session.id); } }}
         >
           <CardContent className="p-3 space-y-2">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
                   <User className="w-3.5 h-3.5 text-primary" />
                 </div>
                 <span className="font-bold text-sm">{session.worker?.full_name}</span>
               </div>
-              {session.completed_at && (
-                <div className="flex flex-col items-end leading-tight">
-                  <span className="text-[12px] font-bold text-black">{dateStr}</span>
-                  <span className="text-[12px] font-bold text-red-600">{timeStr}</span>
-                </div>
-              )}
+              <div className="flex items-center gap-2">
+                {session.completed_at && (
+                  <div className="flex flex-col items-end leading-tight">
+                    <span className="text-[12px] font-bold text-black">{dateStr}</span>
+                    <span className="text-[12px] font-bold text-red-600">{timeStr}</span>
+                  </div>
+                )}
+                {selectable && (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); onToggleSelected?.(session.id); }}
+                    className={`h-8 px-3 rounded-lg text-[11px] font-bold border transition ${isChecked ? 'bg-emerald-500 text-white border-emerald-600 hover:bg-emerald-600' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'}`}
+                  >
+                    {isChecked ? 'إلغاء التحديد' : 'تحديد'}
+                  </button>
+                )}
+              </div>
             </div>
+
 
 
             <div className="grid grid-cols-3 gap-1.5 text-center text-[10px]">
