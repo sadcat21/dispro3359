@@ -967,13 +967,22 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         getCell: (k: string, pid: string) => { paid: number; debt: number },
         getOffered: (pid: string) => number,
       ) => {
-        return products.map(p => {
+        const totals: Record<string, { paid: number; debt: number }> = { invoice1: { paid: 0, debt: 0 }, super_gros: { paid: 0, debt: 0 }, gros: { paid: 0, debt: 0 }, retail: { paid: 0, debt: 0 } };
+        let totOffered = 0;
+        let grand = 0;
+        const rowsHtml = products.map(p => {
           const cells = methods.map(([k]) => {
             const c = getCell(k, p.id);
-            return { paid: Number(c.paid || 0), debt: Number(c.debt || 0) };
+            const paid = Number(c.paid || 0);
+            const debt = Number(c.debt || 0);
+            totals[k].paid += paid;
+            totals[k].debt += debt;
+            return { paid, debt };
           });
           const offered = Number(getOffered(p.id) || 0);
+          totOffered += offered;
           const total = cells.reduce((a, c) => a + c.paid + c.debt, 0);
+          grand += total;
           const ppb = p.piecesPerBox;
           const fmt = (v: number) => v ? boxesToBPAlways(v, ppb) : '0';
           const tds = cells.map(c => `<td style="color:#047857">${fmt(c.paid)}</td><td style="color:#dc2626">${fmt(c.debt)}</td>`).join('');
@@ -984,6 +993,15 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
             <td style="font-weight:800;color:#0369a1">${fmt(total)}</td>
           </tr>`;
         }).join('');
+        const fmtT = (v: number) => v ? (Math.round(v * 100) / 100).toLocaleString() : '0';
+        const totalTds = methods.map(([k]) => `<td style="color:#047857;font-weight:800;background:#ecfdf5">${fmtT(totals[k].paid)}</td><td style="color:#dc2626;font-weight:800;background:#fef2f2">${fmtT(totals[k].debt)}</td>`).join('');
+        const totalRow = `<tr>
+          <td style="text-align:left;padding-left:8px;font-weight:900;color:#0f172a;background:#f1f5f9;text-transform:uppercase">Total</td>
+          ${totalTds}
+          <td style="color:#dc2626;font-weight:800;background:#fef2f2">${fmtT(totOffered)}</td>
+          <td style="color:#0369a1;font-weight:900;background:#e0f2fe">${fmtT(grand)}</td>
+        </tr>`;
+        return rowsHtml + totalRow;
       };
 
       // Per-worker blocks
