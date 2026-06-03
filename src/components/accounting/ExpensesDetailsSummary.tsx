@@ -5,6 +5,7 @@ import { Loader2, Receipt, Image } from 'lucide-react';
 import { format } from 'date-fns';
 import { useLanguage } from '@/contexts/LanguageContext';
 import ReceiptViewerDialog from '@/components/expenses/ReceiptViewerDialog';
+import { getEffectiveAccountingSessionEnd } from '@/utils/accountingSessionTime';
 
 interface Props {
   workerId: string;
@@ -14,8 +15,6 @@ interface Props {
 }
 
 const fmt = (n: number) => Number(n || 0).toLocaleString();
-
-import { getEffectiveAccountingSessionEnd } from '@/utils/accountingSessionTime';
 
 const ExpensesDetailsSummary: React.FC<Props> = ({ workerId, periodStart, periodEnd, completedAt }) => {
   const { t } = useLanguage();
@@ -28,7 +27,7 @@ const ExpensesDetailsSummary: React.FC<Props> = ({ workerId, periodStart, period
   };
 
   const { data, isLoading } = useQuery({
-    queryKey: ['session-expenses', workerId, periodStart, periodEnd],
+    queryKey: ['session-expenses', workerId, periodStart, periodEnd, completedAt],
     queryFn: async () => {
       const toTz = (v: string, isEnd: boolean) => {
         if (v.includes('+') || v.includes('Z')) return v;
