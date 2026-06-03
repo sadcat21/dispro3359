@@ -83,6 +83,11 @@ const ManagerAccountingReview: React.FC = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [reviewNotes, setReviewNotes] = useState('');
 
+  // Date/time filter for pending sessions
+  const [selectedPeriod, setSelectedPeriod] = useState<DateFilterType>('all');
+  const [customDateFrom, setCustomDateFrom] = useState<Date | undefined>();
+  const [customDateTo, setCustomDateTo] = useState<Date | undefined>();
+
   // Unreviewed sessions
   const { data: pendingSessions = [], isLoading: loadingPending } = useUnreviewedSessions();
 
@@ -112,10 +117,48 @@ const ManagerAccountingReview: React.FC = () => {
 
   const confirmMutation = useConfirmManagerReview();
 
-  const pendingTotals = useMemo(() => calcTotals(pendingSessions), [pendingSessions]);
+  // Filter pending by date range (uses completed_at)
+  const filteredPendingSessions = useMemo(() => {
+    const { start, end } = getDateRangeFromFilter(selectedPeriod, customDateFrom, customDateTo);
+    return pendingSessions.filter((s: any) => {
+      const ts = s.completed_at || s.period_end || s.created_at;
+      if (!ts) return false;
+      const t = new Date(ts).getTime();
+      return t >= start.getTime() && t <= end.getTime();
+    });
+  }, [pendingSessions, selectedPeriod, customDateFrom, customDateTo]);
+
+  // Session selection (default: all filtered selected)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    setSelectedIds(new Set(filteredPendingSessions.map((s: any) => s.id)));
+  }, [filteredPendingSessions]);
+
+  const toggleSelected = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+  const allSelected = filteredPendingSessions.length > 0 && filteredPendingSessions.every((s: any) => selectedIds.has(s.id));
+  const toggleAll = () => {
+    if (allSelected) setSelectedIds(new Set());
+    else setSelectedIds(new Set(filteredPendingSessions.map((s: any) => s.id)));
+  };
+
+  const selectedSessions = useMemo(
+    () => filteredPendingSessions.filter((s: any) => selectedIds.has(s.id)),
+    [filteredPendingSessions, selectedIds]
+  );
+  const pendingTotals = useMemo(() => calcTotals(selectedSessions), [selectedSessions]);
 
   const handleConfirmReview = () => {
-    const sessionIds = pendingSessions.map((s: any) => s.id);
+    const sessionIds = Array.from(selectedIds);
+    if (sessionIds.length === 0) {
+      toast.error('لم يتم اختيار أي جلسة');
+      return;
+    }
     confirmMutation.mutate(
       { notes: reviewNotes || undefined, sessionIds },
       {
@@ -130,7 +173,7 @@ const ManagerAccountingReview: React.FC = () => {
     );
   };
 
-  const displaySessions = selectedReview ? reviewDetailSessions : (activeTab === 'pending' ? pendingSessions : []);
+  const displaySessions = selectedReview ? reviewDetailSessions : (activeTab === 'pending' ? selectedSessions : []);
   const displayTotals = useMemo(() => calcTotals(displaySessions), [displaySessions]);
 
   const handlePrint = async () => {
