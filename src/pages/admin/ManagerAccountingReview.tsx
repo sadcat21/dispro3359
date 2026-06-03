@@ -960,7 +960,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
           <th rowspan="2" style="vertical-align:middle;color:#dc2626">TOTAL</th>
         </tr>
         <tr>
-          ${methods.map(() => `<th ${subHeaderColor('#047857')}>Payé</th><th ${subHeaderColor('#b45309')}>Crédit</th>`).join('')}
+          ${methods.map(() => `<th ${subHeaderColor('#047857')}>Payé</th><th ${subHeaderColor('#dc2626')}>Crédit</th>`).join('')}
         </tr>`;
 
       const renderBlock = (
@@ -976,7 +976,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
           const total = cells.reduce((a, c) => a + c.paid + c.debt, 0);
           const ppb = p.piecesPerBox;
           const fmt = (v: number) => v ? boxesToBPAlways(v, ppb) : '0';
-          const tds = cells.map(c => `<td style="color:#047857">${fmt(c.paid)}</td><td style="color:#b45309">${fmt(c.debt)}</td>`).join('');
+          const tds = cells.map(c => `<td style="color:#047857">${fmt(c.paid)}</td><td style="color:#dc2626">${fmt(c.debt)}</td>`).join('');
           return `<tr>
             <td style="text-align:left;padding-left:8px;font-weight:700;color:#0f172a">${escapeHtml(p.name)}</td>
             ${tds}
