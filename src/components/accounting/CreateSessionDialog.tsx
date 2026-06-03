@@ -830,6 +830,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                       workerId={selectedWorkerId}
                       periodStart={periodStart}
                       periodEnd={periodEnd}
+                      completedAt={isEditMode ? editSession?.completed_at : null}
                     />
                   ) : (
                     <div className="rounded-lg border p-2.5 text-center">
