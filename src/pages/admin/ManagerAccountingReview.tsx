@@ -964,26 +964,23 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         </tr>`;
 
       const renderBlock = (
-        getCell: (k: string, pid: string) => { paid: number; debt: number },
+        getCell: (k: string, pid: string) => { paid: number; debt: number; paidAmt: number; debtAmt: number },
         getOffered: (pid: string) => number,
       ) => {
-        const totals: Record<string, { paid: number; debt: number }> = { invoice1: { paid: 0, debt: 0 }, super_gros: { paid: 0, debt: 0 }, gros: { paid: 0, debt: 0 }, retail: { paid: 0, debt: 0 } };
+        const totals: Record<string, { paidAmt: number; debtAmt: number }> = { invoice1: { paidAmt: 0, debtAmt: 0 }, super_gros: { paidAmt: 0, debtAmt: 0 }, gros: { paidAmt: 0, debtAmt: 0 }, retail: { paidAmt: 0, debtAmt: 0 } };
         let totOffered = 0;
-        let grand = 0;
+        let grandQty = 0;
         const rowsHtml = products.map(p => {
           const cells = methods.map(([k]) => {
             const c = getCell(k, p.id);
-            const paid = Number(c.paid || 0);
-            const debt = Number(c.debt || 0);
-            return { paid, debt };
+            return { paid: Number(c.paid || 0), debt: Number(c.debt || 0), paidAmt: Number(c.paidAmt || 0), debtAmt: Number(c.debtAmt || 0) };
           });
           const offered = Number(getOffered(p.id) || 0);
-          const rowTotal = cells.reduce((a, c) => a + c.paid + c.debt, 0) + offered;
-          if (rowTotal <= 0) return '';
-          cells.forEach((c, i) => { totals[methods[i][0]].paid += c.paid; totals[methods[i][0]].debt += c.debt; });
+          const rowQty = cells.reduce((a, c) => a + c.paid + c.debt, 0);
+          if (rowQty + offered <= 0) return '';
+          cells.forEach((c, i) => { totals[methods[i][0]].paidAmt += c.paidAmt; totals[methods[i][0]].debtAmt += c.debtAmt; });
           totOffered += offered;
-          const total = cells.reduce((a, c) => a + c.paid + c.debt, 0);
-          grand += total;
+          grandQty += rowQty;
           const ppb = p.piecesPerBox;
           const fmt = (v: number) => v ? boxesToBPAlways(v, ppb) : '0';
           const tds = cells.map(c => `<td style="color:#047857">${fmt(c.paid)}</td><td style="color:#dc2626">${fmt(c.debt)}</td>`).join('');
@@ -991,16 +988,17 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
             <td style="text-align:left;padding-left:8px;font-weight:700;color:#0f172a">${escapeHtml(p.name)}</td>
             ${tds}
             <td style="color:#dc2626">${fmt(offered)}</td>
-            <td style="font-weight:800;color:#0369a1">${fmt(total)}</td>
+            <td style="font-weight:800;color:#0369a1">${fmt(rowQty)}</td>
           </tr>`;
         }).join('');
-        const fmtT = (v: number) => v ? (Math.round(v * 100) / 100).toLocaleString() : '0';
-        const totalTds = methods.map(([k]) => `<td style="color:#047857;font-weight:800;background:#ecfdf5">${fmtT(totals[k].paid)}</td><td style="color:#dc2626;font-weight:800;background:#fef2f2">${fmtT(totals[k].debt)}</td>`).join('');
+        const fmtDA = (v: number) => v ? Math.round(v).toLocaleString() : '0';
+        const grandAmt = methods.reduce((a, [k]) => a + totals[k].paidAmt + totals[k].debtAmt, 0);
+        const totalTds = methods.map(([k]) => `<td style="color:#047857;font-weight:800;background:#ecfdf5">${fmtDA(totals[k].paidAmt)}</td><td style="color:#dc2626;font-weight:800;background:#fef2f2">${fmtDA(totals[k].debtAmt)}</td>`).join('');
         const totalRow = `<tr>
-          <td style="text-align:left;padding-left:8px;font-weight:900;color:#0f172a;background:#f1f5f9;text-transform:uppercase">Total</td>
+          <td style="text-align:left;padding-left:8px;font-weight:900;color:#0f172a;background:#f1f5f9;text-transform:uppercase">Total (DA)</td>
           ${totalTds}
-          <td style="color:#dc2626;font-weight:800;background:#fef2f2">${fmtT(totOffered)}</td>
-          <td style="color:#0369a1;font-weight:900;background:#e0f2fe">${fmtT(grand)}</td>
+          <td style="background:#f1f5f9">—</td>
+          <td style="color:#0369a1;font-weight:900;background:#e0f2fe">${fmtDA(grandAmt)}</td>
         </tr>`;
         return rowsHtml + totalRow;
       };
@@ -1013,23 +1011,28 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         const workerTotalAmount = products.reduce((a, p) => a + Number(wAmt[p.id] || 0), 0);
         const headerRow = `<tr><td colspan="${totalCols}" style="background:#0f172a;color:#dc2626;text-align:left;padding:4px 8px;font-weight:800;text-transform:uppercase;font-size:10px">${escapeHtml(w.name)} <span style="color:#dc2626;float:right;padding-right:8px">${Math.round(workerTotalAmount).toLocaleString()} DA</span></td></tr>`;
         const body = renderBlock(
-          (k, pid) => mQty[k as 'invoice1']?.[pid] || { paid: 0, debt: 0 },
+          (k, pid) => mQty[k as 'invoice1']?.[pid] || { paid: 0, debt: 0, paidAmt: 0, debtAmt: 0 },
           (pid) => Number((offered as any)[pid] || 0),
         );
         return headerRow + body;
       }).join('');
 
       // Aggregate totals across all workers
-      const aggMQty: Record<string, Record<string, { paid: number; debt: number }>> = { invoice1: {}, super_gros: {}, gros: {}, retail: {} };
+      const aggMQty: Record<string, Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>> = { invoice1: {}, super_gros: {}, gros: {}, retail: {} };
       const aggOffered: Record<string, number> = {};
       productMatrix.workers.forEach(w => {
         const mQty = productMatrix.workerMethodProductQty?.[w.id] || { invoice1: {}, super_gros: {}, gros: {}, retail: {} } as any;
         const off = productMatrix.workerOfferedQty?.[w.id] || {};
         methods.forEach(([k]) => {
           products.forEach(p => {
-            const cur = aggMQty[k][p.id] || { paid: 0, debt: 0 };
-            const src = mQty[k as 'invoice1']?.[p.id] || { paid: 0, debt: 0 };
-            aggMQty[k][p.id] = { paid: cur.paid + Number(src.paid || 0), debt: cur.debt + Number(src.debt || 0) };
+            const cur = aggMQty[k][p.id] || { paid: 0, debt: 0, paidAmt: 0, debtAmt: 0 };
+            const src = mQty[k as 'invoice1']?.[p.id] || { paid: 0, debt: 0, paidAmt: 0, debtAmt: 0 };
+            aggMQty[k][p.id] = {
+              paid: cur.paid + Number(src.paid || 0),
+              debt: cur.debt + Number(src.debt || 0),
+              paidAmt: cur.paidAmt + Number(src.paidAmt || 0),
+              debtAmt: cur.debtAmt + Number(src.debtAmt || 0),
+            };
           });
         });
         products.forEach(p => {
@@ -1038,10 +1041,11 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
       });
       const gHeader = `<tr><td colspan="${totalCols}" style="background:#15803d;color:#fff;text-align:left;padding:4px 8px;font-weight:800;text-transform:uppercase;font-size:10px">Total Général (Tous les Vendeurs)</td></tr>`;
       const gBody = renderBlock(
-        (k, pid) => aggMQty[k]?.[pid] || { paid: 0, debt: 0 },
+        (k, pid) => aggMQty[k]?.[pid] || { paid: 0, debt: 0, paidAmt: 0, debtAmt: 0 },
         (pid) => Number(aggOffered[pid] || 0),
       );
       const grandBlock = gHeader + gBody;
+
 
       return `<div class="block">
         <div class="block-title" style="background:#dcfce7">Total Général (Tous les Vendeurs)</div>
