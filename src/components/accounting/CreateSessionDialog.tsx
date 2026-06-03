@@ -593,7 +593,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             {calc && (
               <>
                 {/* ━━━ Step 2: Sales Overview ━━━ */}
-                <StepSection step={2} title={t('create_session.sales_summary')} color="primary">
+                <StepSection step={2} title={t('create_session.sales_summary')} color="primary" defaultOpen>
                   <div className="bg-black rounded-xl p-3 mb-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
