@@ -1,9 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Calculator, User, Calendar, Banknote, TrendingUp, TrendingDown, AlertTriangle, Wallet, ChevronLeft, CheckCircle2, History, Clock, FileCheck, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,6 +14,7 @@ import { useUnreviewedSessions, useManagerReviewSessions, useConfirmManagerRevie
 import { toast } from 'sonner';
 import { boxesToBPAlways, dbBPToBoxes } from '@/utils/boxPieceInput';
 import { inferPricingSubtype } from '@/utils/pricingSubtype';
+import DateRangeFilter, { DateFilterType, getDateRangeFromFilter } from '@/components/stats/DateRangeFilter';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -81,6 +83,11 @@ const ManagerAccountingReview: React.FC = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [reviewNotes, setReviewNotes] = useState('');
 
+  // Date/time filter for pending sessions
+  const [selectedPeriod, setSelectedPeriod] = useState<DateFilterType>('all');
+  const [customDateFrom, setCustomDateFrom] = useState<Date | undefined>();
+  const [customDateTo, setCustomDateTo] = useState<Date | undefined>();
+
   // Unreviewed sessions
   const { data: pendingSessions = [], isLoading: loadingPending } = useUnreviewedSessions();
 
@@ -110,10 +117,48 @@ const ManagerAccountingReview: React.FC = () => {
 
   const confirmMutation = useConfirmManagerReview();
 
-  const pendingTotals = useMemo(() => calcTotals(pendingSessions), [pendingSessions]);
+  // Filter pending by date range (uses completed_at)
+  const filteredPendingSessions = useMemo(() => {
+    const { start, end } = getDateRangeFromFilter(selectedPeriod, customDateFrom, customDateTo);
+    return pendingSessions.filter((s: any) => {
+      const ts = s.completed_at || s.period_end || s.created_at;
+      if (!ts) return false;
+      const t = new Date(ts).getTime();
+      return t >= start.getTime() && t <= end.getTime();
+    });
+  }, [pendingSessions, selectedPeriod, customDateFrom, customDateTo]);
+
+  // Session selection (default: all filtered selected)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    setSelectedIds(new Set(filteredPendingSessions.map((s: any) => s.id)));
+  }, [filteredPendingSessions]);
+
+  const toggleSelected = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+  const allSelected = filteredPendingSessions.length > 0 && filteredPendingSessions.every((s: any) => selectedIds.has(s.id));
+  const toggleAll = () => {
+    if (allSelected) setSelectedIds(new Set());
+    else setSelectedIds(new Set(filteredPendingSessions.map((s: any) => s.id)));
+  };
+
+  const selectedSessions = useMemo(
+    () => filteredPendingSessions.filter((s: any) => selectedIds.has(s.id)),
+    [filteredPendingSessions, selectedIds]
+  );
+  const pendingTotals = useMemo(() => calcTotals(selectedSessions), [selectedSessions]);
 
   const handleConfirmReview = () => {
-    const sessionIds = pendingSessions.map((s: any) => s.id);
+    const sessionIds = Array.from(selectedIds);
+    if (sessionIds.length === 0) {
+      toast.error('لم يتم اختيار أي جلسة');
+      return;
+    }
     confirmMutation.mutate(
       { notes: reviewNotes || undefined, sessionIds },
       {
@@ -128,7 +173,7 @@ const ManagerAccountingReview: React.FC = () => {
     );
   };
 
-  const displaySessions = selectedReview ? reviewDetailSessions : (activeTab === 'pending' ? pendingSessions : []);
+  const displaySessions = selectedReview ? reviewDetailSessions : (activeTab === 'pending' ? selectedSessions : []);
   const displayTotals = useMemo(() => calcTotals(displaySessions), [displaySessions]);
 
   const handlePrint = async () => {
@@ -211,7 +256,6 @@ const ManagerAccountingReview: React.FC = () => {
           </TabsTrigger>
         </TabsList>
 
-        {/* Pending Tab */}
         <TabsContent value="pending" className="space-y-4 mt-4">
           {loadingPending ? (
             <div className="flex items-center justify-center py-16">
@@ -227,43 +271,87 @@ const ManagerAccountingReview: React.FC = () => {
             </Card>
           ) : (
             <>
-              {/* Warning banner */}
-              <Card className="border-amber-300 bg-amber-50">
-                <CardContent className="p-3 flex items-start gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
-                  <div className="text-xs text-amber-800">
-                    <p className="font-bold">مبالغ معلّقة</p>
-                    <p>هذه الجلسات لم تُسجّل بعد في الخزينة. يجب تأكيد المراجعة لإدراجها.</p>
-                  </div>
+              {/* Date/time filter */}
+              <Card>
+                <CardContent className="p-3 space-y-2">
+                  <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5" /> تصفية حسب التاريخ والوقت
+                  </p>
+                  <DateRangeFilter
+                    selectedPeriod={selectedPeriod}
+                    setSelectedPeriod={setSelectedPeriod}
+                    customDateFrom={customDateFrom}
+                    setCustomDateFrom={setCustomDateFrom}
+                    customDateTo={customDateTo}
+                    setCustomDateTo={setCustomDateTo}
+                  />
+                  <p className="text-[10px] text-muted-foreground">
+                    {filteredPendingSessions.length} من أصل {pendingSessions.length} جلسة • محدد: {selectedIds.size}
+                  </p>
                 </CardContent>
               </Card>
 
-              <SessionsSummary totals={pendingTotals} sessions={pendingSessions} />
+              {filteredPendingSessions.length === 0 ? (
+                <Card className="border-dashed">
+                  <CardContent className="py-10 text-center text-muted-foreground text-xs">
+                    لا توجد جلسات تطابق الفلتر المختار
+                  </CardContent>
+                </Card>
+              ) : (
+                <>
+                  {/* Warning banner */}
+                  <Card className="border-amber-300 bg-amber-50">
+                    <CardContent className="p-3 flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+                      <div className="text-xs text-amber-800">
+                        <p className="font-bold">مبالغ معلّقة</p>
+                        <p>اختر الجلسات المراد تأكيدها وإدراجها في الخزينة.</p>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-              {/* Confirm button */}
-              <Button
-                onClick={() => setShowConfirmDialog(true)}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
-                size="lg"
-                disabled={confirmMutation.isPending}
-              >
-                {confirmMutation.isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <FileCheck className="w-4 h-4" />
-                )}
-                تأكيد المراجعة وإدراج في الخزينة ({pendingSessions.length} جلسة)
-              </Button>
+                  {/* Select all */}
+                  <div className="flex items-center justify-between bg-muted/40 rounded-lg px-3 py-2">
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold">
+                      <Checkbox checked={allSelected} onCheckedChange={toggleAll} />
+                      {allSelected ? 'إلغاء تحديد الكل' : 'تحديد الكل'}
+                    </label>
+                    <span className="text-[11px] text-muted-foreground">{selectedIds.size} / {filteredPendingSessions.length}</span>
+                  </div>
 
-              <Button onClick={handlePrint} variant="outline" className="w-full gap-2" size="lg">
-                <Printer className="w-4 h-4" /> طباعة ملخص A4
-              </Button>
+                  <SessionsSummary totals={pendingTotals} sessions={selectedSessions} />
 
-              {/* Per-Worker Breakdown */}
-              <WorkerBreakdown sessions={pendingSessions} />
+                  {/* Confirm button */}
+                  <Button
+                    onClick={() => setShowConfirmDialog(true)}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
+                    size="lg"
+                    disabled={confirmMutation.isPending || selectedIds.size === 0}
+                  >
+                    {confirmMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <FileCheck className="w-4 h-4" />
+                    )}
+                    تأكيد المراجعة وإدراج في الخزينة ({selectedIds.size} جلسة)
+                  </Button>
+
+                  <Button onClick={handlePrint} variant="outline" className="w-full gap-2" size="lg" disabled={selectedSessions.length === 0}>
+                    <Printer className="w-4 h-4" /> طباعة ملخص A4
+                  </Button>
+
+                  {/* Per-Worker Breakdown with selection */}
+                  <WorkerBreakdown
+                    sessions={filteredPendingSessions}
+                    selectedIds={selectedIds}
+                    onToggleSelected={toggleSelected}
+                  />
+                </>
+              )}
             </>
           )}
         </TabsContent>
+
 
         {/* History Tab */}
         <TabsContent value="history" className="space-y-3 mt-4">
@@ -438,8 +526,13 @@ export const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ to
 };
 
 // Worker Breakdown Component
-export const WorkerBreakdown: React.FC<{ sessions: any[] }> = ({ sessions }) => {
+export const WorkerBreakdown: React.FC<{
+  sessions: any[];
+  selectedIds?: Set<string>;
+  onToggleSelected?: (id: string) => void;
+}> = ({ sessions, selectedIds, onToggleSelected }) => {
   const [selectedSession, setSelectedSession] = useState<any | null>(null);
+  const selectable = !!onToggleSelected;
   return (
   <div className="space-y-2">
     <h3 className="text-sm font-bold flex items-center gap-2">
@@ -456,25 +549,32 @@ export const WorkerBreakdown: React.FC<{ sessions: any[] }> = ({ sessions }) => 
       const cashAct = get('physical_cash');
       const diff = cashAct - cashExp;
       const expensesTotal = get('expenses');
+      const isChecked = selectedIds?.has(session.id) ?? false;
 
       return (
         <Card
           key={session.id}
-          className="rounded-xl border cursor-pointer hover:border-primary/60 hover:shadow-sm transition"
+          className={`rounded-xl border cursor-pointer hover:border-primary/60 hover:shadow-sm transition ${selectable && isChecked ? 'border-emerald-400 bg-emerald-50/30' : ''}`}
           onClick={() => setSelectedSession(session)}
         >
           <CardContent className="p-3 space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
+                {selectable && (
+                  <span onClick={(e) => { e.stopPropagation(); onToggleSelected!(session.id); }}>
+                    <Checkbox checked={isChecked} onCheckedChange={() => onToggleSelected!(session.id)} />
+                  </span>
+                )}
                 <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
                   <User className="w-3.5 h-3.5 text-primary" />
                 </div>
                 <span className="font-bold text-sm">{session.worker?.full_name}</span>
               </div>
               <span className="text-[11px] text-muted-foreground">
-                {session.completed_at ? format(new Date(session.completed_at), 'HH:mm') : ''}
+                {session.completed_at ? format(new Date(session.completed_at), 'yyyy-MM-dd HH:mm') : ''}
               </span>
             </div>
+
             <div className="grid grid-cols-3 gap-1.5 text-center text-[10px]">
               <MiniBox label="المبيعات" value={get('total_sales')} />
               <MiniBox label="نقدية فعلية" value={cashAct} color="green" />
