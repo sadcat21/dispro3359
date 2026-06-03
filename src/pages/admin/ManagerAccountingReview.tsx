@@ -975,11 +975,12 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
             const c = getCell(k, p.id);
             const paid = Number(c.paid || 0);
             const debt = Number(c.debt || 0);
-            totals[k].paid += paid;
-            totals[k].debt += debt;
             return { paid, debt };
           });
           const offered = Number(getOffered(p.id) || 0);
+          const rowTotal = cells.reduce((a, c) => a + c.paid + c.debt, 0) + offered;
+          if (rowTotal <= 0) return '';
+          cells.forEach((c, i) => { totals[methods[i][0]].paid += c.paid; totals[methods[i][0]].debt += c.debt; });
           totOffered += offered;
           const total = cells.reduce((a, c) => a + c.paid + c.debt, 0);
           grand += total;
