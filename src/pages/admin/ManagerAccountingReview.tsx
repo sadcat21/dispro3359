@@ -838,7 +838,9 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
   <style>
     @page { size: A4 portrait; margin: 5mm 2mm; }
     * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; background: #fff; color: #0f172a; font-family: 'Helvetica Neue', Arial, sans-serif; }
+    html, body { margin: 0; padding: 0; background: #fff; color: #0f172a; font-family: 'Helvetica Neue', Arial, sans-serif; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    tr.worker-name-row td, tr.worker-name-row td:nth-child(2) { background: #000 !important; color: #fff !important; text-align: center !important; font-weight: 800 !important; }
     body { width: 206mm; min-height: 287mm; }
     .sheet { width: 100%; padding: 0; }
     .header { border-bottom: 3px double #0f172a; padding-bottom: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
