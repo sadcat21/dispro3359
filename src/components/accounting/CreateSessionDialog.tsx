@@ -521,7 +521,24 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 <Calculator className="w-5 h-5 text-white" />
               </div>
               <div className="flex flex-col">
-                <span>{isEditMode ? (t('accounting.edit_session') || t('common.edit')) : t('accounting.new_session')}</span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span>{isEditMode ? (t('accounting.edit_session') || t('common.edit')) : t('accounting.new_session')}</span>
+                  {periodStart && periodEnd && (
+                    <span className="flex items-center gap-1.5 text-xs font-normal" dir="ltr">
+                      <span className="text-emerald-600 font-semibold">{periodStart.replace('T', ' ')}</span>
+                      <span className="text-muted-foreground">←</span>
+                      <span className="font-bold text-foreground">{periodEnd.replace('T', ' ')}</span>
+                      <button
+                        type="button"
+                        onClick={() => setPeriodEnd(nowLocal())}
+                        className="text-primary hover:text-primary/80 p-0.5"
+                        title={t('common.refresh') || 'تحديث'}
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                      </button>
+                    </span>
+                  )}
+                </div>
                 {workerName && <span className="text-xs font-normal text-muted-foreground">{workerName}</span>}
               </div>
             </DialogTitle>
@@ -545,18 +562,17 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             <StepSection step={1} title={t('accounting.period') || 'الفترة'} color="primary">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold">{t('accounting.period_start')}</Label>
-                  <Input type="datetime-local" value={periodStart} readOnly disabled className="text-xs rounded-lg bg-muted/40 cursor-not-allowed" />
+                  <Label className="text-xs font-semibold text-emerald-600">{t('accounting.period_start')}</Label>
+                  <Input type="datetime-local" value={periodStart} readOnly disabled className="text-xs rounded-lg bg-muted/40 cursor-not-allowed text-emerald-600 font-semibold" />
                 </div>
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <Label className="text-xs font-semibold">{t('accounting.period_end')}</Label>
                     <Button type="button" variant="ghost" size="sm" className="h-5 px-1.5 text-[10px] text-primary hover:text-primary/80 gap-1" onClick={() => setPeriodEnd(nowLocal())}>
                       <RefreshCw className="w-3 h-3" />
-                      {t('common.refresh') || 'تحديث'}
                     </Button>
                   </div>
-                  <Input type="datetime-local" value={periodEnd} readOnly disabled className="text-xs rounded-lg bg-muted/40 cursor-not-allowed" />
+                  <Input type="datetime-local" value={periodEnd} readOnly disabled className="text-xs rounded-lg bg-muted/40 cursor-not-allowed font-bold" />
                 </div>
               </div>
               <p className="text-[10px] text-muted-foreground mt-2 text-center">
