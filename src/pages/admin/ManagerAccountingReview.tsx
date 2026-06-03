@@ -725,15 +725,15 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       } else if (resolvedSubtype === 'super_gros') {
         bump('super_gros', it.product_id, qty);
         bumpWorkerMethod(o.assigned_worker_id, 'super_gros', lineAmount);
-        bumpWMP(o.assigned_worker_id, 'super_gros', it.product_id, qty, isPaid);
+        bumpWMP(o.assigned_worker_id, 'super_gros', it.product_id, qty, lineAmount, isPaid);
       } else if (resolvedSubtype === 'gros') {
         bump('gros', it.product_id, qty);
         bumpWorkerMethod(o.assigned_worker_id, 'gros', lineAmount);
-        bumpWMP(o.assigned_worker_id, 'gros', it.product_id, qty, isPaid);
+        bumpWMP(o.assigned_worker_id, 'gros', it.product_id, qty, lineAmount, isPaid);
       } else {
         bump('retail', it.product_id, qty);
         bumpWorkerMethod(o.assigned_worker_id, 'retail', lineAmount);
-        bumpWMP(o.assigned_worker_id, 'retail', it.product_id, qty, isPaid);
+        bumpWMP(o.assigned_worker_id, 'retail', it.product_id, qty, lineAmount, isPaid);
       }
     });
   });
