@@ -385,34 +385,34 @@ const SalesDetailsSummary: React.FC<SalesDetailsSummaryProps> = ({ workerId, per
               <ChevronDown className="w-4 h-4 text-muted-foreground" />
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <Tabs defaultValue="paid" className="mt-2">
-                <TabsList className="grid w-full grid-cols-2 h-9">
-                  <TabsTrigger value="paid" className="text-xs">
-                    {dir === 'rtl' ? 'مدفوع كامل' : 'Payés'} ({paidCustomers.length})
-                  </TabsTrigger>
-                  <TabsTrigger value="debt" className="text-xs">
-                    {dir === 'rtl' ? 'دين / جزئي' : 'Dette / Partiel'} ({debtCustomers.length})
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent value="paid">
-                  <div className="space-y-1.5 mt-2">
-                    {paidCustomers.length === 0 ? (
-                      <p className="text-center text-muted-foreground text-xs py-3">
-                        {t('accounting.no_sales_details')}
-                      </p>
-                    ) : paidCustomers.map(renderCustomerButton)}
+              <div className="mt-2 space-y-3">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between px-1">
+                    <h4 className="text-xs font-semibold text-emerald-600">
+                      ✓ {dir === 'rtl' ? 'مدفوع كامل' : 'Payés'}
+                    </h4>
+                    <Badge variant="secondary" className="text-[10px]">{paidCustomers.length}</Badge>
                   </div>
-                </TabsContent>
-                <TabsContent value="debt">
-                  <div className="space-y-1.5 mt-2">
-                    {debtCustomers.length === 0 ? (
-                      <p className="text-center text-muted-foreground text-xs py-3">
-                        {t('accounting.no_sales_details')}
-                      </p>
-                    ) : debtCustomers.map(renderCustomerButton)}
+                  {paidCustomers.length === 0 ? (
+                    <p className="text-center text-muted-foreground text-xs py-2">
+                      {dir === 'rtl' ? 'لا يوجد' : 'Aucun'}
+                    </p>
+                  ) : paidCustomers.map(renderCustomerButton)}
+                </div>
+                <div className="space-y-1.5 pt-2 border-t">
+                  <div className="flex items-center justify-between px-1">
+                    <h4 className="text-xs font-semibold text-destructive">
+                      ⚠ {dir === 'rtl' ? 'دين / جزئي' : 'Dette / Partiel'}
+                    </h4>
+                    <Badge variant="destructive" className="text-[10px]">{debtCustomers.length}</Badge>
                   </div>
-                </TabsContent>
-              </Tabs>
+                  {debtCustomers.length === 0 ? (
+                    <p className="text-center text-muted-foreground text-xs py-2">
+                      {dir === 'rtl' ? 'لا يوجد' : 'Aucun'}
+                    </p>
+                  ) : debtCustomers.map(renderCustomerButton)}
+                </div>
+              </div>
             </CollapsibleContent>
           </Collapsible>
         );
