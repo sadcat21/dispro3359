@@ -834,7 +834,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Rapport de Révision des Comptes du Gérant</title>
+  <title>Rapport Quotidien</title>
   <style>
     @page { size: A4 portrait; margin: 5mm 2mm; }
     * { box-sizing: border-box; }
@@ -873,9 +873,8 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
   <main class="sheet">
     <header class="header">
       <div style="flex:1">
-        <div class="title">Rapport de Révision des Comptes du Gérant</div>
-        <div class="subtitle"><b>Dépôt :</b> ${escapeHtml(translateBranchToFr(branchName) || '—')} &nbsp;|&nbsp; <b>Date d'impression :</b> ${escapeHtml(today)} &nbsp;|&nbsp; <b>Nombre de sessions :</b> ${sessions.length}</div>
-        <div class="subtitle" dir="ltr" style="text-align:left"><b>Comptable :</b> ${escapeHtml(accountantName || '—')} &nbsp;|&nbsp; <b>Période :</b> <span dir="ltr" style="unicode-bidi:isolate">${escapeHtml(periodFrom)} &rarr; ${escapeHtml(periodTo)}</span></div>
+        <div class="title">Rapport Quotidien — ${escapeHtml((periodTo || periodFrom || today).slice(0, 10))}</div>
+        <div class="subtitle" dir="ltr" style="text-align:left"><b>Dépôt :</b> ${escapeHtml(translateBranchToFr(branchName) || '—')} &nbsp; <b>Comptable :</b> ${escapeHtml(accountantName || '—')} &nbsp;|&nbsp; <b>Période :</b> <span dir="ltr" style="unicode-bidi:isolate">${escapeHtml(periodFrom)} &rarr; ${escapeHtml(periodTo)}</span></div>
       </div>
       ${qrDataUrl ? `<div style="border:2px solid #0f172a;padding:4px;border-radius:4px;background:#fff"><img src="${qrDataUrl}" alt="QR" style="width:64px;height:64px;display:block" /></div>` : ''}
     </header>
