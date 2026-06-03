@@ -249,11 +249,25 @@ export const useCancelSession = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (sessionId: string) => {
+      const { data: sessionRow, error: sessionFetchError } = await supabase
+        .from('accounting_sessions')
+        .select('worker_id')
+        .eq('id', sessionId)
+        .maybeSingle();
+      if (sessionFetchError) throw sessionFetchError;
+
       // Cancel = full revert: delete treasury entries, items, then session
       await supabase.from('manager_treasury').delete().eq('session_id', sessionId);
       await supabase.from('accounting_session_items').delete().eq('session_id', sessionId);
       const { error } = await supabase.from('accounting_sessions').delete().eq('id', sessionId);
       if (error) throw error;
+
+      if (sessionRow?.worker_id) {
+        const { error: recalibrateError } = await supabase.rpc('recalibrate_worker_stock', {
+          p_worker_id: sessionRow.worker_id,
+        });
+        if (recalibrateError) throw recalibrateError;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['accounting-sessions'] });
@@ -266,6 +280,8 @@ export const useCancelSession = () => {
       queryClient.invalidateQueries({ queryKey: ['my-deliveries'] });
       queryClient.invalidateQueries({ queryKey: ['worker-liability'] });
       queryClient.invalidateQueries({ queryKey: ['all-workers-liability'] });
+      queryClient.invalidateQueries({ queryKey: ['my-worker-stock'] });
+      queryClient.invalidateQueries({ queryKey: ['worker-truck-stock'] });
       queryClient.invalidateQueries({ predicate: (q) => typeof q.queryKey[0] === 'string' && (q.queryKey[0] as string).startsWith('frozen-workers') });
     },
   });
@@ -275,16 +291,32 @@ export const useDeleteSession = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (sessionId: string) => {
+      const { data: sessionRow, error: sessionFetchError } = await supabase
+        .from('accounting_sessions')
+        .select('worker_id')
+        .eq('id', sessionId)
+        .maybeSingle();
+      if (sessionFetchError) throw sessionFetchError;
+
       // Delete = remove session record only (no treasury revert)
       await supabase.from('accounting_session_items').delete().eq('session_id', sessionId);
       const { error } = await supabase.from('accounting_sessions').delete().eq('id', sessionId);
       if (error) throw error;
+
+      if (sessionRow?.worker_id) {
+        const { error: recalibrateError } = await supabase.rpc('recalibrate_worker_stock', {
+          p_worker_id: sessionRow.worker_id,
+        });
+        if (recalibrateError) throw recalibrateError;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['accounting-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['worker-last-accounting-session'] });
       queryClient.invalidateQueries({ queryKey: ['worker-liability'] });
       queryClient.invalidateQueries({ queryKey: ['all-workers-liability'] });
+      queryClient.invalidateQueries({ queryKey: ['my-worker-stock'] });
+      queryClient.invalidateQueries({ queryKey: ['worker-truck-stock'] });
       queryClient.invalidateQueries({ predicate: (q) => typeof q.queryKey[0] === 'string' && (q.queryKey[0] as string).startsWith('frozen-workers') });
     },
   });
