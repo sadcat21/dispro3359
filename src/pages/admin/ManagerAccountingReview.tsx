@@ -721,7 +721,7 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       if (resolvedSubtype === 'invoice') {
         bump('invoice1', it.product_id, qty);
         bumpWorkerMethod(o.assigned_worker_id, 'invoice1', lineAmount);
-        bumpWMP(o.assigned_worker_id, 'invoice1', it.product_id, qty, isPaid);
+        bumpWMP(o.assigned_worker_id, 'invoice1', it.product_id, qty, lineAmount, isPaid);
       } else if (resolvedSubtype === 'super_gros') {
         bump('super_gros', it.product_id, qty);
         bumpWorkerMethod(o.assigned_worker_id, 'super_gros', lineAmount);
