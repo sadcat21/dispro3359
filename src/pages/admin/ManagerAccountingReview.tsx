@@ -617,6 +617,7 @@ export const WorkerBreakdown: React.FC<{
                     workerId={session.worker.id}
                     periodStart={session.period_start}
                     periodEnd={session.period_end}
+                    completedAt={session.completed_at}
                   />
                 </CollapsibleContent>
               </Collapsible>

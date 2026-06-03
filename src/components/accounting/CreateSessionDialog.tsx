@@ -256,7 +256,13 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
   // Auto-update periodEnd removed - user controls manually via refresh button
 
   const calcParams = selectedWorkerId && periodStart && periodEnd
-    ? { workerId: selectedWorkerId, branchId: activeBranch?.id, periodStart, periodEnd }
+    ? {
+        workerId: selectedWorkerId,
+        branchId: activeBranch?.id,
+        periodStart,
+        periodEnd,
+        completedAt: editSession?.completed_at ?? null,
+      }
     : null;
 
   const { data: calc, isLoading: calcLoading, error: calcError } = useSessionCalculations(calcParams, { refetchInterval: autoRefresh ? 600000 : false });
@@ -830,6 +836,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                       workerId={selectedWorkerId}
                       periodStart={periodStart}
                       periodEnd={periodEnd}
+                      completedAt={isEditMode ? editSession?.completed_at : null}
                     />
                   ) : (
                     <div className="rounded-lg border p-2.5 text-center">

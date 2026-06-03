@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { getEffectiveAccountingSessionEnd } from '@/utils/accountingSessionTime';
 
 export interface AccountingSessionItem {
   id: string;
@@ -94,6 +95,8 @@ export const useCreateSession = () => {
       // Create session
       // Convert datetime-local to timestamptz with Algeria timezone (+01:00)
       const toTz = (v: string) => v.includes('T') ? v + ':00+01:00' : v + 'T00:00:00+01:00';
+      const completedAt = new Date().toISOString();
+      const effectivePeriodEnd = getEffectiveAccountingSessionEnd(toTz(params.period_end), completedAt);
       
       const { data: session, error: sessionErr } = await supabase
         .from('accounting_sessions')
@@ -102,10 +105,10 @@ export const useCreateSession = () => {
           manager_id: workerId!,
           branch_id: activeBranch?.id || null,
           period_start: toTz(params.period_start),
-          period_end: toTz(params.period_end),
+          period_end: effectivePeriodEnd,
           notes: params.notes || null,
           status: 'completed',
-          completed_at: new Date().toISOString(),
+          completed_at: completedAt,
           is_treasury_posted: false,
           unload_confirmed: true,
           unload_notes: params.unload_notes || null,
@@ -192,14 +195,16 @@ export const useUpdateFullSession = () => {
       // Update session
       // Convert datetime-local to timestamptz with Algeria timezone (+01:00)
       const toTz = (v: string) => v.includes('T') ? v + ':00+01:00' : v + 'T00:00:00+01:00';
+      const completedAt = new Date().toISOString();
+      const effectivePeriodEnd = getEffectiveAccountingSessionEnd(toTz(params.period_end), completedAt);
       
       const { error: sessionErr } = await supabase
         .from('accounting_sessions')
         .update({
           period_start: toTz(params.period_start),
-          period_end: toTz(params.period_end),
+          period_end: effectivePeriodEnd,
           notes: params.notes || null,
-          completed_at: new Date().toISOString(),
+          completed_at: completedAt,
         })
         .eq('id', params.session_id);
 

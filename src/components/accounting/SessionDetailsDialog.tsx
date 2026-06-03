@@ -123,6 +123,7 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
     branchId: session.branch_id || undefined,
     periodStart: session.period_start,
     periodEnd: session.period_end,
+    completedAt: session.completed_at,
   });
 
   const handleAddDeficit = async (amount: number) => {
@@ -584,6 +585,7 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
                 workerId={session.worker_id}
                 periodStart={session.period_start}
                 periodEnd={session.period_end}
+                completedAt={session.completed_at}
               />
             </CollapsibleSection>
             )}

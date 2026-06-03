@@ -5,16 +5,18 @@ import { Loader2, Receipt, Image } from 'lucide-react';
 import { format } from 'date-fns';
 import { useLanguage } from '@/contexts/LanguageContext';
 import ReceiptViewerDialog from '@/components/expenses/ReceiptViewerDialog';
+import { getEffectiveAccountingSessionEnd } from '@/utils/accountingSessionTime';
 
 interface Props {
   workerId: string;
   periodStart: string;
   periodEnd: string;
+  completedAt?: string | null;
 }
 
 const fmt = (n: number) => Number(n || 0).toLocaleString();
 
-const ExpensesDetailsSummary: React.FC<Props> = ({ workerId, periodStart, periodEnd }) => {
+const ExpensesDetailsSummary: React.FC<Props> = ({ workerId, periodStart, periodEnd, completedAt }) => {
   const { t } = useLanguage();
   const [viewerUrls, setViewerUrls] = useState<string[]>([]);
   const [viewerOpen, setViewerOpen] = useState(false);
@@ -25,19 +27,20 @@ const ExpensesDetailsSummary: React.FC<Props> = ({ workerId, periodStart, period
   };
 
   const { data, isLoading } = useQuery({
-    queryKey: ['session-expenses', workerId, periodStart, periodEnd],
+    queryKey: ['session-expenses', workerId, periodStart, periodEnd, completedAt],
     queryFn: async () => {
       const toTz = (v: string, isEnd: boolean) => {
         if (v.includes('+') || v.includes('Z')) return v;
         if (v.includes('T')) return v + ':00+01:00';
         return isEnd ? v + 'T23:59:59+01:00' : v + 'T00:00:00+01:00';
       };
+      const effectivePeriodEnd = getEffectiveAccountingSessionEnd(periodEnd, completedAt);
       const { data, error } = await supabase
         .from('expenses')
         .select('id, amount, description, expense_date, created_at, payment_method, status, receipt_url, receipt_urls, category:expense_categories(name, name_fr, icon)')
         .eq('worker_id', workerId)
         .gt('created_at', toTz(periodStart, false))
-        .lte('created_at', toTz(periodEnd, true))
+        .lte('created_at', toTz(effectivePeriodEnd, true))
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data || [];
