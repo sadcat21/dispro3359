@@ -521,7 +521,24 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 <Calculator className="w-5 h-5 text-white" />
               </div>
               <div className="flex flex-col">
-                <span>{isEditMode ? (t('accounting.edit_session') || t('common.edit')) : t('accounting.new_session')}</span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span>{isEditMode ? (t('accounting.edit_session') || t('common.edit')) : t('accounting.new_session')}</span>
+                  {periodStart && periodEnd && (
+                    <span className="flex items-center gap-1.5 text-xs font-normal" dir="ltr">
+                      <span className="text-emerald-600 font-semibold">{periodStart.replace('T', ' ')}</span>
+                      <span className="text-muted-foreground">←</span>
+                      <span className="font-bold text-foreground">{periodEnd.replace('T', ' ')}</span>
+                      <button
+                        type="button"
+                        onClick={() => setPeriodEnd(nowLocal())}
+                        className="text-primary hover:text-primary/80 p-0.5"
+                        title={t('common.refresh') || 'تحديث'}
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                      </button>
+                    </span>
+                  )}
+                </div>
                 {workerName && <span className="text-xs font-normal text-muted-foreground">{workerName}</span>}
               </div>
             </DialogTitle>
