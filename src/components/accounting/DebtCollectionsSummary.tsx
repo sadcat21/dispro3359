@@ -47,7 +47,7 @@ const DebtCollectionsSummary: React.FC<DebtCollectionsSummaryProps> = ({ workerI
         return isEnd ? v + 'T23:59:59+01:00' : v + 'T00:00:00+01:00';
       };
       const startTz = toTz(periodStart, false);
-      const endTz = toTz(periodEnd, true);
+      const endTz = toTz(effectiveEnd, true);
 
       const { data: payments, error } = await supabase
         .from('debt_payments')
