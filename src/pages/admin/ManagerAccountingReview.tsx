@@ -526,8 +526,13 @@ export const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ to
 };
 
 // Worker Breakdown Component
-export const WorkerBreakdown: React.FC<{ sessions: any[] }> = ({ sessions }) => {
+export const WorkerBreakdown: React.FC<{
+  sessions: any[];
+  selectedIds?: Set<string>;
+  onToggleSelected?: (id: string) => void;
+}> = ({ sessions, selectedIds, onToggleSelected }) => {
   const [selectedSession, setSelectedSession] = useState<any | null>(null);
+  const selectable = !!onToggleSelected;
   return (
   <div className="space-y-2">
     <h3 className="text-sm font-bold flex items-center gap-2">
@@ -544,25 +549,32 @@ export const WorkerBreakdown: React.FC<{ sessions: any[] }> = ({ sessions }) => 
       const cashAct = get('physical_cash');
       const diff = cashAct - cashExp;
       const expensesTotal = get('expenses');
+      const isChecked = selectedIds?.has(session.id) ?? false;
 
       return (
         <Card
           key={session.id}
-          className="rounded-xl border cursor-pointer hover:border-primary/60 hover:shadow-sm transition"
+          className={`rounded-xl border cursor-pointer hover:border-primary/60 hover:shadow-sm transition ${selectable && isChecked ? 'border-emerald-400 bg-emerald-50/30' : ''}`}
           onClick={() => setSelectedSession(session)}
         >
           <CardContent className="p-3 space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
+                {selectable && (
+                  <span onClick={(e) => { e.stopPropagation(); onToggleSelected!(session.id); }}>
+                    <Checkbox checked={isChecked} onCheckedChange={() => onToggleSelected!(session.id)} />
+                  </span>
+                )}
                 <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
                   <User className="w-3.5 h-3.5 text-primary" />
                 </div>
                 <span className="font-bold text-sm">{session.worker?.full_name}</span>
               </div>
               <span className="text-[11px] text-muted-foreground">
-                {session.completed_at ? format(new Date(session.completed_at), 'HH:mm') : ''}
+                {session.completed_at ? format(new Date(session.completed_at), 'yyyy-MM-dd HH:mm') : ''}
               </span>
             </div>
+
             <div className="grid grid-cols-3 gap-1.5 text-center text-[10px]">
               <MiniBox label="المبيعات" value={get('total_sales')} />
               <MiniBox label="نقدية فعلية" value={cashAct} color="green" />
