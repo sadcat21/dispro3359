@@ -1,12 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { getGiftTotalPieces, getPaidQuantity } from '@/utils/orderItemQuantities';
+import { getEffectiveAccountingSessionEnd } from '@/utils/accountingSessionTime';
 
 export interface SessionCalcParams {
   workerId: string;
   branchId?: string;
   periodStart: string;
   periodEnd: string;
+  completedAt?: string | null;
 }
 
 export interface PaymentMethodBreakdown {
@@ -69,7 +71,7 @@ export interface SessionCalculations {
 export async function fetchSessionCalculations(params: SessionCalcParams | null): Promise<SessionCalculations> {
   if (!params) return getEmptyCalculations();
 
-  const { workerId, periodStart, periodEnd } = params;
+  const { workerId, periodStart, periodEnd, completedAt } = params;
   const ensureNoError = (error: any, context: string) => {
     if (error) {
       throw new Error(error.message || `Failed to load ${context}`);
@@ -81,8 +83,9 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
     return isEnd ? v + 'T23:59:59+01:00' : v + 'T00:00:00+01:00';
   };
   // Use exact period timestamps for debt payments (no full-day expansion)
+  const effectivePeriodEnd = getEffectiveAccountingSessionEnd(periodEnd, completedAt);
   const periodStartTz = toTimestampTz(periodStart, false);
-  const periodEndTz = toTimestampTz(periodEnd, true);
+  const periodEndTz = toTimestampTz(effectivePeriodEnd, true);
 
   // 1. Fetch delivered orders — single source of truth: approved delivery
   //    stock_movements. This aligns the session totals (الكاش المسلم للمدير)
