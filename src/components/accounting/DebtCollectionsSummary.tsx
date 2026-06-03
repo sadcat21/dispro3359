@@ -4,11 +4,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { Loader2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { getEffectiveAccountingSessionEnd } from '@/utils/accountingSessionTime';
 
 interface DebtCollectionsSummaryProps {
   workerId: string;
   periodStart: string;
   periodEnd: string;
+  completedAt?: string | null;
 }
 
 interface CollectedDebtRow {
