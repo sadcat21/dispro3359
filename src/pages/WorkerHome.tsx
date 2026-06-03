@@ -169,6 +169,9 @@ const WorkerHome: React.FC = () => {
   const { data: stockItems } = useQuery({
     queryKey: ['my-worker-stock', workerId],
     queryFn: async () => {
+      if (workerId) {
+        await supabase.rpc('recalibrate_worker_stock', { p_worker_id: workerId }).then(() => {}, () => {});
+      }
       const { data, error } = await supabase
         .from('worker_stock')
         .select('*, product:products(*)')
