@@ -724,19 +724,19 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       if (resolvedSubtype === 'invoice') {
         bump('invoice1', it.product_id, qty);
         bumpWorkerMethod(o.assigned_worker_id, 'invoice1', lineAmount);
-        bumpWMP(o.assigned_worker_id, 'invoice1', it.product_id, qty);
+        bumpWMP(o.assigned_worker_id, 'invoice1', it.product_id, qty, isPaid);
       } else if (resolvedSubtype === 'super_gros') {
         bump('super_gros', it.product_id, qty);
         bumpWorkerMethod(o.assigned_worker_id, 'super_gros', lineAmount);
-        bumpWMP(o.assigned_worker_id, 'super_gros', it.product_id, qty);
+        bumpWMP(o.assigned_worker_id, 'super_gros', it.product_id, qty, isPaid);
       } else if (resolvedSubtype === 'gros') {
         bump('gros', it.product_id, qty);
         bumpWorkerMethod(o.assigned_worker_id, 'gros', lineAmount);
-        bumpWMP(o.assigned_worker_id, 'gros', it.product_id, qty);
+        bumpWMP(o.assigned_worker_id, 'gros', it.product_id, qty, isPaid);
       } else {
         bump('retail', it.product_id, qty);
         bumpWorkerMethod(o.assigned_worker_id, 'retail', lineAmount);
-        bumpWMP(o.assigned_worker_id, 'retail', it.product_id, qty);
+        bumpWMP(o.assigned_worker_id, 'retail', it.product_id, qty, isPaid);
       }
     });
   });
