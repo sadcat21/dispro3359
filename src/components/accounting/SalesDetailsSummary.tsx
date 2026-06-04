@@ -161,7 +161,7 @@ const SalesDetailsSummary: React.FC<SalesDetailsSummaryProps> = ({ workerId, per
       // Fetch order_items with actual unit_price and price_subtype
       const { data: orderItemsData } = await supabase
         .from('order_items')
-        .select('order_id, quantity, unit_price, total_price, price_subtype, payment_type, gift_quantity, pricing_unit, weight_per_box, pieces_per_box, product:products(name, pricing_unit, weight_per_box, pieces_per_box, price_retail, price_gros, price_super_gros, price_invoice)')
+        .select('order_id, quantity, unit_price, total_price, price_subtype, payment_type, gift_quantity, pricing_unit, weight_per_box, pieces_per_box, product:products(name, image_url, pricing_unit, weight_per_box, pieces_per_box, price_retail, price_gros, price_super_gros, price_invoice)')
         .in('order_id', orderIds);
 
       const itemsByOrder: Record<string, OrderItem[]> = {};
@@ -174,6 +174,7 @@ const SalesDetailsSummary: React.FC<SalesDetailsSummaryProps> = ({ workerId, per
 
         itemsByOrder[orderId].push({
           product_name: product?.name || '',
+          product_image_url: product?.image_url || null,
           quantity: Number(item.quantity || 0),
           unit_price: Number(item.unit_price || 0),
           total_price: Number(item.total_price || 0),
