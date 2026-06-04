@@ -455,75 +455,109 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
         }
       }
 
-      scopedOrders.forEach((o: any) => {
-        const totalAmount = Number(o.total_amount || 0);
-        const itemsSubtotal = (o.order_items || []).reduce((s: number, i: any) => s + Number(i.total_price || 0), 0);
-        
-        // For partial payment orders, only the paid amount goes to treasury
-        // For debt orders, nothing goes to treasury from this order
-        let paidAmount = totalAmount;
-        if (o.payment_status === 'partial') {
-          paidAmount = Number(o.partial_amount || 0);
-        } else if (o.payment_status === 'debt') {
-          paidAmount = 0;
+      // PerManager: source the breakdown buckets from the confirmed-session items
+      // (authoritative numbers produced during accounting & approved at review).
+      if (perManager) {
+        const pick = (k: string) => sessionItemTotals[k]?.amount || 0;
+        const pickCount = (k: string) => sessionItemTotals[k]?.count || 0;
+
+        const cash1 = pick('invoice1_espace_cash') + pick('invoice1_versement_cash');
+        summary.cash_invoice1 += cash1;
+        summary.cash_invoice1_count += pickCount('invoice1_espace_cash') + pickCount('invoice1_versement_cash');
+
+        summary.cash_invoice2 += pick('invoice2_cash');
+        summary.cash_invoice2_count += pickCount('invoice2_cash');
+
+        summary.check += pick('invoice1_check') + pick('debt_collections_check');
+        summary.checkCount += pickCount('invoice1_check') + pickCount('debt_collections_check');
+
+        summary.bank_receipt += pick('invoice1_receipt') + pick('debt_collections_receipt');
+        summary.receiptCount += pickCount('invoice1_receipt') + pickCount('debt_collections_receipt');
+
+        summary.bank_transfer += pick('invoice1_transfer') + pick('debt_collections_transfer');
+        summary.transferCount += pickCount('invoice1_transfer') + pickCount('debt_collections_transfer');
+
+        if (stampTiers?.length && cash1 > 0) {
+          summary.cash_invoice1_stamp += calculateStampAmount(cash1, stampTiers as StampPriceTier[]);
         }
-        
-        if (paidAmount <= 0) return;
+      } else {
+        scopedOrders.forEach((o: any) => {
+          const totalAmount = Number(o.total_amount || 0);
+          const itemsSubtotal = (o.order_items || []).reduce((s: number, i: any) => s + Number(i.total_price || 0), 0);
 
-        if (o.payment_type === 'with_invoice') {
-          const receiptBucket = resolveReceiptBucket(o.document_verification);
-          const paidTransferByCash = isTransferPaidByCash(o.document_verification);
+          let paidAmount = totalAmount;
+          if (o.payment_status === 'partial') {
+            paidAmount = Number(o.partial_amount || 0);
+          } else if (o.payment_status === 'debt') {
+            paidAmount = 0;
+          }
 
-          switch (o.invoice_payment_method) {
-            case 'cash': {
-              summary.cash_invoice1 += paidAmount;
-              summary.cash_invoice1_count++;
-              if (stampTiers?.length) {
-                const baseAmount = itemsSubtotal > 0 ? itemsSubtotal : paidAmount;
-                summary.cash_invoice1_stamp += calculateStampAmount(baseAmount, stampTiers as StampPriceTier[]);
-              }
-              break;
-            }
-            case 'check':
-              summary.check += paidAmount;
-              summary.checkCount++;
-              break;
-            case 'receipt':
-              if (receiptBucket === 'cash') {
-                summary.receipt_cash += paidAmount;
-                summary.receiptCashCount++;
-              } else {
-                summary.bank_receipt += paidAmount;
-                summary.receiptCount++;
-              }
-              break;
-            case 'transfer':
-              if (paidTransferByCash) {
+          if (paidAmount <= 0) return;
+
+          if (o.payment_type === 'with_invoice') {
+            const receiptBucket = resolveReceiptBucket(o.document_verification);
+            const paidTransferByCash = isTransferPaidByCash(o.document_verification);
+
+            switch (o.invoice_payment_method) {
+              case 'cash': {
                 summary.cash_invoice1 += paidAmount;
                 summary.cash_invoice1_count++;
                 if (stampTiers?.length) {
                   const baseAmount = itemsSubtotal > 0 ? itemsSubtotal : paidAmount;
                   summary.cash_invoice1_stamp += calculateStampAmount(baseAmount, stampTiers as StampPriceTier[]);
                 }
-              } else {
-                summary.bank_transfer += paidAmount;
-                summary.transferCount++;
+                break;
               }
-              break;
-            default:
-              summary.cash_invoice1 += paidAmount;
-              summary.cash_invoice1_count++;
-              if (stampTiers?.length) {
-                const baseAmount = itemsSubtotal > 0 ? itemsSubtotal : paidAmount;
-                summary.cash_invoice1_stamp += calculateStampAmount(baseAmount, stampTiers as StampPriceTier[]);
-              }
-              break;
+              case 'check':
+                summary.check += paidAmount;
+                summary.checkCount++;
+                break;
+              case 'receipt':
+                if (receiptBucket === 'cash') {
+                  summary.receipt_cash += paidAmount;
+                  summary.receiptCashCount++;
+                } else {
+                  summary.bank_receipt += paidAmount;
+                  summary.receiptCount++;
+                }
+                break;
+              case 'transfer':
+                if (paidTransferByCash) {
+                  summary.cash_invoice1 += paidAmount;
+                  summary.cash_invoice1_count++;
+                  if (stampTiers?.length) {
+                    const baseAmount = itemsSubtotal > 0 ? itemsSubtotal : paidAmount;
+                    summary.cash_invoice1_stamp += calculateStampAmount(baseAmount, stampTiers as StampPriceTier[]);
+                  }
+                } else {
+                  summary.bank_transfer += paidAmount;
+                  summary.transferCount++;
+                }
+                break;
+              default:
+                summary.cash_invoice1 += paidAmount;
+                summary.cash_invoice1_count++;
+                if (stampTiers?.length) {
+                  const baseAmount = itemsSubtotal > 0 ? itemsSubtotal : paidAmount;
+                  summary.cash_invoice1_stamp += calculateStampAmount(baseAmount, stampTiers as StampPriceTier[]);
+                }
+                break;
+            }
+          } else {
+            summary.cash_invoice2 += paidAmount;
+            summary.cash_invoice2_count++;
           }
-        } else {
-          summary.cash_invoice2 += paidAmount;
-          summary.cash_invoice2_count++;
-        }
-      });
+        });
+      }
+
+      // In perManager mode, debt cash collections come from session items (debt_collections_cash)
+      // rather than the global debt_payments table — keep treasury aligned with the reviewed sessions.
+      if (perManager) {
+        const sessionDebtCash = sessionItemTotals['debt_collections_cash']?.amount || 0;
+        const debtCashHandedLocal = (handovers || []).reduce((s: number, h: any) => s + Number(h.debt_cash_amount || 0), 0);
+        summary.debtCashCollected = Math.max(sessionDebtCash - debtCashHandedLocal, 0);
+      }
+
 
       // Debt cash collections are additional cash received by manager (not invoice-related)
       // Add to total but not to any invoice category
