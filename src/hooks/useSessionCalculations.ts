@@ -191,14 +191,20 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
     .lte('created_at', periodEndTz);
   ensureNoError(collectedDocumentsError, 'collected documents');
 
-  // 3. Fetch expenses (filter by created_at to avoid date-boundary duplication across sessions)
+  // 3. Fetch expenses — extend upper bound to completedAt (or NOW for live preview)
+  //    so expenses recorded shortly after period_end but before the session is
+  //    posted are still captured.
+  const expensesUpperTz = completedAt
+    ? (completedAt.includes('+') || completedAt.includes('Z') ? completedAt : completedAt + '+01:00')
+    : new Date().toISOString();
+  const expensesUpperFinal = new Date(expensesUpperTz) > new Date(periodEndTz) ? expensesUpperTz : periodEndTz;
   const { data: expenseData, error: expensesError } = await supabase
     .from('expenses')
     .select('amount, payment_method, category:expense_categories(name)')
     .eq('worker_id', workerId)
     .in('status', ['approved', 'pending'])
     .gt('created_at', effectiveStartTz)
-    .lte('created_at', periodEndTz);
+    .lte('created_at', expensesUpperFinal);
   ensureNoError(expensesError, 'expenses');
 
 
