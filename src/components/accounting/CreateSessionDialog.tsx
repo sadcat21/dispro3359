@@ -348,6 +348,19 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
     if (!selectedWorkerId) return;
     setIsUnfreezing(true);
     try {
+      // لا يُسمح بالتجميد إلا إذا كان رصيد منتجات العامل = 0
+      const { data: stockRows, error: stockErr } = await supabase
+        .from('worker_stock')
+        .select('quantity')
+        .eq('worker_id', selectedWorkerId)
+        .gt('quantity', 0);
+      if (stockErr) throw stockErr;
+      if (stockRows && stockRows.length > 0) {
+        toast.error('لا يمكن التجميد: العامل لا يزال يحمل منتجات في شاحنته. يجب تفريغ الشاحنة أولاً.');
+        return;
+      }
+
+      // ابحث عن آخر جلسة شحن لتجميدها، وإلا أنشئ جلسة تجميد رمزية
       const { data: latest, error: qErr } = await supabase
         .from('loading_sessions')
         .select('id')
@@ -356,15 +369,31 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
         .order('created_at', { ascending: false })
         .limit(1);
       if (qErr) throw qErr;
-      if (!latest || latest.length === 0) {
-        toast.error(t('create_session.no_session_to_freeze'));
-        return;
+
+      if (latest && latest.length > 0) {
+        const { error } = await supabase
+          .from('loading_sessions')
+          .update({ status: 'review', is_final: true } as any)
+          .eq('id', latest[0].id);
+        if (error) throw error;
+      } else {
+        if (!currentWorkerId) {
+          toast.error(t('create_session.freeze_failed'));
+          return;
+        }
+        const { error } = await supabase
+          .from('loading_sessions')
+          .insert({
+            worker_id: selectedWorkerId,
+            manager_id: currentWorkerId,
+            branch_id: activeBranch?.id || null,
+            status: 'review',
+            is_final: true,
+            notes: 'تجميد حساب (شاحنة فارغة)',
+          } as any);
+        if (error) throw error;
       }
-      const { error } = await supabase
-        .from('loading_sessions')
-        .update({ status: 'review', is_final: true } as any)
-        .eq('id', latest[0].id);
-      if (error) throw error;
+
       toast.success(t('create_session.frozen'));
       queryClient.invalidateQueries({ queryKey: ['worker-freeze-status', selectedWorkerId] });
       queryClient.invalidateQueries({ queryKey: ['loading-sessions'] });
