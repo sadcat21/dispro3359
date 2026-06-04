@@ -357,11 +357,13 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
             return adjustedOrder.total_amount > 0 ? [{ ...entry, order: adjustedOrder }] : [];
           });
 
-        normalizedOrders = normalizedOrders.filter((entry) => {
-          if (rangeFromTs !== null && entry.accounting_time < rangeFromTs) return false;
-          if (rangeToTs !== null && entry.accounting_time > rangeToTs) return false;
-          return true;
-        });
+        if (!perManager) {
+          normalizedOrders = normalizedOrders.filter((entry) => {
+            if (rangeFromTs !== null && entry.accounting_time < rangeFromTs) return false;
+            if (rangeToTs !== null && entry.accounting_time > rangeToTs) return false;
+            return true;
+          });
+        }
       }
 
       const groupMap = new Map<string, CustomerGroup>();
