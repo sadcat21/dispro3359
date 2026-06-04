@@ -287,8 +287,10 @@ const ManagerTreasury = () => {
           if (!isCovered) continue;
         }
         let amount = Number(order.total_amount || 0);
-        if (order.payment_status === 'partial') amount = Number(order.partial_amount || 0);
-        else if (order.payment_status === 'debt') amount = 0;
+        if (!perManagerId) {
+          if (order.payment_status === 'partial') amount = Number(order.partial_amount || 0);
+          else if (order.payment_status === 'debt') amount = 0;
+        }
         if (amount <= 0) continue;
 
         const handedMethods = handedByOrder.get(order.id) || new Set<string>();
