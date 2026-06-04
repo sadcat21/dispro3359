@@ -28,6 +28,7 @@ interface CatalogProductPricing {
 
 interface OrderItem {
   product_name: string;
+  product_image_url: string | null;
   quantity: number;
   unit_price: number;
   total_price: number;
@@ -160,7 +161,7 @@ const SalesDetailsSummary: React.FC<SalesDetailsSummaryProps> = ({ workerId, per
       // Fetch order_items with actual unit_price and price_subtype
       const { data: orderItemsData } = await supabase
         .from('order_items')
-        .select('order_id, quantity, unit_price, total_price, price_subtype, payment_type, gift_quantity, pricing_unit, weight_per_box, pieces_per_box, product:products(name, pricing_unit, weight_per_box, pieces_per_box, price_retail, price_gros, price_super_gros, price_invoice)')
+        .select('order_id, quantity, unit_price, total_price, price_subtype, payment_type, gift_quantity, pricing_unit, weight_per_box, pieces_per_box, product:products(name, image_url, pricing_unit, weight_per_box, pieces_per_box, price_retail, price_gros, price_super_gros, price_invoice)')
         .in('order_id', orderIds);
 
       const itemsByOrder: Record<string, OrderItem[]> = {};
@@ -173,6 +174,7 @@ const SalesDetailsSummary: React.FC<SalesDetailsSummaryProps> = ({ workerId, per
 
         itemsByOrder[orderId].push({
           product_name: product?.name || '',
+          product_image_url: product?.image_url || null,
           quantity: Number(item.quantity || 0),
           unit_price: Number(item.unit_price || 0),
           total_price: Number(item.total_price || 0),
@@ -541,7 +543,19 @@ const SalesDetailsSummary: React.FC<SalesDetailsSummaryProps> = ({ workerId, per
                           </div>
                           {order.items.map((item, idx) => (
                             <div key={idx} className="grid grid-cols-12 gap-1 text-xs p-1.5 border-b border-dashed last:border-0 items-center">
-                              <span className="col-span-5 text-wrap">{item.product_name}</span>
+                              <div className="col-span-5 flex items-center gap-1.5 min-w-0">
+                                {item.product_image_url ? (
+                                  <img
+                                    src={item.product_image_url}
+                                    alt={item.product_name}
+                                    loading="lazy"
+                                    className="w-7 h-7 rounded object-cover border shrink-0 bg-muted"
+                                  />
+                                ) : (
+                                  <div className="w-7 h-7 rounded border bg-muted shrink-0" />
+                                )}
+                                <span className="text-wrap min-w-0">{item.product_name}</span>
+                              </div>
                               <span className="col-span-2 text-center font-bold">{item.quantity}</span>
                               <span className="col-span-2 text-center text-muted-foreground">{item.unit_price.toLocaleString()}</span>
                               <span className="col-span-3 text-end font-bold">{item.total_price.toLocaleString()}</span>
