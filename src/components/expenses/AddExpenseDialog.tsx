@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useExpenseCategories, useCreateExpense } from '@/hooks/useExpenses';
+import { useCreateWorkerDebt } from '@/hooks/useWorkerDebts';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Upload, X } from 'lucide-react';
 import { format } from 'date-fns';
@@ -13,6 +15,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { getCategoryName } from '@/utils/categoryName';
 import { isAdminRole } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface AddExpenseDialogProps {
   open: boolean;
@@ -22,8 +25,9 @@ interface AddExpenseDialogProps {
 const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange }) => {
   const { data: categories } = useExpenseCategories();
   const createExpense = useCreateExpense();
+  const createWorkerDebt = useCreateWorkerDebt();
   const { language, t, dir } = useLanguage();
-  const { role, activeRole } = useAuth();
+  const { role, activeRole, activeBranch } = useAuth();
 
   // Filter categories based on user's active role
   const filteredCategories = useMemo(() => {
@@ -52,12 +56,32 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange 
   const [receiptFiles, setReceiptFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [advanceWorkerId, setAdvanceWorkerId] = useState('');
 
-  // Check if selected category is fuel
+  // Check if selected category is fuel / advance
   const selectedCategory = filteredCategories.find(c => c.id === categoryId);
   const isFuelCategory = selectedCategory?.name?.includes('وقود') || 
     selectedCategory?.name_fr?.toLowerCase().includes('carburant') || 
     selectedCategory?.name_en?.toLowerCase().includes('fuel');
+  const isAdvanceCategory = selectedCategory?.name?.includes('مسبق') ||
+    selectedCategory?.name_fr?.toLowerCase().includes('avance') ||
+    selectedCategory?.name_en?.toLowerCase().includes('advance');
+
+  // Load workers of the current branch (for advance category)
+  const { data: branchWorkers } = useQuery({
+    queryKey: ['expense-advance-workers', activeBranch?.id],
+    enabled: open && isAdvanceCategory && !!activeBranch?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('workers')
+        .select('id, full_name, role')
+        .eq('branch_id', activeBranch!.id)
+        .eq('is_active', true)
+        .order('full_name');
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
   const resetForm = () => {
     setCategoryId('');
@@ -66,7 +90,12 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange 
     setExpenseDate(format(new Date(), 'yyyy-MM-dd'));
     setReceiptFiles([]);
     setPaymentMethod('cash');
+    setAdvanceWorkerId('');
   };
+
+  useEffect(() => {
+    if (!isAdvanceCategory) setAdvanceWorkerId('');
+  }, [isAdvanceCategory]);
 
   const addFiles = (files: FileList | null) => {
     if (!files) return;
@@ -80,6 +109,10 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!categoryId || !amount || parseFloat(amount) <= 0) return;
+    if (isAdvanceCategory && !advanceWorkerId) {
+      toast.error('يرجى اختيار العامل المستفيد من المسبق');
+      return;
+    }
 
     const receiptUrls: string[] = [];
 
@@ -102,15 +135,36 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange 
       setUploading(false);
     }
 
+    const workerName = isAdvanceCategory
+      ? (branchWorkers?.find(w => w.id === advanceWorkerId)?.full_name || '')
+      : '';
+    const finalDescription = isAdvanceCategory
+      ? `مسبق أجرة: ${workerName}${description ? ` — ${description}` : ''}`
+      : (description || undefined);
+
     await createExpense.mutateAsync({
       category_id: categoryId,
       amount: parseFloat(amount),
-      description: description || undefined,
+      description: finalDescription,
       expense_date: expenseDate,
       receipt_url: receiptUrls[0],
       receipt_urls: receiptUrls,
       payment_method: isFuelCategory ? paymentMethod : 'cash',
     });
+
+    if (isAdvanceCategory && advanceWorkerId) {
+      try {
+        await createWorkerDebt.mutateAsync({
+          worker_id: advanceWorkerId,
+          amount: parseFloat(amount),
+          debt_type: 'advance',
+          description: `مسبق أجرة بتاريخ ${expenseDate}${description ? ` — ${description}` : ''}`,
+        });
+        toast.success('تم تسجيل المسبق ضمن ديون العامل');
+      } catch (err: any) {
+        toast.error('تعذر تسجيل دين العامل: ' + (err?.message || ''));
+      }
+    }
 
     resetForm();
     onOpenChange(false);
@@ -139,6 +193,33 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange 
               </SelectContent>
             </Select>
           </div>
+
+          {/* Worker selector for advance category */}
+          {isAdvanceCategory && (
+            <div className="space-y-2">
+              <Label>العامل المستفيد من المسبق</Label>
+              <Select value={advanceWorkerId} onValueChange={setAdvanceWorkerId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="اختر العامل" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(branchWorkers || []).map(w => (
+                    <SelectItem key={w.id} value={w.id}>
+                      {w.full_name}
+                    </SelectItem>
+                  ))}
+                  {(!branchWorkers || branchWorkers.length === 0) && (
+                    <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                      لا يوجد عمال في هذا الفرع
+                    </div>
+                  )}
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-muted-foreground">
+                سيتم تسجيل المبلغ ضمن ديون العامل تلقائياً
+              </p>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label>{t('expenses.amount')}</Label>
@@ -226,7 +307,7 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange 
           <Button
             type="submit"
             className="w-full"
-            disabled={!categoryId || !amount || createExpense.isPending || uploading}
+            disabled={!categoryId || !amount || createExpense.isPending || uploading || createWorkerDebt.isPending || (isAdvanceCategory && !advanceWorkerId)}
           >
             {(createExpense.isPending || uploading) && <Loader2 className="w-4 h-4 animate-spin me-2" />}
             {t('expenses.add_button')}
