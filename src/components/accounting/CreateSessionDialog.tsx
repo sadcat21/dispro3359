@@ -903,7 +903,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
 
                 {/* ━━━ Step 10: Debt Collections Detail ━━━ */}
                 <StepSection step={10} title={t('create_session.collected_debts_details')} color="orange">
-                  <DebtCollectionsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} completedAt={editSession?.completed_at ?? null} />
+                  <DebtCollectionsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} completedAt={null} />
                 </StepSection>
 
                 {/* ━━━ Step 11: Document Collections ━━━ */}
