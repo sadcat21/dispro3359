@@ -328,7 +328,7 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
           directPaidAmount = Number(order.partial_amount || 0);
         }
 
-        const temporaryDebtRecovery = tempDebtPaymentsByOrderId[order.id] || { total: 0, cash: 0, check: 0, transfer: 0, receipt: 0 };
+        const temporaryDebtRecovery = tempDebtPaymentsByOrderId[order.id] || { total: 0, cash: 0, versementCash: 0, check: 0, transfer: 0, receipt: 0 };
         const paidAmount = Math.min(totalAmount, directPaidAmount + temporaryDebtRecovery.total);
 
         const debtAmount = Math.max(0, totalAmount - paidAmount);
