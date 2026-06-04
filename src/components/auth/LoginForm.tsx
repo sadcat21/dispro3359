@@ -656,7 +656,17 @@ const LoginForm: React.FC = () => {
       <Dialog open={quickPasswordOpen} onOpenChange={setQuickPasswordOpen}>
         <DialogContent className="max-w-xs" dir={dir}>
           <DialogHeader>
-            <DialogTitle className="text-center">كلمة مرور الدخول السريع</DialogTitle>
+            <DialogTitle
+              className="text-center cursor-pointer select-none"
+              onDoubleClick={() => {
+                setQuickPasswordOpen(false);
+                setQuickPasswordValue('');
+                setQuickPasswordError('');
+                setQuickLoginMode(quickPasswordTarget);
+              }}
+            >
+              كلمة مرور الدخول السريع
+            </DialogTitle>
             <DialogDescription className="text-center text-xs">
               أدخل كلمة المرور لعرض نافذة الدخول السريع
             </DialogDescription>
