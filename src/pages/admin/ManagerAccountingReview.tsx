@@ -374,21 +374,39 @@ const ManagerAccountingReview: React.FC = () => {
                 onClick={() => { navigate(`/manager-accounting-review/${review.id}`); }}
               >
                 <CardContent className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
                         <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                       </div>
-                      <div>
-                        <p className="text-sm font-bold">مراجعة #{reviewHistory.indexOf(review) + 1}</p>
-                        <p className="text-[10px] text-muted-foreground">
-                          {review.completed_at ? format(new Date(review.completed_at), 'yyyy-MM-dd HH:mm') : format(new Date(review.created_at), 'yyyy-MM-dd HH:mm')}
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-sm font-bold">مراجعة #{reviewHistory.length - reviewHistory.indexOf(review)}</p>
+                          <Badge variant="outline" className="text-[10px]">
+                            {review.sessions_count || 0} جلسة
+                          </Badge>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">
+                          تاريخ الإيداع: {review.completed_at ? format(new Date(review.completed_at), 'yyyy-MM-dd HH:mm') : format(new Date(review.created_at), 'yyyy-MM-dd HH:mm')}
                         </p>
+                        {(review.period_earliest || review.period_latest) && (
+                          <p className="text-[10px] text-muted-foreground">
+                            فترة الجلسات: {review.period_earliest ? format(new Date(review.period_earliest), 'yyyy-MM-dd') : '—'}
+                            {' → '}
+                            {review.period_latest ? format(new Date(review.period_latest), 'yyyy-MM-dd') : '—'}
+                          </p>
+                        )}
                       </div>
                     </div>
-                    <Badge variant="secondary" className="text-[10px] bg-emerald-100 text-emerald-700">
-                      مكتملة
-                    </Badge>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <Badge variant="secondary" className="text-[10px] bg-emerald-100 text-emerald-700">
+                        مكتملة
+                      </Badge>
+                      <p className="text-sm font-bold text-emerald-700 whitespace-nowrap">
+                        {Number(review.total_cash || 0).toLocaleString('fr-FR')} دج
+                      </p>
+                      <p className="text-[9px] text-muted-foreground">إجمالي النقد</p>
+                    </div>
                   </div>
                   {review.notes && (
                     <p className="text-xs text-muted-foreground mt-2 bg-muted/30 rounded p-1.5">{review.notes}</p>

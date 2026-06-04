@@ -31,7 +31,44 @@ export const useManagerReviewSessions = () => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as ManagerReviewSession[];
+      const reviews = (data || []) as ManagerReviewSession[];
+      if (reviews.length === 0) return reviews;
+
+      const ids = reviews.map((r) => r.id);
+      const { data: sessions } = await supabase
+        .from('accounting_sessions')
+        .select('id, review_session_id, completed_at, created_at, period_start, period_end, items:accounting_session_items(item_type, actual_amount)')
+        .in('review_session_id', ids);
+
+      const CASH_TYPES = new Set([
+        'invoice1_espace_cash',
+        'invoice1_versement_cash',
+        'invoice2_cash',
+        'debt_collections_cash',
+      ]);
+
+      const byReview = new Map<string, { totalCash: number; sessionsCount: number; earliest: string | null; latest: string | null }>();
+      for (const s of (sessions || []) as any[]) {
+        const key = s.review_session_id as string;
+        const agg = byReview.get(key) || { totalCash: 0, sessionsCount: 0, earliest: null, latest: null };
+        agg.sessionsCount += 1;
+        for (const it of (s.items || [])) {
+          if (CASH_TYPES.has(it.item_type)) agg.totalCash += Number(it.actual_amount || 0);
+        }
+        const start = s.period_start || s.created_at;
+        const end = s.period_end || s.completed_at || s.created_at;
+        if (start && (!agg.earliest || start < agg.earliest)) agg.earliest = start;
+        if (end && (!agg.latest || end > agg.latest)) agg.latest = end;
+        byReview.set(key, agg);
+      }
+
+      return reviews.map((r) => ({
+        ...r,
+        total_cash: byReview.get(r.id)?.totalCash || 0,
+        sessions_count: byReview.get(r.id)?.sessionsCount || 0,
+        period_earliest: byReview.get(r.id)?.earliest || null,
+        period_latest: byReview.get(r.id)?.latest || null,
+      })) as (ManagerReviewSession & { total_cash: number; sessions_count: number; period_earliest: string | null; period_latest: string | null })[];
     },
     enabled: !!workerId,
   });
