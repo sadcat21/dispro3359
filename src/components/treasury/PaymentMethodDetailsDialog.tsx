@@ -124,6 +124,7 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
     queryFn: async () => {
       let query = supabase.from('manager_handovers').select('cash_invoice2');
       if (activeBranch?.id) query = query.eq('branch_id', activeBranch.id);
+      if (perManager) query = query.eq('manager_id', perManager);
       let sessionWindows: Array<{ worker_id: string; start: number; end: number }> = [];
       if (perManager) {
         let sessQuery = supabase
