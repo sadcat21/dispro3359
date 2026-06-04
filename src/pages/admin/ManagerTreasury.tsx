@@ -1117,7 +1117,7 @@ const ManagerTreasury = () => {
           handed={0}
           colorClass="amber-600"
           borderClass="border-amber-500/30 bg-amber-500/5"
-          onClick={() => navigate('/expenses-management')}
+          onClick={() => setExpensesOpen(true)}
           currency={cur}
           showDetails={false}
         />
