@@ -550,7 +550,6 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
                 workerId={session.worker_id}
                 periodStart={session.period_start}
                 periodEnd={session.period_end}
-                completedAt={session.completed_at}
               />
             </CollapsibleSection>
             )}
