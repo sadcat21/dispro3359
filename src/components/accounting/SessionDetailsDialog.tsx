@@ -118,12 +118,13 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
   const toggleSection = (key: string) => setActiveSection(prev => (prev === key || key === '' ? null : key));
   
   // Fetch live calculations for promo tracking
+  // Use the period_end as it was at session close — do NOT auto-extend via completed_at,
+  // so re-opening a saved session shows the same scope it was approved with.
   const { data: liveCalc } = useSessionCalculations({
     workerId: session.worker_id,
     branchId: session.branch_id || undefined,
     periodStart: session.period_start,
     periodEnd: session.period_end,
-    completedAt: session.completed_at,
   });
 
   const handleAddDeficit = async (amount: number) => {
