@@ -278,17 +278,22 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
         }
 
         let displayAmount = totalAmount;
-        if (isCashInvoice2) {
-          if (o.payment_status === 'partial') {
-            displayAmount = Number(o.partial_amount || 0);
-          } else if (isDebt) {
-            displayAmount = 0;
-          }
-        } else if (!isCashInvoice1 && !isCashInvoice2) {
-          if (o.payment_status === 'partial') {
-            displayAmount = Number(o.partial_amount || 0);
-          } else if (isDebt) {
-            displayAmount = 0;
+        // In perManager mode, the card amount comes from accounting_session_items
+        // which captured the FULL sale amount at review time. Don't downgrade for
+        // current partial/debt status — that would understate vs. the card.
+        if (!perManager) {
+          if (isCashInvoice2) {
+            if (o.payment_status === 'partial') {
+              displayAmount = Number(o.partial_amount || 0);
+            } else if (isDebt) {
+              displayAmount = 0;
+            }
+          } else if (!isCashInvoice1 && !isCashInvoice2) {
+            if (o.payment_status === 'partial') {
+              displayAmount = Number(o.partial_amount || 0);
+            } else if (isDebt) {
+              displayAmount = 0;
+            }
           }
         }
 
