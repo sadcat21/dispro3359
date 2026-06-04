@@ -202,7 +202,7 @@ const ManagerTreasury = () => {
   const viewRef = useRef<HTMLDivElement>(null);
   const perManagerId = role === 'branch_admin' && workerId ? workerId : null;
   const { data: remainingCounts } = useQuery({
-    queryKey: ['treasury-remaining-counts', activeBranch?.id, perManagerId],
+    queryKey: ['treasury-remaining-counts', activeBranch?.id, perManagerId, dateRange.from, dateRange.to],
     enabled: !!activeBranch?.id,
     queryFn: async () => {
       let handoversQ = supabase
@@ -210,12 +210,16 @@ const ManagerTreasury = () => {
         .select('cash_invoice1, cash_invoice2, checks_amount, receipts_amount, transfers_amount')
         .eq('branch_id', activeBranch!.id);
       if (perManagerId) handoversQ = handoversQ.eq('manager_id', perManagerId);
+      if (dateRange.from) handoversQ = handoversQ.gte('handover_date', dateRange.from);
+      if (dateRange.to) handoversQ = handoversQ.lte('handover_date', dateRange.to);
 
       const handedItemsQ = supabase
         .from('handover_items')
         .select('order_id, treasury_entry_id, payment_method, handover:manager_handovers!inner(branch_id, manager_id)')
         .eq('handover.branch_id', activeBranch!.id);
       if (perManagerId) handedItemsQ.eq('handover.manager_id', perManagerId);
+      if (dateRange.from) handedItemsQ.gte('handover.handover_date', dateRange.from);
+      if (dateRange.to) handedItemsQ.lte('handover.handover_date', dateRange.to);
 
       let consolidationQ = supabase
         .from('manager_treasury')
@@ -224,12 +228,16 @@ const ManagerTreasury = () => {
         .eq('payment_method', 'bank_receipt')
         .eq('branch_id', activeBranch!.id);
       if (perManagerId) consolidationQ = consolidationQ.eq('manager_id', perManagerId);
+      if (dateRange.from) consolidationQ = consolidationQ.gte('created_at', `${dateRange.from}T00:00:00`);
+      if (dateRange.to) consolidationQ = consolidationQ.lte('created_at', `${dateRange.to}T23:59:59`);
 
         let ordersQ = supabase
           .from('orders')
           .select('id, customer_id, assigned_worker_id, created_at, delivery_date, total_amount, partial_amount, payment_status, payment_type, invoice_payment_method, document_verification')
           .eq('status', 'delivered')
           .eq('branch_id', activeBranch!.id);
+        if (dateRange.from) ordersQ = ordersQ.gte('delivery_date', dateRange.from);
+        if (dateRange.to) ordersQ = ordersQ.lte('delivery_date', dateRange.to);
 
         const sessionWindowsPromise = perManagerId
           ? supabase
@@ -240,6 +248,8 @@ const ManagerTreasury = () => {
               .eq('branch_id', activeBranch!.id)
               .not('review_session_id', 'is', null)
               .eq('manager_id', perManagerId)
+              .gte('completed_at', dateRange.from ? `${dateRange.from}T00:00:00` : '0001-01-01T00:00:00')
+              .lte('completed_at', dateRange.to ? `${dateRange.to}T23:59:59` : '9999-12-31T23:59:59')
           : Promise.resolve({ data: null, error: null } as any);
 
         const [{ data: handovers, error: handoversError }, { data: handedItems, error: handedItemsError }, { data: orders, error: ordersError }, { data: consolidationEntries, error: consolidationEntriesError }, { data: sessionWindowsRaw, error: sessionWindowsError }] = await Promise.all([
