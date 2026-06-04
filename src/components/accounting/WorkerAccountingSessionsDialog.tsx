@@ -92,13 +92,14 @@ const WorkerAccountingSessionsDialog: React.FC<Props> = ({ open, onOpenChange, w
               </div>
             ) : (
               sessions.map(session => {
-                const totalSales = getItemAmount(session.items, 'total_sales');
-                const physicalCashExpected = getItemAmount(session.items, 'physical_cash', 'expected_amount');
-                const physicalCashActual = getItemAmount(session.items, 'physical_cash', 'actual_amount');
-                const newDebts = getItemAmount(session.items, 'new_debts');
-                const debtCollections = getItemAmount(session.items, 'debt_collections_total');
-                const expenses = getItemAmount(session.items, 'expenses');
-                const cashDiff = physicalCashActual - physicalCashExpected;
+                return (
+                  <SessionCard
+                    key={session.id}
+                    session={session}
+                    onOpen={() => setSelectedSession(session)}
+                    t={t}
+                  />
+                );
 
                 return (
                   <Card
