@@ -307,7 +307,7 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange 
           <Button
             type="submit"
             className="w-full"
-            disabled={!categoryId || !amount || createExpense.isPending || uploading}
+            disabled={!categoryId || !amount || createExpense.isPending || uploading || createWorkerDebt.isPending || (isAdvanceCategory && !advanceWorkerId)}
           >
             {(createExpense.isPending || uploading) && <Loader2 className="w-4 h-4 animate-spin me-2" />}
             {t('expenses.add_button')}
