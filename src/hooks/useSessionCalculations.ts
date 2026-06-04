@@ -197,7 +197,7 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
     .select('amount, payment_method, category:expense_categories(name)')
     .eq('worker_id', workerId)
     .in('status', ['approved', 'pending'])
-    .gt('created_at', periodStartTz)
+    .gt('created_at', effectiveStartTz)
     .lte('created_at', periodEndTz);
   ensureNoError(expensesError, 'expenses');
 
