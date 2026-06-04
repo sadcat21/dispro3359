@@ -112,6 +112,38 @@ const AccountingSessions: React.FC = () => {
     return () => clearInterval(interval);
   }, [activeBranch?.id]);
 
+  // Fetch workers having pending/collected documents OR unpaid debts (for red indicator)
+  useEffect(() => {
+    const fetchFlags = async () => {
+      // Documents: any document_collections rows (new or collected) that aren't rejected
+      let docsQ = supabase
+        .from('document_collections')
+        .select('worker_id, status');
+      const { data: docs } = await docsQ;
+      const docsSet = new Set<string>(
+        (docs || [])
+          .filter((d: any) => d.worker_id && d.status !== 'rejected')
+          .map((d: any) => d.worker_id),
+      );
+      setDocsWorkerIds(docsSet);
+
+      // Debts: worker_debts with remaining_amount > 0
+      let debtsQ = supabase
+        .from('worker_debts')
+        .select('worker_id, remaining_amount, branch_id')
+        .gt('remaining_amount', 0);
+      if (activeBranch?.id) debtsQ = debtsQ.eq('branch_id', activeBranch.id);
+      const { data: debts } = await debtsQ;
+      const debtsSet = new Set<string>(
+        (debts || []).filter((d: any) => d.worker_id).map((d: any) => d.worker_id),
+      );
+      setDebtsWorkerIds(debtsSet);
+    };
+    fetchFlags();
+    const interval = setInterval(fetchFlags, 30000);
+    return () => clearInterval(interval);
+  }, [activeBranch?.id]);
+
   // Auto-open create dialog if coming from WorkerActions
   useEffect(() => {
     if (contextWorkerId) {
