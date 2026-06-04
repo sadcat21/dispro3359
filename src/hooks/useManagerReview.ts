@@ -55,6 +55,7 @@ export const useManagerReviewSessions = () => {
         agg.sessionsCount += 1;
         for (const it of (s.items || [])) {
           if (CASH_TYPES.has(it.item_type)) agg.totalCash += Number(it.actual_amount || 0);
+          else if (it.item_type === 'expenses') agg.totalCash -= Number(it.actual_amount || 0);
         }
         const start = s.period_start || s.created_at;
         const end = s.period_end || s.completed_at || s.created_at;
