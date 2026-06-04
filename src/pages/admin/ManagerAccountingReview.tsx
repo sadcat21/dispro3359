@@ -237,8 +237,15 @@ const ManagerAccountingReview: React.FC = () => {
         <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
           <Calculator className="w-5 h-5 text-emerald-700" />
         </div>
-        <div>
-          <h2 className="text-xl font-bold leading-tight">مراجعة حسابات المدير</h2>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="text-xl font-bold leading-tight">مراجعة حسابات المدير</h2>
+            {reviewHistory.length > 0 && (
+              <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 text-xs">
+                إجمالي النقد: {Number(reviewHistory.reduce((s: number, r: any) => s + Number(r.total_cash || 0), 0)).toLocaleString('fr-FR')} دج
+              </Badge>
+            )}
+          </div>
           <p className="text-xs text-muted-foreground">مرحلة وسطى قبل إدراج المبالغ في الخزينة</p>
         </div>
       </div>
