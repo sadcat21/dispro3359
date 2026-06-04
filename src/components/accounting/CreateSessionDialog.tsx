@@ -261,7 +261,8 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
         branchId: activeBranch?.id,
         periodStart,
         periodEnd,
-        completedAt: editSession?.completed_at ?? null,
+        // Do not auto-extend the saved period_end via completed_at; user must refresh explicitly.
+        completedAt: null,
       }
     : null;
 
