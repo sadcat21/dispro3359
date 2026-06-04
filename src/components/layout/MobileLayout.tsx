@@ -1017,9 +1017,11 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                 to={mainNavItems[3].path}
                 className={cn(
                   'relative mx-auto flex h-12 w-12 items-center justify-center rounded-lg transition-all active:scale-95',
-                  location.pathname === mainNavItems[3].path
-                    ? 'bg-sidebar-primary/15 text-sidebar-primary'
-                    : 'text-sidebar-foreground/65 hover:bg-sidebar-accent hover:text-sidebar-foreground'
+                  mainNavItems[3].path === '/'
+                    ? (location.pathname === '/' ? 'bg-red-500/15 text-red-500' : 'text-red-500 hover:bg-red-500/10')
+                    : location.pathname === mainNavItems[3].path
+                      ? 'bg-sidebar-primary/15 text-sidebar-primary'
+                      : 'text-sidebar-foreground/65 hover:bg-sidebar-accent hover:text-sidebar-foreground'
                 )}
               >
                 {React.createElement(mainNavItems[3].icon, { className: 'h-[23px] w-[23px]', strokeWidth: location.pathname === mainNavItems[3].path ? 2.45 : 1.85 })}
@@ -1030,6 +1032,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                 )}
               </Link>
             ) : <div />}
+
 
 
             {isFieldWorker && workerId && (
