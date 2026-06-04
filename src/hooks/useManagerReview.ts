@@ -25,6 +25,7 @@ export const useManagerReviewSessions = () => {
         .from('manager_review_sessions')
         .select('*')
         .eq('manager_id', workerId)
+        .eq('status', 'completed')
         .order('created_at', { ascending: false });
 
       if (activeBranch?.id) query = query.eq('branch_id', activeBranch.id);
