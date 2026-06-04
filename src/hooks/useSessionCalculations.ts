@@ -431,19 +431,14 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
             invoice1.espaceCash += take(directPaidAmount);
           }
 
-          // 2) Then distribute temporary-debt recovery within the remaining budget
+          // 2) Then distribute temporary-debt recovery within the remaining budget.
+          // Classification follows what was recorded on the debt_payment itself
+          // (payment_method), not the invoice's payment method.
           if (temporaryDebtRecovery.check > 0) invoice1.check += take(temporaryDebtRecovery.check);
           if (temporaryDebtRecovery.transfer > 0) invoice1.transfer += take(temporaryDebtRecovery.transfer);
           if (temporaryDebtRecovery.receipt > 0) invoice1.receipt += take(temporaryDebtRecovery.receipt);
-          if (temporaryDebtRecovery.cash > 0) {
-            // If the invoice is receipt/transfer marked as paid_by_cash,
-            // route the recovered cash to Versement (cache) bucket, not Espèce Cash.
-            if ((invoiceMethod === 'receipt' || invoiceMethod === 'transfer') && paidByCash) {
-              invoice1.versementCash += take(temporaryDebtRecovery.cash);
-            } else {
-              invoice1.espaceCash += take(temporaryDebtRecovery.cash);
-            }
-          }
+          if (temporaryDebtRecovery.versementCash > 0) invoice1.versementCash += take(temporaryDebtRecovery.versementCash);
+          if (temporaryDebtRecovery.cash > 0) invoice1.espaceCash += take(temporaryDebtRecovery.cash);
         } else {
           invoice2.total += paidAmount;
           invoice2.cash += paidAmount;
