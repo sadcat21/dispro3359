@@ -265,12 +265,12 @@ const ManagerTreasury = () => {
       }
 
       const buckets = {
-        cash_invoice1: [] as Array<{ id: string; amount: number; customerId: string | null }>,
-        cash_invoice2: [] as Array<{ id: string; amount: number; customerId: string | null }>,
-        check: [] as Array<{ id: string; amount: number; customerId: string | null }>,
-        receipt_cash: [] as Array<{ id: string; amount: number; customerId: string | null }>,
-        receipt: [] as Array<{ id: string; amount: number; customerId: string | null }>,
-        transfer: [] as Array<{ id: string; amount: number; customerId: string | null }>,
+        cash_invoice1: [] as Array<{ id: string; amount: number; customerId: string | null; accountingTime: number }>,
+        cash_invoice2: [] as Array<{ id: string; amount: number; customerId: string | null; accountingTime: number }>,
+        check: [] as Array<{ id: string; amount: number; customerId: string | null; accountingTime: number }>,
+        receipt_cash: [] as Array<{ id: string; amount: number; customerId: string | null; accountingTime: number }>,
+        receipt: [] as Array<{ id: string; amount: number; customerId: string | null; accountingTime: number }>,
+        transfer: [] as Array<{ id: string; amount: number; customerId: string | null; accountingTime: number }>,
       };
 
       const sessionWindows = (sessionWindowsRaw || []).map((session: any) => ({
@@ -280,9 +280,9 @@ const ManagerTreasury = () => {
       }));
 
       for (const order of orders || []) {
+        const orderTs = orderAccountingTime(order);
         if (perManagerId) {
           if (!order.assigned_worker_id) continue;
-          const orderTs = orderAccountingTime(order);
           const isCovered = sessionWindows.some((window) => window.worker_id === order.assigned_worker_id && orderTs >= window.start && orderTs <= window.end);
           if (!isCovered) continue;
         }
@@ -298,28 +298,28 @@ const ManagerTreasury = () => {
         const transferByCash = isTransferPaidByCash(order.document_verification);
 
         if (order.payment_type === 'without_invoice') {
-          buckets.cash_invoice2.push({ id: order.id, amount, customerId: order.customer_id || null });
+          buckets.cash_invoice2.push({ id: order.id, amount, customerId: order.customer_id || null, accountingTime: orderTs });
           continue;
         }
 
         switch (order.invoice_payment_method) {
           case 'cash':
-            if (!handedMethods.has('cash')) buckets.cash_invoice1.push({ id: order.id, amount, customerId: order.customer_id || null });
+            if (!handedMethods.has('cash')) buckets.cash_invoice1.push({ id: order.id, amount, customerId: order.customer_id || null, accountingTime: orderTs });
             break;
           case 'check':
-            if (!handedMethods.has('check')) buckets.check.push({ id: order.id, amount, customerId: order.customer_id || null });
+            if (!handedMethods.has('check')) buckets.check.push({ id: order.id, amount, customerId: order.customer_id || null, accountingTime: orderTs });
             break;
           case 'receipt':
             if (receiptBucket === 'cash') {
               if (!handedMethods.has('receipt_cash') && !handedMethods.has('cash') && !handedMethods.has('receipt')) {
-                buckets.receipt_cash.push({ id: order.id, amount, customerId: order.customer_id || null });
+                buckets.receipt_cash.push({ id: order.id, amount, customerId: order.customer_id || null, accountingTime: orderTs });
               }
             } else if (!handedMethods.has('receipt')) {
-              buckets.receipt.push({ id: order.id, amount, customerId: order.customer_id || null });
+              buckets.receipt.push({ id: order.id, amount, customerId: order.customer_id || null, accountingTime: orderTs });
             }
             break;
           case 'transfer':
-            if (!transferByCash && !handedMethods.has('transfer')) buckets.transfer.push({ id: order.id, amount, customerId: order.customer_id || null });
+            if (!transferByCash && !handedMethods.has('transfer')) buckets.transfer.push({ id: order.id, amount, customerId: order.customer_id || null, accountingTime: orderTs });
             break;
           default:
             break;
@@ -332,14 +332,15 @@ const ManagerTreasury = () => {
           id: `treasury_${entry.id}`,
           amount: Number(entry.amount || 0),
           customerId: entry.customer_name ? `treasury:${entry.customer_name}` : `treasury:${entry.id}`,
+          accountingTime: entry.created_at ? new Date(entry.created_at).getTime() : 0,
         });
       }
 
-      const applyAmountFallback = (items: Array<{ id: string; amount: number; customerId: string | null }>, handedAmount: number) => {
+      const applyAmountFallback = (items: Array<{ id: string; amount: number; customerId: string | null; accountingTime: number }>, handedAmount: number) => {
         let remainingHanded = Math.max(0, handedAmount);
         return items
           .slice()
-          .sort((a, b) => a.id.localeCompare(b.id))
+          .sort((a, b) => a.accountingTime - b.accountingTime || a.id.localeCompare(b.id))
           .flatMap((item) => {
             if (remainingHanded <= 0) return [item];
             if (remainingHanded >= item.amount) {
