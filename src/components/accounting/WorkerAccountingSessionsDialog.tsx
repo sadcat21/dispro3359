@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import SessionDetailsDialog from './SessionDetailsDialog';
 import type { AccountingSession, AccountingSessionItem } from '@/hooks/useAccountingSessions';
+import { useSessionCalculations } from '@/hooks/useSessionCalculations';
 
 interface Props {
   open: boolean;
