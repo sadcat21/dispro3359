@@ -156,6 +156,7 @@ const ManagerTreasury = () => {
   const [detailsCategory, setDetailsCategory] = useState<'cash_invoice1' | 'cash_invoice2' | 'check' | 'bank_receipt_cash' | 'bank_receipt' | 'bank_transfer' | null>(null);
   const [uncollectedDebtsOpen, setUncollectedDebtsOpen] = useState(false);
   const [collectedDebtsOpen, setCollectedDebtsOpen] = useState(false);
+  const [expensesOpen, setExpensesOpen] = useState(false);
   const [handoversListOpen, setHandoversListOpen] = useState(false);
   const [workerHeldOpen, setWorkerHeldOpen] = useState(false);
   const [addForm, setAddForm] = useState({ payment_method: 'cash_invoice1', amount: '', customer_name: '', invoice_number: '', invoice_date: '', check_number: '', check_bank: '', check_date: '', receipt_number: '', transfer_reference: '', notes: '' });
