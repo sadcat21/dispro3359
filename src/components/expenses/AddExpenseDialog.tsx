@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useExpenseCategories, useCreateExpense } from '@/hooks/useExpenses';
+import { useCreateWorkerDebt } from '@/hooks/useWorkerDebts';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Upload, X } from 'lucide-react';
 import { format } from 'date-fns';
@@ -13,6 +15,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { getCategoryName } from '@/utils/categoryName';
 import { isAdminRole } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface AddExpenseDialogProps {
   open: boolean;
