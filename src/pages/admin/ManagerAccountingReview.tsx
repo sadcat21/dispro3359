@@ -154,6 +154,17 @@ const ManagerAccountingReview: React.FC = () => {
   );
   const pendingTotals = useMemo(() => calcTotals(selectedSessions), [selectedSessions]);
 
+  // Workers with activity that has not been accounted (no session in selected pending list)
+  const { data: allLiabilities = [] } = useAllWorkersLiability();
+  const uncoveredWorkers = useMemo(() => {
+    const accountedIds = new Set<string>(
+      filteredPendingSessions.map((s: any) => s.worker_id).filter(Boolean)
+    );
+    return (allLiabilities || []).filter(
+      (l: any) => Math.abs(Number(l.totalLiability || 0)) > 0 && !accountedIds.has(l.workerId)
+    );
+  }, [allLiabilities, filteredPendingSessions]);
+
   const handleConfirmReview = () => {
     const sessionIds = Array.from(selectedIds);
     if (sessionIds.length === 0) {
