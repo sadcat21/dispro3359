@@ -87,6 +87,26 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
   const periodStartTz = toTimestampTz(periodStart, false);
   const periodEndTz = toTimestampTz(effectivePeriodEnd, true);
 
+  // Cross-session cutoff: exclude orders already counted in a prior posted session.
+  // Use MAX(completed_at, period_end) of the latest prior posted session as the
+  // effective lower bound for stock_movements filtering.
+  const { data: priorSessions } = await supabase
+    .from('accounting_sessions')
+    .select('completed_at, period_end')
+    .eq('worker_id', workerId)
+    .eq('is_treasury_posted', true)
+    .lt('period_start', periodStartTz)
+    .order('period_start', { ascending: false })
+    .limit(1);
+  const priorCutoff = priorSessions?.[0]
+    ? (new Date(priorSessions[0].completed_at) > new Date(priorSessions[0].period_end)
+        ? priorSessions[0].completed_at
+        : priorSessions[0].period_end)
+    : null;
+  const effectiveStartTz = priorCutoff && new Date(priorCutoff) > new Date(periodStartTz)
+    ? new Date(priorCutoff).toISOString()
+    : periodStartTz;
+
   // 1. Fetch delivered orders — single source of truth: approved delivery
   //    stock_movements. This aligns the session totals (الكاش المسلم للمدير)
   //    with the Sales Details view. Orders flipped to 'delivered' without a
@@ -98,8 +118,9 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
     .eq('worker_id', workerId)
     .eq('movement_type', 'delivery')
     .eq('status', 'approved')
-    .gte('created_at', periodStartTz)
+    .gt('created_at', effectiveStartTz)
     .lte('created_at', periodEndTz);
+
   ensureNoError(stockMovementsError, 'stock movements');
 
   const deliveryOrderIds = Array.from(new Set(
