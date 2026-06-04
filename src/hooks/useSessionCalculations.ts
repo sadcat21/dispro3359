@@ -191,19 +191,14 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
     .lte('created_at', periodEndTz);
   ensureNoError(collectedDocumentsError, 'collected documents');
 
-  // 3. Fetch expenses — filter by expense_date (the date the expense occurred),
-  //    not created_at, because expenses are often recorded after the workday ends
-  //    (e.g. submitted at 14:59 for a session that closes at 13:39). Using
-  //    expense_date keeps them attached to the correct session.
-  const periodStartDate = (periodStart || '').slice(0, 10);
-  const periodEndDate = (effectivePeriodEnd || periodEnd || '').slice(0, 10);
+  // 3. Fetch expenses (filter by created_at to avoid date-boundary duplication across sessions)
   const { data: expenseData, error: expensesError } = await supabase
     .from('expenses')
     .select('amount, payment_method, category:expense_categories(name)')
     .eq('worker_id', workerId)
     .in('status', ['approved', 'pending'])
-    .gte('expense_date', periodStartDate)
-    .lte('expense_date', periodEndDate);
+    .gt('created_at', effectiveStartTz)
+    .lte('created_at', periodEndTz);
   ensureNoError(expensesError, 'expenses');
 
 
