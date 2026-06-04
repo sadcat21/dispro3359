@@ -110,13 +110,38 @@ const SalesDetailsSummary: React.FC<SalesDetailsSummaryProps> = ({ workerId, per
       const periodStartTz = toTz(periodStart, false);
       const periodEndTz = toTz(periodEnd, true);
 
+      // Find the latest posted/closed accounting session for this worker that
+      // ended on or before the current session's period_start. Sales delivered
+      // before that session's completion were already counted there and must
+      // not appear again in this session.
+      const { data: priorSessions } = await supabase
+        .from('accounting_sessions')
+        .select('completed_at, period_end')
+        .eq('worker_id', workerId)
+        .eq('is_treasury_posted', true)
+        .lte('period_start', periodStartTz)
+        .order('period_start', { ascending: false })
+        .limit(1);
+
+      const priorCutoff = priorSessions?.[0]
+        ? (priorSessions[0].completed_at && priorSessions[0].period_end
+            ? (new Date(priorSessions[0].completed_at) > new Date(priorSessions[0].period_end)
+                ? priorSessions[0].completed_at
+                : priorSessions[0].period_end)
+            : (priorSessions[0].completed_at || priorSessions[0].period_end))
+        : null;
+
+      const effectiveStartTz = priorCutoff && new Date(priorCutoff) > new Date(periodStartTz)
+        ? priorCutoff
+        : periodStartTz;
+
       const { data: stockMovements } = await supabase
         .from('stock_movements')
         .select('order_id')
         .eq('worker_id', workerId)
         .eq('movement_type', 'delivery')
         .eq('status', 'approved')
-        .gte('created_at', periodStartTz)
+        .gt('created_at', effectiveStartTz)
         .lte('created_at', periodEndTz);
 
       const orderIds = Array.from(new Set((stockMovements || []).map((m: any) => m.order_id).filter(Boolean)));
