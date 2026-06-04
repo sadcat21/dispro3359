@@ -291,7 +291,7 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
         total: 0, check: 0, transfer: 0, receipt: 0, espaceCash: 0, versementCash: 0,
       };
       const invoice2 = { total: 0, cash: 0 };
-      const tempDebtPaymentsByOrderId: Record<string, { total: number; cash: number; check: number; transfer: number; receipt: number }> = {};
+      const tempDebtPaymentsByOrderId: Record<string, { total: number; cash: number; versementCash: number; check: number; transfer: number; receipt: number }> = {};
 
       for (const dp of (debtPayments || [])) {
         if (!dp.debt_id || !tempDebtIds.has(dp.debt_id)) continue;
@@ -302,13 +302,14 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
         const amount = Number((dp as any).amount || 0);
         const method = String((dp as any).payment_method || 'cash').toLowerCase();
         if (!tempDebtPaymentsByOrderId[debtOrderId]) {
-          tempDebtPaymentsByOrderId[debtOrderId] = { total: 0, cash: 0, check: 0, transfer: 0, receipt: 0 };
+          tempDebtPaymentsByOrderId[debtOrderId] = { total: 0, cash: 0, versementCash: 0, check: 0, transfer: 0, receipt: 0 };
         }
 
         tempDebtPaymentsByOrderId[debtOrderId].total += amount;
         if (method === 'check') tempDebtPaymentsByOrderId[debtOrderId].check += amount;
         else if (method === 'transfer' || method === 'virement') tempDebtPaymentsByOrderId[debtOrderId].transfer += amount;
-        else if (method === 'receipt' || method === 'versement') tempDebtPaymentsByOrderId[debtOrderId].receipt += amount;
+        else if (method === 'versement_cash') tempDebtPaymentsByOrderId[debtOrderId].versementCash += amount;
+        else if (method === 'receipt' || method === 'versement' || method === 'versement_doc') tempDebtPaymentsByOrderId[debtOrderId].receipt += amount;
         else tempDebtPaymentsByOrderId[debtOrderId].cash += amount;
       }
 
