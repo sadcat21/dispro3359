@@ -8,6 +8,7 @@ import PaymentMethodDetailsDialog from '@/components/treasury/PaymentMethodDetai
 import StampDetailsDialog from '@/components/treasury/StampDetailsDialog';
 import UncollectedDebtsDialog from '@/components/treasury/UncollectedDebtsDialog';
 import CollectedDebtsDialog from '@/components/treasury/CollectedDebtsDialog';
+import ExpensesDetailsDialog from '@/components/treasury/ExpensesDetailsDialog';
 import HandoverItemPickerDialog, { PickedItem } from '@/components/treasury/HandoverItemPickerDialog';
 import HandoverPrintView from '@/components/treasury/HandoverPrintView';
 import WorkerHeldDialog from '@/components/treasury/WorkerHeldDialog';
@@ -155,6 +156,7 @@ const ManagerTreasury = () => {
   const [detailsCategory, setDetailsCategory] = useState<'cash_invoice1' | 'cash_invoice2' | 'check' | 'bank_receipt_cash' | 'bank_receipt' | 'bank_transfer' | null>(null);
   const [uncollectedDebtsOpen, setUncollectedDebtsOpen] = useState(false);
   const [collectedDebtsOpen, setCollectedDebtsOpen] = useState(false);
+  const [expensesOpen, setExpensesOpen] = useState(false);
   const [handoversListOpen, setHandoversListOpen] = useState(false);
   const [workerHeldOpen, setWorkerHeldOpen] = useState(false);
   const [addForm, setAddForm] = useState({ payment_method: 'cash_invoice1', amount: '', customer_name: '', invoice_number: '', invoice_date: '', check_number: '', check_bank: '', check_date: '', receipt_number: '', transfer_reference: '', notes: '' });
@@ -1115,7 +1117,7 @@ const ManagerTreasury = () => {
           handed={0}
           colorClass="amber-600"
           borderClass="border-amber-500/30 bg-amber-500/5"
-          onClick={() => navigate('/expenses-management')}
+          onClick={() => setExpensesOpen(true)}
           currency={cur}
           showDetails={false}
         />
@@ -1135,6 +1137,7 @@ const ManagerTreasury = () => {
       <StampDetailsDialog open={stampOpen} onOpenChange={setStampOpen} />
       <UncollectedDebtsDialog open={uncollectedDebtsOpen} onOpenChange={setUncollectedDebtsOpen} />
       <CollectedDebtsDialog open={collectedDebtsOpen} onOpenChange={setCollectedDebtsOpen} range={dateRange} />
+      <ExpensesDetailsDialog open={expensesOpen} onOpenChange={setExpensesOpen} range={dateRange} currency={cur} />
       <WorkerHeldDialog open={workerHeldOpen} onOpenChange={setWorkerHeldOpen} range={dateRange} currency={cur} />
       <CashConsolidationDialog open={consolidationOpen} onOpenChange={setConsolidationOpen} summary={summary} />
 
