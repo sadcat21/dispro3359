@@ -28,6 +28,7 @@ interface CatalogProductPricing {
 
 interface OrderItem {
   product_name: string;
+  product_image_url: string | null;
   quantity: number;
   unit_price: number;
   total_price: number;
