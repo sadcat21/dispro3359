@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import SessionDetailsDialog from './SessionDetailsDialog';
 import type { AccountingSession, AccountingSessionItem } from '@/hooks/useAccountingSessions';
-import { useSessionCalculations } from '@/hooks/useSessionCalculations';
+
 
 interface Props {
   open: boolean;
@@ -130,21 +130,13 @@ const SessionCard: React.FC<{
   onOpen: () => void;
   t: (k: string) => string;
 }> = ({ session, onOpen, t }) => {
-  const { data: liveCalc } = useSessionCalculations({
-    workerId: session.worker_id,
-    branchId: session.branch_id || undefined,
-    periodStart: session.period_start,
-    periodEnd: session.period_end,
-    completedAt: session.completed_at,
-  });
-
-  // Prefer live values over saved snapshot to reflect items added between period_end and completed_at
-  const totalSales = liveCalc?.totalSales ?? getItemAmount(session.items, 'total_sales');
-  const physicalCashExpected = liveCalc?.physicalCash ?? getItemAmount(session.items, 'physical_cash', 'expected_amount');
+  // Read strictly from the saved snapshot so the tile reflects what was approved at session close.
+  const totalSales = getItemAmount(session.items, 'total_sales');
+  const physicalCashExpected = getItemAmount(session.items, 'physical_cash', 'expected_amount');
   const physicalCashActual = getItemAmount(session.items, 'physical_cash', 'actual_amount');
-  const newDebts = liveCalc?.newDebts ?? getItemAmount(session.items, 'new_debts');
-  const debtCollections = (liveCalc as any)?.debtCollections?.total ?? getItemAmount(session.items, 'debt_collections_total');
-  const expenses = liveCalc?.expenses ?? getItemAmount(session.items, 'expenses');
+  const newDebts = getItemAmount(session.items, 'new_debts');
+  const debtCollections = getItemAmount(session.items, 'debt_collections_total');
+  const expenses = getItemAmount(session.items, 'expenses');
   const cashDiff = physicalCashActual - physicalCashExpected;
 
   return (

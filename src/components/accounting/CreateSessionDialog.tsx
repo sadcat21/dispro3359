@@ -261,7 +261,8 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
         branchId: activeBranch?.id,
         periodStart,
         periodEnd,
-        completedAt: editSession?.completed_at ?? null,
+        // Do not auto-extend the saved period_end via completed_at; user must refresh explicitly.
+        completedAt: null,
       }
     : null;
 
@@ -836,7 +837,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                       workerId={selectedWorkerId}
                       periodStart={periodStart}
                       periodEnd={periodEnd}
-                      completedAt={isEditMode ? editSession?.completed_at : null}
+                      completedAt={null}
                     />
                   ) : (
                     <div className="rounded-lg border p-2.5 text-center">
@@ -902,7 +903,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
 
                 {/* ━━━ Step 10: Debt Collections Detail ━━━ */}
                 <StepSection step={10} title={t('create_session.collected_debts_details')} color="orange">
-                  <DebtCollectionsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} completedAt={editSession?.completed_at ?? null} />
+                  <DebtCollectionsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} completedAt={null} />
                 </StepSection>
 
                 {/* ━━━ Step 11: Document Collections ━━━ */}
