@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUnreviewedSessions, useManagerReviewSessions, useConfirmManagerReview } from '@/hooks/useManagerReview';
+import { useAllWorkersLiability } from '@/hooks/useWorkerLiability';
 import { toast } from 'sonner';
 import { boxesToBPAlways, dbBPToBoxes } from '@/utils/boxPieceInput';
 import { inferPricingSubtype } from '@/utils/pricingSubtype';
@@ -152,6 +153,17 @@ const ManagerAccountingReview: React.FC = () => {
     [filteredPendingSessions, selectedIds]
   );
   const pendingTotals = useMemo(() => calcTotals(selectedSessions), [selectedSessions]);
+
+  // Workers with activity that has not been accounted (no session in selected pending list)
+  const { data: allLiabilities = [] } = useAllWorkersLiability();
+  const uncoveredWorkers = useMemo(() => {
+    const accountedIds = new Set<string>(
+      filteredPendingSessions.map((s: any) => s.worker_id).filter(Boolean)
+    );
+    return (allLiabilities || []).filter(
+      (l: any) => Math.abs(Number(l.totalLiability || 0)) > 0 && !accountedIds.has(l.workerId)
+    );
+  }, [allLiabilities, filteredPendingSessions]);
 
   const handleConfirmReview = () => {
     const sessionIds = Array.from(selectedIds);
@@ -482,23 +494,51 @@ const ManagerAccountingReview: React.FC = () => {
 
       {/* Confirm Dialog */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-lg">
           <AlertDialogHeader>
-            <AlertDialogTitle>تأكيد مراجعة حسابات المدير</AlertDialogTitle>
-            <AlertDialogDescription>
-              سيتم إدراج جميع المبالغ المعلّقة ({pendingSessions.length} جلسة) في خزينة المدير. هل أنت متأكد؟
+            <AlertDialogTitle className="flex items-center gap-2 text-amber-700">
+              <AlertTriangle className="w-5 h-5" />
+              تأكيد مراجعة حسابات المدير
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-sm">
+                <div className="bg-red-50 border border-red-200 rounded-md p-3 text-red-800 font-semibold">
+                  ⚠️ تنبيه: لا يمكن التراجع عن هذه العملية بعد التأكيد.
+                </div>
+                <p>
+                  سيتم إدراج المبالغ من <strong>{selectedIds.size}</strong> جلسة في خزينة المدير بشكل نهائي.
+                </p>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
+
+          {uncoveredWorkers.length > 0 && (
+            <div className="border border-amber-300 bg-amber-50 rounded-md p-3 space-y-2">
+              <div className="flex items-center gap-2 text-amber-800 text-xs font-bold">
+                <AlertTriangle className="w-4 h-4" />
+                عمّال لديهم نشاط لم تتم محاسبته ({uncoveredWorkers.length})
+              </div>
+              <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
+                {uncoveredWorkers.map((w: any) => (
+                  <Badge key={w.workerId} variant="outline" className="border-amber-400 text-amber-800 bg-white text-[11px]">
+                    👤 {w.workerName} — {fmt(Number(w.totalLiability || 0))}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
           <Textarea
             placeholder="ملاحظات (اختياري)..."
             value={reviewNotes}
             onChange={e => setReviewNotes(e.target.value)}
             className="mt-2"
           />
-          <AlertDialogFooter>
-            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel>خروج</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmReview} className="bg-emerald-600 hover:bg-emerald-700">
-              تأكيد المراجعة
+              <FileCheck className="w-4 h-4 ml-2" />
+              تأكيد نهائي
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
