@@ -55,6 +55,8 @@ const WorkerAccountingSessionsDialog: React.FC<Props> = ({ open, onOpenChange, w
           items:accounting_session_items(*)
         `)
         .eq('worker_id', workerId)
+        .or('is_treasury_posted.eq.false,is_treasury_posted.is.null')
+        .is('review_session_id', null)
         .order('created_at', { ascending: false })
         .limit(50);
 
