@@ -220,6 +220,8 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
           .from("accounting_sessions")
           .select("worker_id, period_start, period_end")
           .eq("status", "completed")
+          .eq('is_treasury_posted', true)
+          .not('review_session_id', 'is', null)
           .eq("manager_id", perManager);
         if (activeBranch?.id) sessQuery = sessQuery.eq("branch_id", activeBranch.id);
         const { data: sessions } = await sessQuery;
