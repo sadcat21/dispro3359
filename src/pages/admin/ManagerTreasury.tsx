@@ -8,6 +8,7 @@ import PaymentMethodDetailsDialog from '@/components/treasury/PaymentMethodDetai
 import StampDetailsDialog from '@/components/treasury/StampDetailsDialog';
 import UncollectedDebtsDialog from '@/components/treasury/UncollectedDebtsDialog';
 import CollectedDebtsDialog from '@/components/treasury/CollectedDebtsDialog';
+import ExpensesDetailsDialog from '@/components/treasury/ExpensesDetailsDialog';
 import HandoverItemPickerDialog, { PickedItem } from '@/components/treasury/HandoverItemPickerDialog';
 import HandoverPrintView from '@/components/treasury/HandoverPrintView';
 import WorkerHeldDialog from '@/components/treasury/WorkerHeldDialog';
