@@ -211,7 +211,8 @@ const SalesDetailsSummary: React.FC<SalesDetailsSummaryProps> = ({ workerId, per
         customerMap[custId].order_count += 1;
         const partial = Number(o.partial_amount || 0);
         const isPartial = partial > 0 && partial < Number(o.total_amount || 0);
-        if (['credit', 'partial'].includes(order.payment_status) || isPartial) {
+        const unpaidStatuses = ['credit', 'partial', 'pending', 'unpaid', 'partially_paid'];
+        if (unpaidStatuses.includes(order.payment_status) || isPartial) {
           customerMap[custId].has_debt = true;
         }
 
