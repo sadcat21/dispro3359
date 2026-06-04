@@ -286,19 +286,27 @@ const AccountingSessions: React.FC = () => {
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5">
                 {[...workers].sort((a, b) => {
-                  const aRank = reviewedWorkerIds.has(a.id) ? 0 : ((allLiabilities?.find(l => l.workerId === a.id)?.totalLiability || 0) > 0 ? 1 : 2);
-                  const bRank = reviewedWorkerIds.has(b.id) ? 0 : ((allLiabilities?.find(l => l.workerId === b.id)?.totalLiability || 0) > 0 ? 1 : 2);
+                  const liabA = allLiabilities?.find(l => l.workerId === a.id)?.totalLiability || 0;
+                  const liabB = allLiabilities?.find(l => l.workerId === b.id)?.totalLiability || 0;
+                  const aHasRed = liabA !== 0 || docsWorkerIds.has(a.id) || debtsWorkerIds.has(a.id);
+                  const bHasRed = liabB !== 0 || docsWorkerIds.has(b.id) || debtsWorkerIds.has(b.id);
+                  const aRank = reviewedWorkerIds.has(a.id) ? 0 : (aHasRed ? 1 : 2);
+                  const bRank = reviewedWorkerIds.has(b.id) ? 0 : (bHasRed ? 1 : 2);
                   return aRank - bRank;
                 }).map(worker => {
                   const liability = allLiabilities?.find(l => l.workerId === worker.id);
-                  const hasLiability = liability && liability.totalLiability > 0;
+                  const liabValue = liability?.totalLiability || 0;
+                  const hasDocs = docsWorkerIds.has(worker.id);
+                  const hasDebts = debtsWorkerIds.has(worker.id);
+                  const hasIssue = liabValue !== 0 || hasDocs || hasDebts;
                   const isReviewed = reviewedWorkerIds.has(worker.id);
-                  const colorClass = isReviewed
+                  // Green only when warehouse manager confirmed final review (and no outstanding issue)
+                  const colorClass = isReviewed && !hasIssue
                     ? 'bg-emerald-600 border-emerald-600 hover:bg-emerald-700 hover:border-emerald-700 text-white'
-                    : hasLiability
+                    : hasIssue
                       ? 'bg-red-600 border-red-600 hover:bg-red-700 hover:border-red-700 text-white'
                       : 'hover:border-primary/40 hover:bg-primary/5';
-                  const isColored = isReviewed || hasLiability;
+                  const isColored = (isReviewed && !hasIssue) || hasIssue;
                   return (
                     <Button
                       key={worker.id}
@@ -311,8 +319,13 @@ const AccountingSessions: React.FC = () => {
                       </div>
                       <div className="flex flex-col items-start gap-0.5">
                         <span className="text-sm font-semibold text-wrap text-start">{worker.full_name}</span>
-                        {hasLiability && (
-                          <span className="text-[11px] font-bold text-white/90">{fmt(liability.totalLiability)} {t('accounting.currency_dzd')}</span>
+                        {liabValue !== 0 && (
+                          <span className="text-[11px] font-bold text-white/90">{fmt(liabValue)} {t('accounting.currency_dzd')}</span>
+                        )}
+                        {(hasDocs || hasDebts) && (
+                          <span className="text-[10px] font-medium text-white/90">
+                            {hasDocs && '📄 وثائق'} {hasDebts && '💳 ديون'}
+                          </span>
                         )}
                       </div>
                     </Button>
