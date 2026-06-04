@@ -194,6 +194,33 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange 
             </Select>
           </div>
 
+          {/* Worker selector for advance category */}
+          {isAdvanceCategory && (
+            <div className="space-y-2">
+              <Label>العامل المستفيد من المسبق</Label>
+              <Select value={advanceWorkerId} onValueChange={setAdvanceWorkerId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="اختر العامل" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(branchWorkers || []).map(w => (
+                    <SelectItem key={w.id} value={w.id}>
+                      {w.full_name}
+                    </SelectItem>
+                  ))}
+                  {(!branchWorkers || branchWorkers.length === 0) && (
+                    <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                      لا يوجد عمال في هذا الفرع
+                    </div>
+                  )}
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-muted-foreground">
+                سيتم تسجيل المبلغ ضمن ديون العامل تلقائياً
+              </p>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label>{t('expenses.amount')}</Label>
             <Input
