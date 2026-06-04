@@ -241,9 +241,46 @@ const ManagerAccountingReview: React.FC = () => {
           <div className="flex items-center gap-2 flex-wrap">
             <h2 className="text-xl font-bold leading-tight">مراجعة حسابات المدير</h2>
             {reviewHistory.length > 0 && (
-              <Badge className="bg-red-600 text-white hover:bg-red-600 text-xs">
-                إجمالي النقد: {Number(reviewHistory.reduce((s: number, r: any) => s + Number(r.total_cash || 0), 0)).toLocaleString('fr-FR')} دج
-              </Badge>
+              <>
+                <Badge className="bg-red-600 text-white hover:bg-red-600 text-xs">
+                  إجمالي النقد: {Number(reviewHistory.reduce((s: number, r: any) => s + Number(r.total_cash || 0), 0)).toLocaleString('fr-FR')} دج
+                </Badge>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-7 w-7"
+                  title="طباعة الملخص"
+                  onClick={() => {
+                    const total = reviewHistory.reduce((s: number, r: any) => s + Number(r.total_cash || 0), 0);
+                    const rows = reviewHistory.map((r: any, idx: number) => `
+                      <tr>
+                        <td style="padding:6px 8px;border:1px solid #e2e8f0;text-align:center">#${reviewHistory.length - idx}</td>
+                        <td style="padding:6px 8px;border:1px solid #e2e8f0;text-align:center">${r.completed_at ? format(new Date(r.completed_at), 'yyyy-MM-dd HH:mm') : (r.created_at ? format(new Date(r.created_at), 'yyyy-MM-dd HH:mm') : '—')}</td>
+                        <td style="padding:6px 8px;border:1px solid #e2e8f0;text-align:center">${r.sessions_count || 0}</td>
+                        <td style="padding:6px 8px;border:1px solid #e2e8f0;text-align:center;color:#047857;font-weight:700">${Number(r.total_cash || 0).toLocaleString('fr-FR')} دج</td>
+                      </tr>`).join('');
+                    const html = `<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>ملخص مراجعة حسابات المدير</title>
+                      <style>body{font-family:Arial,sans-serif;padding:20px;color:#0f172a}h1{font-size:18px;margin:0 0 4px}h2{font-size:13px;color:#64748b;margin:0 0 16px;font-weight:500}table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}th{background:#f1f5f9;padding:8px;border:1px solid #e2e8f0;text-align:center}.total{margin-top:16px;padding:10px;background:#fef2f2;border:2px solid #dc2626;border-radius:8px;text-align:center;font-size:14px;font-weight:800;color:#dc2626}@media print{.no-print{display:none}}</style>
+                      </head><body>
+                      <h1>ملخص مراجعة حسابات المدير</h1>
+                      <h2>تاريخ الطباعة: ${format(new Date(), 'yyyy-MM-dd HH:mm')}</h2>
+                      <table><thead><tr><th>المراجعة</th><th>تاريخ الإيداع</th><th>عدد الجلسات</th><th>إجمالي النقد</th></tr></thead><tbody>${rows}</tbody></table>
+                      <div class="total">الإجمالي العام: ${Number(total).toLocaleString('fr-FR')} دج</div>
+                      <script>window.onload=()=>{setTimeout(()=>window.print(),200)}</script>
+                      </body></html>`;
+                    const iframe = document.createElement('iframe');
+                    iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;opacity:0';
+                    document.body.appendChild(iframe);
+                    const w = iframe.contentWindow; const d = iframe.contentDocument || w?.document;
+                    if (!w || !d) { iframe.remove(); return; }
+                    d.open(); d.write(html); d.close();
+                    w.onafterprint = () => iframe.remove();
+                    setTimeout(() => { try { iframe.remove(); } catch {} }, 60000);
+                  }}
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                </Button>
+              </>
             )}
           </div>
           <p className="text-xs text-muted-foreground">مرحلة وسطى قبل إدراج المبالغ في الخزينة</p>
