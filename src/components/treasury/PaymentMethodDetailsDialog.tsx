@@ -125,14 +125,20 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
       let query = supabase.from('manager_handovers').select('cash_invoice2');
       if (activeBranch?.id) query = query.eq('branch_id', activeBranch.id);
       if (perManager) query = query.eq('manager_id', perManager);
+      if (range?.from) query = query.gte('handover_date', range.from);
+      if (range?.to) query = query.lte('handover_date', range.to);
       let sessionWindows: Array<{ worker_id: string; start: number; end: number }> = [];
       if (perManager) {
         let sessQuery = supabase
           .from("accounting_sessions")
           .select("worker_id, period_start, period_end")
           .eq("status", "completed")
+          .eq('is_treasury_posted', true)
+          .not('review_session_id', 'is', null)
           .eq("manager_id", perManager);
         if (activeBranch?.id) sessQuery = sessQuery.eq("branch_id", activeBranch.id);
+        if (range?.from) sessQuery = sessQuery.gte('completed_at', `${range.from}T00:00:00`);
+        if (range?.to) sessQuery = sessQuery.lte('completed_at', `${range.to}T23:59:59`);
         const { data: sessions } = await sessQuery;
         sessionWindows = (sessions || []).map((s: any) => ({
           worker_id: s.worker_id,
@@ -153,6 +159,9 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
         .select('amount, source_type, payment_method')
         .in('source_type', ['cash_consolidation_debit']);
       if (activeBranch?.id) consQuery = consQuery.eq('branch_id', activeBranch.id);
+      if (perManager) consQuery = consQuery.eq('manager_id', perManager);
+      if (range?.from) consQuery = consQuery.gte('created_at', `${range.from}T00:00:00`);
+      if (range?.to) consQuery = consQuery.lte('created_at', `${range.to}T23:59:59`);
       const { data: consEntries } = await consQuery;
       const consDeducted = (consEntries || [])
         .filter((e: any) => e.payment_method === 'cash_invoice2')
