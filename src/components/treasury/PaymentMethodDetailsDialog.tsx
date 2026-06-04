@@ -192,8 +192,8 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
         .order('created_at', { ascending: false });
 
       if (activeBranch?.id) query = query.eq('branch_id', activeBranch.id);
-      if (!isCashInvoice2 && range?.from) query = query.gte('delivery_date', range.from);
-      if (!isCashInvoice2 && range?.to) query = query.lte('delivery_date', range.to);
+      if (!perManager && !isCashInvoice2 && range?.from) query = query.gte('delivery_date', range.from);
+      if (!perManager && !isCashInvoice2 && range?.to) query = query.lte('delivery_date', range.to);
 
       switch (category) {
         case 'cash_invoice1':
@@ -237,8 +237,8 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
 
       (data || []).forEach((o: any) => {
         const orderTs = orderAccountingTime(o);
-        if (!isCashInvoice2 && rangeFromTs !== null && orderTs < rangeFromTs) return;
-        if (!isCashInvoice2 && rangeToTs !== null && orderTs > rangeToTs) return;
+        if (!perManager && !isCashInvoice2 && rangeFromTs !== null && orderTs < rangeFromTs) return;
+        if (!perManager && !isCashInvoice2 && rangeToTs !== null && orderTs > rangeToTs) return;
         if (perManager) {
           if (!o.assigned_worker_id) return;
           const isCovered = sessionWindows.some((w) => w.worker_id === o.assigned_worker_id && orderTs >= w.start && orderTs <= w.end);
@@ -357,11 +357,13 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
             return adjustedOrder.total_amount > 0 ? [{ ...entry, order: adjustedOrder }] : [];
           });
 
-        normalizedOrders = normalizedOrders.filter((entry) => {
-          if (rangeFromTs !== null && entry.accounting_time < rangeFromTs) return false;
-          if (rangeToTs !== null && entry.accounting_time > rangeToTs) return false;
-          return true;
-        });
+        if (!perManager) {
+          normalizedOrders = normalizedOrders.filter((entry) => {
+            if (rangeFromTs !== null && entry.accounting_time < rangeFromTs) return false;
+            if (rangeToTs !== null && entry.accounting_time > rangeToTs) return false;
+            return true;
+          });
+        }
       }
 
       const groupMap = new Map<string, CustomerGroup>();
