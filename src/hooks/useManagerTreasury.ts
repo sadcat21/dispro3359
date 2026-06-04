@@ -315,13 +315,32 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
       // contribute sales, collections, or expenses to the budget window.
       let sessQuery = supabase
         .from('accounting_sessions')
-        .select('worker_id, period_start, period_end, manager_id')
+        .select('id, worker_id, period_start, period_end, manager_id')
         .eq('status', 'completed')
         .eq('is_treasury_posted', true)
         .not('review_session_id', 'is', null);
       if (activeBranch?.id) sessQuery = sessQuery.eq('branch_id', activeBranch.id);
       if (perManager) sessQuery = sessQuery.eq('manager_id', perManager);
       const { data: sessions } = await sessQuery;
+
+      // Aggregate confirmed-session items as the authoritative breakdown source for perManager.
+      const reviewedSessionIds = (sessions || []).map((s: any) => s.id);
+      const sessionItemTotals: Record<string, { amount: number; count: number }> = {};
+      if (perManager && reviewedSessionIds.length > 0) {
+        const { data: sItems } = await supabase
+          .from('accounting_session_items')
+          .select('item_type, actual_amount, session_id')
+          .in('session_id', reviewedSessionIds);
+        for (const it of sItems || []) {
+          const k = String((it as any).item_type || '');
+          const amt = Number((it as any).actual_amount || 0);
+          if (amt <= 0) continue;
+          if (!sessionItemTotals[k]) sessionItemTotals[k] = { amount: 0, count: 0 };
+          sessionItemTotals[k].amount += amt;
+          sessionItemTotals[k].count += 1;
+        }
+      }
+
 
       const sessionWindows = (sessions || []).map((s: any) => ({
         worker_id: s.worker_id,
