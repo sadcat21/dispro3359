@@ -109,6 +109,10 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!categoryId || !amount || parseFloat(amount) <= 0) return;
+    if (isAdvanceCategory && !advanceWorkerId) {
+      toast.error('يرجى اختيار العامل المستفيد من المسبق');
+      return;
+    }
 
     const receiptUrls: string[] = [];
 
@@ -131,15 +135,36 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange 
       setUploading(false);
     }
 
+    const workerName = isAdvanceCategory
+      ? (branchWorkers?.find(w => w.id === advanceWorkerId)?.full_name || '')
+      : '';
+    const finalDescription = isAdvanceCategory
+      ? `مسبق أجرة: ${workerName}${description ? ` — ${description}` : ''}`
+      : (description || undefined);
+
     await createExpense.mutateAsync({
       category_id: categoryId,
       amount: parseFloat(amount),
-      description: description || undefined,
+      description: finalDescription,
       expense_date: expenseDate,
       receipt_url: receiptUrls[0],
       receipt_urls: receiptUrls,
       payment_method: isFuelCategory ? paymentMethod : 'cash',
     });
+
+    if (isAdvanceCategory && advanceWorkerId) {
+      try {
+        await createWorkerDebt.mutateAsync({
+          worker_id: advanceWorkerId,
+          amount: parseFloat(amount),
+          debt_type: 'advance',
+          description: `مسبق أجرة بتاريخ ${expenseDate}${description ? ` — ${description}` : ''}`,
+        });
+        toast.success('تم تسجيل المسبق ضمن ديون العامل');
+      } catch (err: any) {
+        toast.error('تعذر تسجيل دين العامل: ' + (err?.message || ''));
+      }
+    }
 
     resetForm();
     onOpenChange(false);
