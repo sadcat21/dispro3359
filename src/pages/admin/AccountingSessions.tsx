@@ -128,9 +128,9 @@ const AccountingSessions: React.FC = () => {
       );
       setDocsWorkerIds(docsSet);
 
-      // Debts: worker_debts with remaining_amount > 0
+      // Customer debts (sold on credit) with remaining_amount > 0
       let debtsQ = supabase
-        .from('worker_debts')
+        .from('customer_debts')
         .select('worker_id, remaining_amount, branch_id')
         .gt('remaining_amount', 0);
       if (activeBranch?.id) debtsQ = debtsQ.eq('branch_id', activeBranch.id);
@@ -139,6 +139,18 @@ const AccountingSessions: React.FC = () => {
         (debts || []).filter((d: any) => d.worker_id).map((d: any) => d.worker_id),
       );
       setDebtsWorkerIds(debtsSet);
+
+      // Expenses (non-rejected) — any worker with recorded expenses
+      let expQ = supabase
+        .from('expenses')
+        .select('worker_id, status, branch_id')
+        .neq('status', 'rejected');
+      if (activeBranch?.id) expQ = expQ.eq('branch_id', activeBranch.id);
+      const { data: exps } = await expQ;
+      const expSet = new Set<string>(
+        (exps || []).filter((e: any) => e.worker_id).map((e: any) => e.worker_id),
+      );
+      setExpensesWorkerIds(expSet);
     };
     fetchFlags();
     const interval = setInterval(fetchFlags, 30000);
