@@ -122,6 +122,11 @@ const ExpensesManagement: React.FC = () => {
                     {formatDate(expense.expense_date, 'dd MMM yyyy', language)}
                   </div>
                 </div>
+                {expense.description?.startsWith('مسبق أجرة:') && (
+                  <p className="text-xs font-medium text-primary bg-primary/10 rounded px-2 py-1 inline-block">
+                    🧾 المستفيد من المسبق: {expense.description.replace(/^مسبق أجرة:\s*/, '').split(' — ')[0]}
+                  </p>
+                )}
                 {expense.description && (
                   <p className="text-sm text-foreground/80">{expense.description}</p>
                 )}
