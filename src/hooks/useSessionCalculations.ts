@@ -291,7 +291,7 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
         total: 0, check: 0, transfer: 0, receipt: 0, espaceCash: 0, versementCash: 0,
       };
       const invoice2 = { total: 0, cash: 0 };
-      const tempDebtPaymentsByOrderId: Record<string, { total: number; cash: number; check: number; transfer: number; receipt: number }> = {};
+      const tempDebtPaymentsByOrderId: Record<string, { total: number; cash: number; versementCash: number; check: number; transfer: number; receipt: number }> = {};
 
       for (const dp of (debtPayments || [])) {
         if (!dp.debt_id || !tempDebtIds.has(dp.debt_id)) continue;
@@ -302,13 +302,14 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
         const amount = Number((dp as any).amount || 0);
         const method = String((dp as any).payment_method || 'cash').toLowerCase();
         if (!tempDebtPaymentsByOrderId[debtOrderId]) {
-          tempDebtPaymentsByOrderId[debtOrderId] = { total: 0, cash: 0, check: 0, transfer: 0, receipt: 0 };
+          tempDebtPaymentsByOrderId[debtOrderId] = { total: 0, cash: 0, versementCash: 0, check: 0, transfer: 0, receipt: 0 };
         }
 
         tempDebtPaymentsByOrderId[debtOrderId].total += amount;
         if (method === 'check') tempDebtPaymentsByOrderId[debtOrderId].check += amount;
         else if (method === 'transfer' || method === 'virement') tempDebtPaymentsByOrderId[debtOrderId].transfer += amount;
-        else if (method === 'receipt' || method === 'versement') tempDebtPaymentsByOrderId[debtOrderId].receipt += amount;
+        else if (method === 'versement_cash') tempDebtPaymentsByOrderId[debtOrderId].versementCash += amount;
+        else if (method === 'receipt' || method === 'versement' || method === 'versement_doc') tempDebtPaymentsByOrderId[debtOrderId].receipt += amount;
         else tempDebtPaymentsByOrderId[debtOrderId].cash += amount;
       }
 
@@ -327,7 +328,7 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
           directPaidAmount = Number(order.partial_amount || 0);
         }
 
-        const temporaryDebtRecovery = tempDebtPaymentsByOrderId[order.id] || { total: 0, cash: 0, check: 0, transfer: 0, receipt: 0 };
+        const temporaryDebtRecovery = tempDebtPaymentsByOrderId[order.id] || { total: 0, cash: 0, versementCash: 0, check: 0, transfer: 0, receipt: 0 };
         const paidAmount = Math.min(totalAmount, directPaidAmount + temporaryDebtRecovery.total);
 
         const debtAmount = Math.max(0, totalAmount - paidAmount);
@@ -430,19 +431,14 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
             invoice1.espaceCash += take(directPaidAmount);
           }
 
-          // 2) Then distribute temporary-debt recovery within the remaining budget
+          // 2) Then distribute temporary-debt recovery within the remaining budget.
+          // Classification follows what was recorded on the debt_payment itself
+          // (payment_method), not the invoice's payment method.
           if (temporaryDebtRecovery.check > 0) invoice1.check += take(temporaryDebtRecovery.check);
           if (temporaryDebtRecovery.transfer > 0) invoice1.transfer += take(temporaryDebtRecovery.transfer);
           if (temporaryDebtRecovery.receipt > 0) invoice1.receipt += take(temporaryDebtRecovery.receipt);
-          if (temporaryDebtRecovery.cash > 0) {
-            // If the invoice is receipt/transfer marked as paid_by_cash,
-            // route the recovered cash to Versement (cache) bucket, not Espèce Cash.
-            if ((invoiceMethod === 'receipt' || invoiceMethod === 'transfer') && paidByCash) {
-              invoice1.versementCash += take(temporaryDebtRecovery.cash);
-            } else {
-              invoice1.espaceCash += take(temporaryDebtRecovery.cash);
-            }
-          }
+          if (temporaryDebtRecovery.versementCash > 0) invoice1.versementCash += take(temporaryDebtRecovery.versementCash);
+          if (temporaryDebtRecovery.cash > 0) invoice1.espaceCash += take(temporaryDebtRecovery.cash);
         } else {
           invoice2.total += paidAmount;
           invoice2.cash += paidAmount;

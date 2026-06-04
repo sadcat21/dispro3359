@@ -176,7 +176,7 @@ const resolveOriginPaymentMethod = (order?: {
   if (invoiceMethod === 'check') return 'check';
   if (invoiceMethod === 'transfer' || invoiceMethod === 'virement') return 'transfer';
   if (invoiceMethod === 'receipt' || invoiceMethod === 'versement') {
-    return paidByCash ? 'cash' : 'receipt';
+    return paidByCash ? 'versement_cash' : 'receipt';
   }
   if (invoiceMethod === 'cash') return 'cash';
 
