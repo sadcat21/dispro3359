@@ -382,42 +382,45 @@ const SalesDetailsSummary: React.FC<SalesDetailsSummaryProps> = ({ workerId, per
           </button>
         );
         return (
-          <Collapsible>
-            <CollapsibleTrigger className="w-full flex items-center justify-between p-2 rounded-lg border hover:bg-muted/50 transition-colors text-sm font-medium">
-              <span>{t('sales_details.show_customers')} ({totalCustomersCount})</span>
-              <ChevronDown className="w-4 h-4 text-muted-foreground" />
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="mt-2 space-y-3">
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between px-1">
-                    <h4 className="text-xs font-semibold text-emerald-600">
-                      ✓ {dir === 'rtl' ? 'مدفوع كامل' : 'Payés'}
-                    </h4>
-                    <Badge variant="secondary" className="text-[10px]">{paidCustomers.length}</Badge>
-                  </div>
+          <div className="space-y-2">
+            <Collapsible>
+              <CollapsibleTrigger className="w-full flex items-center justify-between p-2 rounded-lg border hover:bg-muted/50 transition-colors text-sm font-medium">
+                <span className="flex items-center gap-2 text-emerald-600">
+                  ✓ {dir === 'rtl' ? 'مدفوع كامل' : 'Payés'}
+                  <Badge variant="secondary" className="text-[10px]">{paidCustomers.length}</Badge>
+                </span>
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="mt-2 space-y-1.5">
                   {paidCustomers.length === 0 ? (
                     <p className="text-center text-muted-foreground text-xs py-2">
                       {dir === 'rtl' ? 'لا يوجد' : 'Aucun'}
                     </p>
                   ) : paidCustomers.map(renderCustomerButton)}
                 </div>
-                <div className="space-y-1.5 pt-2 border-t">
-                  <div className="flex items-center justify-between px-1">
-                    <h4 className="text-xs font-semibold text-destructive">
-                      ⚠ {dir === 'rtl' ? 'دين / جزئي' : 'Dette / Partiel'}
-                    </h4>
-                    <Badge variant="destructive" className="text-[10px]">{debtCustomers.length}</Badge>
-                  </div>
+              </CollapsibleContent>
+            </Collapsible>
+
+            <Collapsible>
+              <CollapsibleTrigger className="w-full flex items-center justify-between p-2 rounded-lg border hover:bg-muted/50 transition-colors text-sm font-medium">
+                <span className="flex items-center gap-2 text-destructive">
+                  ⚠ {dir === 'rtl' ? 'دين / جزئي' : 'Dette / Partiel'}
+                  <Badge variant="destructive" className="text-[10px]">{debtCustomers.length}</Badge>
+                </span>
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="mt-2 space-y-1.5">
                   {debtCustomers.length === 0 ? (
                     <p className="text-center text-muted-foreground text-xs py-2">
                       {dir === 'rtl' ? 'لا يوجد' : 'Aucun'}
                     </p>
                   ) : debtCustomers.map(renderCustomerButton)}
                 </div>
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
         );
       })()}
 
