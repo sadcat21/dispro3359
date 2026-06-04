@@ -45,6 +45,8 @@ export const useAccountingSessions = (filters?: { status?: string }) => {
           manager:workers!accounting_sessions_manager_id_fkey(id, full_name),
           items:accounting_session_items(*)
         `)
+        .is('review_session_id', null)
+        .or('is_treasury_posted.eq.false,is_treasury_posted.is.null')
         .order('created_at', { ascending: false });
 
       if (filters?.status && filters.status !== 'all') {
