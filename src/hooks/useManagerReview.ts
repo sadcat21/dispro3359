@@ -92,11 +92,17 @@ export const useConfirmManagerReview = () => {
       if (reviewErr) throw reviewErr;
 
       // 2. Link accounting sessions to review and mark as posted
-      for (const sid of params.sessionIds) {
-        await supabase
-          .from('accounting_sessions')
-          .update({ review_session_id: review.id, is_treasury_posted: true })
-          .eq('id', sid);
+      const { data: updatedSessions, error: updateSessionsError } = await supabase
+        .from('accounting_sessions')
+        .update({ review_session_id: review.id, is_treasury_posted: true })
+        .in('id', params.sessionIds)
+        .eq('manager_id', workerId)
+        .select('id');
+
+      if (updateSessionsError) throw updateSessionsError;
+
+      if ((updatedSessions?.length ?? 0) !== params.sessionIds.length) {
+        throw new Error('تعذر ربط بعض جلسات المحاسبة بالمراجعة');
       }
 
       // 3. Fetch all items from these sessions to create treasury entries
@@ -146,6 +152,7 @@ export const useConfirmManagerReview = () => {
       queryClient.invalidateQueries({ queryKey: ['manager-treasury'] });
       queryClient.invalidateQueries({ queryKey: ['treasury-summary'] });
       queryClient.invalidateQueries({ queryKey: ['accounting-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['worker-accounting-sessions'] });
     },
   });
 };
