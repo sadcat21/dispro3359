@@ -25,8 +25,9 @@ interface AddExpenseDialogProps {
 const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange }) => {
   const { data: categories } = useExpenseCategories();
   const createExpense = useCreateExpense();
+  const createWorkerDebt = useCreateWorkerDebt();
   const { language, t, dir } = useLanguage();
-  const { role, activeRole } = useAuth();
+  const { role, activeRole, activeBranch } = useAuth();
 
   // Filter categories based on user's active role
   const filteredCategories = useMemo(() => {
@@ -55,12 +56,32 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange 
   const [receiptFiles, setReceiptFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [advanceWorkerId, setAdvanceWorkerId] = useState('');
 
-  // Check if selected category is fuel
+  // Check if selected category is fuel / advance
   const selectedCategory = filteredCategories.find(c => c.id === categoryId);
   const isFuelCategory = selectedCategory?.name?.includes('وقود') || 
     selectedCategory?.name_fr?.toLowerCase().includes('carburant') || 
     selectedCategory?.name_en?.toLowerCase().includes('fuel');
+  const isAdvanceCategory = selectedCategory?.name?.includes('مسبق') ||
+    selectedCategory?.name_fr?.toLowerCase().includes('avance') ||
+    selectedCategory?.name_en?.toLowerCase().includes('advance');
+
+  // Load workers of the current branch (for advance category)
+  const { data: branchWorkers } = useQuery({
+    queryKey: ['expense-advance-workers', activeBranch?.id],
+    enabled: open && isAdvanceCategory && !!activeBranch?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('workers')
+        .select('id, full_name, role')
+        .eq('branch_id', activeBranch!.id)
+        .eq('is_active', true)
+        .order('full_name');
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
   const resetForm = () => {
     setCategoryId('');
@@ -69,7 +90,12 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange 
     setExpenseDate(format(new Date(), 'yyyy-MM-dd'));
     setReceiptFiles([]);
     setPaymentMethod('cash');
+    setAdvanceWorkerId('');
   };
+
+  useEffect(() => {
+    if (!isAdvanceCategory) setAdvanceWorkerId('');
+  }, [isAdvanceCategory]);
 
   const addFiles = (files: FileList | null) => {
     if (!files) return;
