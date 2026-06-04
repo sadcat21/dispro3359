@@ -192,8 +192,8 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
         .order('created_at', { ascending: false });
 
       if (activeBranch?.id) query = query.eq('branch_id', activeBranch.id);
-      if (!isCashInvoice2 && range?.from) query = query.gte('delivery_date', range.from);
-      if (!isCashInvoice2 && range?.to) query = query.lte('delivery_date', range.to);
+      if (!perManager && !isCashInvoice2 && range?.from) query = query.gte('delivery_date', range.from);
+      if (!perManager && !isCashInvoice2 && range?.to) query = query.lte('delivery_date', range.to);
 
       switch (category) {
         case 'cash_invoice1':
