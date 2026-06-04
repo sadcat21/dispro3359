@@ -220,7 +220,7 @@ const ManagerTreasury = () => {
 
       let consolidationQ = supabase
         .from('manager_treasury')
-        .select('id, amount, customer_name')
+        .select('id, amount, customer_name, created_at')
         .eq('source_type', 'cash_consolidation')
         .eq('payment_method', 'bank_receipt')
         .eq('branch_id', activeBranch!.id);
