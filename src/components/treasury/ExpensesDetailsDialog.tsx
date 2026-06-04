@@ -6,7 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Wallet } from 'lucide-react';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
-import MoneyValue from '@/components/common/MoneyValue';
+
+const MoneyValue = ({ value, currency, className = '' }: { value: number; currency: string; className?: string }) => (
+  <span className={className}>{Number(value || 0).toLocaleString('fr-FR')} {currency}</span>
+);
 
 interface Props {
   open: boolean;
