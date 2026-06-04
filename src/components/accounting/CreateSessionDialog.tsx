@@ -255,12 +255,17 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
 
   // Auto-update periodEnd removed - user controls manually via refresh button
 
+  // In edit mode, use the original DB timestamps (with timezone) to avoid
+  // misinterpreting UTC-stored values as local Algeria time, which would shift
+  // the window by one hour and pull in items outside the saved session.
+  const editPeriodStartRaw = editSession?.period_start || null;
+  const editPeriodEndRaw = editSession?.period_end || null;
   const calcParams = selectedWorkerId && periodStart && periodEnd
     ? {
         workerId: selectedWorkerId,
         branchId: activeBranch?.id,
-        periodStart,
-        periodEnd,
+        periodStart: isEditMode && editPeriodStartRaw ? editPeriodStartRaw : periodStart,
+        periodEnd: isEditMode && editPeriodEndRaw ? editPeriodEndRaw : periodEnd,
         // Do not auto-extend the saved period_end via completed_at; user must refresh explicitly.
         completedAt: null,
       }
