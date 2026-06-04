@@ -301,8 +301,8 @@ const AccountingSessions: React.FC = () => {
                 {[...workers].sort((a, b) => {
                   const liabA = allLiabilities?.find(l => l.workerId === a.id)?.totalLiability || 0;
                   const liabB = allLiabilities?.find(l => l.workerId === b.id)?.totalLiability || 0;
-                  const aHasRed = liabA !== 0 || docsWorkerIds.has(a.id) || debtsWorkerIds.has(a.id);
-                  const bHasRed = liabB !== 0 || docsWorkerIds.has(b.id) || debtsWorkerIds.has(b.id);
+                  const aHasRed = liabA !== 0 || docsWorkerIds.has(a.id) || debtsWorkerIds.has(a.id) || expensesWorkerIds.has(a.id);
+                  const bHasRed = liabB !== 0 || docsWorkerIds.has(b.id) || debtsWorkerIds.has(b.id) || expensesWorkerIds.has(b.id);
                   const aRank = reviewedWorkerIds.has(a.id) ? 0 : (aHasRed ? 1 : 2);
                   const bRank = reviewedWorkerIds.has(b.id) ? 0 : (bHasRed ? 1 : 2);
                   return aRank - bRank;
@@ -311,7 +311,8 @@ const AccountingSessions: React.FC = () => {
                   const liabValue = liability?.totalLiability || 0;
                   const hasDocs = docsWorkerIds.has(worker.id);
                   const hasDebts = debtsWorkerIds.has(worker.id);
-                  const hasIssue = liabValue !== 0 || hasDocs || hasDebts;
+                  const hasExpenses = expensesWorkerIds.has(worker.id);
+                  const hasIssue = liabValue !== 0 || hasDocs || hasDebts || hasExpenses;
                   const isReviewed = reviewedWorkerIds.has(worker.id);
                   // Green only when warehouse manager confirmed final review (and no outstanding issue)
                   const colorClass = isReviewed && !hasIssue
@@ -335,9 +336,9 @@ const AccountingSessions: React.FC = () => {
                         {liabValue !== 0 && (
                           <span className="text-[11px] font-bold text-white/90">{fmt(liabValue)} {t('accounting.currency_dzd')}</span>
                         )}
-                        {(hasDocs || hasDebts) && (
+                        {(hasDocs || hasDebts || hasExpenses) && (
                           <span className="text-[10px] font-medium text-white/90">
-                            {hasDocs && '📄 وثائق'} {hasDebts && '💳 ديون'}
+                            {hasDocs && '📄 وثائق'} {hasDebts && '💳 ديون'} {hasExpenses && '🧾 مصاريف'}
                           </span>
                         )}
                       </div>
