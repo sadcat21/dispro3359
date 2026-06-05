@@ -145,6 +145,8 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
   const [docSaving, setDocSaving] = useState(false);
   const [docNumber, setDocNumber] = useState('');
   const [docDate, setDocDate] = useState('');
+  const [docInvoiceNumber, setDocInvoiceNumber] = useState('');
+  const [docInvoiceDate, setDocInvoiceDate] = useState('');
   const [detailsOrderId, setDetailsOrderId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -158,6 +160,16 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
         setDocNumber(v.receiptNumber || v.transferReference || '');
         setDocDate('');
       }
+      // Fetch existing invoice number / issue date for this order so manager can edit it
+      (async () => {
+        const { data } = await supabase
+          .from('orders')
+          .select('invoice_number, invoice_sent_at')
+          .eq('id', docDialog.orderId)
+          .maybeSingle();
+        setDocInvoiceNumber((data as any)?.invoice_number || '');
+        setDocInvoiceDate((data as any)?.invoice_sent_at ? String((data as any).invoice_sent_at).substring(0, 10) : new Date().toISOString().substring(0, 10));
+      })();
     }
   }, [docDialog]);
 
