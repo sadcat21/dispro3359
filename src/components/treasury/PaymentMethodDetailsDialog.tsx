@@ -178,9 +178,14 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
     queryFn: async () => {
       let handedQuery = supabase
         .from('handover_items')
-        .select('order_id, payment_method, handover:manager_handovers!inner(branch_id, manager_id)');
+        .select('order_id, payment_method, handover:manager_handovers!inner(branch_id, manager_id, handover_date)');
       if (activeBranch?.id) handedQuery = handedQuery.eq('handover.branch_id', activeBranch.id);
       if (perManager) handedQuery = handedQuery.eq('handover.manager_id', perManager);
+      // Match the date scope used by useManagerTreasury for handovers so we
+      // don't exclude orders based on out-of-range handovers (which would make
+      // the dialog show 0 ops/clients while the card still displays the amount).
+      if (range?.from) handedQuery = handedQuery.gte('handover.handover_date', range.from);
+      if (range?.to) handedQuery = handedQuery.lte('handover.handover_date', range.to);
       const { data: handedItems, error: handedError } = await handedQuery;
       if (handedError) throw handedError;
 
