@@ -303,11 +303,16 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
       const debtCashHanded = (handovers || []).reduce((s: number, h: any) => s + Number(h.debt_cash_amount || 0), 0);
       const debtCashCollected = Math.max(debtCashCollectedGross - debtCashHanded, 0);
 
-      // Get approved expenses
-      let expQuery = supabase.from('expenses').select('amount').eq('status', 'approved');
+      // Get approved expenses (we'll filter by reviewed session windows below
+      // so that expenses for workers who haven't been accounted for yet are
+      // NOT deducted from the manager's treasury — they belong to the cash the
+      // worker will hand over later).
+      let expQuery = supabase
+        .from('expenses')
+        .select('amount, worker_id, created_at, expense_date')
+        .eq('status', 'approved');
       if (activeBranch?.id) expQuery = expQuery.eq('branch_id', activeBranch.id);
       const { data: expensesData } = await expQuery;
-      const totalExpenses = (expensesData || []).reduce((s: number, e: any) => s + Number(e.amount || 0), 0);
 
       // Get completed accounting sessions to determine covered orders.
       // CRITICAL: only sessions whose manager-review has been CONFIRMED are
@@ -347,6 +352,20 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
         start: parseAccountingTime(s.period_start),
         end: parseAccountingTime(s.period_end),
       }));
+
+      // Only count expenses for workers who have a CONFIRMED accounting
+      // session whose window covers the expense date. Until the worker is
+      // accounted for, their expenses come out of the cash they will hand
+      // over — not the manager's treasury.
+      const totalExpenses = (expensesData || []).reduce((s: number, e: any) => {
+        const wId = e.worker_id;
+        if (!wId) return s;
+        const t = parseAccountingTime(e.created_at || e.expense_date);
+        const covered = sessionWindows.some(
+          (w) => w.worker_id === wId && t >= w.start && t <= w.end,
+        );
+        return covered ? s + Number(e.amount || 0) : s;
+      }, 0);
 
       // When viewing as a specific manager with no reviewed sessions yet,
       // nothing should be displayed in the budget — zero out expenses and
