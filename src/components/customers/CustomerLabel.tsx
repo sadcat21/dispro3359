@@ -2,6 +2,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useCustomerTypes, getCustomerTypeColor, CustomerTypeEntry } from '@/hooks/useCustomerTypes';
+import { useRegistrationTypes } from '@/hooks/useRegistrationTypes';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { FlaskConical } from 'lucide-react';
 
@@ -12,7 +13,9 @@ export interface CustomerLabelData {
   sector_name?: string | null;
   zone_name?: string | null;
   internal_name?: string | null;
+  registration_type?: string | null;
 }
+
 
 interface CustomerLabelProps {
   customer: CustomerLabelData;
