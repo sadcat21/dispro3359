@@ -115,6 +115,7 @@ const parseVerification = (v: any, docType: string) => {
     verified: totalFields > 0 && verifiedFields === totalFields,
     verifiedFields,
     totalFields,
+    raw: v,
   };
 };
 
@@ -376,12 +377,18 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
   if ((!docs || docs.length === 0) && (!stampedInvoices || stampedInvoices.length === 0)) return <p data-empty="true" className="text-xs text-muted-foreground text-center py-3">لا توجد مستندات محصلة في هذه الفترة</p>;
 
   const allDocs = docs || [];
-  // Exclude cash-bucket items (Versement Cash / Virement Cash / cash) — this section
-  // is for documents only, not cash receipts.
+  // Exclude ONLY explicit cash items: documentType === 'cash', or Versement/Virement
+  // explicitly marked as cash via verification flags. Versement/Virement Doc variants
+  // (including cases where payment_status='cash' but no explicit cash bucket marker)
+  // are kept here because they are documents.
   const isCashOnly = (d: CollectedDoc) => {
     const m = (d.documentType || '').toLowerCase();
     if (m === 'cash') return true;
-    if ((m === 'receipt' || m === 'versement' || m === 'transfer' || m === 'virement') && d.bucket === 'cash') return true;
+    if (m === 'receipt' || m === 'versement' || m === 'transfer' || m === 'virement') {
+      const v: any = (d as any).verification?.raw || {};
+      if (v.manager_receipt_bucket === 'cash') return true;
+      if (v.paid_by_cash === true) return true;
+    }
     return false;
   };
   const deliveryDocs = allDocs.filter(d => d.source === 'delivery' && !isCashOnly(d));
