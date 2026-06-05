@@ -726,6 +726,7 @@ const MyAchievements: React.FC = () => {
         invoiceMethod: string | null;
         priceSubtype: string | null;
         isCancelled: boolean;
+        hasItems: boolean;
         status: string | null;
         createdBy: string | null;
         assignedWorkerId: string | null;
@@ -764,6 +765,7 @@ const MyAchievements: React.FC = () => {
             invoiceMethod: o.invoice_payment_method || null,
             priceSubtype: orderSubtypeMap.get(o.id) || null,
             isCancelled: orderStatus === 'cancelled',
+            hasItems: (orderProductsMap.get(o.id)?.size || 0) > 0,
             status: orderStatus,
             createdBy: o.created_by || null,
             assignedWorkerId: o.assigned_worker_id || null,
@@ -840,6 +842,10 @@ const MyAchievements: React.FC = () => {
           promoCount: visit.operation_id ? (orderPromoCountMap.get(visit.operation_id) || 0) : 0,
         };
       }).filter((visit: any) => {
+        if (['direct_sale', 'delivery', 'order'].includes(visit.operation_type) && visit.operation_id) {
+          const orderMeta = orderMetaMap.get(visit.operation_id);
+          if (orderMeta && !orderMeta.hasItems) return false;
+        }
         if (visit.operation_type !== 'direct_sale' || !visit.operation_id) return true;
         const note = String(visit.notes || '').trim().toLowerCase();
         const isFallbackVisit = note === 'auto: server fallback' || note === 'auto: backfill';
