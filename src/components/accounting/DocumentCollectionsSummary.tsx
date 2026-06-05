@@ -863,6 +863,25 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                     onChange={(e) => setDocDate(e.target.value)}
                   />
                 </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="doc-inv-num">رقم الفاتورة *</Label>
+                  <Input
+                    id="doc-inv-num"
+                    value={docInvoiceNumber}
+                    onChange={(e) => setDocInvoiceNumber(e.target.value)}
+                    placeholder="..."
+                    className="text-right"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="doc-inv-date">تاريخ الفاتورة *</Label>
+                  <Input
+                    id="doc-inv-date"
+                    type="date"
+                    value={docInvoiceDate}
+                    onChange={(e) => setDocInvoiceDate(e.target.value)}
+                  />
+                </div>
               </div>
             </div>
           )}
