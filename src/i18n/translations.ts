@@ -2830,6 +2830,8 @@ export const translations: Translations = {
   'create_session.calc_load_error': { ar: 'تعذر تحميل الحسابات', fr: 'Impossible de charger les calculs', en: 'Unable to load calculations' },
   'create_session.sales_summary': { ar: 'ملخص المبيعات', fr: 'Résumé des ventes', en: 'Sales summary' },
   'create_session.payment_details': { ar: 'تفاصيل المدفوعات', fr: 'Détails des paiements', en: 'Payment details' },
+  'create_session.debt_details': { ar: 'تفاصيل الديون', fr: 'Détails des dettes', en: 'Debt details' },
+  'create_session.new_debts_card': { ar: 'ديون جديدة', fr: 'Nouvelles dettes', en: 'New debts' },
   'create_session.customer_surplus_cash': { ar: 'فائض العملاء (كاش)', fr: 'Surplus clients (cash)', en: 'Customer surplus (cash)' },
   'create_session.deficit_as_debt_and_treasury': { ar: 'تسجيل العجز كدين على العامل + في خزينة الفائض والعجز', fr: 'Enregistrer le déficit comme dette + au trésor', en: 'Record deficit as worker debt + in treasury' },
   'create_session.deficit_treasury_only': { ar: 'تسجيل العجز فقط في خزينة الفائض والعجز', fr: 'Enregistrer le déficit uniquement au trésor', en: 'Record deficit only in treasury' },
