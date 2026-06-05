@@ -235,6 +235,8 @@ const mergeCalcs = (calcs: SessionCalculations[]): SessionCalculations => {
     merged.totalSales += calc.totalSales;
     merged.totalPaid += calc.totalPaid;
     merged.newDebts += calc.newDebts;
+    merged.newDebtsByInvoice.invoice1 += calc.newDebtsByInvoice?.invoice1 || 0;
+    merged.newDebtsByInvoice.invoice2 += calc.newDebtsByInvoice?.invoice2 || 0;
     merged.invoice1.total += calc.invoice1.total;
     merged.invoice1.check += calc.invoice1.check;
     merged.invoice1.transfer += calc.invoice1.transfer;
