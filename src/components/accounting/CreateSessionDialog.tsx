@@ -985,10 +985,6 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                   <DebtCollectionsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} completedAt={null} />
                 </StepSection>
 
-                {/* ━━━ Step 11: Document Collections ━━━ */}
-                <StepSection step={11} title={t('create_session.collected_documents')} color="blue">
-                  <DocumentCollectionsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} receivedDocs={receivedDocs} onReceivedDocsChange={setReceivedDocs} />
-                </StepSection>
 
                 {/* ━━━ Step 12: Exceptional Actions ━━━ */}
                 <StepSection step={12} title={t('create_session.exceptional_actions')} color="amber">
