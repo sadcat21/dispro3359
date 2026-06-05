@@ -622,6 +622,7 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
     totalSales,
     totalPaid,
     newDebts,
+    newDebtsByInvoice,
     invoice1,
     invoice2,
     debtCollections,
