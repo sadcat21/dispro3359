@@ -40,8 +40,10 @@ interface DocumentCollectionsSummaryProps {
 interface CollectedDoc {
   orderId: string;
   customerName: string;
+  storeName: string | null;
   documentType: string;
   orderTotal: number;
+  paymentStatus: string | null;
   source: 'delivery' | 'pending_collection';
   documentStatus: string | null;
   bucket: 'cash' | 'doc' | null;
@@ -263,7 +265,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
 
       const { data: pendingCollections } = await supabase
         .from('document_collections')
-        .select(`id, action, status, collection_date, created_at, order_id, order:orders!document_collections_order_id_fkey(id, total_amount, invoice_payment_method, document_status, document_verification, payment_status, payment_method_resolved, customer:customers!orders_customer_id_fkey(name))`)
+        .select(`id, action, status, collection_date, created_at, order_id, order:orders!document_collections_order_id_fkey(id, total_amount, invoice_payment_method, document_status, document_verification, payment_status, payment_method_resolved, customer:customers!orders_customer_id_fkey(name, store_name))`)
         .eq('worker_id', workerId)
         .eq('action', 'collected')
         .neq('status', 'rejected')
@@ -278,8 +280,10 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
         result.push({
           orderId: order.id,
           customerName: order.customer?.name || 'غير معروف',
+          storeName: order.customer?.store_name || null,
           documentType: docType,
           orderTotal: Number(order.total_amount || 0),
+          paymentStatus: order.payment_status || null,
           source: 'pending_collection',
           documentStatus: order.document_status,
           bucket: resolveBucket(dv, order),
@@ -292,7 +296,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
 
       const { data: deliveryOrders } = await supabase
         .from('orders')
-        .select(`id, total_amount, invoice_payment_method, document_status, document_verification, payment_status, payment_method_resolved, updated_at, customer:customers!orders_customer_id_fkey(name)`)
+        .select(`id, total_amount, invoice_payment_method, document_status, document_verification, payment_status, payment_method_resolved, updated_at, customer:customers!orders_customer_id_fkey(name, store_name)`)
         .eq('assigned_worker_id', workerId)
         .eq('status', 'delivered')
         .in('invoice_payment_method', ['check', 'receipt', 'transfer', 'versement', 'virement'])
@@ -308,8 +312,10 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
         result.push({
           orderId: o.id,
           customerName: (o.customer as any)?.name || 'غير معروف',
+          storeName: (o.customer as any)?.store_name || null,
           documentType: docType,
           orderTotal: Number(o.total_amount || 0),
+          paymentStatus: (o as any).payment_status || null,
           source: 'delivery',
           documentStatus: o.document_status,
           bucket: resolveBucket(dv, o),
@@ -406,25 +412,46 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
         className={`border rounded-lg p-3 space-y-2 cursor-pointer transition-colors hover:bg-muted/40 ${!isReceived ? 'border-destructive/40 bg-destructive/5' : ''}`}
       >
         {/* Header: customer + amount */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-              <FileCheck2 className="w-3.5 h-3.5 text-primary" />
+        {(() => {
+          const ps = (doc.paymentStatus || '').toLowerCase();
+          const psMeta =
+            ps === 'paid' || ps === 'full' || ps === 'fully_paid'
+              ? { label: 'دفع كلي', cls: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300' }
+              : ps === 'partial' || ps === 'partially_paid'
+                ? { label: 'دفع جزئي', cls: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300' }
+                : ps === 'debt' || ps === 'unpaid' || ps === 'pending'
+                  ? { label: 'دين', cls: 'bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300' }
+                  : null;
+          return (
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-start gap-2 min-w-0 flex-1">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <FileCheck2 className="w-4 h-4 text-primary" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-foreground truncate leading-tight">{doc.customerName}</p>
+                  <p className="text-[11px] text-muted-foreground truncate leading-tight">
+                    {doc.storeName || <span className="italic opacity-70">بدون اسم محل</span>}
+                  </p>
+                  <div className="flex items-center gap-1 mt-1 flex-wrap">
+                    <Badge className={`${docTypeColor(doc.documentType)} text-[9px] px-1.5 py-0 h-4`}>
+                      {stampedMethodLabel(doc.documentType, doc.bucket)}
+                    </Badge>
+                    {psMeta && (
+                      <Badge className={`${psMeta.cls} text-[9px] px-1.5 py-0 h-4 border-0`}>
+                        {psMeta.label}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="text-end shrink-0">
+                <span className="font-bold text-sm text-primary">{fmt(doc.orderTotal)} DA</span>
+                <p className="text-[10px] text-muted-foreground mt-0.5">#{doc.orderId.slice(0, 8)}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-semibold">{doc.customerName}</p>
-              <p className="text-[10px] text-muted-foreground">#{doc.orderId.slice(0, 8)}</p>
-            </div>
-          </div>
-          <div className="text-end">
-            <span className="font-bold text-sm">{fmt(doc.orderTotal)} DA</span>
-            <div className="mt-0.5">
-              <Badge className={`${docTypeColor(doc.documentType)} text-[9px] px-1.5 py-0`}>
-                {stampedMethodLabel(doc.documentType, doc.bucket)}
-              </Badge>
-            </div>
-          </div>
-        </div>
+          );
+        })()}
 
         {/* Verification details */}
         {doc.documentType === 'check' && (
