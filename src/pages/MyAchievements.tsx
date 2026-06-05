@@ -28,6 +28,7 @@ import type { OrderWithDetails } from '@/types/database';
 import { isAdminRole } from '@/lib/utils';
 import WarehouseTodayAchievements from '@/components/warehouse/WarehouseTodayAchievements';
 import PendingOffersTab from '@/components/offers/PendingOffersTab';
+import { resolveReceiptBucket } from '@/utils/treasuryDocumentClassification';
 
 const OPERATION_ICONS: Record<string, React.ReactNode> = {
   order: <ShoppingCart className="w-4 h-4 text-blue-600" />,
@@ -683,7 +684,7 @@ const MyAchievements: React.FC = () => {
           : Promise.resolve({ data: [] as any[] }),
         // 2. Orders
         orderIds.length
-          ? supabase.from('orders').select('id, total_amount, payment_type, invoice_payment_method, status, created_by, assigned_worker_id').in('id', orderIds)
+          ? supabase.from('orders').select('id, total_amount, payment_type, invoice_payment_method, status, created_by, assigned_worker_id, document_verification, payment_status, payment_method_resolved').in('id', orderIds)
           : Promise.resolve({ data: [] as any[] }),
         // 3. Order items (price_subtype + product/gift info for filtering & promo badge)
         orderIds.length
@@ -730,6 +731,9 @@ const MyAchievements: React.FC = () => {
         status: string | null;
         createdBy: string | null;
         assignedWorkerId: string | null;
+        documentVerification: any;
+        paymentStatus: string | null;
+        paymentMethodResolved: string | null;
       }>();
       const debtCollectionStoreMap = new Map<string, string>();
       const debtCollectionAmountMap = new Map<string, number>();
@@ -769,6 +773,9 @@ const MyAchievements: React.FC = () => {
             status: orderStatus,
             createdBy: o.created_by || null,
             assignedWorkerId: o.assigned_worker_id || null,
+            documentVerification: o.document_verification ?? null,
+            paymentStatus: o.payment_status || null,
+            paymentMethodResolved: o.payment_method_resolved || null,
           });
         });
 
@@ -827,6 +834,9 @@ const MyAchievements: React.FC = () => {
           orderTotal: orderMeta?.totalAmount ?? null,
           order_payment_type: orderMeta?.paymentType || '',
           order_invoice_method: orderMeta?.invoiceMethod || '',
+          order_document_verification: orderMeta?.documentVerification ?? null,
+          order_payment_status: orderMeta?.paymentStatus || null,
+          order_payment_method_resolved: orderMeta?.paymentMethodResolved || null,
           order_price_subtype: orderMeta?.priceSubtype || '',
           order_status: orderMeta?.status || null,
           isCancelledOrder: orderMeta?.isCancelled || false,
@@ -1437,6 +1447,13 @@ const MyAchievements: React.FC = () => {
                 const invoiceMethodBadge = isOrderLike && visit.order_payment_type === 'with_invoice' && visit.order_invoice_method
                   ? (visit.order_invoice_method === 'cash' ? 'Cash' : visit.order_invoice_method === 'check' ? 'Cheq' : visit.order_invoice_method === 'transfer' ? 'Vrsm' : visit.order_invoice_method === 'receipt' ? 'Perm' : null)
                   : null;
+                // شارة Versement Doc / Versement Cash للوصل (Perm) والتحويل (Vrsm)
+                const receiptBucketBadge = isOrderLike && (visit.order_invoice_method === 'receipt' || visit.order_invoice_method === 'transfer')
+                  ? (resolveReceiptBucket(visit.order_document_verification, {
+                      payment_status: visit.order_payment_status,
+                      payment_method_resolved: visit.order_payment_method_resolved,
+                    }) === 'cash' ? 'Vers Cash' : 'Vers Doc')
+                  : null;
 
                 const hasAmount = visit.orderTotal != null || (visit.operation_type === 'debt_collection' && visit.debtCollectionAmount != null);
                 const displayAmount = visit.orderTotal ?? visit.debtCollectionAmount ?? 0;
@@ -1515,6 +1532,11 @@ const MyAchievements: React.FC = () => {
                         {!isWarehouseManager && paymentBadge && (
                           <span className={`inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-bold border ${paymentBadge === 'F1' ? 'border-primary/30 bg-primary/10 text-primary' : 'border-muted-foreground/30 bg-muted/80 text-muted-foreground'}`}>
                             {paymentBadge}{subtypeBadge && `·${subtypeBadge}`}{invoiceMethodBadge && `·${invoiceMethodBadge}`}
+                          </span>
+                        )}
+                        {!isWarehouseManager && receiptBucketBadge && (
+                          <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-bold border ${receiptBucketBadge === 'Vers Cash' ? 'border-amber-300 bg-amber-50 text-amber-700' : 'border-sky-300 bg-sky-50 text-sky-700'}`}>
+                            {receiptBucketBadge}
                           </span>
                         )}
                         {isCancelled && (
