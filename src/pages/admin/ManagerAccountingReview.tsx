@@ -649,8 +649,10 @@ export const WorkerBreakdown: React.FC<{
       };
       const cashExp = get('physical_cash', 'expected_amount');
       const cashAct = get('physical_cash');
-      const diff = cashAct - cashExp;
       const expensesTotal = get('expenses');
+      // Neutralize expenses' effect on expected cash so that an expense-only
+      // session doesn't appear as a surplus (expected is already reduced by expenses).
+      const diff = cashAct - (cashExp + expensesTotal);
       const isChecked = selectedIds?.has(session.id) ?? false;
 
       const dateStr = session.completed_at ? format(new Date(session.completed_at), 'yyyy-MM-dd') : '';
