@@ -353,6 +353,20 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
         end: parseAccountingTime(s.period_end),
       }));
 
+      // Only count expenses for workers who have a CONFIRMED accounting
+      // session whose window covers the expense date. Until the worker is
+      // accounted for, their expenses come out of the cash they will hand
+      // over — not the manager's treasury.
+      const totalExpenses = (expensesData || []).reduce((s: number, e: any) => {
+        const wId = e.worker_id;
+        if (!wId) return s;
+        const t = parseAccountingTime(e.created_at || e.expense_date);
+        const covered = sessionWindows.some(
+          (w) => w.worker_id === wId && t >= w.start && t <= w.end,
+        );
+        return covered ? s + Number(e.amount || 0) : s;
+      }, 0);
+
       // When viewing as a specific manager with no reviewed sessions yet,
       // nothing should be displayed in the budget — zero out expenses and
       // debt-cash collections too (sales are already gated via scopedOrders).
