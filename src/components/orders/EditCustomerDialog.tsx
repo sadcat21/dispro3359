@@ -405,6 +405,10 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
         customer_type: customerType || null,
         customer_types: customerType ? customerType.split(',').map(s => s.trim()).filter(Boolean) : [],
         is_registered: isRegistered,
+        owner_first_name_ar: isRegistered ? (ownerFirstNameAr.trim() || null) : null,
+        owner_last_name_ar: isRegistered ? (ownerLastNameAr.trim() || null) : null,
+        owner_first_name_fr: isRegistered ? (ownerFirstNameFr.trim() || null) : null,
+        owner_last_name_fr: isRegistered ? (ownerLastNameFr.trim() || null) : null,
         default_delivery_worker_id: defaultDeliveryWorkerId || null,
       };
 
