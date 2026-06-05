@@ -140,7 +140,7 @@ const SalesDetailsSummary: React.FC<SalesDetailsSummaryProps> = ({ workerId, per
         .from('stock_movements')
         .select('order_id')
         .eq('worker_id', workerId)
-        .eq('movement_type', 'delivery')
+        .in('movement_type', ['delivery', 'modification'])
         .eq('status', 'approved')
         .gt('created_at', effectiveStartTz)
         .lte('created_at', periodEndTz);
