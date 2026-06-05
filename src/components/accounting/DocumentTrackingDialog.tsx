@@ -115,13 +115,17 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
     try {
       const updates: any = { document_stage: next };
       if (invoiceNo) updates.invoice_number = invoiceNo;
-      const { error } = await supabase
+      const { data: updated, error } = await supabase
         .from('orders')
         .update(updates)
-        .eq('id', row.id);
+        .eq('id', row.id)
+        .select('id');
       if (error) throw error;
+      if (!updated || updated.length === 0) {
+        throw new Error('لا تملك صلاحية تعديل هذه الوثيقة (RLS)');
+      }
       toast({ title: 'تم التحديث', description: `الوثيقة انتقلت إلى: ${next === 'received' ? 'مستلمة' : next === 'ready' ? 'جاهزة' : 'مُسلَّمة'}` });
-      qc.invalidateQueries({ queryKey: ['document-tracking', branchId] });
+      await qc.invalidateQueries({ queryKey: ['document-tracking', branchId] });
       setInvoicePrompt(null);
     } catch (e: any) {
       toast({ title: 'خطأ', description: e?.message || 'تعذّر التحديث', variant: 'destructive' });
