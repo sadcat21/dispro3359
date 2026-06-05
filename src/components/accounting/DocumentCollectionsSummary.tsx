@@ -60,11 +60,6 @@ interface CollectedDoc {
 const fmt = (n: number) => n.toLocaleString();
 const extractDate = (v: string): string => v.replace('T', ' ').substring(0, 10);
 
-const docTypeLabel = (t: string) => {
-  const map: Record<string, string> = { check: 'Chèque', receipt: 'Versement', transfer: 'Virement', versement: 'Versement', virement: 'Virement' };
-  return map[t] || t;
-};
-
 const stampedMethodLabel = (method: string, bucket: 'cash' | 'doc' | null): string => {
   const m = (method || '').toLowerCase();
   if (m === 'check') return 'Chèque';
