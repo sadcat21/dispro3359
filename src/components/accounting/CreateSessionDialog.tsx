@@ -991,7 +991,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 )}
 
                 {/* ━━━ Step 10: Debt Collections Detail ━━━ */}
-                <StepSection step={10} title={t('create_session.collected_debts_details')} color="orange">
+                <StepSection step={11} title={t('create_session.collected_debts_details')} color="orange">
                   <DebtCollectionsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} completedAt={null} />
                 </StepSection>
 
