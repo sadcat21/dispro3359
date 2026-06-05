@@ -743,7 +743,9 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
     splitResultsRef.current = results;
     const total = results.reduce((s, r) => s + r.group.subtotal + (stampByGroupKey[r.key] || 0), 0);
     const paid = results.reduce((s, r) => s + r.paidAmount, 0);
-    const remaining = Math.max(0, total - paid);
+    const EPS = 0.01;
+    const isFull = paid >= total - EPS;
+    const remaining = isFull ? 0 : Math.max(0, total - paid);
     // Pick a representative invoice method: prefer the first F1 group's method, else null
     const firstF1 = results.find((r) => r.group.paymentType === 'with_invoice');
     if (firstF1) {
@@ -756,10 +758,10 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
     setPendingDocVerification(null);
     setShowSplitDialog(false);
     await handlePaymentConfirm({
-      paidAmount: paid,
+      paidAmount: isFull ? total : paid,
       remainingAmount: remaining,
       paymentMethod: firstF1 ? (firstF1.group.invoicePaymentMethod || 'receipt') : 'cash',
-      isFullPayment: paid >= total,
+      isFullPayment: isFull,
       isNoPayment: paid === 0,
     });
   };
@@ -775,6 +777,10 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
     const paid = data.receiptAmount + data.cashAmount;
     const total = orderTotals.totalAmount;
     const effective = Math.min(paid, total);
+    // هامش تسامح لتجنب أخطاء floating-point (مثلاً 97222.645 vs 97222.64499999999)
+    const EPS = 0.01;
+    const isFull = effective >= total - EPS;
+    const remaining = isFull ? 0 : Math.max(0, total - effective);
     const docStatus = data.receiptReceived ? 'received' : (data.paidByCash ? 'none' : 'pending');
     setPendingDocVerification({
       verification: {
@@ -790,10 +796,10 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
     // أغلق نافذة استلام المستند قبل تشغيل عملية الحفظ حتى تظهر نافذة تأكيد البيع بشكل صحيح
     setShowReceiptPaymentDialog(false);
     await handlePaymentConfirm({
-      paidAmount: effective,
-      remainingAmount: data.remainingDebt,
+      paidAmount: isFull ? total : effective,
+      remainingAmount: remaining,
       paymentMethod: data.paidByCash ? 'cash' : (frozenInvoiceMethod || 'receipt'),
-      isFullPayment: effective >= total,
+      isFullPayment: isFull,
       isNoPayment: paid === 0,
     });
   };
