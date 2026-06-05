@@ -766,15 +766,37 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                   </div>
                 </StepSection>
 
-                {/* ━━━ Step 4: Debt Collections ━━━ */}
-                <StepSection step={4} title={t('accounting.debt_collections')} color="orange" badge={`${fmt(calc.debtCollections.total)} DA`}>
-                  <div className="space-y-0.5">
-                    <PaymentRow label={t('accounting.method_cash')} value={calc.debtCollections.cash} highlight />
-                    <PaymentRow label={t('accounting.method_check')} value={calc.debtCollections.check} />
-                    <PaymentRow label={t('accounting.method_transfer')} value={calc.debtCollections.transfer} />
-                    <PaymentRow label={t('accounting.method_receipt')} value={calc.debtCollections.receipt} />
+                {/* ━━━ Step 4: Debt Details (mirrors payment_details layout) ━━━ */}
+                <StepSection step={4} title={t('create_session.debt_details')} color="orange" badge={`${fmt((calc.newDebts || 0) + (calc.debtCollections?.total || 0))} DA`}>
+                  {/* New Debts */}
+                  <div className="rounded-lg border p-3 space-y-1.5 mb-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <TrendingDown className="w-3.5 h-3.5 text-destructive" />
+                        <span className="font-bold text-xs">{t('create_session.new_debts_card')}</span>
+                      </div>
+                      <span className="font-bold text-xs text-destructive">{fmt(calc.newDebts || 0)} DA</span>
+                    </div>
+                    <PaymentRow label={t('accounting.new_debts')} value={calc.newDebts || 0} highlight />
+                  </div>
+                  {/* Debt Collections */}
+                  <div className="rounded-lg border p-3 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <ArrowDownCircle className="w-3.5 h-3.5 text-orange-600" />
+                        <span className="font-bold text-xs">{t('accounting.debt_collections')}</span>
+                      </div>
+                      <span className="font-bold text-xs text-orange-600">{fmt(calc.debtCollections?.total || 0)} DA</span>
+                    </div>
+                    <div className="space-y-0.5">
+                      <PaymentRow label={t('accounting.method_cash')} value={calc.debtCollections?.cash || 0} highlight />
+                      <PaymentRow label={t('accounting.method_check')} value={calc.debtCollections?.check || 0} />
+                      <PaymentRow label={t('accounting.method_transfer')} value={calc.debtCollections?.transfer || 0} />
+                      <PaymentRow label={t('accounting.method_receipt')} value={calc.debtCollections?.receipt || 0} />
+                    </div>
                   </div>
                 </StepSection>
+
 
                 {/* ━━━ Step 5: Physical Cash (Key Input) ━━━ */}
                 <StepSection step={5} title={t('accounting.physical_cash')} color="primary" important>
