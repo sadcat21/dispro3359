@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2, BookOpen, Loader2, GripVertical, Pencil, Check, X, Palette } from 'lucide-react';
-import { useRegistrationTypes, RegistrationTypeEntry, getRegistrationTypeColor } from '@/hooks/useRegistrationTypes';
+import { useRegistrationTypes, RegistrationTypeEntry, RegistrationSubType, getRegistrationTypeColor } from '@/hooks/useRegistrationTypes';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
