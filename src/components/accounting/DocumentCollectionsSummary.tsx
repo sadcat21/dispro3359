@@ -702,6 +702,28 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
               إغلاق
             </Button>
             <Button
+              variant="destructive"
+              disabled={stampSaving}
+              className="flex-1"
+              onClick={async () => {
+                if (!stampDialog) return;
+                setStampSaving(true);
+                const { error } = await (supabase as any).rpc('set_manager_invoice_decision', {
+                  p_order_id: stampDialog.orderId,
+                  p_decision: 'not_received',
+                });
+                setStampSaving(false);
+                if (error) { toast.error('فشل التحديث: ' + String(error.message || '')); return; }
+                toast.success('تم تسجيل: لم تُستلم');
+                await queryClient.invalidateQueries({ queryKey: ['session-stamped-invoices'] });
+                await queryClient.invalidateQueries({ queryKey: ['invoice-tracking'] });
+                setStampDialog(null);
+              }}
+            >
+              <XCircle className="w-4 h-4 me-1" />
+              لم تُستلم
+            </Button>
+            <Button
               onClick={handleConfirmStamp}
               disabled={stampSaving || !stampInvoiceNumber.trim() || !stampIssueDate}
               className="flex-1 bg-green-600 hover:bg-green-700"
