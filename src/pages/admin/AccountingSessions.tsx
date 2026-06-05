@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Loader2, Calculator, User, Calendar, ClipboardList, TrendingUp, TrendingDown, Banknote, ArrowDownCircle, CreditCard, AlertTriangle, ChevronDown, Trash2, RotateCcw, Receipt } from 'lucide-react';
+import { Loader2, Calculator, User, Calendar, ClipboardList, TrendingUp, TrendingDown, Banknote, ArrowDownCircle, CreditCard, AlertTriangle, ChevronDown, Trash2, RotateCcw, Receipt, FileStack } from 'lucide-react';
 import Invoice1StatusDialog from '@/components/accounting/Invoice1StatusDialog';
 import InvoiceTrackingDialog from '@/components/accounting/InvoiceTrackingDialog';
 import { useLanguage } from '@/contexts/LanguageContext';
