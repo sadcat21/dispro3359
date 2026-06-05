@@ -111,7 +111,7 @@ const DocumentTracking: React.FC = () => {
   const advance = async (row: Row, invoiceNo?: string) => {
     if (row.stage === 'handed') return;
     const next = NEXT_STAGE[row.stage];
-    if (row.stage === 'ready' && !invoiceNo) {
+    if (row.stage === 'pending' && !invoiceNo) {
       openInvoicePrompt(row);
       return;
     }
@@ -155,7 +155,7 @@ const DocumentTracking: React.FC = () => {
 
   const handleRowAction = (row: Row) => {
     if (busyId === row.id) return;
-    if (row.stage === 'ready') {
+    if (row.stage === 'pending') {
       openInvoicePrompt(row);
       return;
     }
@@ -292,7 +292,7 @@ const DocumentTracking: React.FC = () => {
             <Button variant="outline" onClick={() => setInvoicePrompt(null)}>إلغاء</Button>
             <Button onClick={confirmInvoicePrompt} disabled={!invoiceNumber.trim() || busyId === invoicePrompt?.id}>
               <Inbox className="w-3 h-3 me-1" />
-              استلام
+              تأكيد الاستلام
             </Button>
           </DialogFooter>
         </DialogContent>
