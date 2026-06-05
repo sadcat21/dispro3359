@@ -362,6 +362,9 @@ const CollectedDebtOperationDialog: React.FC<Props> = ({ open, onOpenChange, col
               </Card>
             </div>
 
+            <PaymentMethodBreakdown payments={debtPayments} compact title="تفصيل مدفوعات هذا الدين حسب طريقة الدفع" />
+
+
             {!editMode ? (
               <Card className="p-3 space-y-2">
                 <div className="text-sm font-semibold">معلومات العملية</div>
