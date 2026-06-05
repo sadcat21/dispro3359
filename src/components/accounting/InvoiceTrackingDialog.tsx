@@ -98,13 +98,17 @@ const InvoiceTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId }
     try {
       const updates: any = { invoice_stage: next };
       if (invoiceNo) updates.invoice_number = invoiceNo;
-      const { error } = await supabase
+      const { data: updated, error } = await supabase
         .from('orders')
         .update(updates)
-        .eq('id', row.id);
+        .eq('id', row.id)
+        .select('id');
       if (error) throw error;
+      if (!updated || updated.length === 0) {
+        throw new Error('لا تملك صلاحية تعديل هذه الفاتورة (RLS)');
+      }
       toast({ title: 'تم التحديث', description: `الفاتورة انتقلت إلى: ${next === 'sealed' ? 'ممهورة' : next === 'ready' ? 'جاهزة' : 'مُسلَّمة'}` });
-      qc.invalidateQueries({ queryKey: ['invoice-tracking', branchId] });
+      await qc.invalidateQueries({ queryKey: ['invoice-tracking', branchId] });
       setInvoicePrompt(null);
     } catch (e: any) {
       toast({ title: 'خطأ', description: e?.message || 'تعذّر التحديث', variant: 'destructive' });
