@@ -895,7 +895,7 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
                           size="sm"
                           className={`font-mono uppercase text-xs hover:opacity-100 ${isActive ? 'ring-2 ring-offset-1 ring-foreground/40' : 'opacity-60'}`}
                           style={{ backgroundColor: colors.bg, borderColor: colors.bg, color: colors.text }}
-                          onClick={() => setRegistrationType(isActive ? '' : entry.ar)}
+                          onClick={() => { const turnOff = isActive; setRegistrationType(turnOff ? '' : entry.ar); setRegistrationSubTypes([]); }}
                         >
                           {entry.short || (entry as any)[language] || entry.ar}
                         </Button>
