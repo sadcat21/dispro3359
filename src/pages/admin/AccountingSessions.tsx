@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Loader2, Calculator, User, Calendar, ClipboardList, TrendingUp, TrendingDown, Banknote, ArrowDownCircle, CreditCard, AlertTriangle, ChevronDown, Trash2, RotateCcw, Receipt } from 'lucide-react';
 import Invoice1StatusDialog from '@/components/accounting/Invoice1StatusDialog';
+import InvoiceTrackingDialog from '@/components/accounting/InvoiceTrackingDialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAccountingSessions, AccountingSession, AccountingSessionItem, useDeleteSession, useCancelSession } from '@/hooks/useAccountingSessions';
@@ -42,6 +43,7 @@ const AccountingSessions: React.FC = () => {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [invoice1Open, setInvoice1Open] = useState(false);
+  const [invoiceTrackingOpen, setInvoiceTrackingOpen] = useState(false);
   const [openSessions, setOpenSessions] = useState<{ workerId: string; workerName: string }[]>([]);
   const { workerId: contextWorkerId } = useSelectedWorker();
   const [selectedSession, setSelectedSession] = useState<AccountingSession | null>(null);
@@ -270,6 +272,15 @@ const AccountingSessions: React.FC = () => {
               >
                 <Receipt className="w-3.5 h-3.5" />
                 فاتورة 1
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 text-xs border-indigo-300 text-indigo-700 hover:bg-indigo-50"
+                onClick={() => setInvoiceTrackingOpen(true)}
+              >
+                <ClipboardList className="w-3.5 h-3.5" />
+                تتبع الفواتير
               </Button>
               {isAdminOrBranchAdmin && (
                 <Button
@@ -601,6 +612,11 @@ const AccountingSessions: React.FC = () => {
       <Invoice1StatusDialog
         open={invoice1Open}
         onOpenChange={setInvoice1Open}
+        branchId={activeBranch?.id}
+      />
+      <InvoiceTrackingDialog
+        open={invoiceTrackingOpen}
+        onOpenChange={setInvoiceTrackingOpen}
         branchId={activeBranch?.id}
       />
     </div>
