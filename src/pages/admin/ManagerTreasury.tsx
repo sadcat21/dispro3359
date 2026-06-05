@@ -943,9 +943,10 @@ const ManagerTreasury = () => {
       {/* Total Remaining Treasury */}
       {(() => {
         const cashAvailableBeforeHandover =
-          (summary?.cash_invoice1 || 0) + (summary?.cash_invoice1_stamp || 0) +
+          (summary?.cash_invoice1 || 0) +
           (summary?.receipt_cash || 0) + (summary?.cash_invoice2 || 0) +
-          (summary?.debtCashCollected || 0) - (summary?.coinExchangeOut || 0);
+          (summary?.debtCashCollected || 0) - (summary?.coinExchangeOut || 0)
+          - (summary?.totalExpenses || 0);
         const nonCash = (summary?.check || 0) + (summary?.bank_receipt || 0) + (summary?.bank_transfer || 0);
         const nonCashHanded = (summary?.check_handed || 0) + (summary?.receipt_handed || 0) + (summary?.transfer_handed || 0);
         // Note: summary.debtCashCollected is already NET (gross - debt_cash_amount handed),
