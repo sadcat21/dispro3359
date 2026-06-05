@@ -1,0 +1,1 @@
+CREATE POLICY "Accountant can update document/invoice stage" ON public.orders FOR UPDATE USING (has_custom_role('accountant') OR has_custom_role('admin_assistant')) WITH CHECK (has_custom_role('accountant') OR has_custom_role('admin_assistant'));
