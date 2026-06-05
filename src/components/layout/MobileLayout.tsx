@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut, MoreHorizontal, Bluetooth, BluetoothOff, Printer, Receipt, MessageCircle, ArrowRight, ArrowLeft, Sun, Moon, Monitor, Smartphone, Wand2, Sparkles, CalendarCheck, ChevronDown, ChevronRight, Home, Wallet, Truck, Package, Users, Tag, UserCog, Settings as SettingsIcon, LayoutGrid, Palette, Trophy, ShieldCheck, Calculator, BookOpenCheck } from 'lucide-react';
+import { LogOut, MoreHorizontal, Bluetooth, BluetoothOff, Printer, Receipt, MessageCircle, ArrowRight, ArrowLeft, Sun, Moon, Monitor, Smartphone, Wand2, Sparkles, CalendarCheck, ChevronDown, ChevronRight, Home, Wallet, Truck, Package, Users, Tag, UserCog, Settings as SettingsIcon, LayoutGrid, Palette, Trophy, ShieldCheck, Calculator, BookOpenCheck, ClipboardList } from 'lucide-react';
 import { useUITheme } from '@/contexts/UIThemeContext';
 import { useTheme } from 'next-themes';
 import { useAuth } from '@/contexts/AuthContext';
@@ -43,6 +43,7 @@ const TodayCustomersDialog = React.lazy(() => import('@/components/sectors/Today
 const StockConfirmationsPopover = React.lazy(() => import('@/components/stock/StockConfirmationsPopover'));
 const RecalibrateBalanceButton = React.lazy(() => import('@/components/stock/RecalibrateBalanceButton'));
 const Invoice1StatusDialog = React.lazy(() => import('@/components/accounting/Invoice1StatusDialog'));
+const InvoiceTrackingDialog = React.lazy(() => import('@/components/accounting/InvoiceTrackingDialog'));
 
 interface MobileLayoutProps {
   children: React.ReactNode;
@@ -204,6 +205,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   const [todayCustomersOpen, setTodayCustomersOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [invoice1Open, setInvoice1Open] = useState(false);
+  const [invoiceTrackingOpen, setInvoiceTrackingOpen] = useState(false);
   const [bubbleMenu, setBubbleMenu] = useState<null | 'accounting' | 'warehouse'>(null);
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressTriggeredRef = useRef(false);
@@ -501,14 +503,24 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
           {/* Action icons */}
           <RefreshButton />
           {(role === 'admin' || role === 'project_manager' || activeRole?.custom_role_code === 'company_manager' || activeRole?.custom_role_code === 'branch_manager' || activeRole?.custom_role_code === 'assistant_manager' || activeRole?.custom_role_code === 'accountant') && (
-            <button
-              onClick={() => setInvoice1Open(true)}
-              className="flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-emerald-500/30 hover:bg-emerald-500/50 transition-colors"
-              title="حالة فاتورة 1 والوثائق"
-              aria-label="حالة فاتورة 1 والوثائق"
-            >
-              <Receipt className="w-4 h-4 text-white" />
-            </button>
+            <>
+              <button
+                onClick={() => setInvoice1Open(true)}
+                className="flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-emerald-500/30 hover:bg-emerald-500/50 transition-colors"
+                title="حالة الوثائق"
+                aria-label="حالة الوثائق"
+              >
+                <Receipt className="w-4 h-4 text-white" />
+              </button>
+              <button
+                onClick={() => setInvoiceTrackingOpen(true)}
+                className="flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-indigo-500/30 hover:bg-indigo-500/50 transition-colors"
+                title="تتبع الفواتير"
+                aria-label="تتبع الفواتير"
+              >
+                <ClipboardList className="w-4 h-4 text-white" />
+              </button>
+            </>
           )}
           {(activeRole?.custom_role_code === 'company_manager' || role === 'project_manager' || role === 'admin') && <BranchWilayaBadges />}
           {(role === 'worker' || role === 'supervisor') && !isAttendanceHidden && <AttendanceButton />}
@@ -1172,6 +1184,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
 
       <React.Suspense fallback={null}>
         {invoice1Open && <Invoice1StatusDialog open={invoice1Open} onOpenChange={setInvoice1Open} branchId={activeBranch?.id} />}
+        {invoiceTrackingOpen && <InvoiceTrackingDialog open={invoiceTrackingOpen} onOpenChange={setInvoiceTrackingOpen} branchId={activeBranch?.id} />}
       </React.Suspense>
     </div>
   );
