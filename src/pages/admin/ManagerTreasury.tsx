@@ -233,11 +233,19 @@ const ManagerTreasury = () => {
 
         let ordersQ = supabase
           .from('orders')
-          .select('id, customer_id, assigned_worker_id, created_at, delivery_date, total_amount, partial_amount, payment_status, payment_type, invoice_payment_method, document_verification')
-          .eq('status', 'delivered')
-          .eq('branch_id', activeBranch!.id);
-        if (dateRange.from) ordersQ = ordersQ.gte('delivery_date', dateRange.from);
-        if (dateRange.to) ordersQ = ordersQ.lte('delivery_date', dateRange.to);
+          .select('id, customer_id, assigned_worker_id, branch_id, created_at, delivery_date, total_amount, partial_amount, payment_status, payment_type, invoice_payment_method, document_verification')
+          .eq('status', 'delivered');
+        // Match PaymentMethodDetailsDialog: in perManager mode the scope is
+        // enforced via assigned_worker_id + confirmed session window, so we
+        // must NOT filter by orders.branch_id (would drop orders with null
+        // branch_id) nor by delivery_date (would drop in-window orders whose
+        // delivery falls outside the active range). Otherwise badge counts
+        // diverge from the dialog list.
+        if (!perManagerId) {
+          ordersQ = ordersQ.eq('branch_id', activeBranch!.id);
+          if (dateRange.from) ordersQ = ordersQ.gte('delivery_date', dateRange.from);
+          if (dateRange.to) ordersQ = ordersQ.lte('delivery_date', dateRange.to);
+        }
 
         const sessionWindowsPromise = perManagerId
           ? supabase
@@ -324,6 +332,11 @@ const ManagerTreasury = () => {
             if (receiptBucket === 'cash') {
               if (!handedMethods.has('receipt_cash') && !handedMethods.has('cash') && !handedMethods.has('receipt')) {
                 buckets.receipt_cash.push({ id: order.id, amount, customerId: order.customer_id || null, accountingTime: orderTs });
+                // In perManager mode, versement-cash receipts are also rolled
+                // into the Cash Facture 1 bucket (same as the dialog).
+                if (perManagerId) {
+                  buckets.cash_invoice1.push({ id: order.id, amount, customerId: order.customer_id || null, accountingTime: orderTs });
+                }
               }
             } else if (!handedMethods.has('receipt')) {
               buckets.receipt.push({ id: order.id, amount, customerId: order.customer_id || null, accountingTime: orderTs });
