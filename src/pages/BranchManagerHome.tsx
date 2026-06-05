@@ -1,12 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
 import ProductShowcaseHero from '@/components/home/ProductShowcaseHero';
 import managerHeroBg from '@/assets/hero-manager-bg.jpg';
-import FactoryApprovalsDialog from '@/components/stock/FactoryApprovalsDialog';
-import FinalReviewDialog from '@/components/warehouse/FinalReviewDialog';
-import { WorkerTruckStockList } from '@/components/stock/WorkerTruckStockList';
-import TodayCustomersDialog from '@/components/sectors/TodayCustomersDialog';
-import SectorCoverageDialog from '@/components/sectors/SectorCoverageDialog';
-import Invoice1StatusDialog from '@/components/accounting/Invoice1StatusDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -36,6 +30,13 @@ interface BMSection {
   icon: LucideIcon;
   items: BMItem[];
 }
+
+const FactoryApprovalsDialog = lazy(() => import('@/components/stock/FactoryApprovalsDialog'));
+const FinalReviewDialog = lazy(() => import('@/components/warehouse/FinalReviewDialog'));
+const WorkerTruckStockList = lazy(() => import('@/components/stock/WorkerTruckStockList'));
+const TodayCustomersDialog = lazy(() => import('@/components/sectors/TodayCustomersDialog'));
+const SectorCoverageDialog = lazy(() => import('@/components/sectors/SectorCoverageDialog'));
+const Invoice1StatusDialog = lazy(() => import('@/components/accounting/Invoice1StatusDialog'));
 
 const BranchManagerHome: React.FC = () => {
   const navigate = useNavigate();
@@ -302,11 +303,23 @@ const BranchManagerHome: React.FC = () => {
           );
         })}
       </div>
-      <FactoryApprovalsDialog open={factoryApprovalsOpen} onOpenChange={setFactoryApprovalsOpen} />
+      <Suspense fallback={null}>
+        {factoryApprovalsOpen && (
+          <FactoryApprovalsDialog open={factoryApprovalsOpen} onOpenChange={setFactoryApprovalsOpen} />
+        )}
 
-      <TodayCustomersDialog open={dailyTasksOpen} onOpenChange={setDailyTasksOpen} />
-      <SectorCoverageDialog open={sectorCoverageOpen} onOpenChange={setSectorCoverageOpen} />
-      <Invoice1StatusDialog open={invoice1StatusOpen} onOpenChange={setInvoice1StatusOpen} branchId={branchId} />
+        {dailyTasksOpen && (
+          <TodayCustomersDialog open={dailyTasksOpen} onOpenChange={setDailyTasksOpen} />
+        )}
+
+        {sectorCoverageOpen && (
+          <SectorCoverageDialog open={sectorCoverageOpen} onOpenChange={setSectorCoverageOpen} />
+        )}
+
+        {invoice1StatusOpen && (
+          <Invoice1StatusDialog open={invoice1StatusOpen} onOpenChange={setInvoice1StatusOpen} branchId={branchId} />
+        )}
+      </Suspense>
 
       <Dialog open={finalReviewPickerOpen} onOpenChange={setFinalReviewPickerOpen}>
         <DialogContent className="max-w-md">
@@ -337,13 +350,15 @@ const BranchManagerHome: React.FC = () => {
       </Dialog>
 
       {finalReviewWorker && (
-        <FinalReviewDialog
-          open={!!finalReviewWorker}
-          onOpenChange={(o) => { if (!o) setFinalReviewWorker(null); }}
-          workerId={finalReviewWorker.id}
-          workerName={finalReviewWorker.name}
-          branchId={branchId || null}
-        />
+        <Suspense fallback={null}>
+          <FinalReviewDialog
+            open={!!finalReviewWorker}
+            onOpenChange={(o) => { if (!o) setFinalReviewWorker(null); }}
+            workerId={finalReviewWorker.id}
+            workerName={finalReviewWorker.name}
+            branchId={branchId || null}
+          />
+        </Suspense>
       )}
 
       {/* اختيار العامل لرصيد الشاحنة */}
@@ -385,7 +400,9 @@ const BranchManagerHome: React.FC = () => {
             </DialogTitle>
           </DialogHeader>
           {truckBalanceWorker && (
-            <WorkerTruckStockList workerId={truckBalanceWorker.id} />
+            <Suspense fallback={null}>
+              <WorkerTruckStockList workerId={truckBalanceWorker.id} />
+            </Suspense>
           )}
         </DialogContent>
       </Dialog>
