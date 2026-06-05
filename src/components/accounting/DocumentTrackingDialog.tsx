@@ -249,7 +249,7 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
       <Dialog open={!!invoicePrompt} onOpenChange={(o) => !o && setInvoicePrompt(null)}>
         <DialogContent className="max-w-sm !z-[10000]">
           <DialogHeader>
-            <DialogTitle>إدخال رقم الفاتورة</DialogTitle>
+            <DialogTitle>رقم الفاتورة</DialogTitle>
           </DialogHeader>
           <div className="space-y-2">
             <Label className="text-xs">العميل: {invoicePrompt?.customerName}</Label>
