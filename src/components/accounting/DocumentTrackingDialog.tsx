@@ -226,6 +226,28 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
           </TabsContent>
         </Tabs>
       </DialogContent>
+
+      <Dialog open={!!invoicePrompt} onOpenChange={(o) => !o && setInvoicePrompt(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>إدخال رقم الفاتورة</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label className="text-xs">العميل: {invoicePrompt?.customerName}</Label>
+            <Input
+              autoFocus
+              value={invoiceNumber}
+              onChange={(e) => setInvoiceNumber(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') confirmInvoicePrompt(); }}
+              placeholder="رقم الفاتورة (إلزامي)"
+            />
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setInvoicePrompt(null)}>إلغاء</Button>
+            <Button onClick={confirmInvoicePrompt} disabled={!invoiceNumber.trim() || busyId === invoicePrompt?.id}>تأكيد التسليم</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 };
