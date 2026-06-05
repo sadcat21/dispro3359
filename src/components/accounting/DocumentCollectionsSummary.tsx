@@ -537,17 +537,6 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                 }`}
               >
                 <div className="flex items-center gap-2 flex-1 min-w-0">
-                  {onReceivedDocsChange && (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); onReceivedDocsChange({ ...receivedDocs, [stampKey]: !isStampReceived }); }}
-                      className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isStampReceived ? 'bg-green-100 dark:bg-green-900/30 text-green-600' : 'bg-destructive/10 text-destructive'}`}
-                    >
-                      {isStampReceived ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
-                    </button>
-                  )}
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${inv.received ? 'bg-green-100 dark:bg-green-900/30' : 'bg-destructive/10'}`}>
-                    {inv.received ? <CheckCircle className="w-3.5 h-3.5 text-green-600" /> : <XCircle className="w-3.5 h-3.5 text-destructive" />}
-                  </div>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold truncate">{inv.customerName}</p>
                     <div className="flex items-center gap-1.5 flex-wrap">
@@ -562,20 +551,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  {(() => {
-                    const m = (inv.paymentMethod || '').toLowerCase();
-                    if (m === 'cash') return null;
-                    const v = inv.documentVerification && typeof inv.documentVerification === 'object' ? inv.documentVerification : {};
-                    const attached = (v as any).attached_to_invoice === true;
-                    return (
-                      <div
-                        title={attached ? 'المستند مرفق بالفاتورة' : 'المستند غير مرفق'}
-                        className={`w-7 h-7 rounded-full flex items-center justify-center ${attached ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-destructive/10 text-destructive'}`}
-                      >
-                        <Paperclip className="w-3.5 h-3.5" />
-                      </div>
-                    );
-                  })()}
+                  {(() => { return null; })()}
                   <div className="text-end">
                     <span className="font-bold text-xs">{fmt(inv.orderTotal)} DA</span>
                     <p className={`text-[10px] font-medium ${inv.received ? 'text-green-600' : 'text-destructive'}`}>
