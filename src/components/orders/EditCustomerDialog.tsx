@@ -363,6 +363,12 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
     if (!customer) return;
     // isManager already defined at component scope
     if (!name.trim()) { toast.error('الرجاء إدخال اسم العميل'); return; }
+    if (isRegistered) {
+      if (!ownerFirstNameAr.trim() || !ownerLastNameAr.trim() || !ownerFirstNameFr.trim() || !ownerLastNameFr.trim()) {
+        toast.error('يرجى إدخال الاسم واللقب بالعربية والفرنسية للعميل المسجل');
+        return;
+      }
+    }
 
     const firstMissingRequired = customerFieldSettings.requiredOnEdit.find((field) => !isFieldFilled(field));
     if (firstMissingRequired) {
