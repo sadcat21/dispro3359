@@ -161,20 +161,24 @@ const DocumentTracking: React.FC = () => {
         {list.map(r => {
           const stage = r.stage as Exclude<Stage, 'handed'>;
           return (
-            <div key={r.id} className="flex items-center justify-between gap-2 p-3 rounded-lg border bg-white border-slate-200">
+            <div
+              key={r.id}
+              role="button"
+              tabIndex={0}
+              onClick={() => openInvoicePrompt(r)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  openInvoicePrompt(r);
+                }
+              }}
+              className="flex items-center justify-between gap-2 rounded-lg border bg-card p-3 text-start transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
+            >
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      openInvoicePrompt(r);
-                    }}
-                    className="font-semibold text-sm text-slate-900 truncate hover:text-purple-600 hover:underline text-start cursor-pointer"
-                  >
+                  <span className="truncate text-sm font-semibold text-foreground">
                     {r.customerName}
-                  </button>
+                  </span>
                   {r.docType ? (
                     <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${DOC_TYPE_CLASS[r.docType]}`}>
                       {DOC_TYPE_LABEL[r.docType]}
@@ -193,7 +197,10 @@ const DocumentTracking: React.FC = () => {
                   size="sm"
                   className="h-7 px-2 text-[11px] gap-1"
                   disabled={busyId === r.id}
-                  onClick={() => advance(r)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    advance(r);
+                  }}
                 >
                   {NEXT_ICON[stage]}
                   {NEXT_LABEL[stage]}
