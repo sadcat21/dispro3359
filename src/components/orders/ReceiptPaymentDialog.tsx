@@ -166,9 +166,21 @@ const ReceiptPaymentDialog: React.FC<ReceiptPaymentDialogProps> = ({
               </div>
 
               <div>
-                <Label className="text-sm font-semibold">
-                  {mode === 'receipt' ? `مبلغ ${docLabel}` : 'مبلغ الكاش المستلم'}
-                </Label>
+                <div className="flex items-center justify-between mb-1">
+                  <Label className="text-sm font-semibold">
+                    {mode === 'receipt' ? `مبلغ ${docLabel}` : 'مبلغ الكاش المستلم'}
+                  </Label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const v = String(displayOrderTotal);
+                      if (mode === 'receipt') setReceiptAmount(v); else setCashAmount(v);
+                    }}
+                    className="text-xs font-semibold text-primary hover:underline px-2 py-1 rounded border border-primary/30 hover:bg-primary/5"
+                  >
+                    إدراج إجمالي الطلبية
+                  </button>
+                </div>
                 <Input
                   type="text"
                   inputMode="decimal"
