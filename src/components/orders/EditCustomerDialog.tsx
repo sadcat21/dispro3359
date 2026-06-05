@@ -99,6 +99,7 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
   const [ownerLastNameAr, setOwnerLastNameAr] = useState('');
   const [ownerFirstNameFr, setOwnerFirstNameFr] = useState('');
   const [ownerLastNameFr, setOwnerLastNameFr] = useState('');
+  const [registrationType, setRegistrationType] = useState<string>('');
   const [defaultDeliveryWorkerId, setDefaultDeliveryWorkerId] = useState('');
 
   // Fetch zones when sector changes
@@ -272,6 +273,7 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
       setOwnerLastNameAr((customer as any).owner_last_name_ar || '');
       setOwnerFirstNameFr((customer as any).owner_first_name_fr || '');
       setOwnerLastNameFr((customer as any).owner_last_name_fr || '');
+      setRegistrationType((customer as any).registration_type || '');
       setDefaultDeliveryWorkerId((customer as any).default_delivery_worker_id || '');
       setShowMap(!!(customer.latitude && customer.longitude));
 
@@ -409,6 +411,7 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
         owner_last_name_ar: isRegistered ? (ownerLastNameAr.trim() || null) : null,
         owner_first_name_fr: isRegistered ? (ownerFirstNameFr.trim() || null) : null,
         owner_last_name_fr: isRegistered ? (ownerLastNameFr.trim() || null) : null,
+        registration_type: isRegistered ? (registrationType || null) : null,
         default_delivery_worker_id: defaultDeliveryWorkerId || null,
       };
 
@@ -873,12 +876,29 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
             </div>
 
             <div className="border rounded-lg p-4 space-y-3 bg-background/60">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2">
                   <BookOpen className="w-4 h-4 text-blue-600" />
                   <Label htmlFor="edit-registered-switch">عميل مسجل (ملف تجاري)</Label>
                 </div>
-                <Switch id="edit-registered-switch" checked={isRegistered} onCheckedChange={setIsRegistered} />
+                <div className="flex items-center gap-2">
+                  {isRegistered && (
+                    <Select value={registrationType} onValueChange={setRegistrationType}>
+                      <SelectTrigger className="h-8 w-[160px] text-xs">
+                        <SelectValue placeholder="نوع السجل" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="personne_physique">شخص طبيعي (Personne Physique)</SelectItem>
+                        <SelectItem value="eurl">EURL</SelectItem>
+                        <SelectItem value="sarl">SARL</SelectItem>
+                        <SelectItem value="spa">SPA</SelectItem>
+                        <SelectItem value="snc">SNC</SelectItem>
+                        <SelectItem value="autre">أخرى</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                  <Switch id="edit-registered-switch" checked={isRegistered} onCheckedChange={setIsRegistered} />
+                </div>
               </div>
               {isRegistered && (
                 <div className="space-y-3 pt-2 border-t">
