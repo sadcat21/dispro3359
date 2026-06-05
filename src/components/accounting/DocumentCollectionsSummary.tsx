@@ -40,8 +40,10 @@ interface DocumentCollectionsSummaryProps {
 interface CollectedDoc {
   orderId: string;
   customerName: string;
+  storeName: string | null;
   documentType: string;
   orderTotal: number;
+  paymentStatus: string | null;
   source: 'delivery' | 'pending_collection';
   documentStatus: string | null;
   bucket: 'cash' | 'doc' | null;
