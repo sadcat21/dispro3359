@@ -773,6 +773,9 @@ const MyAchievements: React.FC = () => {
             status: orderStatus,
             createdBy: o.created_by || null,
             assignedWorkerId: o.assigned_worker_id || null,
+            documentVerification: o.document_verification ?? null,
+            paymentStatus: o.payment_status || null,
+            paymentMethodResolved: o.payment_method_resolved || null,
           });
         });
 
