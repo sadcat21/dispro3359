@@ -378,12 +378,12 @@ const ManagerTreasury = () => {
       const transferItems = buckets.transfer;
 
       return {
-        cash_invoice1: countSummary(cashInvoice1Items),
-        cash_invoice2: countSummary(cashInvoice2Items),
-        check: countSummary(checkItems),
-        receipt_cash: countSummary(receiptCashItems),
-        receipt: countSummary(receiptDocItems),
-        transfer: countSummary(transferItems),
+        cash_invoice1: countSummary(buckets.cash_invoice1),
+        cash_invoice2: countSummary(buckets.cash_invoice2),
+        check: countSummary(buckets.check),
+        receipt_cash: countSummary(buckets.receipt_cash),
+        receipt: countSummary(buckets.receipt),
+        transfer: countSummary(buckets.transfer),
       };
     },
   });

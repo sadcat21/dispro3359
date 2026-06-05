@@ -466,7 +466,12 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
         summary.cash_invoice1_count += pickCount('invoice1_espace_cash') + pickCount('invoice1_versement_cash');
 
         summary.cash_invoice2 += pick('invoice2_cash');
-        summary.cash_invoice2_count += pickCount('invoice2_cash');
+        // Real operations/customers count from scoped orders (without_invoice paid)
+        {
+          const inv2Orders = (scopedOrders || []).filter((o: any) => o.payment_type === 'without_invoice' && (Number(o.partial_amount || 0) > 0 || Number(o.total_amount || 0) > 0) && o.payment_status !== 'debt');
+          summary.cash_invoice2_count += inv2Orders.length;
+          (summary as any).cash_invoice2_customers = new Set(inv2Orders.map((o: any) => o.customer_id).filter(Boolean)).size;
+        }
 
         summary.check += pick('invoice1_check') + pick('debt_collections_check');
         summary.checkCount += pickCount('invoice1_check') + pickCount('debt_collections_check');
