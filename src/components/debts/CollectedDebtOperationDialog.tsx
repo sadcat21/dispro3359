@@ -16,6 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { CalendarClock, CheckCircle2, Loader2, Pencil, Printer, RotateCcw, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import PaymentMethodBreakdown from './PaymentMethodBreakdown';
 
 export interface TodayDebtCollectionOperation {
   id: string;
@@ -360,6 +361,9 @@ const CollectedDebtOperationDialog: React.FC<Props> = ({ open, onOpenChange, col
                 <div className="mt-1 text-base font-black text-green-700">{beforeAfter.after.toLocaleString()} DA</div>
               </Card>
             </div>
+
+            <PaymentMethodBreakdown payments={debtPayments} compact title="تفصيل مدفوعات هذا الدين حسب طريقة الدفع" />
+
 
             {!editMode ? (
               <Card className="p-3 space-y-2">

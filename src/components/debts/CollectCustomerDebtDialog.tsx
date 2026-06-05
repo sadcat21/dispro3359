@@ -25,6 +25,7 @@ import {
   useUpdateCustomerDebtGroupSchedule,
 } from '@/hooks/useCustomerDebts';
 import { useDebtPaymentsGroup } from '@/hooks/useDebtPayments';
+import PaymentMethodBreakdown from './PaymentMethodBreakdown';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
@@ -787,6 +788,9 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                       </div>
                     </div>
                   </div>
+
+                  <PaymentMethodBreakdown payments={payments} compact />
+
 
                   <div className="space-y-3 rounded-2xl border bg-white p-4">
                     <div className="space-y-2">

@@ -15,6 +15,7 @@ import VisitNoPaymentDialog from './VisitNoPaymentDialog';
 import DebtScheduleSection from './DebtScheduleSection';
 import { useIsElementHidden } from '@/hooks/useUIOverrides';
 import CollectCustomerDebtDialog from './CollectCustomerDebtDialog';
+import PaymentMethodBreakdown from './PaymentMethodBreakdown';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { isAdminRole } from '@/lib/utils';
@@ -210,6 +211,10 @@ const DebtDetailsDialog: React.FC<DebtDetailsDialogProps> = ({
                   </div>
                 </div>
 
+                <PaymentMethodBreakdown payments={groupedPayments} title="تفصيل المسدّد حسب طريقة الدفع" />
+
+
+
                 <div className="rounded-lg border border-border/60 overflow-hidden">
                   <div className="bg-muted/50 px-3 py-2 flex items-center justify-between">
                     <span className="text-xs font-medium text-muted-foreground">سجل العميل المجمّع</span>
@@ -345,6 +350,11 @@ const DebtDetailsDialog: React.FC<DebtDetailsDialogProps> = ({
                       <div className="bg-muted/50 px-3 py-1.5 border-b border-border/50">
                         <span className="text-[11px] font-medium text-muted-foreground">سجل المدفوعات</span>
                       </div>
+                      {payments && payments.length > 0 && (
+                        <div className="p-1.5">
+                          <PaymentMethodBreakdown payments={payments} compact title="تفصيل هذا الدين حسب طريقة الدفع" />
+                        </div>
+                      )}
                       <div
                         className="max-h-52 overflow-y-auto p-1.5"
                         style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y', overscrollBehavior: 'contain' }}
