@@ -55,7 +55,7 @@ export interface SessionCalculations {
   totalSales: number;
   totalPaid: number;
   newDebts: number;
-  newDebtsByInvoice: { invoice1: number; invoice2: number };
+  newDebtsByInvoice: { invoice1: number; invoice2: number; invoice1Methods: { check: number; transfer: number; receipt: number; espaceCash: number; versementCash: number } };
   invoice1: PaymentMethodBreakdown & { total: number; versementCash: number };
   invoice2: { total: number; cash: number };
   debtCollections: DebtCollectionBreakdown;
