@@ -522,6 +522,14 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
               >
                 <ClipboardList className="w-4 h-4 text-white" />
               </button>
+              <button
+                onClick={() => setDocumentTrackingOpen(true)}
+                className="flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-purple-500/30 hover:bg-purple-500/50 transition-colors"
+                title="تتبع الوثائق"
+                aria-label="تتبع الوثائق"
+              >
+                <FileStack className="w-4 h-4 text-white" />
+              </button>
             </>
           )}
           {(activeRole?.custom_role_code === 'company_manager' || role === 'project_manager' || role === 'admin') && <BranchWilayaBadges />}
