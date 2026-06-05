@@ -161,7 +161,13 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
             <div key={r.id} className="flex items-center justify-between gap-2 p-3 rounded-lg border bg-white border-slate-200">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="font-semibold text-sm text-slate-900 truncate">{r.customerName}</p>
+                  <button
+                    type="button"
+                    onClick={() => { setInvoiceNumber(''); setInvoicePrompt(r); }}
+                    className="font-semibold text-sm text-slate-900 truncate hover:text-purple-600 hover:underline text-start"
+                  >
+                    {r.customerName}
+                  </button>
                   {r.docType ? (
                     <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${DOC_TYPE_CLASS[r.docType]}`}>
                       {DOC_TYPE_LABEL[r.docType]}
