@@ -148,6 +148,8 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
   const [stampInvoiceNumber, setStampInvoiceNumber] = useState('');
   const [stampIssueDate, setStampIssueDate] = useState('');
   const [stampSaving, setStampSaving] = useState(false);
+  const [docDialog, setDocDialog] = useState<CollectedDoc | null>(null);
+  const [docSaving, setDocSaving] = useState(false);
   const [detailsOrderId, setDetailsOrderId] = useState<string | null>(null);
 
   const { data: orderDetailsItems, isLoading: orderDetailsLoading } = useQuery({
