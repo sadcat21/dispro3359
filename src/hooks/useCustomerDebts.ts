@@ -137,11 +137,7 @@ export const useCreateDebt = () => {
       remaining_amount?: number;
       collection_type?: 'none' | 'daily' | 'weekly';
     }) => {
-      const status = debt.paid_amount >= debt.total_amount
-        ? 'paid'
-        : debt.paid_amount > 0
-          ? 'partially_paid'
-          : 'active';
+      const status = computeStatus(debt.total_amount, debt.paid_amount);
       const { data, error } = await supabase
         .from('customer_debts')
         .insert({
