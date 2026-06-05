@@ -268,6 +268,10 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
         setCustomerType(arr && arr.length ? arr.join(', ') : (customer.customer_type || ''));
       }
       setIsRegistered((customer as any).is_registered || false);
+      setOwnerFirstNameAr((customer as any).owner_first_name_ar || '');
+      setOwnerLastNameAr((customer as any).owner_last_name_ar || '');
+      setOwnerFirstNameFr((customer as any).owner_first_name_fr || '');
+      setOwnerLastNameFr((customer as any).owner_last_name_fr || '');
       setDefaultDeliveryWorkerId((customer as any).default_delivery_worker_id || '');
       setShowMap(!!(customer.latitude && customer.longitude));
 
