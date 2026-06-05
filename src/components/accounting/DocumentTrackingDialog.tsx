@@ -71,7 +71,7 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
       const { data, error } = await supabase
         .from('orders')
         .select(`
-          id, total_amount, created_at, document_stage,
+          id, total_amount, created_at, document_stage, invoice_payment_method,
           customer:customers!orders_customer_id_fkey(name)
         `)
         .eq('branch_id', branchId!)
@@ -86,6 +86,7 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
         total: Number(o.total_amount || 0),
         createdAt: o.created_at,
         stage: (o.document_stage || 'pending') as Stage,
+        docType: (o.invoice_payment_method || null) as DocType,
       }));
     },
   });
