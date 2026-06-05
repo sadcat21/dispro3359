@@ -196,7 +196,7 @@ const emptyCalc = (): SessionCalculations => ({
   totalSales: 0,
   totalPaid: 0,
   newDebts: 0,
-  newDebtsByInvoice: { invoice1: 0, invoice2: 0 },
+  newDebtsByInvoice: { invoice1: 0, invoice2: 0, invoice1Methods: { check: 0, transfer: 0, receipt: 0, espaceCash: 0, versementCash: 0 } },
   invoice1: { total: 0, check: 0, transfer: 0, receipt: 0, espaceCash: 0, versementCash: 0 },
   invoice2: { total: 0, cash: 0 },
   debtCollections: { total: 0, cash: 0, check: 0, transfer: 0, receipt: 0 },
