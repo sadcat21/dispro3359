@@ -385,13 +385,13 @@ const AppRoutes = () => {
       } />
 
       <Route path="/invoice-tracking" element={
-        <ProtectedRoute allowedRoles={['admin', 'project_manager', 'company_manager', 'branch_manager', 'assistant_manager', 'accountant']}>
+        <ProtectedRoute allowedRoles={['admin', 'project_manager', 'accountant']} allowedCustomRoles={['company_manager', 'branch_manager', 'assistant_manager', 'accountant']}>
           <InvoiceTracking />
         </ProtectedRoute>
       } />
 
       <Route path="/document-tracking" element={
-        <ProtectedRoute allowedRoles={['admin', 'project_manager', 'company_manager', 'branch_manager', 'assistant_manager', 'accountant']}>
+        <ProtectedRoute allowedRoles={['admin', 'project_manager', 'accountant']} allowedCustomRoles={['company_manager', 'branch_manager', 'assistant_manager', 'accountant']}>
           <DocumentTracking />
         </ProtectedRoute>
       } />
