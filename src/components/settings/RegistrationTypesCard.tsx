@@ -129,6 +129,38 @@ const RegistrationTypesCard: React.FC = () => {
   };
 
   const isPending = updateTypes.isPending || isTranslating;
+  const [newSubInputs, setNewSubInputs] = useState<Record<number, string>>({});
+
+  const handleAddSubType = async (index: number) => {
+    const val = (newSubInputs[index] || '').trim();
+    if (!val) return;
+    const entry = registrationTypes[index];
+    const existing = entry.sub_types || [];
+    if (existing.some(s => s.ar === val)) {
+      toast.error('هذا النوع الفرعي موجود');
+      return;
+    }
+    try {
+      const updated = [...registrationTypes];
+      updated[index] = { ...entry, sub_types: [...existing, { ar: val }] };
+      await updateTypes.mutateAsync(updated);
+      setNewSubInputs({ ...newSubInputs, [index]: '' });
+    } catch {
+      toast.error('فشل في الإضافة');
+    }
+  };
+
+  const handleRemoveSubType = async (index: number, subAr: string) => {
+    const entry = registrationTypes[index];
+    try {
+      const updated = [...registrationTypes];
+      updated[index] = { ...entry, sub_types: (entry.sub_types || []).filter(s => s.ar !== subAr) };
+      await updateTypes.mutateAsync(updated);
+    } catch {
+      toast.error('فشل في الحذف');
+    }
+  };
+
   if (isLoading) return null;
 
   return (
