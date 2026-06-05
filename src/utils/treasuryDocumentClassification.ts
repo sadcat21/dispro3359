@@ -5,12 +5,31 @@ export const getDocumentVerification = (value: unknown): Record<string, any> => 
   return {};
 };
 
-export const resolveReceiptBucket = (value: unknown): 'cash' | 'doc' => {
+export const resolveReceiptBucket = (
+  value: unknown,
+  order?: { payment_status?: string | null; payment_method_resolved?: string | null } | null,
+): 'cash' | 'doc' => {
   const verification = getDocumentVerification(value);
   if (verification.manager_receipt_bucket === 'cash' || verification.manager_receipt_bucket === 'doc') {
     return verification.manager_receipt_bucket;
   }
-  return verification.paid_by_cash === true ? 'cash' : 'doc';
+  if (verification.paid_by_cash === true) {
+    return 'cash';
+  }
+
+  if (order?.payment_status === 'cash') {
+    return 'cash';
+  }
+
+  const resolved = String(order?.payment_method_resolved || '');
+  if (resolved.endsWith('_cash')) {
+    return 'cash';
+  }
+  if (resolved.endsWith('_doc')) {
+    return 'doc';
+  }
+
+  return 'doc';
 };
 
 export const isTransferPaidByCash = (value: unknown): boolean => {
