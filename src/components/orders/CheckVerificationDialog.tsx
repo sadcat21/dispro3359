@@ -11,6 +11,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { AlertTriangle, CheckCircle, FileCheck, Loader2, XCircle, PenLine, Banknote } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { formatNumber } from '@/utils/formatters';
+import { parseAmountInput } from '@/utils/amountFormatting';
 import { useCompanyInfo } from '@/hooks/useCompanyInfo';
 import { useVerificationChecklist } from '@/hooks/useVerificationChecklist';
 import { toast } from 'sonner';
@@ -47,8 +48,8 @@ const CheckVerificationDialog: React.FC<CheckVerificationDialogProps> = ({
   const [remainingAction, setRemainingAction] = useState<'debt' | 'another_check'>('debt');
 
   const activeItems = checklistItems.filter(i => i.is_active);
-  const numericCheckAmount = Number(checkAmount) || 0;
-  const amountDiff = orderTotal - numericCheckAmount;
+  const numericCheckAmount = parseAmountInput(checkAmount, { expectedTotal: orderTotal });
+  const amountDiff = Math.max(0, orderTotal - numericCheckAmount);
   const isAmountMismatch = numericCheckAmount > 0 && numericCheckAmount < orderTotal;
   const isAmountExact = numericCheckAmount > 0 && numericCheckAmount >= orderTotal;
 

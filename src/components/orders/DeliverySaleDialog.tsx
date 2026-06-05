@@ -44,6 +44,7 @@ import SimpleProductPickerDialog from '@/components/stock/SimpleProductPickerDia
 import { cn } from '@/lib/utils';
 import { getCustomerTypesArray } from '@/utils/customerTypes';
 import { getOrderItemTotalPieces, getDeliveredSoldPieces, toStoredOrderItemQuantity } from '@/utils/orderItemQuantities';
+import { roundToMaxFraction } from '@/utils/amountFormatting';
 
 interface DeliverySaleDialogProps {
   open: boolean;
@@ -673,10 +674,12 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
     remainingAction?: 'debt' | 'another_check';
     remainingAmount?: number;
   }) => {
-    const actualCheckAmount = data.checkAmount ?? (data.checkReceived ? totals.amountAfterPrepaid : 0);
-    const paidAmount = data.checkReceived ? actualCheckAmount : 0;
-    const remaining = data.checkReceived ? Math.max(0, totals.amountAfterPrepaid - actualCheckAmount) : totals.amountAfterPrepaid;
-    const isFullPayment = data.checkReceived && remaining <= 0;
+    const normalizedTotal = roundToMaxFraction(totals.amountAfterPrepaid);
+    const actualCheckAmount = roundToMaxFraction(data.checkAmount ?? (data.checkReceived ? normalizedTotal : 0));
+    const paidAmount = data.checkReceived ? Math.min(actualCheckAmount, normalizedTotal) : 0;
+    const rawRemaining = data.checkReceived ? roundToMaxFraction(Math.max(0, normalizedTotal - paidAmount)) : normalizedTotal;
+    const isFullPayment = data.checkReceived && rawRemaining <= 0.01;
+    const remaining = isFullPayment ? 0 : rawRemaining;
 
     // Update document status on order
     const docStatus = data.checkReceived ? (data.skippedVerification ? 'pending' : 'received') : 'pending';
@@ -740,12 +743,15 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
       document_verification: docVerification,
     }).eq('id', order.id);
 
-    const paid = data.receiptAmount + data.cashAmount;
-    const isFullPayment = paid >= totals.amountAfterPrepaid;
+    const normalizedTotal = roundToMaxFraction(totals.amountAfterPrepaid);
+    const paid = roundToMaxFraction(data.receiptAmount + data.cashAmount);
+    const effectivePaid = Math.min(paid, normalizedTotal);
+    const isFullPayment = effectivePaid >= normalizedTotal - 0.01;
+    const normalizedRemaining = isFullPayment ? 0 : roundToMaxFraction(Math.max(0, normalizedTotal - effectivePaid));
 
     await handlePaymentConfirm({
-      paidAmount: Math.min(paid, totals.amountAfterPrepaid),
-      remainingAmount: data.remainingDebt,
+      paidAmount: isFullPayment ? normalizedTotal : effectivePaid,
+      remainingAmount: normalizedRemaining,
       paymentMethod: data.paidByCash ? 'cash' : invoiceMethod,
       isFullPayment,
       isNoPayment: paid === 0,
