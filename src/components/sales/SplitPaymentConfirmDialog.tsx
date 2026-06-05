@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { CheckCircle2, Circle, FileText, Banknote, Loader2 } from 'lucide-react';
 import { formatNumber } from '@/utils/formatters';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { parseAmountInput } from '@/utils/amountFormatting';
 import type { PaymentGroup } from '@/utils/splitOrderByPaymentGroup';
 
 export type GroupKind = 'receipt_doc' | 'cash_like' | 'no_invoice';
@@ -103,6 +104,7 @@ const SplitPaymentConfirmDialog: React.FC<Props> = ({
         const total = (totals.find((t) => t.key === g.key)?.total) || g.subtotal;
         const st = states[g.key];
         const kind = classifyGroup(g);
+        const parsedAmount = parseAmountInput(st.amount, { expectedTotal: total });
         let receiptReceived = false;
         let paidByCash = false;
         let receiptAmount = 0;
@@ -111,18 +113,18 @@ const SplitPaymentConfirmDialog: React.FC<Props> = ({
         if (kind === 'receipt_doc') {
           if (st.mode === 'receipt') {
             receiptReceived = true;
-            receiptAmount = Math.min(Number(st.amount) || 0, total);
+            receiptAmount = Math.min(parsedAmount, total);
             paidAmount = receiptAmount;
           } else if (st.mode === 'cash') {
             paidByCash = true;
-            cashAmount = Math.min(Number(st.amount) || 0, total);
+            cashAmount = Math.min(parsedAmount, total);
             paidAmount = cashAmount;
           } else {
             // no_receipt → full debt
             paidAmount = 0;
           }
         } else {
-          const a = Math.min(Number(st.amount) || 0, total);
+          const a = Math.min(parsedAmount, total);
           paidAmount = a;
           cashAmount = a;
         }
