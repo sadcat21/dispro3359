@@ -247,18 +247,30 @@ const WorkerAchievementsDialog: React.FC<WorkerAchievementsDialogProps> = ({
         .map(v => v.operation_id)
         .filter(Boolean))] as string[];
       
-      let orderMap = new Map<string, { payment_type: string; total_amount: number; invoice_payment_method: string | null; isCancelled: boolean; created_by: string | null; assigned_worker_id: string | null; status: string | null }>();
+      let orderMap = new Map<string, { payment_type: string; total_amount: number; invoice_payment_method: string | null; isCancelled: boolean; hasItems: boolean; created_by: string | null; assigned_worker_id: string | null; status: string | null }>();
       if (orderEntityIds.length > 0) {
-        const { data: orders } = await supabase
-          .from('orders')
-          .select('id, payment_type, total_amount, invoice_payment_method, status, created_by, assigned_worker_id')
-          .in('id', orderEntityIds);
+        const [{ data: orders }, { data: orderItems }] = await Promise.all([
+          supabase
+            .from('orders')
+            .select('id, payment_type, total_amount, invoice_payment_method, status, created_by, assigned_worker_id')
+            .in('id', orderEntityIds),
+          supabase
+            .from('order_items')
+            .select('order_id, product_id')
+            .in('order_id', orderEntityIds),
+        ]);
+        const orderItemCountMap = new Map<string, number>();
+        for (const item of (orderItems || [])) {
+          if (!item?.order_id) continue;
+          orderItemCountMap.set(item.order_id, (orderItemCountMap.get(item.order_id) || 0) + 1);
+        }
         for (const o of (orders || [])) {
           orderMap.set(o.id, {
             payment_type: o.payment_type || '',
             total_amount: Number(o.total_amount || 0),
             invoice_payment_method: o.invoice_payment_method,
             isCancelled: o.status === 'cancelled' || Number(o.total_amount || 0) === 0,
+            hasItems: (orderItemCountMap.get(o.id) || 0) > 0,
             created_by: o.created_by || null,
             assigned_worker_id: o.assigned_worker_id || null,
             status: o.status || null,
@@ -267,6 +279,10 @@ const WorkerAchievementsDialog: React.FC<WorkerAchievementsDialogProps> = ({
       }
 
       const sanitizedVisits = (visits || []).filter((v: any) => {
+        if (['direct_sale', 'delivery', 'order'].includes(v.operation_type) && v.operation_id) {
+          const orderInfo = orderMap.get(v.operation_id);
+          if (orderInfo && !orderInfo.hasItems) return false;
+        }
         if (v.operation_type !== 'direct_sale' || !v.operation_id) return true;
         const note = String(v.notes || '').trim().toLowerCase();
         const isFallbackVisit = note === 'auto: server fallback' || note === 'auto: backfill';
