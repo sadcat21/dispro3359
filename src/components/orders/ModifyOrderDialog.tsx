@@ -2172,7 +2172,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
     setShowConfirmDialog(true);
   };
 
-  const executeResume = async (paidAmount: number) => {
+  const executeResume = async (paidAmount: number, paidByCashOverride?: boolean) => {
     if (!workerId || !effectiveWorkerId) return;
     setIsCancellingOrder(true);
     try {
@@ -2226,7 +2226,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
         (order as any).payment_status === 'cash';
       const enteredPaid = Number(paidAmount || 0);
 
-      const clampedPaid = (enteredPaid <= 0 && wasCashSale)
+      const clampedPaid = (enteredPaid <= 0 && wasCashSale && paidByCashOverride !== false)
         ? totalAmount
         : Math.max(0, Math.min(enteredPaid, totalAmount));
       const remainingAmount = Math.max(0, totalAmount - clampedPaid);
@@ -2236,14 +2236,29 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
           ? 'pending'
           : 'partial';
 
+      // إذا اختار المستخدم في نافذة الاستئناف Versement (Doc/Cash) بشكل صريح
+      // → حدّث document_verification ليعكس الاختيار حتى لا يبقى مصنفاً Cash القديم.
+      const orderUpdate: any = {
+        status: 'delivered',
+        total_amount: totalAmount,
+        payment_status: nextPaymentStatus,
+        partial_amount: nextPaymentStatus === 'partial' ? clampedPaid : null,
+      };
+      if (paidByCashOverride !== undefined && dv && (dv.type === 'receipt' || dv.type === 'transfer' || dv.type === 'check' || (order as any).invoice_payment_method)) {
+        orderUpdate.document_verification = {
+          ...dv,
+          paid_by_cash: paidByCashOverride,
+          manager_receipt_bucket: paidByCashOverride ? 'cash' : 'doc',
+          receipt_received: paidByCashOverride ? !!dv.receipt_received : true,
+          verified_at: new Date().toISOString(),
+        };
+        orderUpdate.document_status = paidByCashOverride ? (dv.document_status || 'none') : 'received';
+      }
+
       await supabase.from('orders')
-        .update({
-          status: 'delivered',
-          total_amount: totalAmount,
-          payment_status: nextPaymentStatus,
-          partial_amount: nextPaymentStatus === 'partial' ? clampedPaid : null,
-        } as any)
+        .update(orderUpdate)
         .eq('id', order.id);
+
 
       const resolvedCustomerId = order.customer_id || order.customer?.id;
       if (resolvedCustomerId) {
