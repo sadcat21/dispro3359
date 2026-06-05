@@ -1534,6 +1534,11 @@ const MyAchievements: React.FC = () => {
                             {paymentBadge}{subtypeBadge && `·${subtypeBadge}`}{invoiceMethodBadge && `·${invoiceMethodBadge}`}
                           </span>
                         )}
+                        {!isWarehouseManager && receiptBucketBadge && (
+                          <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-bold border ${receiptBucketBadge === 'Vers Cash' ? 'border-amber-300 bg-amber-50 text-amber-700' : 'border-sky-300 bg-sky-50 text-sky-700'}`}>
+                            {receiptBucketBadge}
+                          </span>
+                        )}
                         {isCancelled && (
                           <span className="inline-flex items-center rounded bg-muted px-1.5 py-0.5 text-[10px] font-bold text-muted-foreground border border-muted-foreground/20">ملغاة</span>
                         )}
