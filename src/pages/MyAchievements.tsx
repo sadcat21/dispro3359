@@ -1447,6 +1447,13 @@ const MyAchievements: React.FC = () => {
                 const invoiceMethodBadge = isOrderLike && visit.order_payment_type === 'with_invoice' && visit.order_invoice_method
                   ? (visit.order_invoice_method === 'cash' ? 'Cash' : visit.order_invoice_method === 'check' ? 'Cheq' : visit.order_invoice_method === 'transfer' ? 'Vrsm' : visit.order_invoice_method === 'receipt' ? 'Perm' : null)
                   : null;
+                // شارة Versement Doc / Versement Cash للوصل (Perm) والتحويل (Vrsm)
+                const receiptBucketBadge = isOrderLike && (visit.order_invoice_method === 'receipt' || visit.order_invoice_method === 'transfer')
+                  ? (resolveReceiptBucket(visit.order_document_verification, {
+                      payment_status: visit.order_payment_status,
+                      payment_method_resolved: visit.order_payment_method_resolved,
+                    }) === 'cash' ? 'Vers Cash' : 'Vers Doc')
+                  : null;
 
                 const hasAmount = visit.orderTotal != null || (visit.operation_type === 'debt_collection' && visit.debtCollectionAmount != null);
                 const displayAmount = visit.orderTotal ?? visit.debtCollectionAmount ?? 0;
