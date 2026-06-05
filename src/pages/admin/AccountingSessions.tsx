@@ -10,6 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Loader2, Calculator, User, Calendar, ClipboardList, TrendingUp, TrendingDown, Banknote, ArrowDownCircle, CreditCard, AlertTriangle, ChevronDown, Trash2, RotateCcw, Receipt, FileStack } from 'lucide-react';
 import Invoice1StatusDialog from '@/components/accounting/Invoice1StatusDialog';
 import InvoiceTrackingDialog from '@/components/accounting/InvoiceTrackingDialog';
+import DocumentTrackingDialog from '@/components/accounting/DocumentTrackingDialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAccountingSessions, AccountingSession, AccountingSessionItem, useDeleteSession, useCancelSession } from '@/hooks/useAccountingSessions';
