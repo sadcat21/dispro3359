@@ -126,7 +126,18 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
           return (
             <div key={r.id} className="flex items-center justify-between gap-2 p-3 rounded-lg border bg-white border-slate-200">
               <div className="min-w-0 flex-1">
-                <p className="font-semibold text-sm text-slate-900 truncate">{r.customerName}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-sm text-slate-900 truncate">{r.customerName}</p>
+                  {r.docType ? (
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${DOC_TYPE_CLASS[r.docType]}`}>
+                      {DOC_TYPE_LABEL[r.docType]}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded border bg-slate-100 text-slate-600 border-slate-200 shrink-0">
+                      غير محدد
+                    </span>
+                  )}
+                </div>
                 <p className="text-[11px] text-slate-500">{new Date(r.createdAt).toLocaleDateString('ar-DZ')}</p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
