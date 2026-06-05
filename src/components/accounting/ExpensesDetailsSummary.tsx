@@ -84,6 +84,13 @@ const ExpensesDetailsSummary: React.FC<Props> = ({ workerId, periodStart, period
         {data.map((e: any) => {
           const receipts: string[] = e.receipt_urls?.length ? e.receipt_urls : (e.receipt_url ? [e.receipt_url] : []);
           const hasReceipt = receipts.length > 0;
+          const catName = e.category?.name_fr || e.category?.name || '';
+          const isAdvance = /advance|avance|مسبق/i.test(`${catName} ${e.category?.name_en || ''}`);
+          let advanceWorker = '';
+          if (isAdvance && e.description) {
+            const m = e.description.match(/مسبق\s*أجرة\s*[:\-]?\s*([^—\-\n]+)/);
+            if (m) advanceWorker = m[1].trim();
+          }
           return (
             <div
               key={e.id}
@@ -92,7 +99,8 @@ const ExpensesDetailsSummary: React.FC<Props> = ({ workerId, periodStart, period
             >
               <div className="flex items-center gap-2 min-w-0 flex-1">
                 <span className="text-xs font-semibold truncate">
-                  {e.category?.name_fr || e.category?.name || t('expenses_summary.fallback_label')}
+                  {catName || t('expenses_summary.fallback_label')}
+                  {advanceWorker && <span className="text-primary"> — {advanceWorker}</span>}
                 </span>
                 <span className="text-[10px] text-muted-foreground shrink-0">
                   {format(new Date(e.expense_date), 'dd/MM/yyyy')}
