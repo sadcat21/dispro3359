@@ -348,18 +348,14 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
     const isReceived = receivedDocs ? receivedDocs[docKey] !== false : true;
 
     return (
-      <div key={doc.orderId} className={`border rounded-lg p-3 space-y-2 ${!isReceived ? 'border-destructive/40 bg-destructive/5' : ''}`}>
-        {/* Header: checkbox + customer + amount */}
+      <div
+        key={doc.orderId}
+        onClick={() => setDocDialog(doc)}
+        className={`border rounded-lg p-3 space-y-2 cursor-pointer transition-colors hover:bg-muted/40 ${!isReceived ? 'border-destructive/40 bg-destructive/5' : ''}`}
+      >
+        {/* Header: customer + amount */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {onReceivedDocsChange && (
-              <button
-                onClick={() => onReceivedDocsChange({ ...receivedDocs, [docKey]: !isReceived })}
-                className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isReceived ? 'bg-green-100 dark:bg-green-900/30 text-green-600' : 'bg-destructive/10 text-destructive'}`}
-              >
-                {isReceived ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
-              </button>
-            )}
             <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
               <FileCheck2 className="w-3.5 h-3.5 text-primary" />
             </div>
