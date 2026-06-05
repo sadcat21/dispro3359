@@ -15,6 +15,7 @@ import VisitNoPaymentDialog from './VisitNoPaymentDialog';
 import DebtScheduleSection from './DebtScheduleSection';
 import { useIsElementHidden } from '@/hooks/useUIOverrides';
 import CollectCustomerDebtDialog from './CollectCustomerDebtDialog';
+import PaymentMethodBreakdown from './PaymentMethodBreakdown';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { isAdminRole } from '@/lib/utils';
