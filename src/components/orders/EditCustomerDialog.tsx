@@ -277,6 +277,8 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
       setOwnerFirstNameFr((customer as any).owner_first_name_fr || '');
       setOwnerLastNameFr((customer as any).owner_last_name_fr || '');
       setRegistrationType((customer as any).registration_type || '');
+      const sub = (customer as any).registration_sub_types;
+      setRegistrationSubTypes(Array.isArray(sub) ? sub : []);
       setDefaultDeliveryWorkerId((customer as any).default_delivery_worker_id || '');
       setShowMap(!!(customer.latitude && customer.longitude));
 
