@@ -92,6 +92,7 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
         .eq('branch_id', branchId!)
         .eq('payment_type', 'with_invoice')
         .in('document_stage', ['pending', 'received', 'ready'])
+        .not('document_manager_decision', 'is', null)
         .order('created_at', { ascending: false })
         .limit(500);
       if (error) throw error;

@@ -3744,10 +3744,12 @@ export type Database = {
           doc_collection_days: string[] | null
           doc_collection_type: string | null
           doc_due_date: string | null
+          document_manager_decision: string | null
           document_stage: Database["public"]["Enums"]["document_stage"]
           document_status: string | null
           document_verification: Json | null
           id: string
+          invoice_manager_decision: string | null
           invoice_number: string | null
           invoice_payment_method: string | null
           invoice_received_at: string | null
@@ -3777,10 +3779,12 @@ export type Database = {
           doc_collection_days?: string[] | null
           doc_collection_type?: string | null
           doc_due_date?: string | null
+          document_manager_decision?: string | null
           document_stage?: Database["public"]["Enums"]["document_stage"]
           document_status?: string | null
           document_verification?: Json | null
           id?: string
+          invoice_manager_decision?: string | null
           invoice_number?: string | null
           invoice_payment_method?: string | null
           invoice_received_at?: string | null
@@ -3810,10 +3814,12 @@ export type Database = {
           doc_collection_days?: string[] | null
           doc_collection_type?: string | null
           doc_due_date?: string | null
+          document_manager_decision?: string | null
           document_stage?: Database["public"]["Enums"]["document_stage"]
           document_status?: string | null
           document_verification?: Json | null
           id?: string
+          invoice_manager_decision?: string | null
           invoice_number?: string | null
           invoice_payment_method?: string | null
           invoice_received_at?: string | null
@@ -10129,6 +10135,14 @@ export type Database = {
       }
       set_invoice_document_attached: {
         Args: { p_attached: boolean; p_order_id: string }
+        Returns: Json
+      }
+      set_manager_document_decision: {
+        Args: { p_decision: string; p_order_id: string }
+        Returns: Json
+      }
+      set_manager_invoice_decision: {
+        Args: { p_decision: string; p_order_id: string }
         Returns: Json
       }
       set_worker_review_pin: {
