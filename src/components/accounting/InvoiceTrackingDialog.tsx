@@ -86,23 +86,40 @@ const InvoiceTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId }
     ready: rows.filter(r => r.stage === 'ready'),
   }), [rows]);
 
-  const advance = async (row: Row) => {
+  const advance = async (row: Row, invoiceNo?: string) => {
     if (row.stage === 'delivered') return;
     const next = NEXT_STAGE[row.stage];
+    if (row.stage === 'ready' && !invoiceNo) {
+      setInvoiceNumber('');
+      setInvoicePrompt(row);
+      return;
+    }
     setBusyId(row.id);
     try {
+      const updates: any = { invoice_stage: next };
+      if (invoiceNo) updates.invoice_number = invoiceNo;
       const { error } = await supabase
         .from('orders')
-        .update({ invoice_stage: next })
+        .update(updates)
         .eq('id', row.id);
       if (error) throw error;
       toast({ title: 'تم التحديث', description: `الفاتورة انتقلت إلى: ${next === 'sealed' ? 'ممهورة' : next === 'ready' ? 'جاهزة' : 'مُسلَّمة'}` });
       qc.invalidateQueries({ queryKey: ['invoice-tracking', branchId] });
+      setInvoicePrompt(null);
     } catch (e: any) {
       toast({ title: 'خطأ', description: e?.message || 'تعذّر التحديث', variant: 'destructive' });
     } finally {
       setBusyId(null);
     }
+  };
+
+  const confirmInvoicePrompt = () => {
+    const v = invoiceNumber.trim();
+    if (!v) {
+      toast({ title: 'مطلوب', description: 'يجب إدخال رقم الفاتورة', variant: 'destructive' });
+      return;
+    }
+    if (invoicePrompt) advance(invoicePrompt, v);
   };
 
   const renderList = (list: Row[], emptyText: string) => {
