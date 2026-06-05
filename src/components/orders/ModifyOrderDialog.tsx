@@ -2215,7 +2215,17 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
         return sum + (paidQty * Number(item.unit_price || 0));
       }, 0);
 
-      const clampedPaid = Math.max(0, Math.min(Number(paidAmount || 0), totalAmount));
+      // إذا كانت الطلبية محفوظة كـ Versement (Cash) أو دفع نقدي،
+      // فالاستئناف يعني دفع كامل نقداً بصرف النظر عن paidAmount الممرّر.
+      const dv: any = (order as any).document_verification || {};
+      const forceFullCash =
+        dv?.paid_by_cash === true ||
+        dv?.manager_receipt_bucket === 'cash' ||
+        (order as any).payment_status === 'cash';
+
+      const clampedPaid = forceFullCash
+        ? totalAmount
+        : Math.max(0, Math.min(Number(paidAmount || 0), totalAmount));
       const remainingAmount = Math.max(0, totalAmount - clampedPaid);
       const nextPaymentStatus = remainingAmount <= 0
         ? 'cash'
