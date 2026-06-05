@@ -1323,6 +1323,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
             ...existingDv,
             type: invoicePaymentMethod,
             paid_by_cash: isCash,
+            manager_receipt_bucket: isCash ? 'cash' : 'doc',
             receipt_received: !isCash ? true : !!existingDv.receipt_received,
             verified_at: new Date().toISOString(),
           };
