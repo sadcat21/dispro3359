@@ -15,6 +15,7 @@ interface Props {
 }
 
 type Stage = 'pending' | 'received' | 'ready' | 'handed';
+type DocType = 'check' | 'receipt' | 'transfer' | null;
 
 interface Row {
   id: string;
@@ -22,7 +23,20 @@ interface Row {
   total: number;
   createdAt: string;
   stage: Stage;
+  docType: DocType;
 }
+
+const DOC_TYPE_LABEL: Record<Exclude<DocType, null>, string> = {
+  check: 'شيك',
+  receipt: 'وصل دفع',
+  transfer: 'تحويل',
+};
+
+const DOC_TYPE_CLASS: Record<Exclude<DocType, null>, string> = {
+  check: 'bg-blue-100 text-blue-700 border-blue-200',
+  receipt: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+  transfer: 'bg-purple-100 text-purple-700 border-purple-200',
+};
 
 const formatMoney = (n: number) => new Intl.NumberFormat('ar-DZ').format(n);
 
