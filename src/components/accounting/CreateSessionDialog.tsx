@@ -779,6 +779,15 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                     </div>
                     <div className="space-y-0.5">
                       <PaymentRow label={t('accounting.invoice1')} value={calc.newDebtsByInvoice?.invoice1 || 0} highlight />
+                      {(calc.newDebtsByInvoice?.invoice1 || 0) > 0 && (
+                        <div className="ps-3 space-y-0.5 border-s-2 border-muted">
+                          <PaymentRow label={t('accounting.method_check')} value={calc.newDebtsByInvoice?.invoice1Methods?.check || 0} />
+                          <PaymentRow label={t('accounting.method_transfer')} value={calc.newDebtsByInvoice?.invoice1Methods?.transfer || 0} />
+                          <PaymentRow label={t('accounting.method_receipt')} value={calc.newDebtsByInvoice?.invoice1Methods?.receipt || 0} />
+                          <PaymentRow label={t('accounting.method_espace_cash')} value={calc.newDebtsByInvoice?.invoice1Methods?.espaceCash || 0} />
+                          <PaymentRow label="Versement (cache)" value={calc.newDebtsByInvoice?.invoice1Methods?.versementCash || 0} />
+                        </div>
+                      )}
                       <PaymentRow label={t('accounting.invoice2')} value={calc.newDebtsByInvoice?.invoice2 || 0} />
                     </div>
                   </div>
