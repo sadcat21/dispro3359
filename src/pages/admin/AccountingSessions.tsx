@@ -630,6 +630,11 @@ const AccountingSessions: React.FC = () => {
         onOpenChange={setInvoiceTrackingOpen}
         branchId={activeBranch?.id}
       />
+      <DocumentTrackingDialog
+        open={documentTrackingOpen}
+        onOpenChange={setDocumentTrackingOpen}
+        branchId={activeBranch?.id}
+      />
     </div>
   );
 };
