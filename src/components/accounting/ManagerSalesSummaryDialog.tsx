@@ -137,6 +137,11 @@ const buildCalcFromOrders = (orders: any[], items: any[]): SessionCalculations =
     const debtAmount = Math.max(0, totalAmount - paidAmount);
     calc.totalPaid += paidAmount;
     calc.newDebts += debtAmount;
+    if (debtAmount > 0) {
+      const pType = order.payment_type || 'without_invoice';
+      if (pType === 'with_invoice') calc.newDebtsByInvoice.invoice1 += debtAmount;
+      else calc.newDebtsByInvoice.invoice2 += debtAmount;
+    }
 
     if (paidAmount > 0) {
       const paymentType = order.payment_type || 'without_invoice';
