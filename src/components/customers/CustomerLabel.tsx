@@ -41,12 +41,19 @@ const CustomerLabel: React.FC<CustomerLabelProps> = ({
 }) => {
   const { language } = useLanguage();
   const { customerTypes: hookTypes } = useCustomerTypes();
+  const { registrationTypes } = useRegistrationTypes();
   const types = externalTypes || hookTypes;
 
   const isTestCustomer = customer.internal_name?.startsWith('[تجريبي]') ?? false;
 
   const displayName = customer.store_name || customer.name || '—';
   const secondaryName = customer.store_name ? customer.name : null;
+
+  // Registration type label in French
+  const regEntry = customer.registration_type
+    ? registrationTypes.find(r => r.ar === customer.registration_type)
+    : null;
+  const regLabel = regEntry?.fr || customer.registration_type || '';
 
   // Customer type badge
   const typeEntry = types.find(t => t.ar === customer.customer_type);
@@ -56,6 +63,7 @@ const CustomerLabel: React.FC<CustomerLabelProps> = ({
   const typeColor = typeEntry
     ? getCustomerTypeColor(typeEntry.short, 0, typeEntry)
     : null;
+
 
   const badges = !hideBadges && (
     <>
