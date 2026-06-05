@@ -14,6 +14,10 @@ export interface CustomerLabelData {
   zone_name?: string | null;
   internal_name?: string | null;
   registration_type?: string | null;
+  owner_first_name_ar?: string | null;
+  owner_last_name_ar?: string | null;
+  owner_first_name_fr?: string | null;
+  owner_last_name_fr?: string | null;
 }
 
 
@@ -41,7 +45,6 @@ const CustomerLabel: React.FC<CustomerLabelProps> = ({
 }) => {
   const { language } = useLanguage();
   const { customerTypes: hookTypes } = useCustomerTypes();
-  const { registrationTypes } = useRegistrationTypes();
   const types = externalTypes || hookTypes;
 
   const isTestCustomer = customer.internal_name?.startsWith('[تجريبي]') ?? false;
@@ -49,11 +52,13 @@ const CustomerLabel: React.FC<CustomerLabelProps> = ({
   const displayName = customer.store_name || customer.name || '—';
   const secondaryName = customer.store_name ? customer.name : null;
 
-  // Registration type label in French
-  const regEntry = customer.registration_type
-    ? registrationTypes.find(r => r.ar === customer.registration_type)
-    : null;
-  const regLabel = regEntry?.fr || customer.registration_type || '';
+  // Owner full name (AR + FR) from business profile
+  const ownerAr = [customer.owner_first_name_ar, customer.owner_last_name_ar]
+    .filter(Boolean).join(' ').trim();
+  const ownerFr = [customer.owner_first_name_fr, customer.owner_last_name_fr]
+    .filter(Boolean).join(' ').trim();
+  const ownerLabel = [ownerAr, ownerFr].filter(Boolean).join(' · ');
+
 
   // Customer type badge
   const typeEntry = types.find(t => t.ar === customer.customer_type);
@@ -102,9 +107,9 @@ const CustomerLabel: React.FC<CustomerLabelProps> = ({
   if (compact) {
     return (
       <span className={cn('inline-flex items-center gap-1 min-w-0', className)}>
-        {regLabel && (
+        {ownerLabel && (
           <span className="text-[10px] text-muted-foreground font-medium shrink-0" dir="ltr">
-            {regLabel}
+            {ownerLabel}
           </span>
         )}
         <span className="font-bold text-sm truncate">{displayName}</span>
@@ -119,9 +124,9 @@ const CustomerLabel: React.FC<CustomerLabelProps> = ({
   return (
     <div className={cn('min-w-0', className)}>
       <div className="flex items-center gap-1 flex-wrap">
-        {regLabel && (
+        {ownerLabel && (
           <span className="text-[10px] text-muted-foreground font-medium shrink-0" dir="ltr">
-            {regLabel}
+            {ownerLabel}
           </span>
         )}
         <span className="font-bold text-sm truncate">{displayName}</span>
