@@ -917,12 +917,16 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
               لم تُستلم
             </Button>
             <Button
-              disabled={docSaving || !docNumber.trim() || !docDate}
+              disabled={docSaving || !docNumber.trim() || !docDate || !docInvoiceNumber.trim() || !docInvoiceDate}
               className="flex-1 bg-green-600 hover:bg-green-700"
               onClick={async () => {
                 if (!docDialog) return;
                 if (!docNumber.trim() || !docDate) {
                   toast.error('يرجى إدخال رقم وتاريخ المستند');
+                  return;
+                }
+                if (!docInvoiceNumber.trim() || !docInvoiceDate) {
+                  toast.error('يرجى إدخال رقم وتاريخ الفاتورة');
                   return;
                 }
                 setDocSaving(true);
@@ -941,17 +945,38 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                 }
                 const { error: updErr } = await supabase
                   .from('orders')
-                  .update({ document_verification: patch })
+                  .update({
+                    document_verification: patch,
+                    invoice_number: docInvoiceNumber.trim(),
+                    invoice_sent_at: docInvoiceDate,
+                  })
                   .eq('id', docDialog.orderId);
                 if (updErr) {
                   setDocSaving(false);
                   toast.error('فشل حفظ بيانات المستند: ' + String(updErr.message || ''));
                   return;
                 }
+                // Mark invoice as received (stamped) with the provided invoice number/date
+                await (supabase as any).rpc('set_manager_invoice_decision', {
+                  p_order_id: docDialog.orderId,
+                  p_decision: 'received',
+                  p_invoice_number: docInvoiceNumber.trim(),
+                  p_issue_date: docInvoiceDate,
+                });
                 const { error } = await (supabase as any).rpc('set_manager_document_decision', {
                   p_order_id: docDialog.orderId,
                   p_decision: 'received',
                 });
+                setDocSaving(false);
+                if (error) { toast.error('فشل التحديث: ' + String(error.message || '')); return; }
+                toast.success('تم تأكيد استلام المستند والفاتورة');
+                await queryClient.invalidateQueries({ queryKey: ['session-document-collections'] });
+                await queryClient.invalidateQueries({ queryKey: ['session-stamped-invoices'] });
+                await queryClient.invalidateQueries({ queryKey: ['document-tracking'] });
+                await queryClient.invalidateQueries({ queryKey: ['invoice-tracking'] });
+                setDocDialog(null);
+              }}
+            >
                 setDocSaving(false);
                 if (error) { toast.error('فشل التحديث: ' + String(error.message || '')); return; }
                 toast.success('تم تأكيد استلام المستند');
