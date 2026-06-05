@@ -915,9 +915,8 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                     </div>
                   </div>
                 </StepSection>
-
-
-
+              </>
+            )}
 
 
             {/* ━━━ Step 9: Stock & Sales Tracking ━━━ */}
