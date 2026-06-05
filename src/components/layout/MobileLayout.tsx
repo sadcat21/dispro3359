@@ -205,6 +205,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   const [todayCustomersOpen, setTodayCustomersOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [invoice1Open, setInvoice1Open] = useState(false);
+  const [invoiceTrackingOpen, setInvoiceTrackingOpen] = useState(false);
   const [bubbleMenu, setBubbleMenu] = useState<null | 'accounting' | 'warehouse'>(null);
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressTriggeredRef = useRef(false);
