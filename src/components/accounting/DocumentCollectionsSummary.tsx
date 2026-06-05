@@ -738,17 +738,14 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
               onClick={async () => {
                 if (!stampDialog) return;
                 setStampSaving(true);
-                const { error } = await (supabase as any).rpc('set_manager_invoice_decision', {
-                  p_order_id: stampDialog.orderId,
-                  p_decision: 'not_received',
-                });
+                const { error } = await upsertDraft(stampDialog.orderId, 'stamp_invoice', 'not_received', {});
                 setStampSaving(false);
-                if (error) { toast.error('فشل التحديث: ' + String(error.message || '')); return; }
-                toast.success('تم تسجيل: لم تُستلم');
-                await queryClient.invalidateQueries({ queryKey: ['session-stamped-invoices'] });
-                await queryClient.invalidateQueries({ queryKey: ['invoice-tracking'] });
+                if (error) { toast.error('فشل حفظ المسودة: ' + String((error as any).message || '')); return; }
+                toast.success('تم تسجيل: لم تُستلم (مسودة)');
+                await queryClient.invalidateQueries({ queryKey: ['manager-decision-drafts', workerId] });
                 setStampDialog(null);
               }}
+
             >
               <XCircle className="w-4 h-4 me-1" />
               لم تُستلم
