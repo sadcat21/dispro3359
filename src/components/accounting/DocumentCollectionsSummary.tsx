@@ -904,17 +904,14 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
               onClick={async () => {
                 if (!docDialog) return;
                 setDocSaving(true);
-                const { error } = await (supabase as any).rpc('set_manager_document_decision', {
-                  p_order_id: docDialog.orderId,
-                  p_decision: 'not_received',
-                });
+                const { error } = await upsertDraft(docDialog.orderId, 'document', 'not_received', {});
                 setDocSaving(false);
-                if (error) { toast.error('فشل التحديث: ' + String(error.message || '')); return; }
-                toast.success('تم تسجيل: لم تُستلم');
-                await queryClient.invalidateQueries({ queryKey: ['session-document-collections'] });
-                await queryClient.invalidateQueries({ queryKey: ['document-tracking'] });
+                if (error) { toast.error('فشل حفظ المسودة: ' + String((error as any).message || '')); return; }
+                toast.success('تم تسجيل: لم تُستلم (مسودة)');
+                await queryClient.invalidateQueries({ queryKey: ['manager-decision-drafts', workerId] });
                 setDocDialog(null);
               }}
+
             >
               <XCircle className="w-4 h-4 me-1" />
               لم تُستلم
