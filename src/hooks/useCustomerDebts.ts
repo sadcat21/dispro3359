@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { CustomerDebt, CustomerDebtWithDetails } from '@/types/accounting';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRealtimeSubscription } from './useRealtimeSubscription';
+import { roundToMaxFraction } from '@/utils/amountFormatting';
 
 const resolveDebtCollectionMethod = async (
   debtId: string,
@@ -568,8 +569,10 @@ const invalidateAllDebtKeys = (queryClient: ReturnType<typeof useQueryClient>) =
 };
 
 const computeStatus = (totalAmount: number, paidAmount: number) => {
-  if (paidAmount >= totalAmount) return 'paid';
-  if (paidAmount > 0) return 'partially_paid';
+  const total = roundToMaxFraction(totalAmount);
+  const paid = roundToMaxFraction(paidAmount);
+  if (paid >= total - 0.01) return 'paid';
+  if (paid > 0) return 'partially_paid';
   return 'active';
 };
 
