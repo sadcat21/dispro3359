@@ -983,7 +983,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                       <SalesDetailsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} />
                     </StepSection>
                     {calc && calc.promoTracking.length > 0 && (
-                      <StepSection step={9} title={t('create_session.promo_tracking')} color="purple" badge="C">
+                      <StepSection step={10} title={t('create_session.promo_tracking')} color="purple" badge="C">
                         <PromoTrackingSummary items={calc.promoTracking} periodStart={periodStart} periodEnd={periodEnd} />
                       </StepSection>
                     )}
