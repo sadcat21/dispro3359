@@ -95,6 +95,8 @@ const WorkerRolesManagement = lazy(() => import("./pages/admin/WorkerRolesManage
 const AssistantPermissionsControl = lazy(() => import("./pages/admin/AssistantPermissionsControl"));
 const ProductChecklist = lazy(() => import("./pages/ProductChecklist"));
 const IdentifierInspector = lazy(() => import("./pages/admin/IdentifierInspector"));
+const InvoiceTracking = lazy(() => import("./pages/InvoiceTracking"));
+const DocumentTracking = lazy(() => import("./pages/DocumentTracking"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -379,6 +381,18 @@ const AppRoutes = () => {
       <Route path="/my-deliveries" element={
         <ProtectedRoute>
           <MyDeliveries />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/invoice-tracking" element={
+        <ProtectedRoute allowedRoles={['admin', 'project_manager', 'company_manager', 'branch_manager', 'assistant_manager', 'accountant']}>
+          <InvoiceTracking />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/document-tracking" element={
+        <ProtectedRoute allowedRoles={['admin', 'project_manager', 'company_manager', 'branch_manager', 'assistant_manager', 'accountant']}>
+          <DocumentTracking />
         </ProtectedRoute>
       } />
 
