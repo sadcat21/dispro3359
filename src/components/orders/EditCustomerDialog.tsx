@@ -865,15 +865,6 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
               الوضعية المالية والتفضيلات
             </Label>
 
-            <div className="space-y-2">
-              <Label className="text-xs">
-                الدين الحالي: {Number(debtSummary?.totalDebt || 0).toLocaleString('fr-DZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} دج — أدخل مبلغ دين جديد لإضافته
-              </Label>
-              <Input type="number" min="0" value={debtAmount} onChange={(e) => setDebtAmount(e.target.value)} placeholder="0" className="text-right" dir="ltr" />
-              {debtSummary && debtSummary.count > 0 && (
-                <p className="text-xs text-muted-foreground">{debtSummary.count} سند(ات) نشطة</p>
-              )}
-            </div>
 
             <div className="border rounded-lg p-4 space-y-3 bg-background/60">
               <div className="flex items-center justify-between gap-2 flex-wrap">
