@@ -462,6 +462,42 @@ const ManagerAccountingReview: React.FC = () => {
                         {Number(review.total_cash || 0).toLocaleString('fr-FR')} دج
                       </p>
                       <p className="text-[9px] text-muted-foreground">إجمالي النقد</p>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 px-2 gap-1 mt-1"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          try {
+                            const { data: sess, error } = await supabase
+                              .from('accounting_sessions')
+                              .select(`*, worker:workers!accounting_sessions_worker_id_fkey(id, full_name, username), items:accounting_session_items(*)`)
+                              .eq('review_session_id', review.id)
+                              .order('completed_at', { ascending: false });
+                            if (error) throw error;
+                            const sessions = sess || [];
+                            if (sessions.length === 0) { toast.error('لا توجد جلسات للطباعة'); return; }
+                            const totals = calcTotals(sessions);
+                            const productMatrix = await fetchProductMatrix(sessions);
+                            const iframe = document.createElement('iframe');
+                            iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;opacity:0';
+                            document.body.appendChild(iframe);
+                            const w = iframe.contentWindow; const d = iframe.contentDocument || w?.document;
+                            if (!w || !d) { iframe.remove(); return; }
+                            d.open();
+                            d.write(buildManagerReviewPrintHtml({ totals, sessions, branchName: activeBranch?.name || '', accountantName: user?.full_name || user?.fullName || user?.username || '', productMatrix }));
+                            d.close();
+                            const remove = () => { if (iframe.parentNode) iframe.parentNode.removeChild(iframe); };
+                            w.onafterprint = remove;
+                            setTimeout(() => { w.focus(); w.print(); setTimeout(remove, 3000); }, 400);
+                          } catch (err) {
+                            console.error(err);
+                            toast.error('فشلت الطباعة');
+                          }
+                        }}
+                      >
+                        <Printer className="w-3 h-3" /> طباعة A4
+                      </Button>
                     </div>
                   </div>
                   {review.notes && (
