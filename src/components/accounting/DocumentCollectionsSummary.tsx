@@ -297,6 +297,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
         if (!isCollectedDuringDelivery(o)) continue;
 
         const docType = o.invoice_payment_method || 'check';
+        const dv: any = o.document_verification || {};
         result.push({
           orderId: o.id,
           customerName: (o.customer as any)?.name || 'غير معروف',
@@ -304,6 +305,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           orderTotal: Number(o.total_amount || 0),
           source: 'delivery',
           documentStatus: o.document_status,
+          bucket: dv.manager_receipt_bucket === 'cash' || dv.manager_receipt_bucket === 'doc' ? dv.manager_receipt_bucket : null,
           verification: parseVerification(o.document_verification, docType),
         });
       }
