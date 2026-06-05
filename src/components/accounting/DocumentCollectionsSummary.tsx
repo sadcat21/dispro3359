@@ -385,9 +385,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
     const m = (d.documentType || '').toLowerCase();
     if (m === 'cash') return true;
     if (m === 'receipt' || m === 'versement' || m === 'transfer' || m === 'virement') {
-      const v: any = (d as any).verification?.raw || {};
-      if (v.manager_receipt_bucket === 'cash') return true;
-      if (v.paid_by_cash === true) return true;
+      if (d.bucket === 'cash') return true;
     }
     return false;
   };
