@@ -296,7 +296,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
 
       const { data: deliveryOrders } = await supabase
         .from('orders')
-        .select(`id, total_amount, invoice_payment_method, document_status, document_verification, payment_status, payment_method_resolved, updated_at, customer:customers!orders_customer_id_fkey(name)`)
+        .select(`id, total_amount, invoice_payment_method, document_status, document_verification, payment_status, payment_method_resolved, updated_at, customer:customers!orders_customer_id_fkey(name, store_name)`)
         .eq('assigned_worker_id', workerId)
         .eq('status', 'delivered')
         .in('invoice_payment_method', ['check', 'receipt', 'transfer', 'versement', 'virement'])
@@ -312,8 +312,10 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
         result.push({
           orderId: o.id,
           customerName: (o.customer as any)?.name || 'غير معروف',
+          storeName: (o.customer as any)?.store_name || null,
           documentType: docType,
           orderTotal: Number(o.total_amount || 0),
+          paymentStatus: (o as any).payment_status || null,
           source: 'delivery',
           documentStatus: o.document_status,
           bucket: resolveBucket(dv, o),
