@@ -941,7 +941,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
 
 
                 {/* ━━━ Step 7: Grand Summary ━━━ */}
-                <StepSection step={7} title={t('accounting.grand_summary')} color="primary" important>
+                <StepSection step={8} title={t('accounting.grand_summary')} color="primary" important>
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <SummaryItem label={t('accounting.total_sales')} value={calc.totalSales} />
                     <SummaryItem label={t('accounting.total_paid')} value={calc.totalPaid} color="green" />
