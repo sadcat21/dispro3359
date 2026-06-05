@@ -344,7 +344,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
 
       const { data } = await supabase
         .from('orders')
-        .select(`id, total_amount, invoice_payment_method, invoice_received_at, invoice_number, invoice_sent_at, updated_at, created_at, payment_type, payment_status, document_status, document_verification, customer:customers!orders_customer_id_fkey(name, store_name, phone)`)
+        .select(`id, total_amount, invoice_payment_method, invoice_received_at, invoice_number, invoice_sent_at, updated_at, created_at, payment_type, payment_status, payment_method_resolved, document_status, document_verification, customer:customers!orders_customer_id_fkey(name, store_name, phone)`)
         .eq('assigned_worker_id', workerId)
         .eq('status', 'delivered')
         .eq('payment_type', 'with_invoice')
@@ -354,10 +354,13 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
 
       return (data || []).map((o: any): StampedInvoice => {
         const v = o.document_verification && typeof o.document_verification === 'object' ? o.document_verification : {};
+        const resolved = String(o.payment_method_resolved || '');
         const bucket: 'cash' | 'doc' | null =
           v.manager_receipt_bucket === 'cash' || v.manager_receipt_bucket === 'doc'
             ? v.manager_receipt_bucket
-            : (v.paid_by_cash === true || o.payment_status === 'cash' ? 'cash' : null);
+            : (v.paid_by_cash === true || o.payment_status === 'cash' || resolved.endsWith('_cash')
+                ? 'cash'
+                : (resolved.endsWith('_doc') ? 'doc' : null));
         return {
           orderId: o.id,
           customerName: o.customer?.name || 'غير معروف',
