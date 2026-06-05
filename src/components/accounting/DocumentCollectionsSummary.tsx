@@ -122,23 +122,16 @@ const parseVerification = (v: any, docType: string) => {
 };
 
 const isCollectedDuringDelivery = (order: any) => {
-  const status = String(order?.document_status || '').toLowerCase();
-  const verification = order?.document_verification;
+  // Show all documents generated from worker sales, whether handed over or not.
+  // The manager decides reception inside the session itself.
   const method = String(order?.invoice_payment_method || '').toLowerCase();
-
-  if (status === 'received' || status === 'verified') return true;
-  if (status !== 'pending' || !verification || typeof verification !== 'object') return false;
-  if ((verification as any).status === 'not_received') return false;
-
-  if (method === 'check') return true;
-  if (method === 'receipt' || method === 'versement') {
-    return (verification as any).receipt_received === true || !!((verification as any).receipt_number || (verification as any).receiptNumber);
+  if (!['check', 'receipt', 'versement', 'transfer', 'virement'].includes(method)) return false;
+  const verification = order?.document_verification;
+  if (verification && typeof verification === 'object' && (verification as any).status === 'not_received') {
+    // still show — manager needs to see it to act on it
+    return true;
   }
-  if (method === 'transfer' || method === 'virement') {
-    return (verification as any).receipt_received === true || !!((verification as any).transfer_reference || (verification as any).transferReference);
-  }
-
-  return false;
+  return true;
 };
 
 const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({ workerId, periodStart, periodEnd, receivedDocs, onReceivedDocsChange }) => {
