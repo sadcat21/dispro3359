@@ -3751,6 +3751,7 @@ export type Database = {
           invoice_payment_method: string | null
           invoice_received_at: string | null
           invoice_sent_at: string | null
+          invoice_stage: Database["public"]["Enums"]["invoice_stage"]
           notes: string | null
           partial_amount: number | null
           payment_method_resolved: string | null
@@ -3782,6 +3783,7 @@ export type Database = {
           invoice_payment_method?: string | null
           invoice_received_at?: string | null
           invoice_sent_at?: string | null
+          invoice_stage?: Database["public"]["Enums"]["invoice_stage"]
           notes?: string | null
           partial_amount?: number | null
           payment_method_resolved?: string | null
@@ -3813,6 +3815,7 @@ export type Database = {
           invoice_payment_method?: string | null
           invoice_received_at?: string | null
           invoice_sent_at?: string | null
+          invoice_stage?: Database["public"]["Enums"]["invoice_stage"]
           notes?: string | null
           partial_amount?: number | null
           payment_method_resolved?: string | null
@@ -10247,6 +10250,7 @@ export type Database = {
         | "company_manager"
         | "internal_supervisor"
         | "external_supervisor"
+      invoice_stage: "unsealed" | "sealed" | "ready" | "delivered"
       target_metric_type: "sales_amount" | "deliveries_count" | "cartons_sold"
       target_period_type: "daily" | "weekly" | "monthly"
       target_progress_status: "in_progress" | "achieved" | "missed"
@@ -10393,6 +10397,7 @@ export const Constants = {
         "internal_supervisor",
         "external_supervisor",
       ],
+      invoice_stage: ["unsealed", "sealed", "ready", "delivered"],
       target_metric_type: ["sales_amount", "deliveries_count", "cartons_sold"],
       target_period_type: ["daily", "weekly", "monthly"],
       target_progress_status: ["in_progress", "achieved", "missed"],
