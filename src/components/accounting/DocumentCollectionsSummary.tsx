@@ -841,7 +841,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                     <p className="text-[10px] text-muted-foreground mt-0.5">#{docDialog.orderId.slice(0, 8)}</p>
                   </div>
                   <Badge className={`${docTypeColor(docDialog.documentType)} text-[10px] px-2 py-0.5 shrink-0`}>
-                    {docTypeLabel(docDialog.documentType)}
+                    {stampedMethodLabel(docDialog.documentType, docDialog.bucket)}
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-primary/10">
