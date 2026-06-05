@@ -160,7 +160,9 @@ const InvoiceTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId }
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
+
       <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -202,9 +204,11 @@ const InvoiceTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId }
           </TabsContent>
         </Tabs>
       </DialogContent>
+    </Dialog>
 
       <Dialog open={!!invoicePrompt} onOpenChange={(o) => !o && setInvoicePrompt(null)}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm z-[60]">
+
           <DialogHeader>
             <DialogTitle>إدخال رقم الفاتورة</DialogTitle>
           </DialogHeader>
@@ -224,7 +228,7 @@ const InvoiceTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId }
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Dialog>
+    </>
   );
 };
 
