@@ -703,43 +703,6 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                   />
                 </div>
               </div>
-              {(() => {
-                const m = (stampDialog.paymentMethod || '').toLowerCase();
-                const label = m === 'check' ? 'إرفاق الشيك' : (m === 'transfer' || m === 'virement') ? 'إرفاق التحويل (Virement)' : 'إرفاق الوصل (Versement)';
-                const v = stampDialog.documentVerification && typeof stampDialog.documentVerification === 'object' ? stampDialog.documentVerification : {};
-                const attached = v.attached_to_invoice === true;
-                return (
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      const newAttached = !attached;
-                      const { error } = await (supabase as any).rpc('set_invoice_document_attached', {
-                        p_order_id: stampDialog.orderId,
-                        p_attached: newAttached,
-                      });
-                      if (error) {
-                        const msg = String(error.message || '');
-                        if (msg.includes('permission_denied')) toast.error('لا تملك صلاحية تعديل الإرفاق');
-                        else toast.error('فشل تحديث الإرفاق: ' + msg);
-                        return;
-                      }
-                      const newVerification = { ...v, attached_to_invoice: newAttached };
-                      setStampDialog({ ...stampDialog, documentVerification: newVerification });
-                      toast.success(newAttached ? 'تم تسجيل إرفاق المستند' : 'تم إلغاء الإرفاق');
-                      await queryClient.invalidateQueries({ queryKey: ['session-stamped-invoices'] });
-                      await queryClient.refetchQueries({ queryKey: ['session-stamped-invoices'] });
-                    }}
-                    className={`w-full flex items-center justify-center gap-2 rounded-md border-2 px-3 py-2.5 text-sm font-semibold transition-colors ${
-                      attached
-                        ? 'bg-green-600 border-green-600 text-white hover:bg-green-700'
-                        : 'bg-destructive/10 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground'
-                    }`}
-                  >
-                    {attached ? <CheckCircle className="w-4 h-4" /> : <ClipboardCheck className="w-4 h-4" />}
-                    {attached ? `${label} ✓` : label}
-                  </button>
-                );
-              })()}
             </div>
           )}
           <DialogFooter className="flex-row gap-2 sm:justify-end">
