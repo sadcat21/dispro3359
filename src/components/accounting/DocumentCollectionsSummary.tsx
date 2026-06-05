@@ -43,6 +43,7 @@ interface CollectedDoc {
   orderTotal: number;
   source: 'delivery' | 'pending_collection';
   documentStatus: string | null;
+  bucket: 'cash' | 'doc' | null;
   verification: {
     checkNumber?: string;
     checkDate?: string;
@@ -267,6 +268,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
         const order = c.order as any;
         if (!order) continue;
         const docType = order.invoice_payment_method || 'check';
+        const dv: any = order.document_verification || {};
         result.push({
           orderId: order.id,
           customerName: order.customer?.name || 'غير معروف',
@@ -274,6 +276,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           orderTotal: Number(order.total_amount || 0),
           source: 'pending_collection',
           documentStatus: order.document_status,
+          bucket: dv.manager_receipt_bucket === 'cash' || dv.manager_receipt_bucket === 'doc' ? dv.manager_receipt_bucket : null,
           verification: parseVerification(order.document_verification, docType),
         });
       }
@@ -294,6 +297,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
         if (!isCollectedDuringDelivery(o)) continue;
 
         const docType = o.invoice_payment_method || 'check';
+        const dv: any = o.document_verification || {};
         result.push({
           orderId: o.id,
           customerName: (o.customer as any)?.name || 'غير معروف',
@@ -301,6 +305,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           orderTotal: Number(o.total_amount || 0),
           source: 'delivery',
           documentStatus: o.document_status,
+          bucket: dv.manager_receipt_bucket === 'cash' || dv.manager_receipt_bucket === 'doc' ? dv.manager_receipt_bucket : null,
           verification: parseVerification(o.document_verification, docType),
         });
       }
@@ -394,7 +399,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
             <span className="font-bold text-sm">{fmt(doc.orderTotal)} DA</span>
             <div className="mt-0.5">
               <Badge className={`${docTypeColor(doc.documentType)} text-[9px] px-1.5 py-0`}>
-                {docTypeLabel(doc.documentType)}
+                {stampedMethodLabel(doc.documentType, doc.bucket)}
               </Badge>
             </div>
           </div>
