@@ -332,6 +332,11 @@ const ManagerTreasury = () => {
             if (receiptBucket === 'cash') {
               if (!handedMethods.has('receipt_cash') && !handedMethods.has('cash') && !handedMethods.has('receipt')) {
                 buckets.receipt_cash.push({ id: order.id, amount, customerId: order.customer_id || null, accountingTime: orderTs });
+                // In perManager mode, versement-cash receipts are also rolled
+                // into the Cash Facture 1 bucket (same as the dialog).
+                if (perManagerId) {
+                  buckets.cash_invoice1.push({ id: order.id, amount, customerId: order.customer_id || null, accountingTime: orderTs });
+                }
               }
             } else if (!handedMethods.has('receipt')) {
               buckets.receipt.push({ id: order.id, amount, customerId: order.customer_id || null, accountingTime: orderTs });
