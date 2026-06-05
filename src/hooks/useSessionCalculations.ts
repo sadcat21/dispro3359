@@ -55,7 +55,7 @@ export interface SessionCalculations {
   totalSales: number;
   totalPaid: number;
   newDebts: number;
-  newDebtsByInvoice: { invoice1: number; invoice2: number };
+  newDebtsByInvoice: { invoice1: number; invoice2: number; invoice1Methods: { check: number; transfer: number; receipt: number; espaceCash: number; versementCash: number } };
   invoice1: PaymentMethodBreakdown & { total: number; versementCash: number };
   invoice2: { total: number; cash: number };
   debtCollections: DebtCollectionBreakdown;
@@ -314,7 +314,7 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
       let totalSales = 0;
       let totalPaid = 0;
       let newDebts = 0;
-      const newDebtsByInvoice = { invoice1: 0, invoice2: 0 };
+      const newDebtsByInvoice = { invoice1: 0, invoice2: 0, invoice1Methods: { check: 0, transfer: 0, receipt: 0, espaceCash: 0, versementCash: 0 } };
       let giftOfferValue = 0;
 
       const invoice1: PaymentMethodBreakdown & { total: number; versementCash: number } = {
@@ -366,8 +366,20 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
         newDebts += debtAmount;
         if (debtAmount > 0) {
           const pType = order.payment_type || 'without_invoice';
-          if (pType === 'with_invoice') newDebtsByInvoice.invoice1 += debtAmount;
-          else newDebtsByInvoice.invoice2 += debtAmount;
+          if (pType === 'with_invoice') {
+            newDebtsByInvoice.invoice1 += debtAmount;
+            // Classify debt by intended invoice payment method
+            const im = String(order.invoice_payment_method || '').toLowerCase();
+            const docVer = (order as any).document_verification;
+            const paidByCash = docVer && typeof docVer === 'object' && docVer.paid_by_cash === true;
+            if (im === 'check') newDebtsByInvoice.invoice1Methods.check += debtAmount;
+            else if ((im === 'receipt' || im === 'transfer' || im === 'versement' || im === 'virement') && paidByCash) newDebtsByInvoice.invoice1Methods.versementCash += debtAmount;
+            else if (im === 'transfer' || im === 'virement') newDebtsByInvoice.invoice1Methods.transfer += debtAmount;
+            else if (im === 'receipt' || im === 'versement') newDebtsByInvoice.invoice1Methods.receipt += debtAmount;
+            else newDebtsByInvoice.invoice1Methods.espaceCash += debtAmount;
+          } else {
+            newDebtsByInvoice.invoice2 += debtAmount;
+          }
         }
 
         // Calculate gift value and promo tracking from items
@@ -651,7 +663,7 @@ function getEmptyCalculations(): SessionCalculations {
     totalSales: 0,
     totalPaid: 0,
     newDebts: 0,
-    newDebtsByInvoice: { invoice1: 0, invoice2: 0 },
+    newDebtsByInvoice: { invoice1: 0, invoice2: 0, invoice1Methods: { check: 0, transfer: 0, receipt: 0, espaceCash: 0, versementCash: 0 } },
     invoice1: { total: 0, check: 0, transfer: 0, receipt: 0, espaceCash: 0, versementCash: 0 },
     invoice2: { total: 0, cash: 0 },
     debtCollections: { total: 0, cash: 0, check: 0, transfer: 0, receipt: 0 },
