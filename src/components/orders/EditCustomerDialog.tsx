@@ -95,6 +95,10 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
   const [defaultPriceSubtype, setDefaultPriceSubtype] = useState<string>('gros');
   const [customerType, setCustomerType] = useState<string>('');
   const [isRegistered, setIsRegistered] = useState(false);
+  const [ownerFirstNameAr, setOwnerFirstNameAr] = useState('');
+  const [ownerLastNameAr, setOwnerLastNameAr] = useState('');
+  const [ownerFirstNameFr, setOwnerFirstNameFr] = useState('');
+  const [ownerLastNameFr, setOwnerLastNameFr] = useState('');
   const [defaultDeliveryWorkerId, setDefaultDeliveryWorkerId] = useState('');
 
   // Fetch zones when sector changes
@@ -264,6 +268,10 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
         setCustomerType(arr && arr.length ? arr.join(', ') : (customer.customer_type || ''));
       }
       setIsRegistered((customer as any).is_registered || false);
+      setOwnerFirstNameAr((customer as any).owner_first_name_ar || '');
+      setOwnerLastNameAr((customer as any).owner_last_name_ar || '');
+      setOwnerFirstNameFr((customer as any).owner_first_name_fr || '');
+      setOwnerLastNameFr((customer as any).owner_last_name_fr || '');
       setDefaultDeliveryWorkerId((customer as any).default_delivery_worker_id || '');
       setShowMap(!!(customer.latitude && customer.longitude));
 
@@ -355,6 +363,12 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
     if (!customer) return;
     // isManager already defined at component scope
     if (!name.trim()) { toast.error('الرجاء إدخال اسم العميل'); return; }
+    if (isRegistered) {
+      if (!ownerFirstNameAr.trim() || !ownerLastNameAr.trim() || !ownerFirstNameFr.trim() || !ownerLastNameFr.trim()) {
+        toast.error('يرجى إدخال الاسم واللقب بالعربية والفرنسية للعميل المسجل');
+        return;
+      }
+    }
 
     const firstMissingRequired = customerFieldSettings.requiredOnEdit.find((field) => !isFieldFilled(field));
     if (firstMissingRequired) {
@@ -391,6 +405,10 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
         customer_type: customerType || null,
         customer_types: customerType ? customerType.split(',').map(s => s.trim()).filter(Boolean) : [],
         is_registered: isRegistered,
+        owner_first_name_ar: isRegistered ? (ownerFirstNameAr.trim() || null) : null,
+        owner_last_name_ar: isRegistered ? (ownerLastNameAr.trim() || null) : null,
+        owner_first_name_fr: isRegistered ? (ownerFirstNameFr.trim() || null) : null,
+        owner_last_name_fr: isRegistered ? (ownerLastNameFr.trim() || null) : null,
         default_delivery_worker_id: defaultDeliveryWorkerId || null,
       };
 
@@ -863,7 +881,27 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
                 <Switch id="edit-registered-switch" checked={isRegistered} onCheckedChange={setIsRegistered} />
               </div>
               {isRegistered && (
-                <p className="text-xs text-muted-foreground">✅ هذا العميل مسجل رسمياً ويمكنه الشراء بـ Facture 1</p>
+                <div className="space-y-3 pt-2 border-t">
+                  <p className="text-xs text-muted-foreground">✅ هذا العميل مسجل رسمياً ويمكنه الشراء بـ Facture 1</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <Label className="text-xs">الاسم (عربي) <span className="text-destructive">*</span></Label>
+                      <Input value={ownerFirstNameAr} onChange={(e) => setOwnerFirstNameAr(e.target.value)} placeholder="الاسم" className="text-right" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">اللقب (عربي) <span className="text-destructive">*</span></Label>
+                      <Input value={ownerLastNameAr} onChange={(e) => setOwnerLastNameAr(e.target.value)} placeholder="اللقب" className="text-right" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Prénom (FR) <span className="text-destructive">*</span></Label>
+                      <Input value={ownerFirstNameFr} onChange={(e) => setOwnerFirstNameFr(e.target.value)} placeholder="Prénom" dir="ltr" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Nom (FR) <span className="text-destructive">*</span></Label>
+                      <Input value={ownerLastNameFr} onChange={(e) => setOwnerLastNameFr(e.target.value)} placeholder="Nom" dir="ltr" />
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
 
