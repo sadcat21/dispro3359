@@ -919,54 +919,6 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
 
 
 
-                {/* ━━━ Step 6: Expenses & Gifts ━━━ */}
-                <StepSection step={7} title={t('create_session.expenses_title')} color="muted">
-                  {selectedWorkerId && periodStart && periodEnd ? (
-                    <ExpensesDetailsSummary
-                      workerId={selectedWorkerId}
-                      periodStart={periodStart}
-                      periodEnd={periodEnd}
-                      completedAt={null}
-                    />
-                  ) : (
-                    <div className="rounded-lg border p-2.5 text-center">
-                      <div className="flex items-center justify-center gap-1.5 mb-1">
-                        <CreditCard className="w-3.5 h-3.5 text-muted-foreground" />
-                        <span className="text-[10px] text-muted-foreground">{t('accounting.expenses')}</span>
-                      </div>
-                      <p className="font-bold text-lg">{fmt(calc.expenses)} DA</p>
-                    </div>
-                  )}
-                </StepSection>
-
-
-                {/* ━━━ Step 7: Grand Summary ━━━ */}
-                <StepSection step={8} title={t('accounting.grand_summary')} color="primary" important>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <SummaryItem label={t('accounting.total_sales')} value={calc.totalSales} />
-                    <SummaryItem label={t('accounting.total_paid')} value={calc.totalPaid} color="green" />
-                    <SummaryItem label={t('accounting.new_debts')} value={calc.newDebts} color="red" />
-                    <SummaryItem label={t('accounting.debt_collections')} value={calc.debtCollections.total} color="orange" />
-                    <SummaryItem label={t('accounting.physical_cash')} value={calc.physicalCash} color="primary" />
-                    <SummaryItem label={t('accounting.expenses')} value={calc.expenses} />
-                    <SummaryItem label={t('accounting.coin_amount')} value={Number(coinAmount || 0)} />
-                  </div>
-                </StepSection>
-              </>
-            )}
-
-            {/* ━━━ Step 8: Worker Handover ━━━ */}
-            {selectedWorkerId && periodStart && periodEnd && calc && (
-              <StepSection step={9} title={t('create_session.worker_handover')} color="primary">
-                <WorkerHandoverSummary
-                  workerId={selectedWorkerId}
-                  periodStart={periodStart}
-                  periodEnd={periodEnd}
-                  calc={calc}
-                  coinAmount={Number(coinAmount || 0)}
-                />
-              </StepSection>
-            )}
 
             {/* ━━━ Step 9: Stock & Sales Tracking ━━━ */}
             {selectedWorkerId && periodStart && periodEnd && (
