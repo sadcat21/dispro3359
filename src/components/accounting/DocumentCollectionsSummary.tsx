@@ -784,6 +784,95 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Document receipt confirmation */}
+      <Dialog open={!!docDialog} onOpenChange={(open) => { if (!open) setDocDialog(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-right">تأكيد استلام المستند</DialogTitle>
+          </DialogHeader>
+          {docDialog && (
+            <div className="space-y-3 text-right">
+              <div className="rounded-xl border-2 border-primary/15 bg-gradient-to-br from-primary/5 to-primary/0 p-3 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-base font-bold leading-tight truncate">{docDialog.customerName}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">#{docDialog.orderId.slice(0, 8)}</p>
+                  </div>
+                  <Badge className={`${docTypeColor(docDialog.documentType)} text-[10px] px-2 py-0.5 shrink-0`}>
+                    {docTypeLabel(docDialog.documentType)}
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-primary/10">
+                  <span className="text-[11px] text-muted-foreground">{docStatusLabel(docDialog.documentStatus)}</span>
+                  <span className="text-sm font-black text-primary" dir="ltr">{fmt(docDialog.orderTotal)} DA</span>
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDetailsOrderId(docDialog.orderId)}
+                className="w-full gap-2"
+              >
+                <Package className="w-4 h-4" />
+                عرض تفاصيل الطلب
+              </Button>
+            </div>
+          )}
+          <DialogFooter className="flex-row gap-2 sm:justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setDocDialog(null)}
+              disabled={docSaving}
+              className="flex-1"
+            >
+              إغلاق
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={docSaving}
+              className="flex-1"
+              onClick={async () => {
+                if (!docDialog) return;
+                setDocSaving(true);
+                const { error } = await (supabase as any).rpc('set_manager_document_decision', {
+                  p_order_id: docDialog.orderId,
+                  p_decision: 'not_received',
+                });
+                setDocSaving(false);
+                if (error) { toast.error('فشل التحديث: ' + String(error.message || '')); return; }
+                toast.success('تم تسجيل: لم تُستلم');
+                await queryClient.invalidateQueries({ queryKey: ['session-document-collections'] });
+                await queryClient.invalidateQueries({ queryKey: ['document-tracking'] });
+                setDocDialog(null);
+              }}
+            >
+              <XCircle className="w-4 h-4 me-1" />
+              لم تُستلم
+            </Button>
+            <Button
+              disabled={docSaving}
+              className="flex-1 bg-green-600 hover:bg-green-700"
+              onClick={async () => {
+                if (!docDialog) return;
+                setDocSaving(true);
+                const { error } = await (supabase as any).rpc('set_manager_document_decision', {
+                  p_order_id: docDialog.orderId,
+                  p_decision: 'received',
+                });
+                setDocSaving(false);
+                if (error) { toast.error('فشل التحديث: ' + String(error.message || '')); return; }
+                toast.success('تم تأكيد استلام المستند');
+                await queryClient.invalidateQueries({ queryKey: ['session-document-collections'] });
+                await queryClient.invalidateQueries({ queryKey: ['document-tracking'] });
+                setDocDialog(null);
+              }}
+            >
+              {docSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'تأكيد الاستلام'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
