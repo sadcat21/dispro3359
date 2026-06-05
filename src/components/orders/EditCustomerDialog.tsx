@@ -61,6 +61,7 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
   const { data: branches = [] } = useBranchesQuery(true);
   const isManager = isAdminRole(role);
   const { customerTypes } = useCustomerTypes();
+  const { registrationTypes } = useRegistrationTypes();
   const { settings: customerFieldSettings } = useCustomerFieldSettings();
   const { language } = useLanguage();
   const [name, setName] = useState('');
