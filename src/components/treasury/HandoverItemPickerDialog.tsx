@@ -74,7 +74,11 @@ const HandoverItemPickerDialog = ({ open, onOpenChange, paymentMethod, onConfirm
           .select('id, total_amount, partial_amount, payment_status, invoice_payment_method, document_verification, created_at, delivery_date, customer_id, assigned_worker_id, customer:customers(name, store_name), order_items(total_price)')
           .eq('status', 'delivered')
           .eq('payment_type', 'with_invoice');
-        if (activeBranch?.id) query = query.eq('branch_id', activeBranch.id);
+        // Skip branch_id filter in perManager mode: scope is enforced by
+        // assigned_worker_id + confirmed session window. Orders with null
+        // branch_id would otherwise be dropped even when their worker's
+        // session belongs to the active branch.
+        if (activeBranch?.id && !perManagerId) query = query.eq('branch_id', activeBranch.id);
         return query;
       };
 
