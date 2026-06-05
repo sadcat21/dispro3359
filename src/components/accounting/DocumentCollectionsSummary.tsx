@@ -198,6 +198,22 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
     }
   }, [stampDialog]);
 
+  const upsertDraft = async (
+    orderId: string,
+    kind: 'document' | 'stamp_invoice',
+    decision: 'received' | 'not_received',
+    payload: Record<string, any>,
+  ) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('not_authenticated');
+    return await (supabase as any)
+      .from('manager_decision_drafts')
+      .upsert(
+        { manager_id: user.id, worker_id: workerId, order_id: orderId, kind, decision, payload },
+        { onConflict: 'manager_id,worker_id,order_id,kind' },
+      );
+  };
+
   const handleConfirmStamp = async () => {
     if (!stampDialog) return;
     if (!stampInvoiceNumber.trim() || !stampIssueDate) {
@@ -205,38 +221,23 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
       return;
     }
     setStampSaving(true);
-    const { data, error } = await (supabase as any).rpc('confirm_order_invoice_receipt', {
-      p_order_id: stampDialog.orderId,
-      p_invoice_number: stampInvoiceNumber.trim(),
-      p_issue_date: stampIssueDate,
+    const { error } = await upsertDraft(stampDialog.orderId, 'stamp_invoice', 'received', {
+      invoice_number: stampInvoiceNumber.trim(),
+      issue_date: stampIssueDate,
     });
     setStampSaving(false);
     if (error) {
-      console.error('[stamp confirm] rpc error', error);
-      const msg = String(error.message || '');
-      if (msg.includes('permission_denied')) {
-        toast.error('لا تملك صلاحية تأكيد استلام هذه الفاتورة');
-      } else if (msg.includes('order_not_invoice_based')) {
-        toast.error('هذا الطلب ليس بفاتورة');
-      } else if (msg.includes('order_not_found')) {
-        toast.error('الطلب غير موجود');
-      } else if (msg.includes('invoice_number_required')) {
-        toast.error('يرجى إدخال رقم الفاتورة');
-      } else {
-        toast.error('فشل تأكيد استلام الفاتورة: ' + msg);
-      }
+      toast.error('فشل حفظ المسودة: ' + String((error as any).message || ''));
       return;
     }
-    console.info('[stamp confirm] rpc ok', data);
-    toast.success('تم تأكيد استلام الفاتورة');
+    toast.success('تم حفظ القرار كمسودة — سيُطبَّق عند حفظ الجلسة');
     if (onReceivedDocsChange) {
       onReceivedDocsChange({ ...(receivedDocs || {}), [`stamp_${stampDialog.orderId}`]: true });
     }
-    await queryClient.invalidateQueries({ queryKey: ['session-stamped-invoices'] });
-    await queryClient.refetchQueries({ queryKey: ['session-stamped-invoices'] });
-    await queryClient.invalidateQueries({ queryKey: ['invoice-tracking'] });
+    await queryClient.invalidateQueries({ queryKey: ['manager-decision-drafts', workerId] });
     setStampDialog(null);
   };
+
 
   const { data: docs, isLoading } = useQuery({
     queryKey: ['session-document-collections', workerId, periodStart, periodEnd],
@@ -737,17 +738,14 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
               onClick={async () => {
                 if (!stampDialog) return;
                 setStampSaving(true);
-                const { error } = await (supabase as any).rpc('set_manager_invoice_decision', {
-                  p_order_id: stampDialog.orderId,
-                  p_decision: 'not_received',
-                });
+                const { error } = await upsertDraft(stampDialog.orderId, 'stamp_invoice', 'not_received', {});
                 setStampSaving(false);
-                if (error) { toast.error('فشل التحديث: ' + String(error.message || '')); return; }
-                toast.success('تم تسجيل: لم تُستلم');
-                await queryClient.invalidateQueries({ queryKey: ['session-stamped-invoices'] });
-                await queryClient.invalidateQueries({ queryKey: ['invoice-tracking'] });
+                if (error) { toast.error('فشل حفظ المسودة: ' + String((error as any).message || '')); return; }
+                toast.success('تم تسجيل: لم تُستلم (مسودة)');
+                await queryClient.invalidateQueries({ queryKey: ['manager-decision-drafts', workerId] });
                 setStampDialog(null);
               }}
+
             >
               <XCircle className="w-4 h-4 me-1" />
               لم تُستلم
@@ -906,17 +904,14 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
               onClick={async () => {
                 if (!docDialog) return;
                 setDocSaving(true);
-                const { error } = await (supabase as any).rpc('set_manager_document_decision', {
-                  p_order_id: docDialog.orderId,
-                  p_decision: 'not_received',
-                });
+                const { error } = await upsertDraft(docDialog.orderId, 'document', 'not_received', {});
                 setDocSaving(false);
-                if (error) { toast.error('فشل التحديث: ' + String(error.message || '')); return; }
-                toast.success('تم تسجيل: لم تُستلم');
-                await queryClient.invalidateQueries({ queryKey: ['session-document-collections'] });
-                await queryClient.invalidateQueries({ queryKey: ['document-tracking'] });
+                if (error) { toast.error('فشل حفظ المسودة: ' + String((error as any).message || '')); return; }
+                toast.success('تم تسجيل: لم تُستلم (مسودة)');
+                await queryClient.invalidateQueries({ queryKey: ['manager-decision-drafts', workerId] });
                 setDocDialog(null);
               }}
+
             >
               <XCircle className="w-4 h-4 me-1" />
               لم تُستلم
@@ -935,52 +930,19 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                   return;
                 }
                 setDocSaving(true);
-                const t = docDialog.documentType;
-                const existing = (docDialog.verification && typeof docDialog.verification === 'object') ? { ...docDialog.verification } : {};
-                const patch: any = { ...existing };
-                if (t === 'check') {
-                  patch.check_number = docNumber.trim();
-                  patch.check_date = docDate;
-                } else if (t === 'transfer' || t === 'virement') {
-                  patch.transfer_reference = docNumber.trim();
-                  patch.transfer_date = docDate;
-                } else {
-                  patch.receipt_number = docNumber.trim();
-                  patch.receipt_date = docDate;
-                }
-                const { error: updErr } = await supabase
-                  .from('orders')
-                  .update({
-                    document_verification: patch,
-                    invoice_number: docInvoiceNumber.trim(),
-                    invoice_sent_at: docInvoiceDate,
-                  })
-                  .eq('id', docDialog.orderId);
-                if (updErr) {
-                  setDocSaving(false);
-                  toast.error('فشل حفظ بيانات المستند: ' + String(updErr.message || ''));
-                  return;
-                }
-                // Mark invoice as received (stamped) with the provided invoice number/date
-                await (supabase as any).rpc('set_manager_invoice_decision', {
-                  p_order_id: docDialog.orderId,
-                  p_decision: 'received',
-                  p_invoice_number: docInvoiceNumber.trim(),
-                  p_issue_date: docInvoiceDate,
-                });
-                const { error } = await (supabase as any).rpc('set_manager_document_decision', {
-                  p_order_id: docDialog.orderId,
-                  p_decision: 'received',
+                const { error } = await upsertDraft(docDialog.orderId, 'document', 'received', {
+                  doc_number: docNumber.trim(),
+                  doc_date: docDate,
+                  invoice_number: docInvoiceNumber.trim(),
+                  invoice_date: docInvoiceDate,
                 });
                 setDocSaving(false);
-                if (error) { toast.error('فشل التحديث: ' + String(error.message || '')); return; }
-                toast.success('تم تأكيد استلام المستند والفاتورة');
-                await queryClient.invalidateQueries({ queryKey: ['session-document-collections'] });
-                await queryClient.invalidateQueries({ queryKey: ['session-stamped-invoices'] });
-                await queryClient.invalidateQueries({ queryKey: ['document-tracking'] });
-                await queryClient.invalidateQueries({ queryKey: ['invoice-tracking'] });
+                if (error) { toast.error('فشل حفظ المسودة: ' + String((error as any).message || '')); return; }
+                toast.success('تم حفظ القرار كمسودة — سيُطبَّق عند حفظ الجلسة');
+                await queryClient.invalidateQueries({ queryKey: ['manager-decision-drafts', workerId] });
                 setDocDialog(null);
               }}
+
             >
               {docSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'تأكيد الاستلام'}
             </Button>

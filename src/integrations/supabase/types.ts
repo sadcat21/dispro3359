@@ -2756,6 +2756,42 @@ export type Database = {
           },
         ]
       }
+      manager_decision_drafts: {
+        Row: {
+          created_at: string
+          decision: string
+          id: string
+          kind: string
+          manager_id: string
+          order_id: string
+          payload: Json
+          updated_at: string
+          worker_id: string
+        }
+        Insert: {
+          created_at?: string
+          decision: string
+          id?: string
+          kind: string
+          manager_id: string
+          order_id: string
+          payload?: Json
+          updated_at?: string
+          worker_id: string
+        }
+        Update: {
+          created_at?: string
+          decision?: string
+          id?: string
+          kind?: string
+          manager_id?: string
+          order_id?: string
+          payload?: Json
+          updated_at?: string
+          worker_id?: string
+        }
+        Relationships: []
+      }
       manager_handovers: {
         Row: {
           amount: number
@@ -9691,6 +9727,10 @@ export type Database = {
     }
     Functions: {
       "55555555520262026": { Args: never; Returns: string }
+      apply_manager_decision_drafts: {
+        Args: { p_worker_id: string }
+        Returns: number
+      }
       approve_factory_order: {
         Args: { p_notes?: string; p_order_id: string }
         Returns: Json

@@ -472,6 +472,17 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
         toast.success(t('accounting.session_created'));
       }
 
+      // Apply any pending manager decision drafts for this worker now that
+      // the accounting session has been saved.
+      try {
+        await (supabase as any).rpc('apply_manager_decision_drafts', {
+          p_worker_id: selectedWorkerId,
+        });
+      } catch (e) {
+        console.warn('Failed to apply manager decision drafts', e);
+      }
+
+
       // Register deficit as worker debt AND in surplus/deficit treasury
       if (registerDeficit && cashDifference < 0) {
         try {
