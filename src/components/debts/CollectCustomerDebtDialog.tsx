@@ -789,6 +789,9 @@ const CollectCustomerDebtDialog: React.FC<CollectCustomerDebtDialogProps> = ({
                     </div>
                   </div>
 
+                  <PaymentMethodBreakdown payments={payments} compact />
+
+
                   <div className="space-y-3 rounded-2xl border bg-white p-4">
                     <div className="space-y-2">
                       <Label>{t('debt_collect.collected_amount')}</Label>
