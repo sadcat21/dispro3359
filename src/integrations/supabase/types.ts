@@ -1360,6 +1360,10 @@ export type Database = {
           longitude: number | null
           name: string
           name_fr: string | null
+          owner_first_name_ar: string | null
+          owner_first_name_fr: string | null
+          owner_last_name_ar: string | null
+          owner_last_name_fr: string | null
           pending_changes: Json | null
           phone: string | null
           sales_rep_name: string | null
@@ -1392,6 +1396,10 @@ export type Database = {
           longitude?: number | null
           name: string
           name_fr?: string | null
+          owner_first_name_ar?: string | null
+          owner_first_name_fr?: string | null
+          owner_last_name_ar?: string | null
+          owner_last_name_fr?: string | null
           pending_changes?: Json | null
           phone?: string | null
           sales_rep_name?: string | null
@@ -1424,6 +1432,10 @@ export type Database = {
           longitude?: number | null
           name?: string
           name_fr?: string | null
+          owner_first_name_ar?: string | null
+          owner_first_name_fr?: string | null
+          owner_last_name_ar?: string | null
+          owner_last_name_fr?: string | null
           pending_changes?: Json | null
           phone?: string | null
           sales_rep_name?: string | null
