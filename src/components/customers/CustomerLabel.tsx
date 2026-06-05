@@ -14,6 +14,10 @@ export interface CustomerLabelData {
   zone_name?: string | null;
   internal_name?: string | null;
   registration_type?: string | null;
+  owner_first_name_ar?: string | null;
+  owner_last_name_ar?: string | null;
+  owner_first_name_fr?: string | null;
+  owner_last_name_fr?: string | null;
 }
 
 
