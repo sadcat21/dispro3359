@@ -175,7 +175,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
   const showSaleSuccess = useCallback(async (mode: 'modify' | 'resume') => {
     try {
       const [{ data: ord }, { data: oi }] = await Promise.all([
-        supabase.from('orders').select('total_amount, payment_status, partial_amount, payment_type, invoice_payment_method').eq('id', order.id).maybeSingle(),
+        supabase.from('orders').select('total_amount, payment_status, partial_amount, payment_type, invoice_payment_method, payment_method_resolved, document_verification').eq('id', order.id).maybeSingle(),
         supabase.from('order_items').select('product:products(name)').eq('order_id', order.id),
       ]);
       const total = Number(ord?.total_amount ?? order.total_amount ?? 0);
@@ -190,11 +190,22 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
         status = 'partial'; paid = partial; remaining = Math.max(0, total - partial);
       }
       const productNames = ((oi || []) as any[]).map(r => r.product?.name).filter(Boolean);
+      // Resolve cash vs doc bucket so SaleSuccessDialog shows Versement (Cash) / (Doc) correctly
+      const { resolveReceiptBucket } = await import('@/utils/treasuryDocumentClassification');
+      const bucket = resolveReceiptBucket((ord as any)?.document_verification, {
+        payment_status: (ord as any)?.payment_status,
+        payment_method_resolved: (ord as any)?.payment_method_resolved,
+      });
+      const invMethod = ord?.invoice_payment_method || order.invoice_payment_method || null;
+      const isInvoice1 = (ord?.payment_type || order.payment_type) === 'with_invoice';
+      const pmForSuccess = isInvoice1 && (invMethod === 'receipt' || invMethod === 'versement')
+        ? (bucket === 'cash' ? 'cash' : 'doc')
+        : ((ord?.payment_type === 'with_invoice' ? null : (ord?.invoice_payment_method || ord?.payment_type)) || (order as any).payment_method || null);
       setSuccessInfo({
         amount: total,
         customerName: order.customer?.store_name || order.customer?.name || '—',
         productNames,
-        paymentMethod: (ord?.payment_type === 'with_invoice' ? null : (ord?.invoice_payment_method || ord?.payment_type)) || (order as any).payment_method || null,
+        paymentMethod: pmForSuccess,
         paymentType: ord?.payment_type || order.payment_type || null,
         invoiceMethod: ord?.invoice_payment_method || order.invoice_payment_method || null,
         invoiceRequestSent: null,
