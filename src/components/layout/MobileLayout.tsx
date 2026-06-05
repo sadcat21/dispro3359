@@ -178,9 +178,9 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   const { uiTheme, toggleUITheme } = useUITheme();
   type ViewMode = 'desktop' | 'mobile' | 'auto';
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
-    if (typeof window === 'undefined') return 'auto';
+    if (typeof window === 'undefined') return 'mobile';
     const v = localStorage.getItem('view_mode') as ViewMode | null;
-    return v && ['desktop', 'mobile', 'auto'].includes(v) ? v : 'auto';
+    return v && ['desktop', 'mobile', 'auto'].includes(v) ? v : 'mobile';
   });
   useEffect(() => {
     if (typeof document === 'undefined') return;
