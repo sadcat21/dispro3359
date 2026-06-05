@@ -49,6 +49,7 @@ import { getGiftTotalPieces, getOrderItemTotalPieces, getPaidQuantity as getStor
 import { boxesToBP } from '@/utils/boxPieceInput';
 import { splitOrderByPaymentGroup, buildPaymentKey } from '@/utils/splitOrderByPaymentGroup';
 import SplitPaymentConfirmDialog, { GroupPaymentResult } from '@/components/sales/SplitPaymentConfirmDialog';
+import { roundToMaxFraction } from '@/utils/amountFormatting';
 
 interface StockItem {
   id: string;
@@ -817,6 +818,12 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
     if (isSaving) return;
     setIsSaving(true);
     try {
+      const normalizedTotal = roundToMaxFraction(orderTotals.totalAmount);
+      const normalizedPaid = roundToMaxFraction(Math.max(0, Math.min(paymentData.paidAmount, normalizedTotal)));
+      const rawRemaining = roundToMaxFraction(Math.max(0, normalizedTotal - normalizedPaid));
+      const normalizedIsFull = rawRemaining <= 0.01 || paymentData.isFullPayment;
+      const normalizedRemaining = normalizedIsFull ? 0 : rawRemaining;
+
       // USE FROZEN STATE directly - these were captured at save time before dialog opened
       const finalPaymentType = frozenPaymentType;
       const finalInvoiceMethod = frozenInvoiceMethod;
@@ -850,9 +857,9 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
 
       // Determine payment status based on invoice payment method
       let paymentStatus: string;
-      if (paymentData.isNoPayment) {
+      if (paymentData.isNoPayment || normalizedPaid <= 0) {
         paymentStatus = 'pending';
-      } else if (!paymentData.isFullPayment) {
+      } else if (!normalizedIsFull) {
         paymentStatus = 'partial';
       } else if (finalPaymentType === 'with_invoice' && finalInvoiceMethod === 'check') {
         paymentStatus = 'check';
@@ -879,8 +886,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
           payment_status: paymentStatus,
           invoice_payment_method: finalPaymentType === 'with_invoice' ? (finalInvoiceMethod || null) : null,
           invoice_number: finalPaymentType === 'with_invoice' ? (invoiceNumber.trim() || null) : null,
-          partial_amount: paymentData.isFullPayment ? null : paymentData.paidAmount,
-          total_amount: orderTotals.totalAmount,
+          partial_amount: normalizedIsFull ? null : normalizedPaid,
+          total_amount: normalizedTotal,
           client_request_id: crypto.randomUUID(),
           document_verification: pendingDocVerification?.verification ?? null,
           document_status: pendingDocVerification?.status ?? null,
@@ -1076,13 +1083,13 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       }
 
       // Create debt if partial payment
-      if (!paymentData.isFullPayment && paymentData.remainingAmount > 0) {
+      if (!normalizedIsFull && normalizedRemaining > 0) {
         await createDebt.mutateAsync({
           customer_id: selectedCustomerId,
           order_id: order.id,
           worker_id: workerId!,
           branch_id: activeBranch?.id,
-          total_amount: paymentData.remainingAmount,
+          total_amount: normalizedRemaining,
           paid_amount: 0,
           notes: paymentData.notes,
         });
@@ -1112,19 +1119,19 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
             const opConfig = smsConfig.direct_sale;
             if (!opConfig.enabled || opConfig.mode === 'disabled') return;
 
-            const paymentStatusText = paymentData.paidAmount >= orderTotals.totalAmount
+            const paymentStatusText = normalizedPaid >= normalizedTotal
               ? 'الحالة: مدفوع بالكامل'
-              : paymentData.paidAmount > 0
-                ? `المدفوع: ${paymentData.paidAmount.toLocaleString()} دج\nالمتبقي: ${paymentData.remainingAmount.toLocaleString()} دج`
-                : `الحالة: دين ${orderTotals.totalAmount.toLocaleString()} دج`;
+              : normalizedPaid > 0
+                ? `المدفوع: ${normalizedPaid.toLocaleString()} دج\nالمتبقي: ${normalizedRemaining.toLocaleString()} دج`
+                : `الحالة: دين ${normalizedTotal.toLocaleString()} دج`;
 
             const message = buildSmsFromTemplate(opConfig.template, {
               customer: selectedCustomer?.name || '',
-              total: orderTotals.totalAmount.toLocaleString(),
+              total: normalizedTotal.toLocaleString(),
               order_id: order.id.slice(0, 8),
               company: companyInfo?.company_name || '',
-              amount: paymentData.paidAmount.toLocaleString(),
-              remaining: paymentData.remainingAmount.toLocaleString(),
+              amount: normalizedPaid.toLocaleString(),
+              remaining: normalizedRemaining.toLocaleString(),
               payment_status: paymentStatusText,
             });
 
@@ -1226,10 +1233,10 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         workerPhone: workerPrintInfo?.workPhone || null,
         branchId: activeBranch?.id || null,
         items: receiptItems,
-        totalAmount: orderTotals.totalAmount,
+        totalAmount: normalizedTotal,
         discountAmount: 0,
-        paidAmount: paymentData.paidAmount,
-        remainingAmount: paymentData.remainingAmount,
+        paidAmount: normalizedPaid,
+        remainingAmount: normalizedRemaining,
         paymentMethod: paymentData.paymentMethod,
         notes: combinedNotes || null,
         orderPaymentType: frozenPaymentType,
@@ -1240,13 +1247,13 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         isWarehouseSale: isWarehouseSrcReceipt,
         receiptTitleOverride: isWarehouseSrcReceipt ? 'VENTE DEPOT' : undefined,
       });
-      const saleStatus: 'paid' | 'partial' | 'debt' = paymentData.isNoPayment
+      const saleStatus: 'paid' | 'partial' | 'debt' = paymentData.isNoPayment || normalizedPaid <= 0
         ? 'debt'
-        : !paymentData.isFullPayment
+        : !normalizedIsFull
           ? 'partial'
           : 'paid';
       setSuccessInfo({
-        amount: orderTotals.totalAmount,
+        amount: normalizedTotal,
         customerName: selectedCustomer?.name || '',
         productNames: orderItems.map(i => getProductName(i.productId)),
         paymentMethod: paymentData.paymentMethod,
@@ -1254,8 +1261,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         invoiceMethod: frozenInvoiceMethod,
         invoiceRequestSent,
         paymentStatus: saleStatus,
-        paidAmount: paymentData.paidAmount,
-        remainingAmount: paymentData.remainingAmount,
+        paidAmount: normalizedPaid,
+        remainingAmount: normalizedRemaining,
         splitGroups: splitGroupsInfo,
       });
       setShowSuccessDialog(true);
