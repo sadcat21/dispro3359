@@ -16,6 +16,11 @@ export const resolveReceiptBucket = (
   if (verification.paid_by_cash === true) {
     return 'cash';
   }
+  // إذا تم تصريح paid_by_cash=false بشكل صريح → مستند، حتى لو كان payment_status='cash'
+  // (يحدث عند استئناف مبيعة نقدية وتحويلها إلى Versement Doc).
+  if (verification.paid_by_cash === false) {
+    return 'doc';
+  }
 
   if (order?.payment_status === 'cash') {
     return 'cash';
