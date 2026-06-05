@@ -957,7 +957,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
 
             {/* ━━━ Step 8: Worker Handover ━━━ */}
             {selectedWorkerId && periodStart && periodEnd && calc && (
-              <StepSection step={8} title={t('create_session.worker_handover')} color="primary">
+              <StepSection step={9} title={t('create_session.worker_handover')} color="primary">
                 <WorkerHandoverSummary
                   workerId={selectedWorkerId}
                   periodStart={periodStart}
