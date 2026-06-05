@@ -377,9 +377,18 @@ const ManagerTreasury = () => {
       const receiptDocItems = buckets.receipt;
       const transferItems = buckets.transfer;
 
+      // For cash_invoice2 (without_invoice), count ALL delivered orders in range
+      // without the per-manager session-window filter, so the badge reflects
+      // the true number of operations/customers tied to that bucket.
+      const inv2RawOrders = (orders || []).filter((o: any) => o.payment_type === 'without_invoice' && Number(o.total_amount || 0) > 0 && o.payment_status !== 'debt');
+      const inv2Summary = {
+        operations: inv2RawOrders.length,
+        clients: new Set(inv2RawOrders.map((o: any) => o.customer_id).filter(Boolean)).size,
+      };
+
       return {
         cash_invoice1: countSummary(buckets.cash_invoice1),
-        cash_invoice2: countSummary(buckets.cash_invoice2),
+        cash_invoice2: inv2Summary,
         check: countSummary(buckets.check),
         receipt_cash: countSummary(buckets.receipt_cash),
         receipt: countSummary(buckets.receipt),
