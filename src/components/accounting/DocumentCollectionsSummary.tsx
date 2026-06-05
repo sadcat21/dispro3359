@@ -894,11 +894,37 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
               لم تُستلم
             </Button>
             <Button
-              disabled={docSaving}
+              disabled={docSaving || !docNumber.trim() || !docDate}
               className="flex-1 bg-green-600 hover:bg-green-700"
               onClick={async () => {
                 if (!docDialog) return;
+                if (!docNumber.trim() || !docDate) {
+                  toast.error('يرجى إدخال رقم وتاريخ المستند');
+                  return;
+                }
                 setDocSaving(true);
+                const t = docDialog.documentType;
+                const existing = (docDialog.verification && typeof docDialog.verification === 'object') ? { ...docDialog.verification } : {};
+                const patch: any = { ...existing };
+                if (t === 'check') {
+                  patch.check_number = docNumber.trim();
+                  patch.check_date = docDate;
+                } else if (t === 'transfer' || t === 'virement') {
+                  patch.transfer_reference = docNumber.trim();
+                  patch.transfer_date = docDate;
+                } else {
+                  patch.receipt_number = docNumber.trim();
+                  patch.receipt_date = docDate;
+                }
+                const { error: updErr } = await supabase
+                  .from('orders')
+                  .update({ document_verification: patch })
+                  .eq('id', docDialog.orderId);
+                if (updErr) {
+                  setDocSaving(false);
+                  toast.error('فشل حفظ بيانات المستند: ' + String(updErr.message || ''));
+                  return;
+                }
                 const { error } = await (supabase as any).rpc('set_manager_document_decision', {
                   p_order_id: docDialog.orderId,
                   p_decision: 'received',
