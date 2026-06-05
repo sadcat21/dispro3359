@@ -839,6 +839,27 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                 <Package className="w-4 h-4" />
                 عرض تفاصيل الطلب
               </Button>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="doc-num">{docNumberLabel(docDialog.documentType)} *</Label>
+                  <Input
+                    id="doc-num"
+                    value={docNumber}
+                    onChange={(e) => setDocNumber(e.target.value)}
+                    placeholder="..."
+                    className="text-right"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="doc-date">{docDateLabel(docDialog.documentType)} *</Label>
+                  <Input
+                    id="doc-date"
+                    type="date"
+                    value={docDate}
+                    onChange={(e) => setDocDate(e.target.value)}
+                  />
+                </div>
+              </div>
             </div>
           )}
           <DialogFooter className="flex-row gap-2 sm:justify-end">
