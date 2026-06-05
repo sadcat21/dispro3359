@@ -364,6 +364,11 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
         const debtAmount = Math.max(0, totalAmount - paidAmount);
         totalPaid += paidAmount;
         newDebts += debtAmount;
+        if (debtAmount > 0) {
+          const pType = order.payment_type || 'without_invoice';
+          if (pType === 'with_invoice') newDebtsByInvoice.invoice1 += debtAmount;
+          else newDebtsByInvoice.invoice2 += debtAmount;
+        }
 
         // Calculate gift value and promo tracking from items
         for (const item of (order.order_items || [])) {
