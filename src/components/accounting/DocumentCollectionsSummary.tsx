@@ -306,7 +306,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           orderTotal: Number(o.total_amount || 0),
           source: 'delivery',
           documentStatus: o.document_status,
-          bucket: dv.manager_receipt_bucket === 'cash' || dv.manager_receipt_bucket === 'doc' ? dv.manager_receipt_bucket : null,
+          bucket: dv.manager_receipt_bucket === 'cash' || dv.manager_receipt_bucket === 'doc' ? dv.manager_receipt_bucket : (dv.paid_by_cash === true ? 'cash' : null),
           verification: parseVerification(o.document_verification, docType),
         });
       }
