@@ -102,6 +102,11 @@ const CustomerLabel: React.FC<CustomerLabelProps> = ({
   if (compact) {
     return (
       <span className={cn('inline-flex items-center gap-1 min-w-0', className)}>
+        {regLabel && (
+          <span className="text-[10px] text-muted-foreground font-medium shrink-0" dir="ltr">
+            {regLabel}
+          </span>
+        )}
         <span className="font-bold text-sm truncate">{displayName}</span>
         {secondaryName && (
           <span className="text-xs text-muted-foreground truncate">— {secondaryName}</span>
@@ -114,6 +119,11 @@ const CustomerLabel: React.FC<CustomerLabelProps> = ({
   return (
     <div className={cn('min-w-0', className)}>
       <div className="flex items-center gap-1 flex-wrap">
+        {regLabel && (
+          <span className="text-[10px] text-muted-foreground font-medium shrink-0" dir="ltr">
+            {regLabel}
+          </span>
+        )}
         <span className="font-bold text-sm truncate">{displayName}</span>
         {badges}
       </div>
@@ -123,5 +133,6 @@ const CustomerLabel: React.FC<CustomerLabelProps> = ({
     </div>
   );
 };
+
 
 export default CustomerLabel;
