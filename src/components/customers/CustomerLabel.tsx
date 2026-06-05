@@ -2,6 +2,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useCustomerTypes, getCustomerTypeColor, CustomerTypeEntry } from '@/hooks/useCustomerTypes';
+import { useRegistrationTypes } from '@/hooks/useRegistrationTypes';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { FlaskConical } from 'lucide-react';
 
@@ -12,7 +13,9 @@ export interface CustomerLabelData {
   sector_name?: string | null;
   zone_name?: string | null;
   internal_name?: string | null;
+  registration_type?: string | null;
 }
+
 
 interface CustomerLabelProps {
   customer: CustomerLabelData;
@@ -38,12 +41,19 @@ const CustomerLabel: React.FC<CustomerLabelProps> = ({
 }) => {
   const { language } = useLanguage();
   const { customerTypes: hookTypes } = useCustomerTypes();
+  const { registrationTypes } = useRegistrationTypes();
   const types = externalTypes || hookTypes;
 
   const isTestCustomer = customer.internal_name?.startsWith('[تجريبي]') ?? false;
 
   const displayName = customer.store_name || customer.name || '—';
   const secondaryName = customer.store_name ? customer.name : null;
+
+  // Registration type label in French
+  const regEntry = customer.registration_type
+    ? registrationTypes.find(r => r.ar === customer.registration_type)
+    : null;
+  const regLabel = regEntry?.fr || customer.registration_type || '';
 
   // Customer type badge
   const typeEntry = types.find(t => t.ar === customer.customer_type);
@@ -53,6 +63,7 @@ const CustomerLabel: React.FC<CustomerLabelProps> = ({
   const typeColor = typeEntry
     ? getCustomerTypeColor(typeEntry.short, 0, typeEntry)
     : null;
+
 
   const badges = !hideBadges && (
     <>
@@ -91,6 +102,11 @@ const CustomerLabel: React.FC<CustomerLabelProps> = ({
   if (compact) {
     return (
       <span className={cn('inline-flex items-center gap-1 min-w-0', className)}>
+        {regLabel && (
+          <span className="text-[10px] text-muted-foreground font-medium shrink-0" dir="ltr">
+            {regLabel}
+          </span>
+        )}
         <span className="font-bold text-sm truncate">{displayName}</span>
         {secondaryName && (
           <span className="text-xs text-muted-foreground truncate">— {secondaryName}</span>
@@ -103,6 +119,11 @@ const CustomerLabel: React.FC<CustomerLabelProps> = ({
   return (
     <div className={cn('min-w-0', className)}>
       <div className="flex items-center gap-1 flex-wrap">
+        {regLabel && (
+          <span className="text-[10px] text-muted-foreground font-medium shrink-0" dir="ltr">
+            {regLabel}
+          </span>
+        )}
         <span className="font-bold text-sm truncate">{displayName}</span>
         {badges}
       </div>
@@ -112,5 +133,6 @@ const CustomerLabel: React.FC<CustomerLabelProps> = ({
     </div>
   );
 };
+
 
 export default CustomerLabel;
