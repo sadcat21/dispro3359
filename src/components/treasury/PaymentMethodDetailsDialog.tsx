@@ -218,7 +218,15 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
 
       switch (category) {
         case 'cash_invoice1':
-          query = query.eq('payment_type', 'with_invoice').eq('invoice_payment_method', 'cash');
+          // In perManager mode, summary.cash_invoice1 includes BOTH
+          // invoice1_espace_cash (cash) and invoice1_versement_cash (receipt
+          // paid by cash). Include receipt-cash-bucketed orders too so the
+          // dialog matches the card amount.
+          if (perManager) {
+            query = query.eq('payment_type', 'with_invoice').in('invoice_payment_method', ['cash', 'receipt']);
+          } else {
+            query = query.eq('payment_type', 'with_invoice').eq('invoice_payment_method', 'cash');
+          }
           break;
         case 'cash_invoice2':
           query = query.eq('payment_type', 'without_invoice');
@@ -284,6 +292,9 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
         if (isHandedForCategory) return;
         if (category === 'bank_receipt_cash' && receiptBucket !== 'cash') return;
         if (category === 'bank_receipt' && receiptBucket !== 'doc') return;
+        // For cash_invoice1 in perManager: keep cash orders and receipt orders
+        // whose bucket is cash (versement cash). Exclude doc-bucketed receipts.
+        if (category === 'cash_invoice1' && o.invoice_payment_method === 'receipt' && receiptBucket !== 'cash') return;
 
         const customerId = o.customer_id;
         const customer = o.customer as any;
