@@ -1,0 +1,1 @@
+ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS registration_sub_types jsonb NOT NULL DEFAULT '[]'::jsonb;

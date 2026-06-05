@@ -1366,6 +1366,7 @@ export type Database = {
           owner_last_name_fr: string | null
           pending_changes: Json | null
           phone: string | null
+          registration_sub_types: Json
           registration_type: string | null
           sales_rep_name: string | null
           sales_rep_phone: string | null
@@ -1403,6 +1404,7 @@ export type Database = {
           owner_last_name_fr?: string | null
           pending_changes?: Json | null
           phone?: string | null
+          registration_sub_types?: Json
           registration_type?: string | null
           sales_rep_name?: string | null
           sales_rep_phone?: string | null
@@ -1440,6 +1442,7 @@ export type Database = {
           owner_last_name_fr?: string | null
           pending_changes?: Json | null
           phone?: string | null
+          registration_sub_types?: Json
           registration_type?: string | null
           sales_rep_name?: string | null
           sales_rep_phone?: string | null
