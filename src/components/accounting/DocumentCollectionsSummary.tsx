@@ -150,7 +150,28 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
   const [stampSaving, setStampSaving] = useState(false);
   const [docDialog, setDocDialog] = useState<CollectedDoc | null>(null);
   const [docSaving, setDocSaving] = useState(false);
+  const [docNumber, setDocNumber] = useState('');
+  const [docDate, setDocDate] = useState('');
   const [detailsOrderId, setDetailsOrderId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (docDialog) {
+      const v = docDialog.verification || {};
+      const t = docDialog.documentType;
+      if (t === 'check') {
+        setDocNumber(v.checkNumber || '');
+        setDocDate(v.checkDate || '');
+      } else {
+        setDocNumber(v.receiptNumber || v.transferReference || '');
+        setDocDate('');
+      }
+    }
+  }, [docDialog]);
+
+  const docNumberLabel = (t: string) =>
+    t === 'check' ? 'رقم الشيك' : (t === 'transfer' || t === 'virement') ? 'رقم الوصل' : 'رقم الوصل';
+  const docDateLabel = (t: string) =>
+    t === 'check' ? 'تاريخ سحب الشيك' : 'تاريخ الدفع';
 
   const { data: orderDetailsItems, isLoading: orderDetailsLoading } = useQuery({
     queryKey: ['order-details-items', detailsOrderId],
