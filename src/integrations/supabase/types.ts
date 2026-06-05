@@ -3744,6 +3744,7 @@ export type Database = {
           doc_collection_days: string[] | null
           doc_collection_type: string | null
           doc_due_date: string | null
+          document_stage: Database["public"]["Enums"]["document_stage"]
           document_status: string | null
           document_verification: Json | null
           id: string
@@ -3776,6 +3777,7 @@ export type Database = {
           doc_collection_days?: string[] | null
           doc_collection_type?: string | null
           doc_due_date?: string | null
+          document_stage?: Database["public"]["Enums"]["document_stage"]
           document_status?: string | null
           document_verification?: Json | null
           id?: string
@@ -3808,6 +3810,7 @@ export type Database = {
           doc_collection_days?: string[] | null
           doc_collection_type?: string | null
           doc_due_date?: string | null
+          document_stage?: Database["public"]["Enums"]["document_stage"]
           document_status?: string | null
           document_verification?: Json | null
           id?: string
@@ -10250,6 +10253,7 @@ export type Database = {
         | "company_manager"
         | "internal_supervisor"
         | "external_supervisor"
+      document_stage: "pending" | "received" | "ready" | "handed"
       invoice_stage: "unsealed" | "sealed" | "ready" | "delivered"
       target_metric_type: "sales_amount" | "deliveries_count" | "cartons_sold"
       target_period_type: "daily" | "weekly" | "monthly"
@@ -10397,6 +10401,7 @@ export const Constants = {
         "internal_supervisor",
         "external_supervisor",
       ],
+      document_stage: ["pending", "received", "ready", "handed"],
       invoice_stage: ["unsealed", "sealed", "ready", "delivered"],
       target_metric_type: ["sales_amount", "deliveries_count", "cartons_sold"],
       target_period_type: ["daily", "weekly", "monthly"],
