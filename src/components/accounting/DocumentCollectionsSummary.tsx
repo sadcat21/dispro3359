@@ -265,7 +265,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
 
       const { data: pendingCollections } = await supabase
         .from('document_collections')
-        .select(`id, action, status, collection_date, created_at, order_id, order:orders!document_collections_order_id_fkey(id, total_amount, invoice_payment_method, document_status, document_verification, payment_status, payment_method_resolved, customer:customers!orders_customer_id_fkey(name))`)
+        .select(`id, action, status, collection_date, created_at, order_id, order:orders!document_collections_order_id_fkey(id, total_amount, invoice_payment_method, document_status, document_verification, payment_status, payment_method_resolved, customer:customers!orders_customer_id_fkey(name, store_name))`)
         .eq('worker_id', workerId)
         .eq('action', 'collected')
         .neq('status', 'rejected')
