@@ -872,25 +872,40 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
                   <BookOpen className="w-4 h-4 text-blue-600" />
                   <Label htmlFor="edit-registered-switch">عميل مسجل (ملف تجاري)</Label>
                 </div>
-                <div className="flex items-center gap-2">
-                  {isRegistered && (
-                    <Select value={registrationType} onValueChange={setRegistrationType}>
-                      <SelectTrigger className="h-8 w-[160px] text-xs">
-                        <SelectValue placeholder="نوع السجل" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="personne_physique">شخص طبيعي (Personne Physique)</SelectItem>
-                        <SelectItem value="eurl">EURL</SelectItem>
-                        <SelectItem value="sarl">SARL</SelectItem>
-                        <SelectItem value="spa">SPA</SelectItem>
-                        <SelectItem value="snc">SNC</SelectItem>
-                        <SelectItem value="autre">أخرى</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
-                  <Switch id="edit-registered-switch" checked={isRegistered} onCheckedChange={setIsRegistered} />
-                </div>
+                <Switch id="edit-registered-switch" checked={isRegistered} onCheckedChange={setIsRegistered} />
               </div>
+              {isRegistered && registrationTypes.length > 0 && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs">نوع السجل</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {registrationTypes.map((entry, idx) => {
+                      const colors = getRegistrationTypeColor(idx, entry);
+                      const isActive = registrationType === entry.ar;
+                      return (
+                        <Button
+                          key={entry.ar}
+                          type="button"
+                          variant="default"
+                          size="sm"
+                          className={`font-mono uppercase text-xs hover:opacity-100 ${isActive ? 'ring-2 ring-offset-1 ring-foreground/40' : 'opacity-60'}`}
+                          style={{ backgroundColor: colors.bg, borderColor: colors.bg, color: colors.text }}
+                          onClick={() => setRegistrationType(isActive ? '' : entry.ar)}
+                        >
+                          {entry.short || (entry as any)[language] || entry.ar}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                  {registrationType && (
+                    <p className="text-xs text-muted-foreground">
+                      {(() => {
+                        const t = registrationTypes.find(r => r.ar === registrationType);
+                        return t ? ((t as any)[language] || t.ar) : registrationType;
+                      })()}
+                    </p>
+                  )}
+                </div>
+              )}
               {isRegistered && (
                 <div className="space-y-3 pt-2 border-t">
                   <p className="text-xs text-muted-foreground">✅ هذا العميل مسجل رسمياً ويمكنه الشراء بـ Facture 1</p>
