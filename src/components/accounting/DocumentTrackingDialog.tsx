@@ -67,6 +67,8 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
   const { toast } = useToast();
   const [tab, setTab] = useState<Exclude<Stage, 'handed'>>('pending');
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [invoicePrompt, setInvoicePrompt] = useState<Row | null>(null);
+  const [invoiceNumber, setInvoiceNumber] = useState('');
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ['document-tracking', branchId],
