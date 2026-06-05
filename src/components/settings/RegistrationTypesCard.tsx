@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2, BookOpen, Loader2, GripVertical, Pencil, Check, X, Palette } from 'lucide-react';
-import { useRegistrationTypes, RegistrationTypeEntry, getRegistrationTypeColor } from '@/hooks/useRegistrationTypes';
+import { useRegistrationTypes, RegistrationTypeEntry, RegistrationSubType, getRegistrationTypeColor } from '@/hooks/useRegistrationTypes';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -129,6 +129,38 @@ const RegistrationTypesCard: React.FC = () => {
   };
 
   const isPending = updateTypes.isPending || isTranslating;
+  const [newSubInputs, setNewSubInputs] = useState<Record<number, string>>({});
+
+  const handleAddSubType = async (index: number) => {
+    const val = (newSubInputs[index] || '').trim();
+    if (!val) return;
+    const entry = registrationTypes[index];
+    const existing = entry.sub_types || [];
+    if (existing.some(s => s.ar === val)) {
+      toast.error('هذا النوع الفرعي موجود');
+      return;
+    }
+    try {
+      const updated = [...registrationTypes];
+      updated[index] = { ...entry, sub_types: [...existing, { ar: val }] };
+      await updateTypes.mutateAsync(updated);
+      setNewSubInputs({ ...newSubInputs, [index]: '' });
+    } catch {
+      toast.error('فشل في الإضافة');
+    }
+  };
+
+  const handleRemoveSubType = async (index: number, subAr: string) => {
+    const entry = registrationTypes[index];
+    try {
+      const updated = [...registrationTypes];
+      updated[index] = { ...entry, sub_types: (entry.sub_types || []).filter(s => s.ar !== subAr) };
+      await updateTypes.mutateAsync(updated);
+    } catch {
+      toast.error('فشل في الحذف');
+    }
+  };
+
   if (isLoading) return null;
 
   return (
@@ -198,32 +230,63 @@ const RegistrationTypesCard: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 p-2.5 hover:bg-accent/50 cursor-grab active:cursor-grabbing">
-                  <GripVertical className="w-4 h-4 text-muted-foreground shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm">{(entry as any)[language] || entry.ar}</span>
-                      {entry.short && (() => {
-                        const c = getRegistrationTypeColor(index, entry);
-                        return (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded font-mono uppercase" style={{ backgroundColor: c.bg, color: c.text }}>
-                            {entry.short}
-                          </span>
-                        );
-                      })()}
+                <div>
+                  <div className="flex items-center gap-2 p-2.5 hover:bg-accent/50 cursor-grab active:cursor-grabbing">
+                    <GripVertical className="w-4 h-4 text-muted-foreground shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-sm">{(entry as any)[language] || entry.ar}</span>
+                        {entry.short && (() => {
+                          const c = getRegistrationTypeColor(index, entry);
+                          return (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded font-mono uppercase" style={{ backgroundColor: c.bg, color: c.text }}>
+                              {entry.short}
+                            </span>
+                          );
+                        })()}
+                      </div>
+                      <div className="flex gap-3 text-[11px] text-muted-foreground mt-0.5">
+                        <span>🇩🇿 {entry.ar}</span>
+                        <span>🇫🇷 {entry.fr}</span>
+                        <span>🇺🇸 {entry.en}</span>
+                      </div>
                     </div>
-                    <div className="flex gap-3 text-[11px] text-muted-foreground mt-0.5">
-                      <span>🇩🇿 {entry.ar}</span>
-                      <span>🇫🇷 {entry.fr}</span>
-                      <span>🇺🇸 {entry.en}</span>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditStart(index)} disabled={isPending}>
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 hover:text-destructive" onClick={() => handleRemove(entry)} disabled={isPending}>
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                  <div className="px-2.5 pb-2.5 pt-1 border-t bg-muted/30">
+                    <div className="text-[11px] text-muted-foreground mb-1.5">أنواع البيع الفرعية (اختيار متعدد)</div>
+                    <div className="flex flex-wrap gap-1.5 mb-1.5">
+                      {(entry.sub_types || []).map(st => (
+                        <span key={st.ar} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground text-xs">
+                          {st.ar}
+                          <button type="button" onClick={() => handleRemoveSubType(index, st.ar)} className="hover:text-destructive" disabled={isPending}>
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                      {(!entry.sub_types || entry.sub_types.length === 0) && (
+                        <span className="text-[11px] text-muted-foreground italic">لا يوجد (مثل: تجزئة، جملة)</span>
+                      )}
+                    </div>
+                    <div className="flex gap-1.5">
+                      <Input
+                        value={newSubInputs[index] || ''}
+                        onChange={(e) => setNewSubInputs({ ...newSubInputs, [index]: e.target.value })}
+                        placeholder="نوع فرعي جديد..."
+                        className="h-7 text-xs flex-1"
+                        disabled={isPending}
+                        onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddSubType(index))}
+                      />
+                      <Button size="sm" className="h-7 px-2" onClick={() => handleAddSubType(index)} disabled={!(newSubInputs[index] || '').trim() || isPending}>
+                        <Plus className="w-3 h-3" />
+                      </Button>
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditStart(index)} disabled={isPending}>
-                    <Pencil className="w-3.5 h-3.5" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-7 w-7 hover:text-destructive" onClick={() => handleRemove(entry)} disabled={isPending}>
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </Button>
                 </div>
               )}
             </div>

@@ -3,6 +3,12 @@ import { supabase } from '@/integrations/supabase/client';
 
 const REGISTRATION_TYPES_KEY = 'registration_types';
 
+export interface RegistrationSubType {
+  ar: string;
+  fr?: string;
+  en?: string;
+}
+
 export interface RegistrationTypeEntry {
   ar: string;
   fr: string;
@@ -11,6 +17,7 @@ export interface RegistrationTypeEntry {
   description?: string;
   bg_color?: string;
   text_color?: string;
+  sub_types?: RegistrationSubType[];
 }
 
 const DEFAULT_TYPES: RegistrationTypeEntry[] = [

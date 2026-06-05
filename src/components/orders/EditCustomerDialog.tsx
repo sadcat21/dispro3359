@@ -102,6 +102,7 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
   const [ownerFirstNameFr, setOwnerFirstNameFr] = useState('');
   const [ownerLastNameFr, setOwnerLastNameFr] = useState('');
   const [registrationType, setRegistrationType] = useState<string>('');
+  const [registrationSubTypes, setRegistrationSubTypes] = useState<string[]>([]);
   const [defaultDeliveryWorkerId, setDefaultDeliveryWorkerId] = useState('');
 
   // Fetch zones when sector changes
@@ -276,6 +277,8 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
       setOwnerFirstNameFr((customer as any).owner_first_name_fr || '');
       setOwnerLastNameFr((customer as any).owner_last_name_fr || '');
       setRegistrationType((customer as any).registration_type || '');
+      const sub = (customer as any).registration_sub_types;
+      setRegistrationSubTypes(Array.isArray(sub) ? sub : []);
       setDefaultDeliveryWorkerId((customer as any).default_delivery_worker_id || '');
       setShowMap(!!(customer.latitude && customer.longitude));
 
@@ -414,6 +417,7 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
         owner_first_name_fr: isRegistered ? (ownerFirstNameFr.trim() || null) : null,
         owner_last_name_fr: isRegistered ? (ownerLastNameFr.trim() || null) : null,
         registration_type: isRegistered ? (registrationType || null) : null,
+        registration_sub_types: isRegistered && registrationType ? registrationSubTypes : [],
         default_delivery_worker_id: defaultDeliveryWorkerId || null,
       };
 
@@ -891,21 +895,49 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
                           size="sm"
                           className={`font-mono uppercase text-xs hover:opacity-100 ${isActive ? 'ring-2 ring-offset-1 ring-foreground/40' : 'opacity-60'}`}
                           style={{ backgroundColor: colors.bg, borderColor: colors.bg, color: colors.text }}
-                          onClick={() => setRegistrationType(isActive ? '' : entry.ar)}
+                          onClick={() => { const turnOff = isActive; setRegistrationType(turnOff ? '' : entry.ar); setRegistrationSubTypes([]); }}
                         >
                           {entry.short || (entry as any)[language] || entry.ar}
                         </Button>
                       );
                     })}
                   </div>
-                  {registrationType && (
-                    <p className="text-xs text-muted-foreground">
-                      {(() => {
-                        const t = registrationTypes.find(r => r.ar === registrationType);
-                        return t ? ((t as any)[language] || t.ar) : registrationType;
-                      })()}
-                    </p>
-                  )}
+                  {registrationType && (() => {
+                    const t = registrationTypes.find(r => r.ar === registrationType);
+                    if (!t) return null;
+                    const subs = t.sub_types || [];
+                    return (
+                      <div className="space-y-1.5 pt-2">
+                        <p className="text-xs text-muted-foreground">
+                          {(t as any)[language] || t.ar}
+                        </p>
+                        {subs.length > 0 && (
+                          <div className="space-y-1">
+                            <Label className="text-xs">نوع البيع (اختيار متعدد)</Label>
+                            <div className="flex flex-wrap gap-2">
+                              {subs.map((s) => {
+                                const active = registrationSubTypes.includes(s.ar);
+                                return (
+                                  <Button
+                                    key={s.ar}
+                                    type="button"
+                                    variant={active ? 'default' : 'outline'}
+                                    size="sm"
+                                    className="text-xs"
+                                    onClick={() => setRegistrationSubTypes(active
+                                      ? registrationSubTypes.filter(x => x !== s.ar)
+                                      : [...registrationSubTypes, s.ar])}
+                                  >
+                                    {s.ar}
+                                  </Button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
               {isRegistered && (
