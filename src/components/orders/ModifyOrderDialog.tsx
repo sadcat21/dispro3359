@@ -1125,11 +1125,11 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
     return { kind: 'partial', amount: paid };
   };
 
-  const dispatchPaymentResult = async (paid: number) => {
+  const dispatchPaymentResult = async (paid: number, paidByCash?: boolean) => {
     const action = pendingPaymentActionRef.current;
     pendingPaymentActionRef.current = null;
     if (action === 'resume') {
-      await executeResume(paid);
+      await executeResume(paid, paidByCash);
       return;
     }
     const { kind, amount } = mapPaidToDiff(paid);
@@ -1145,8 +1145,9 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
   }) => {
     setShowReceiptPaymentDialog(false);
     const paid = (data.receiptAmount || 0) + (data.cashAmount || 0);
-    await dispatchPaymentResult(paid);
+    await dispatchPaymentResult(paid, data.paidByCash);
   };
+
 
   const handleSplitPaymentConfirm = async (results: GroupPaymentResult[]) => {
     setShowSplitPaymentDialog(false);
