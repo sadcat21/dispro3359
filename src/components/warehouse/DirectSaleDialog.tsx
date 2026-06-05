@@ -1083,13 +1083,13 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       }
 
       // Create debt if partial payment
-      if (!paymentData.isFullPayment && paymentData.remainingAmount > 0) {
+      if (!normalizedIsFull && normalizedRemaining > 0) {
         await createDebt.mutateAsync({
           customer_id: selectedCustomerId,
           order_id: order.id,
           worker_id: workerId!,
           branch_id: activeBranch?.id,
-          total_amount: paymentData.remainingAmount,
+          total_amount: normalizedRemaining,
           paid_amount: 0,
           notes: paymentData.notes,
         });
@@ -1119,19 +1119,19 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
             const opConfig = smsConfig.direct_sale;
             if (!opConfig.enabled || opConfig.mode === 'disabled') return;
 
-            const paymentStatusText = paymentData.paidAmount >= orderTotals.totalAmount
+            const paymentStatusText = normalizedPaid >= normalizedTotal
               ? 'الحالة: مدفوع بالكامل'
-              : paymentData.paidAmount > 0
-                ? `المدفوع: ${paymentData.paidAmount.toLocaleString()} دج\nالمتبقي: ${paymentData.remainingAmount.toLocaleString()} دج`
-                : `الحالة: دين ${orderTotals.totalAmount.toLocaleString()} دج`;
+              : normalizedPaid > 0
+                ? `المدفوع: ${normalizedPaid.toLocaleString()} دج\nالمتبقي: ${normalizedRemaining.toLocaleString()} دج`
+                : `الحالة: دين ${normalizedTotal.toLocaleString()} دج`;
 
             const message = buildSmsFromTemplate(opConfig.template, {
               customer: selectedCustomer?.name || '',
-              total: orderTotals.totalAmount.toLocaleString(),
+              total: normalizedTotal.toLocaleString(),
               order_id: order.id.slice(0, 8),
               company: companyInfo?.company_name || '',
-              amount: paymentData.paidAmount.toLocaleString(),
-              remaining: paymentData.remainingAmount.toLocaleString(),
+              amount: normalizedPaid.toLocaleString(),
+              remaining: normalizedRemaining.toLocaleString(),
               payment_status: paymentStatusText,
             });
 
@@ -1233,10 +1233,10 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         workerPhone: workerPrintInfo?.workPhone || null,
         branchId: activeBranch?.id || null,
         items: receiptItems,
-        totalAmount: orderTotals.totalAmount,
+        totalAmount: normalizedTotal,
         discountAmount: 0,
-        paidAmount: paymentData.paidAmount,
-        remainingAmount: paymentData.remainingAmount,
+        paidAmount: normalizedPaid,
+        remainingAmount: normalizedRemaining,
         paymentMethod: paymentData.paymentMethod,
         notes: combinedNotes || null,
         orderPaymentType: frozenPaymentType,
@@ -1247,13 +1247,13 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         isWarehouseSale: isWarehouseSrcReceipt,
         receiptTitleOverride: isWarehouseSrcReceipt ? 'VENTE DEPOT' : undefined,
       });
-      const saleStatus: 'paid' | 'partial' | 'debt' = paymentData.isNoPayment
+      const saleStatus: 'paid' | 'partial' | 'debt' = paymentData.isNoPayment || normalizedPaid <= 0
         ? 'debt'
-        : !paymentData.isFullPayment
+        : !normalizedIsFull
           ? 'partial'
           : 'paid';
       setSuccessInfo({
-        amount: orderTotals.totalAmount,
+        amount: normalizedTotal,
         customerName: selectedCustomer?.name || '',
         productNames: orderItems.map(i => getProductName(i.productId)),
         paymentMethod: paymentData.paymentMethod,
@@ -1261,8 +1261,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
         invoiceMethod: frozenInvoiceMethod,
         invoiceRequestSent,
         paymentStatus: saleStatus,
-        paidAmount: paymentData.paidAmount,
-        remainingAmount: paymentData.remainingAmount,
+        paidAmount: normalizedPaid,
+        remainingAmount: normalizedRemaining,
         splitGroups: splitGroupsInfo,
       });
       setShowSuccessDialog(true);
