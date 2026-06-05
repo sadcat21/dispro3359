@@ -401,15 +401,20 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
 
   const renderDocCard = (doc: CollectedDoc) => {
     const v = doc.verification;
-    const pct = v.totalFields > 0 ? Math.round((v.verifiedFields! / v.totalFields) * 100) : 0;
     const docKey = `doc_${doc.orderId}`;
-    const isReceived = receivedDocs ? receivedDocs[docKey] !== false : true;
+    const receivedState = receivedDocs ? receivedDocs[docKey] : undefined;
+    const borderCls =
+      receivedState === true
+        ? 'border-green-500 bg-green-50/40 dark:bg-green-900/10'
+        : receivedState === false
+          ? 'border-destructive bg-destructive/5'
+          : '';
 
     return (
       <div
         key={doc.orderId}
         onClick={() => setDocDialog(doc)}
-        className={`border rounded-lg p-3 space-y-2 cursor-pointer transition-colors hover:bg-muted/40 ${!isReceived ? 'border-destructive/40 bg-destructive/5' : ''}`}
+        className={`border rounded-lg p-3 space-y-2 cursor-pointer transition-colors hover:bg-muted/40 ${borderCls}`}
       >
         {/* Header: customer + amount */}
         {(() => {
@@ -453,24 +458,6 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           );
         })()}
 
-        {/* Verification details */}
-        {doc.documentType === 'check' && (
-          <div className="grid grid-cols-3 gap-1.5 text-[10px]">
-            <div className="bg-muted/50 rounded p-1.5 text-center">
-              <p className="text-muted-foreground mb-0.5">رقم الشيك</p>
-              <p className="font-bold">{v.checkNumber || '—'}</p>
-            </div>
-            <div className="bg-muted/50 rounded p-1.5 text-center">
-              <p className="text-muted-foreground mb-0.5">تاريخ الشيك</p>
-              <p className="font-bold">{v.checkDate || '—'}</p>
-            </div>
-            <div className="bg-muted/50 rounded p-1.5 text-center">
-              <p className="text-muted-foreground mb-0.5">البنك</p>
-              <p className="font-bold">{v.checkBank || '—'}</p>
-            </div>
-          </div>
-        )}
-
         {(doc.documentType === 'receipt' || doc.documentType === 'versement') && v.receiptNumber && (
           <div className="bg-muted/50 rounded p-1.5 text-[10px] text-center">
             <p className="text-muted-foreground mb-0.5">رقم الوصل</p>
@@ -485,20 +472,8 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           </div>
         )}
 
-        {/* Verification progress + button */}
-        <div className="flex items-center gap-2">
-          {v.verified ? (
-            <ShieldCheck className="w-3.5 h-3.5 text-green-600 shrink-0" />
-          ) : v.verifiedFields! > 0 ? (
-            <ShieldAlert className="w-3.5 h-3.5 text-orange-500 shrink-0" />
-          ) : (
-            <AlertCircle className="w-3.5 h-3.5 text-destructive shrink-0" />
-          )}
-          <Progress value={pct} className="h-1.5 flex-1" />
-          <span className={`text-[10px] font-bold ${v.verified ? 'text-green-600' : pct > 0 ? 'text-orange-500' : 'text-destructive'}`}>
-            {pct}%
-          </span>
-          {!v.verified && (
+        {!v.verified && (
+          <div className="flex justify-end">
             <Button
               size="sm"
               variant="outline"
@@ -508,8 +483,8 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
               <ClipboardCheck className="w-3 h-3" />
               تحقق
             </Button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     );
   };
