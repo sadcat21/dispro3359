@@ -219,6 +219,7 @@ const Settings: React.FC = () => {
             <CompanyInfoCard />
             <LocationSettingsCard />
             <CustomerTypesCard />
+            <RegistrationTypesCard />
             <VerificationChecklistCard />
             <SmsSettingsCard />
             <AppUpdateSettingsCard />
