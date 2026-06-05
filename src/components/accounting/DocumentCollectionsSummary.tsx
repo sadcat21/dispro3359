@@ -115,6 +115,7 @@ const parseVerification = (v: any, docType: string) => {
     verified: totalFields > 0 && verifiedFields === totalFields,
     verifiedFields,
     totalFields,
+    raw: v,
   };
 };
 
