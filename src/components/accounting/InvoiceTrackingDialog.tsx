@@ -204,9 +204,11 @@ const InvoiceTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId }
           </TabsContent>
         </Tabs>
       </DialogContent>
+    </Dialog>
 
       <Dialog open={!!invoicePrompt} onOpenChange={(o) => !o && setInvoicePrompt(null)}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm z-[60]">
+
           <DialogHeader>
             <DialogTitle>إدخال رقم الفاتورة</DialogTitle>
           </DialogHeader>
