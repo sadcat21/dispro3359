@@ -263,7 +263,10 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setInvoicePrompt(null)}>إلغاء</Button>
-            <Button onClick={confirmInvoicePrompt} disabled={!invoiceNumber.trim() || busyId === invoicePrompt?.id}>تأكيد التسليم</Button>
+            <Button onClick={confirmInvoicePrompt} disabled={!invoiceNumber.trim() || busyId === invoicePrompt?.id}>
+              <Inbox className="w-3 h-3 me-1" />
+              استلام
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
