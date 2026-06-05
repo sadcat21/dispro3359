@@ -777,7 +777,10 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                       </div>
                       <span className="font-bold text-xs text-destructive">{fmt(calc.newDebts || 0)} DA</span>
                     </div>
-                    <PaymentRow label={t('accounting.new_debts')} value={calc.newDebts || 0} highlight />
+                    <div className="space-y-0.5">
+                      <PaymentRow label={t('accounting.invoice1')} value={calc.newDebtsByInvoice?.invoice1 || 0} highlight />
+                      <PaymentRow label={t('accounting.invoice2')} value={calc.newDebtsByInvoice?.invoice2 || 0} />
+                    </div>
                   </div>
                   {/* Debt Collections */}
                   <div className="rounded-lg border p-3 space-y-1.5">

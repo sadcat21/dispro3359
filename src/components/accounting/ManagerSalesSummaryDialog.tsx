@@ -137,6 +137,11 @@ const buildCalcFromOrders = (orders: any[], items: any[]): SessionCalculations =
     const debtAmount = Math.max(0, totalAmount - paidAmount);
     calc.totalPaid += paidAmount;
     calc.newDebts += debtAmount;
+    if (debtAmount > 0) {
+      const pType = order.payment_type || 'without_invoice';
+      if (pType === 'with_invoice') calc.newDebtsByInvoice.invoice1 += debtAmount;
+      else calc.newDebtsByInvoice.invoice2 += debtAmount;
+    }
 
     if (paidAmount > 0) {
       const paymentType = order.payment_type || 'without_invoice';
@@ -180,6 +185,7 @@ const emptyCalc = (): SessionCalculations => ({
   totalSales: 0,
   totalPaid: 0,
   newDebts: 0,
+  newDebtsByInvoice: { invoice1: 0, invoice2: 0 },
   invoice1: { total: 0, check: 0, transfer: 0, receipt: 0, espaceCash: 0, versementCash: 0 },
   invoice2: { total: 0, cash: 0 },
   debtCollections: { total: 0, cash: 0, check: 0, transfer: 0, receipt: 0 },
@@ -234,6 +240,8 @@ const mergeCalcs = (calcs: SessionCalculations[]): SessionCalculations => {
     merged.totalSales += calc.totalSales;
     merged.totalPaid += calc.totalPaid;
     merged.newDebts += calc.newDebts;
+    merged.newDebtsByInvoice.invoice1 += calc.newDebtsByInvoice?.invoice1 || 0;
+    merged.newDebtsByInvoice.invoice2 += calc.newDebtsByInvoice?.invoice2 || 0;
     merged.invoice1.total += calc.invoice1.total;
     merged.invoice1.check += calc.invoice1.check;
     merged.invoice1.transfer += calc.invoice1.transfer;

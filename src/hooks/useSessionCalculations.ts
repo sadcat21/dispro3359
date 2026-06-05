@@ -55,6 +55,7 @@ export interface SessionCalculations {
   totalSales: number;
   totalPaid: number;
   newDebts: number;
+  newDebtsByInvoice: { invoice1: number; invoice2: number };
   invoice1: PaymentMethodBreakdown & { total: number; versementCash: number };
   invoice2: { total: number; cash: number };
   debtCollections: DebtCollectionBreakdown;
@@ -313,6 +314,7 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
       let totalSales = 0;
       let totalPaid = 0;
       let newDebts = 0;
+      const newDebtsByInvoice = { invoice1: 0, invoice2: 0 };
       let giftOfferValue = 0;
 
       const invoice1: PaymentMethodBreakdown & { total: number; versementCash: number } = {
@@ -362,6 +364,11 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
         const debtAmount = Math.max(0, totalAmount - paidAmount);
         totalPaid += paidAmount;
         newDebts += debtAmount;
+        if (debtAmount > 0) {
+          const pType = order.payment_type || 'without_invoice';
+          if (pType === 'with_invoice') newDebtsByInvoice.invoice1 += debtAmount;
+          else newDebtsByInvoice.invoice2 += debtAmount;
+        }
 
         // Calculate gift value and promo tracking from items
         for (const item of (order.order_items || [])) {
@@ -615,6 +622,7 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
     totalSales,
     totalPaid,
     newDebts,
+    newDebtsByInvoice,
     invoice1,
     invoice2,
     debtCollections,
@@ -643,6 +651,7 @@ function getEmptyCalculations(): SessionCalculations {
     totalSales: 0,
     totalPaid: 0,
     newDebts: 0,
+    newDebtsByInvoice: { invoice1: 0, invoice2: 0 },
     invoice1: { total: 0, check: 0, transfer: 0, receipt: 0, espaceCash: 0, versementCash: 0 },
     invoice2: { total: 0, cash: 0 },
     debtCollections: { total: 0, cash: 0, check: 0, transfer: 0, receipt: 0 },
