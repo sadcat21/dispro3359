@@ -128,7 +128,14 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
       await qc.invalidateQueries({ queryKey: ['document-tracking', branchId] });
       setInvoicePrompt(null);
     } catch (e: any) {
-      toast({ title: 'خطأ', description: e?.message || 'تعذّر التحديث', variant: 'destructive' });
+      const msg = String(e?.message || '');
+      if (msg.includes('invoice_number_required')) {
+        setInvoiceNumber('');
+        setInvoicePrompt(row);
+        toast({ title: 'مطلوب', description: 'يجب إدخال رقم الفاتورة قبل تسليم الوثيقة', variant: 'destructive' });
+      } else {
+        toast({ title: 'خطأ', description: msg || 'تعذّر التحديث', variant: 'destructive' });
+      }
     } finally {
       setBusyId(null);
     }
