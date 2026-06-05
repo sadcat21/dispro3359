@@ -303,11 +303,16 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
       const debtCashHanded = (handovers || []).reduce((s: number, h: any) => s + Number(h.debt_cash_amount || 0), 0);
       const debtCashCollected = Math.max(debtCashCollectedGross - debtCashHanded, 0);
 
-      // Get approved expenses
-      let expQuery = supabase.from('expenses').select('amount').eq('status', 'approved');
+      // Get approved expenses (we'll filter by reviewed session windows below
+      // so that expenses for workers who haven't been accounted for yet are
+      // NOT deducted from the manager's treasury — they belong to the cash the
+      // worker will hand over later).
+      let expQuery = supabase
+        .from('expenses')
+        .select('amount, worker_id, created_at, expense_date')
+        .eq('status', 'approved');
       if (activeBranch?.id) expQuery = expQuery.eq('branch_id', activeBranch.id);
       const { data: expensesData } = await expQuery;
-      const totalExpenses = (expensesData || []).reduce((s: number, e: any) => s + Number(e.amount || 0), 0);
 
       // Get completed accounting sessions to determine covered orders.
       // CRITICAL: only sessions whose manager-review has been CONFIRMED are
