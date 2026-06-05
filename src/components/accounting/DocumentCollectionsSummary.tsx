@@ -274,7 +274,6 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
         .eq('assigned_worker_id', workerId)
         .eq('status', 'delivered')
         .in('invoice_payment_method', ['check', 'receipt', 'transfer', 'versement', 'virement'])
-        .in('document_status', ['pending', 'received', 'verified'])
         .gte('updated_at', startTz)
         .lte('updated_at', endTz);
 
