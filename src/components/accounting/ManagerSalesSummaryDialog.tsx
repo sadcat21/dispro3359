@@ -139,8 +139,19 @@ const buildCalcFromOrders = (orders: any[], items: any[]): SessionCalculations =
     calc.newDebts += debtAmount;
     if (debtAmount > 0) {
       const pType = order.payment_type || 'without_invoice';
-      if (pType === 'with_invoice') calc.newDebtsByInvoice.invoice1 += debtAmount;
-      else calc.newDebtsByInvoice.invoice2 += debtAmount;
+      if (pType === 'with_invoice') {
+        calc.newDebtsByInvoice.invoice1 += debtAmount;
+        const im = String(order.invoice_payment_method || '').toLowerCase();
+        const dv = order.document_verification && typeof order.document_verification === 'object' ? order.document_verification : null;
+        const pbc = dv?.paid_by_cash === true;
+        if (im === 'check') calc.newDebtsByInvoice.invoice1Methods.check += debtAmount;
+        else if ((im === 'receipt' || im === 'transfer' || im === 'versement' || im === 'virement') && pbc) calc.newDebtsByInvoice.invoice1Methods.versementCash += debtAmount;
+        else if (im === 'transfer' || im === 'virement') calc.newDebtsByInvoice.invoice1Methods.transfer += debtAmount;
+        else if (im === 'receipt' || im === 'versement') calc.newDebtsByInvoice.invoice1Methods.receipt += debtAmount;
+        else calc.newDebtsByInvoice.invoice1Methods.espaceCash += debtAmount;
+      } else {
+        calc.newDebtsByInvoice.invoice2 += debtAmount;
+      }
     }
 
     if (paidAmount > 0) {
