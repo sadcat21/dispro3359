@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import DocumentFlowDialog from '@/components/documents/DocumentFlowDialog';
 import { toast } from 'sonner';
+import { resolveReceiptBucket } from '@/utils/treasuryDocumentClassification';
 
 interface StampedInvoice {
   orderId: string;
@@ -257,15 +258,11 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
 
       // 1) Pending documents that were actually collected (source of truth)
       const resolveBucket = (dv: any, o: any): 'cash' | 'doc' | null => {
-        if (dv?.manager_receipt_bucket === 'cash' || dv?.manager_receipt_bucket === 'doc') {
-          return dv.manager_receipt_bucket;
+        const method = String(o?.invoice_payment_method || '').toLowerCase();
+        if (!['receipt', 'versement', 'transfer', 'virement'].includes(method)) {
+          return null;
         }
-        if (dv?.paid_by_cash === true) return 'cash';
-        if (o?.payment_status === 'cash') return 'cash';
-        const resolved = String(o?.payment_method_resolved || '');
-        if (resolved.endsWith('_cash')) return 'cash';
-        if (resolved.endsWith('_doc')) return 'doc';
-        return null;
+        return resolveReceiptBucket(dv, o);
       };
 
       const { data: pendingCollections } = await supabase
@@ -354,13 +351,10 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
 
       return (data || []).map((o: any): StampedInvoice => {
         const v = o.document_verification && typeof o.document_verification === 'object' ? o.document_verification : {};
-        const resolved = String(o.payment_method_resolved || '');
         const bucket: 'cash' | 'doc' | null =
-          v.manager_receipt_bucket === 'cash' || v.manager_receipt_bucket === 'doc'
-            ? v.manager_receipt_bucket
-            : (v.paid_by_cash === true || o.payment_status === 'cash' || resolved.endsWith('_cash')
-                ? 'cash'
-                : (resolved.endsWith('_doc') ? 'doc' : null));
+          ['receipt', 'versement', 'transfer', 'virement'].includes(String(o.invoice_payment_method || '').toLowerCase())
+            ? resolveReceiptBucket(v, o)
+            : null;
         return {
           orderId: o.id,
           customerName: o.customer?.name || 'غير معروف',
