@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut, MoreHorizontal, Bluetooth, BluetoothOff, Printer, Receipt, MessageCircle, ArrowRight, ArrowLeft, Sun, Moon, Monitor, Smartphone, Wand2, Sparkles, CalendarCheck, ChevronDown, ChevronRight, Home, Wallet, Truck, Package, Users, Tag, UserCog, Settings as SettingsIcon, LayoutGrid, Palette, Trophy, ShieldCheck, Calculator, BookOpenCheck, ClipboardList } from 'lucide-react';
+import { LogOut, MoreHorizontal, Bluetooth, BluetoothOff, Printer, Receipt, MessageCircle, ArrowRight, ArrowLeft, Sun, Moon, Monitor, Smartphone, Wand2, Sparkles, CalendarCheck, ChevronDown, ChevronRight, Home, Wallet, Truck, Package, Users, Tag, UserCog, Settings as SettingsIcon, LayoutGrid, Palette, Trophy, ShieldCheck, Calculator, BookOpenCheck, ClipboardList, FileStack } from 'lucide-react';
 import { useUITheme } from '@/contexts/UIThemeContext';
 import { useTheme } from 'next-themes';
 import { useAuth } from '@/contexts/AuthContext';
@@ -44,6 +44,7 @@ const StockConfirmationsPopover = React.lazy(() => import('@/components/stock/St
 const RecalibrateBalanceButton = React.lazy(() => import('@/components/stock/RecalibrateBalanceButton'));
 const Invoice1StatusDialog = React.lazy(() => import('@/components/accounting/Invoice1StatusDialog'));
 const InvoiceTrackingDialog = React.lazy(() => import('@/components/accounting/InvoiceTrackingDialog'));
+const DocumentTrackingDialog = React.lazy(() => import('@/components/accounting/DocumentTrackingDialog'));
 
 interface MobileLayoutProps {
   children: React.ReactNode;
@@ -206,6 +207,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   const [moreOpen, setMoreOpen] = useState(false);
   const [invoice1Open, setInvoice1Open] = useState(false);
   const [invoiceTrackingOpen, setInvoiceTrackingOpen] = useState(false);
+  const [documentTrackingOpen, setDocumentTrackingOpen] = useState(false);
   const [bubbleMenu, setBubbleMenu] = useState<null | 'accounting' | 'warehouse'>(null);
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressTriggeredRef = useRef(false);
@@ -519,6 +521,14 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                 aria-label="تتبع الفواتير"
               >
                 <ClipboardList className="w-4 h-4 text-white" />
+              </button>
+              <button
+                onClick={() => setDocumentTrackingOpen(true)}
+                className="flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-purple-500/30 hover:bg-purple-500/50 transition-colors"
+                title="تتبع الوثائق"
+                aria-label="تتبع الوثائق"
+              >
+                <FileStack className="w-4 h-4 text-white" />
               </button>
             </>
           )}
@@ -1185,6 +1195,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
       <React.Suspense fallback={null}>
         {invoice1Open && <Invoice1StatusDialog open={invoice1Open} onOpenChange={setInvoice1Open} branchId={activeBranch?.id} />}
         {invoiceTrackingOpen && <InvoiceTrackingDialog open={invoiceTrackingOpen} onOpenChange={setInvoiceTrackingOpen} branchId={activeBranch?.id} />}
+        {documentTrackingOpen && <DocumentTrackingDialog open={documentTrackingOpen} onOpenChange={setDocumentTrackingOpen} branchId={activeBranch?.id} />}
       </React.Suspense>
     </div>
   );

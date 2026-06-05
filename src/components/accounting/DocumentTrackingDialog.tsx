@@ -1,0 +1,184 @@
+import React, { useMemo, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { FileStack, Inbox, CheckCircle2, Truck, ArrowLeft } from 'lucide-react';
+
+interface Props {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  branchId?: string | null;
+}
+
+type Stage = 'pending' | 'received' | 'ready' | 'handed';
+
+interface Row {
+  id: string;
+  customerName: string;
+  total: number;
+  createdAt: string;
+  stage: Stage;
+}
+
+const formatMoney = (n: number) => new Intl.NumberFormat('ar-DZ').format(n);
+
+const NEXT_STAGE: Record<Exclude<Stage, 'handed'>, Stage> = {
+  pending: 'received',
+  received: 'ready',
+  ready: 'handed',
+};
+
+const NEXT_LABEL: Record<Exclude<Stage, 'handed'>, string> = {
+  pending: 'استلام',
+  received: 'جاهزة',
+  ready: 'تسليم',
+};
+
+const NEXT_ICON: Record<Exclude<Stage, 'handed'>, React.ReactNode> = {
+  pending: <Inbox className="w-3 h-3" />,
+  received: <CheckCircle2 className="w-3 h-3" />,
+  ready: <Truck className="w-3 h-3" />,
+};
+
+const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId }) => {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+  const [tab, setTab] = useState<Exclude<Stage, 'handed'>>('pending');
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  const { data: rows = [], isLoading } = useQuery({
+    queryKey: ['document-tracking', branchId],
+    enabled: open && !!branchId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`
+          id, total_amount, created_at, document_stage,
+          customer:customers!orders_customer_id_fkey(name)
+        `)
+        .eq('branch_id', branchId!)
+        .eq('payment_type', 'with_invoice')
+        .in('document_stage', ['pending', 'received', 'ready'])
+        .order('created_at', { ascending: false })
+        .limit(500);
+      if (error) throw error;
+      return (data || []).map((o: any): Row => ({
+        id: o.id,
+        customerName: o.customer?.name || '—',
+        total: Number(o.total_amount || 0),
+        createdAt: o.created_at,
+        stage: (o.document_stage || 'pending') as Stage,
+      }));
+    },
+  });
+
+  const groups = useMemo(() => ({
+    pending: rows.filter(r => r.stage === 'pending'),
+    received: rows.filter(r => r.stage === 'received'),
+    ready: rows.filter(r => r.stage === 'ready'),
+  }), [rows]);
+
+  const advance = async (row: Row) => {
+    if (row.stage === 'handed') return;
+    const next = NEXT_STAGE[row.stage];
+    setBusyId(row.id);
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ document_stage: next })
+        .eq('id', row.id);
+      if (error) throw error;
+      toast({ title: 'تم التحديث', description: `الوثيقة انتقلت إلى: ${next === 'received' ? 'مستلمة' : next === 'ready' ? 'جاهزة' : 'مُسلَّمة'}` });
+      qc.invalidateQueries({ queryKey: ['document-tracking', branchId] });
+    } catch (e: any) {
+      toast({ title: 'خطأ', description: e?.message || 'تعذّر التحديث', variant: 'destructive' });
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const renderList = (list: Row[], emptyText: string) => {
+    if (isLoading) return <p className="text-center text-sm text-muted-foreground py-6">جاري التحميل...</p>;
+    if (list.length === 0) return <p className="text-center text-sm text-muted-foreground py-6">{emptyText}</p>;
+    return (
+      <div className="space-y-2">
+        {list.map(r => {
+          const stage = r.stage as Exclude<Stage, 'handed'>;
+          return (
+            <div key={r.id} className="flex items-center justify-between gap-2 p-3 rounded-lg border bg-white border-slate-200">
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-sm text-slate-900 truncate">{r.customerName}</p>
+                <p className="text-[11px] text-slate-500">{new Date(r.createdAt).toLocaleDateString('ar-DZ')}</p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <Badge variant="secondary" className="text-xs">{formatMoney(r.total)} دج</Badge>
+                <Button
+                  size="sm"
+                  className="h-7 px-2 text-[11px] gap-1"
+                  disabled={busyId === r.id}
+                  onClick={() => advance(r)}
+                >
+                  {NEXT_ICON[stage]}
+                  {NEXT_LABEL[stage]}
+                  <ArrowLeft className="w-3 h-3" />
+                </Button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <FileStack className="w-5 h-5 text-purple-600" />
+            تتبع الوثائق
+          </DialogTitle>
+        </DialogHeader>
+
+        <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="pending" className="gap-1 text-xs">
+              غير مستلمة
+              <span className="ms-1 text-[10px] bg-amber-100 text-amber-700 rounded px-1">
+                {groups.pending.length}
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="received" className="gap-1 text-xs">
+              مستلمة
+              <span className="ms-1 text-[10px] bg-blue-100 text-blue-700 rounded px-1">
+                {groups.received.length}
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="ready" className="gap-1 text-xs">
+              جاهزة
+              <span className="ms-1 text-[10px] bg-emerald-100 text-emerald-700 rounded px-1">
+                {groups.ready.length}
+              </span>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="pending" className="mt-3">
+            {renderList(groups.pending, 'لا توجد وثائق غير مستلمة')}
+          </TabsContent>
+          <TabsContent value="received" className="mt-3">
+            {renderList(groups.received, 'لا توجد وثائق مستلمة')}
+          </TabsContent>
+          <TabsContent value="ready" className="mt-3">
+            {renderList(groups.ready, 'لا توجد وثائق جاهزة للتسليم')}
+          </TabsContent>
+        </Tabs>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default DocumentTrackingDialog;

@@ -7,9 +7,10 @@ import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Loader2, Calculator, User, Calendar, ClipboardList, TrendingUp, TrendingDown, Banknote, ArrowDownCircle, CreditCard, AlertTriangle, ChevronDown, Trash2, RotateCcw, Receipt } from 'lucide-react';
+import { Loader2, Calculator, User, Calendar, ClipboardList, TrendingUp, TrendingDown, Banknote, ArrowDownCircle, CreditCard, AlertTriangle, ChevronDown, Trash2, RotateCcw, Receipt, FileStack } from 'lucide-react';
 import Invoice1StatusDialog from '@/components/accounting/Invoice1StatusDialog';
 import InvoiceTrackingDialog from '@/components/accounting/InvoiceTrackingDialog';
+import DocumentTrackingDialog from '@/components/accounting/DocumentTrackingDialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAccountingSessions, AccountingSession, AccountingSessionItem, useDeleteSession, useCancelSession } from '@/hooks/useAccountingSessions';
@@ -44,6 +45,7 @@ const AccountingSessions: React.FC = () => {
   const [dateTo, setDateTo] = useState('');
   const [invoice1Open, setInvoice1Open] = useState(false);
   const [invoiceTrackingOpen, setInvoiceTrackingOpen] = useState(false);
+  const [documentTrackingOpen, setDocumentTrackingOpen] = useState(false);
   const [openSessions, setOpenSessions] = useState<{ workerId: string; workerName: string }[]>([]);
   const { workerId: contextWorkerId } = useSelectedWorker();
   const [selectedSession, setSelectedSession] = useState<AccountingSession | null>(null);
@@ -281,6 +283,15 @@ const AccountingSessions: React.FC = () => {
               >
                 <ClipboardList className="w-3.5 h-3.5" />
                 تتبع الفواتير
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 text-xs border-purple-300 text-purple-700 hover:bg-purple-50"
+                onClick={() => setDocumentTrackingOpen(true)}
+              >
+                <FileStack className="w-3.5 h-3.5" />
+                تتبع الوثائق
               </Button>
               {isAdminOrBranchAdmin && (
                 <Button
@@ -617,6 +628,11 @@ const AccountingSessions: React.FC = () => {
       <InvoiceTrackingDialog
         open={invoiceTrackingOpen}
         onOpenChange={setInvoiceTrackingOpen}
+        branchId={activeBranch?.id}
+      />
+      <DocumentTrackingDialog
+        open={documentTrackingOpen}
+        onOpenChange={setDocumentTrackingOpen}
         branchId={activeBranch?.id}
       />
     </div>
