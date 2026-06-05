@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Banknote, CreditCard, AlertTriangle, CheckCircle, Loader2, DollarSign, Undo2, Wallet, MinusCircle } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { formatNumber } from '@/utils/formatters';
+import { parseAmountInput } from '@/utils/amountFormatting';
 import { useCustomerDebtSummary } from '@/hooks/useCustomerDebts';
 
 interface DeliveryPaymentDialogProps {
@@ -56,7 +57,7 @@ const DeliveryPaymentDialog: React.FC<DeliveryPaymentDialogProps> = ({
   const { data: debtSummary } = useCustomerDebtSummary(customerId || null);
   const hasActiveDebt = (debtSummary?.totalDebt || 0) > 0;
 
-  const paidNum = Number(paidAmount) || 0;
+  const paidNum = parseAmountInput(paidAmount, { expectedTotal: orderTotal });
   const isOverpayment = paymentMode === 'partial' && paidNum > orderTotal;
   const overpaymentAmount = isOverpayment ? paidNum - orderTotal : 0;
 

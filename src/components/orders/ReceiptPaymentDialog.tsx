@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertTriangle, Banknote, CheckCircle, FileText, Loader2, XCircle } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { formatNumber } from '@/utils/formatters';
+import { parseAmountInput } from '@/utils/amountFormatting';
 
 interface ReceiptPaymentDialogProps {
   open: boolean;
@@ -41,7 +42,7 @@ const ReceiptPaymentDialog: React.FC<ReceiptPaymentDialogProps> = ({
   const docLabel = methodLabel;
   const allowCash = paymentMethod !== 'check' && !hideCash;
 
-  const enteredAmount = mode === 'receipt' ? Number(receiptAmount) || 0 : Number(cashAmount) || 0;
+  const enteredAmount = parseAmountInput(mode === 'receipt' ? receiptAmount : cashAmount, { expectedTotal: orderTotal });
   const remainingDebt = Math.max(0, orderTotal - enteredAmount);
   const hasDebt = remainingDebt > 0 && enteredAmount > 0;
   const isOverpayment = enteredAmount > orderTotal;
