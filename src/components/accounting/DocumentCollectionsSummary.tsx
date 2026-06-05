@@ -537,14 +537,6 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                 }`}
               >
                 <div className="flex items-center gap-2 flex-1 min-w-0">
-                  {onReceivedDocsChange && (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); onReceivedDocsChange({ ...receivedDocs, [stampKey]: !isStampReceived }); }}
-                      className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isStampReceived ? 'bg-green-100 dark:bg-green-900/30 text-green-600' : 'bg-destructive/10 text-destructive'}`}
-                    >
-                      {isStampReceived ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
-                    </button>
-                  )}
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${inv.received ? 'bg-green-100 dark:bg-green-900/30' : 'bg-destructive/10'}`}>
                     {inv.received ? <CheckCircle className="w-3.5 h-3.5 text-green-600" /> : <XCircle className="w-3.5 h-3.5 text-destructive" />}
                   </div>
