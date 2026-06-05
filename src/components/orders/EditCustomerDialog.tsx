@@ -99,6 +99,7 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
   const [ownerLastNameAr, setOwnerLastNameAr] = useState('');
   const [ownerFirstNameFr, setOwnerFirstNameFr] = useState('');
   const [ownerLastNameFr, setOwnerLastNameFr] = useState('');
+  const [registrationType, setRegistrationType] = useState<string>('');
   const [defaultDeliveryWorkerId, setDefaultDeliveryWorkerId] = useState('');
 
   // Fetch zones when sector changes
