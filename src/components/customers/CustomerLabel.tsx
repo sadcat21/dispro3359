@@ -45,7 +45,6 @@ const CustomerLabel: React.FC<CustomerLabelProps> = ({
 }) => {
   const { language } = useLanguage();
   const { customerTypes: hookTypes } = useCustomerTypes();
-  const { registrationTypes } = useRegistrationTypes();
   const types = externalTypes || hookTypes;
 
   const isTestCustomer = customer.internal_name?.startsWith('[تجريبي]') ?? false;
@@ -53,11 +52,13 @@ const CustomerLabel: React.FC<CustomerLabelProps> = ({
   const displayName = customer.store_name || customer.name || '—';
   const secondaryName = customer.store_name ? customer.name : null;
 
-  // Registration type label in French
-  const regEntry = customer.registration_type
-    ? registrationTypes.find(r => r.ar === customer.registration_type)
-    : null;
-  const regLabel = regEntry?.fr || customer.registration_type || '';
+  // Owner full name (AR + FR) from business profile
+  const ownerAr = [customer.owner_first_name_ar, customer.owner_last_name_ar]
+    .filter(Boolean).join(' ').trim();
+  const ownerFr = [customer.owner_first_name_fr, customer.owner_last_name_fr]
+    .filter(Boolean).join(' ').trim();
+  const ownerLabel = [ownerAr, ownerFr].filter(Boolean).join(' · ');
+
 
   // Customer type badge
   const typeEntry = types.find(t => t.ar === customer.customer_type);
