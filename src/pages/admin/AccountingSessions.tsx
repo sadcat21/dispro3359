@@ -60,6 +60,7 @@ const AccountingSessions: React.FC = () => {
   const [reviewedWorkerIds, setReviewedWorkerIds] = useState<Set<string>>(new Set());
   const [docsWorkerIds, setDocsWorkerIds] = useState<Set<string>>(new Set());
   const [debtsWorkerIds, setDebtsWorkerIds] = useState<Set<string>>(new Set());
+  const [expensesWorkerIds, setExpensesWorkerIds] = useState<Set<string>>(new Set());
 
   const { data: sessions, isLoading } = useAccountingSessions({ status: statusFilter });
   const deleteSession = useDeleteSession();
@@ -127,9 +128,9 @@ const AccountingSessions: React.FC = () => {
       );
       setDocsWorkerIds(docsSet);
 
-      // Debts: worker_debts with remaining_amount > 0
+      // Customer debts (sold on credit) with remaining_amount > 0
       let debtsQ = supabase
-        .from('worker_debts')
+        .from('customer_debts')
         .select('worker_id, remaining_amount, branch_id')
         .gt('remaining_amount', 0);
       if (activeBranch?.id) debtsQ = debtsQ.eq('branch_id', activeBranch.id);
@@ -138,6 +139,18 @@ const AccountingSessions: React.FC = () => {
         (debts || []).filter((d: any) => d.worker_id).map((d: any) => d.worker_id),
       );
       setDebtsWorkerIds(debtsSet);
+
+      // Expenses (non-rejected) — any worker with recorded expenses
+      let expQ = supabase
+        .from('expenses')
+        .select('worker_id, status, branch_id')
+        .neq('status', 'rejected');
+      if (activeBranch?.id) expQ = expQ.eq('branch_id', activeBranch.id);
+      const { data: exps } = await expQ;
+      const expSet = new Set<string>(
+        (exps || []).filter((e: any) => e.worker_id).map((e: any) => e.worker_id),
+      );
+      setExpensesWorkerIds(expSet);
     };
     fetchFlags();
     const interval = setInterval(fetchFlags, 30000);
@@ -288,8 +301,8 @@ const AccountingSessions: React.FC = () => {
                 {[...workers].sort((a, b) => {
                   const liabA = allLiabilities?.find(l => l.workerId === a.id)?.totalLiability || 0;
                   const liabB = allLiabilities?.find(l => l.workerId === b.id)?.totalLiability || 0;
-                  const aHasRed = liabA !== 0 || docsWorkerIds.has(a.id) || debtsWorkerIds.has(a.id);
-                  const bHasRed = liabB !== 0 || docsWorkerIds.has(b.id) || debtsWorkerIds.has(b.id);
+                  const aHasRed = liabA !== 0 || docsWorkerIds.has(a.id) || debtsWorkerIds.has(a.id) || expensesWorkerIds.has(a.id);
+                  const bHasRed = liabB !== 0 || docsWorkerIds.has(b.id) || debtsWorkerIds.has(b.id) || expensesWorkerIds.has(b.id);
                   const aRank = reviewedWorkerIds.has(a.id) ? 0 : (aHasRed ? 1 : 2);
                   const bRank = reviewedWorkerIds.has(b.id) ? 0 : (bHasRed ? 1 : 2);
                   return aRank - bRank;
@@ -298,7 +311,8 @@ const AccountingSessions: React.FC = () => {
                   const liabValue = liability?.totalLiability || 0;
                   const hasDocs = docsWorkerIds.has(worker.id);
                   const hasDebts = debtsWorkerIds.has(worker.id);
-                  const hasIssue = liabValue !== 0 || hasDocs || hasDebts;
+                  const hasExpenses = expensesWorkerIds.has(worker.id);
+                  const hasIssue = liabValue !== 0 || hasDocs || hasDebts || hasExpenses;
                   const isReviewed = reviewedWorkerIds.has(worker.id);
                   // Green only when warehouse manager confirmed final review (and no outstanding issue)
                   const colorClass = isReviewed && !hasIssue
@@ -322,9 +336,9 @@ const AccountingSessions: React.FC = () => {
                         {liabValue !== 0 && (
                           <span className="text-[11px] font-bold text-white/90">{fmt(liabValue)} {t('accounting.currency_dzd')}</span>
                         )}
-                        {(hasDocs || hasDebts) && (
+                        {(hasDocs || hasDebts || hasExpenses) && (
                           <span className="text-[10px] font-medium text-white/90">
-                            {hasDocs && '📄 وثائق'} {hasDebts && '💳 ديون'}
+                            {hasDocs && '📄 وثائق'} {hasDebts && '💳 ديون'} {hasExpenses && '🧾 مصاريف'}
                           </span>
                         )}
                       </div>
