@@ -743,7 +743,9 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
     splitResultsRef.current = results;
     const total = results.reduce((s, r) => s + r.group.subtotal + (stampByGroupKey[r.key] || 0), 0);
     const paid = results.reduce((s, r) => s + r.paidAmount, 0);
-    const remaining = Math.max(0, total - paid);
+    const EPS = 0.01;
+    const isFull = paid >= total - EPS;
+    const remaining = isFull ? 0 : Math.max(0, total - paid);
     // Pick a representative invoice method: prefer the first F1 group's method, else null
     const firstF1 = results.find((r) => r.group.paymentType === 'with_invoice');
     if (firstF1) {
@@ -756,10 +758,10 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
     setPendingDocVerification(null);
     setShowSplitDialog(false);
     await handlePaymentConfirm({
-      paidAmount: paid,
+      paidAmount: isFull ? total : paid,
       remainingAmount: remaining,
       paymentMethod: firstF1 ? (firstF1.group.invoicePaymentMethod || 'receipt') : 'cash',
-      isFullPayment: paid >= total,
+      isFullPayment: isFull,
       isNoPayment: paid === 0,
     });
   };
