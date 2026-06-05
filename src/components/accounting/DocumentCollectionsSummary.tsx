@@ -280,8 +280,10 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
         result.push({
           orderId: order.id,
           customerName: order.customer?.name || 'غير معروف',
+          storeName: order.customer?.store_name || null,
           documentType: docType,
           orderTotal: Number(order.total_amount || 0),
+          paymentStatus: order.payment_status || null,
           source: 'pending_collection',
           documentStatus: order.document_status,
           bucket: resolveBucket(dv, order),
