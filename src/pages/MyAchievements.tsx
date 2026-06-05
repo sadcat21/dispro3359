@@ -731,6 +731,9 @@ const MyAchievements: React.FC = () => {
         status: string | null;
         createdBy: string | null;
         assignedWorkerId: string | null;
+        documentVerification: any;
+        paymentStatus: string | null;
+        paymentMethodResolved: string | null;
       }>();
       const debtCollectionStoreMap = new Map<string, string>();
       const debtCollectionAmountMap = new Map<string, number>();
