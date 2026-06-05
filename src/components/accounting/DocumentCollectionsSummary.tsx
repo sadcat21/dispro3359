@@ -150,7 +150,28 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
   const [stampSaving, setStampSaving] = useState(false);
   const [docDialog, setDocDialog] = useState<CollectedDoc | null>(null);
   const [docSaving, setDocSaving] = useState(false);
+  const [docNumber, setDocNumber] = useState('');
+  const [docDate, setDocDate] = useState('');
   const [detailsOrderId, setDetailsOrderId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (docDialog) {
+      const v = docDialog.verification || {};
+      const t = docDialog.documentType;
+      if (t === 'check') {
+        setDocNumber(v.checkNumber || '');
+        setDocDate(v.checkDate || '');
+      } else {
+        setDocNumber(v.receiptNumber || v.transferReference || '');
+        setDocDate('');
+      }
+    }
+  }, [docDialog]);
+
+  const docNumberLabel = (t: string) =>
+    t === 'check' ? 'رقم الشيك' : (t === 'transfer' || t === 'virement') ? 'رقم الوصل' : 'رقم الوصل';
+  const docDateLabel = (t: string) =>
+    t === 'check' ? 'تاريخ سحب الشيك' : 'تاريخ الدفع';
 
   const { data: orderDetailsItems, isLoading: orderDetailsLoading } = useQuery({
     queryKey: ['order-details-items', detailsOrderId],
@@ -818,6 +839,27 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                 <Package className="w-4 h-4" />
                 عرض تفاصيل الطلب
               </Button>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="doc-num">{docNumberLabel(docDialog.documentType)} *</Label>
+                  <Input
+                    id="doc-num"
+                    value={docNumber}
+                    onChange={(e) => setDocNumber(e.target.value)}
+                    placeholder="..."
+                    className="text-right"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="doc-date">{docDateLabel(docDialog.documentType)} *</Label>
+                  <Input
+                    id="doc-date"
+                    type="date"
+                    value={docDate}
+                    onChange={(e) => setDocDate(e.target.value)}
+                  />
+                </div>
+              </div>
             </div>
           )}
           <DialogFooter className="flex-row gap-2 sm:justify-end">
@@ -852,11 +894,37 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
               لم تُستلم
             </Button>
             <Button
-              disabled={docSaving}
+              disabled={docSaving || !docNumber.trim() || !docDate}
               className="flex-1 bg-green-600 hover:bg-green-700"
               onClick={async () => {
                 if (!docDialog) return;
+                if (!docNumber.trim() || !docDate) {
+                  toast.error('يرجى إدخال رقم وتاريخ المستند');
+                  return;
+                }
                 setDocSaving(true);
+                const t = docDialog.documentType;
+                const existing = (docDialog.verification && typeof docDialog.verification === 'object') ? { ...docDialog.verification } : {};
+                const patch: any = { ...existing };
+                if (t === 'check') {
+                  patch.check_number = docNumber.trim();
+                  patch.check_date = docDate;
+                } else if (t === 'transfer' || t === 'virement') {
+                  patch.transfer_reference = docNumber.trim();
+                  patch.transfer_date = docDate;
+                } else {
+                  patch.receipt_number = docNumber.trim();
+                  patch.receipt_date = docDate;
+                }
+                const { error: updErr } = await supabase
+                  .from('orders')
+                  .update({ document_verification: patch })
+                  .eq('id', docDialog.orderId);
+                if (updErr) {
+                  setDocSaving(false);
+                  toast.error('فشل حفظ بيانات المستند: ' + String(updErr.message || ''));
+                  return;
+                }
                 const { error } = await (supabase as any).rpc('set_manager_document_decision', {
                   p_order_id: docDialog.orderId,
                   p_decision: 'received',
