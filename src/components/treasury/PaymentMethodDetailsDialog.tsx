@@ -206,7 +206,13 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
         .eq('status', 'delivered')
         .order('created_at', { ascending: false });
 
-      if (activeBranch?.id) query = query.eq('branch_id', activeBranch.id);
+      // In perManager mode, scope is enforced via assigned_worker_id + confirmed
+      // session window (which already ties to manager+branch). Filtering by
+      // orders.branch_id would drop orders whose branch_id is null even when
+      // the worker's session belongs to the active branch — causing the dialog
+      // to miss customers that the card amount (sourced from session items)
+      // still counts.
+      if (activeBranch?.id && !perManager) query = query.eq('branch_id', activeBranch.id);
       // Date-range filter intentionally removed so customers always appear in
       // the dialog even if their delivery_date falls outside the active range.
 
