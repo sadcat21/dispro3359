@@ -2265,14 +2265,20 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
         partial_amount: nextPaymentStatus === 'partial' ? clampedPaid : null,
       };
       if (paidByCashOverride !== undefined && dv && (dv.type === 'receipt' || dv.type === 'transfer' || dv.type === 'check' || (order as any).invoice_payment_method)) {
+        const receiptReceived = paidByCashOverride ? !!dv.receipt_received : !!dv.receipt_received;
         orderUpdate.document_verification = {
           ...dv,
           paid_by_cash: paidByCashOverride,
           manager_receipt_bucket: paidByCashOverride ? 'cash' : 'doc',
-          receipt_received: paidByCashOverride ? !!dv.receipt_received : true,
+          receipt_received: receiptReceived,
           verified_at: new Date().toISOString(),
         };
-        orderUpdate.document_status = paidByCashOverride ? (dv.document_status || 'none') : 'received';
+        orderUpdate.document_status = paidByCashOverride ? (dv.document_status || 'none') : (receiptReceived ? 'received' : 'pending');
+        // Versement (Doc) بدون استلام مستند → دَين كامل، تجاوز payment_status المحسوب أعلاه.
+        if (paidByCashOverride === false && !receiptReceived) {
+          orderUpdate.payment_status = 'pending';
+          orderUpdate.partial_amount = null;
+        }
       }
 
       await supabase.from('orders')
