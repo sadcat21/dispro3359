@@ -273,6 +273,15 @@ const AccountingSessions: React.FC = () => {
                 <Receipt className="w-3.5 h-3.5" />
                 فاتورة 1
               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 text-xs border-indigo-300 text-indigo-700 hover:bg-indigo-50"
+                onClick={() => setInvoiceTrackingOpen(true)}
+              >
+                <ClipboardList className="w-3.5 h-3.5" />
+                تتبع الفواتير
+              </Button>
               {isAdminOrBranchAdmin && (
                 <Button
                   variant="outline"
