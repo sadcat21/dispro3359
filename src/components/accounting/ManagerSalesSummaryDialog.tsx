@@ -253,6 +253,14 @@ const mergeCalcs = (calcs: SessionCalculations[]): SessionCalculations => {
     merged.newDebts += calc.newDebts;
     merged.newDebtsByInvoice.invoice1 += calc.newDebtsByInvoice?.invoice1 || 0;
     merged.newDebtsByInvoice.invoice2 += calc.newDebtsByInvoice?.invoice2 || 0;
+    const im1 = calc.newDebtsByInvoice?.invoice1Methods;
+    if (im1) {
+      merged.newDebtsByInvoice.invoice1Methods.check += im1.check || 0;
+      merged.newDebtsByInvoice.invoice1Methods.transfer += im1.transfer || 0;
+      merged.newDebtsByInvoice.invoice1Methods.receipt += im1.receipt || 0;
+      merged.newDebtsByInvoice.invoice1Methods.espaceCash += im1.espaceCash || 0;
+      merged.newDebtsByInvoice.invoice1Methods.versementCash += im1.versementCash || 0;
+    }
     merged.invoice1.total += calc.invoice1.total;
     merged.invoice1.check += calc.invoice1.check;
     merged.invoice1.transfer += calc.invoice1.transfer;
