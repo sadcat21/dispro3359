@@ -314,7 +314,7 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
       let totalSales = 0;
       let totalPaid = 0;
       let newDebts = 0;
-      const newDebtsByInvoice = { invoice1: 0, invoice2: 0 };
+      const newDebtsByInvoice = { invoice1: 0, invoice2: 0, invoice1Methods: { check: 0, transfer: 0, receipt: 0, espaceCash: 0, versementCash: 0 } };
       let giftOfferValue = 0;
 
       const invoice1: PaymentMethodBreakdown & { total: number; versementCash: number } = {
