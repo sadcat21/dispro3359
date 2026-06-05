@@ -104,7 +104,7 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
   const [showEdit, setShowEdit] = useState(false);
   const [receivedDocs, setReceivedDocs] = useState<Record<string, boolean>>({});
   const [activeSection, setActiveSection] = useState<string | null>(null);
-  const [swipeMode, setSwipeMode] = useState(true);
+  const [swipeMode, setSwipeMode] = useState(false);
   const [emptyKeys, setEmptyKeys] = useState<Set<string>>(new Set());
   const handleEmptyChange = React.useCallback((key: string, empty: boolean) => {
     setEmptyKeys(prev => {
