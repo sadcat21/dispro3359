@@ -920,7 +920,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
 
 
                 {/* ━━━ Step 6: Expenses & Gifts ━━━ */}
-                <StepSection step={6} title={t('create_session.expenses_title')} color="muted">
+                <StepSection step={7} title={t('create_session.expenses_title')} color="muted">
                   {selectedWorkerId && periodStart && periodEnd ? (
                     <ExpensesDetailsSummary
                       workerId={selectedWorkerId}
