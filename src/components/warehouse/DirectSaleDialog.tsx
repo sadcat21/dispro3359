@@ -855,9 +855,10 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
       }
 
       // البيع المباشر بفاتورة يُسجَّل ويُحتسب فوراً (خصم مخزون + رصيد + إنجاز)
-      // طلب الفاتورة يُنشأ تلقائياً عبر trigger ويُحوَّل مباشرة إلى مساعد المدير العام
+      // لكن لا نرفع الحالة إلى delivered إلا بعد نجاح حفظ البنود،
+      // حتى لا تظهر طلبية يتيمة بلا منتجات داخل المنجزات والسجلات.
       const requiresApprovalChain = finalPaymentType === 'with_invoice';
-      const orderStatus = 'delivered';
+      const orderStatus = 'pending';
 
 
       const { data: order, error: orderErr } = await supabase
@@ -912,9 +913,19 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
 
       const { error: itemsErr } = await (supabase as any).from('order_items').insert(orderItemsData as any);
       if (itemsErr) {
-        // Rollback: حذف الطلبية اليتيمة لمنع ظهورها كطلبية بدون منتجات
+        // Rollback: حذف الطلبية وهي ما تزال pending حتى تسمح RLS بالحذف
         await supabase.from('orders').delete().eq('id', order.id);
         throw new Error('فشل في حفظ بنود الطلب: ' + itemsErr.message);
+      }
+
+      const { error: finalizeOrderErr } = await supabase
+        .from('orders')
+        .update({ status: 'delivered' })
+        .eq('id', order.id)
+        .eq('created_by', workerId!);
+
+      if (finalizeOrderErr) {
+        throw new Error('تم حفظ المنتجات لكن تعذر اعتماد المبيعة: ' + finalizeOrderErr.message);
       }
 
       // Sales tracking ledger
