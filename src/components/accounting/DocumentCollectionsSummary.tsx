@@ -207,6 +207,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
     }
     await queryClient.invalidateQueries({ queryKey: ['session-stamped-invoices'] });
     await queryClient.refetchQueries({ queryKey: ['session-stamped-invoices'] });
+    await queryClient.invalidateQueries({ queryKey: ['invoice-tracking'] });
     setStampDialog(null);
   };
 
