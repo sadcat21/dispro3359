@@ -284,6 +284,15 @@ const AccountingSessions: React.FC = () => {
                 <ClipboardList className="w-3.5 h-3.5" />
                 تتبع الفواتير
               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 text-xs border-purple-300 text-purple-700 hover:bg-purple-50"
+                onClick={() => setDocumentTrackingOpen(true)}
+              >
+                <FileStack className="w-3.5 h-3.5" />
+                تتبع الوثائق
+              </Button>
               {isAdminOrBranchAdmin && (
                 <Button
                   variant="outline"
