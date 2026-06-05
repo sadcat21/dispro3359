@@ -902,14 +902,42 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
                       );
                     })}
                   </div>
-                  {registrationType && (
-                    <p className="text-xs text-muted-foreground">
-                      {(() => {
-                        const t = registrationTypes.find(r => r.ar === registrationType);
-                        return t ? ((t as any)[language] || t.ar) : registrationType;
-                      })()}
-                    </p>
-                  )}
+                  {registrationType && (() => {
+                    const t = registrationTypes.find(r => r.ar === registrationType);
+                    if (!t) return null;
+                    const subs = t.sub_types || [];
+                    return (
+                      <div className="space-y-1.5 pt-2">
+                        <p className="text-xs text-muted-foreground">
+                          {(t as any)[language] || t.ar}
+                        </p>
+                        {subs.length > 0 && (
+                          <div className="space-y-1">
+                            <Label className="text-xs">نوع البيع (اختيار متعدد)</Label>
+                            <div className="flex flex-wrap gap-2">
+                              {subs.map((s) => {
+                                const active = registrationSubTypes.includes(s.ar);
+                                return (
+                                  <Button
+                                    key={s.ar}
+                                    type="button"
+                                    variant={active ? 'default' : 'outline'}
+                                    size="sm"
+                                    className="text-xs"
+                                    onClick={() => setRegistrationSubTypes(active
+                                      ? registrationSubTypes.filter(x => x !== s.ar)
+                                      : [...registrationSubTypes, s.ar])}
+                                  >
+                                    {s.ar}
+                                  </Button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
               {isRegistered && (
