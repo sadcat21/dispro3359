@@ -88,7 +88,14 @@ export function SaleSuccessDialog({ open, onClose, info }: Props) {
               <div>
                 <div className="text-muted-foreground text-xs mb-1">طريقة الدفع</div>
                 <div className="font-medium">
-                  {paymentMethodLabel(isInvoice1 ? (info.invoiceMethod || info.paymentMethod) : info.paymentMethod)}
+                  {(() => {
+                    const base = isInvoice1 ? (info.invoiceMethod || info.paymentMethod) : info.paymentMethod;
+                    if (isInvoice1 && (base === 'receipt' || base === 'versement')) {
+                      const bucket = info.paymentMethod === 'cash' ? 'cash' : 'doc';
+                      return paymentMethodLabel(`receipt_${bucket}`);
+                    }
+                    return paymentMethodLabel(base);
+                  })()}
                 </div>
               </div>
               <div>
