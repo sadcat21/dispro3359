@@ -175,7 +175,7 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
                       e.stopPropagation();
                       openInvoicePrompt(r);
                     }}
-                    className="font-semibold text-sm text-slate-900 truncate hover:text-purple-600 hover:underline text-start"
+                    className="font-semibold text-sm text-slate-900 truncate hover:text-purple-600 hover:underline text-start cursor-pointer"
                   >
                     {r.customerName}
                   </button>
