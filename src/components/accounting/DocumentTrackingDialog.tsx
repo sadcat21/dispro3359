@@ -103,23 +103,40 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
     ready: rows.filter(r => r.stage === 'ready'),
   }), [rows]);
 
-  const advance = async (row: Row) => {
+  const advance = async (row: Row, invoiceNo?: string) => {
     if (row.stage === 'handed') return;
     const next = NEXT_STAGE[row.stage];
+    if (row.stage === 'ready' && !invoiceNo) {
+      setInvoiceNumber('');
+      setInvoicePrompt(row);
+      return;
+    }
     setBusyId(row.id);
     try {
+      const updates: any = { document_stage: next };
+      if (invoiceNo) updates.invoice_number = invoiceNo;
       const { error } = await supabase
         .from('orders')
-        .update({ document_stage: next })
+        .update(updates)
         .eq('id', row.id);
       if (error) throw error;
       toast({ title: 'تم التحديث', description: `الوثيقة انتقلت إلى: ${next === 'received' ? 'مستلمة' : next === 'ready' ? 'جاهزة' : 'مُسلَّمة'}` });
       qc.invalidateQueries({ queryKey: ['document-tracking', branchId] });
+      setInvoicePrompt(null);
     } catch (e: any) {
       toast({ title: 'خطأ', description: e?.message || 'تعذّر التحديث', variant: 'destructive' });
     } finally {
       setBusyId(null);
     }
+  };
+
+  const confirmInvoicePrompt = () => {
+    const v = invoiceNumber.trim();
+    if (!v) {
+      toast({ title: 'مطلوب', description: 'يجب إدخال رقم الفاتورة', variant: 'destructive' });
+      return;
+    }
+    if (invoicePrompt) advance(invoicePrompt, v);
   };
 
   const renderList = (list: Row[], emptyText: string) => {
