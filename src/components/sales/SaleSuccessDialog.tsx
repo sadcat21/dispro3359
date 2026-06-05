@@ -41,6 +41,8 @@ const paymentMethodLabel = (m?: string | null) => {
     case 'check': return 'شيك';
     case 'receipt': return 'Versement';
     case 'versement': return 'Versement';
+    case 'receipt_cash': return 'Versement (Cash)';
+    case 'receipt_doc': return 'Versement (Doc)';
     case 'transfer': return 'تحويل بنكي (Virement)';
     case 'virement': return 'تحويل بنكي (Virement)';
     case 'debt': return 'دين';
