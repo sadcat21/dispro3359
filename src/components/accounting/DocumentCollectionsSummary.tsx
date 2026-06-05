@@ -376,8 +376,16 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
   if ((!docs || docs.length === 0) && (!stampedInvoices || stampedInvoices.length === 0)) return <p data-empty="true" className="text-xs text-muted-foreground text-center py-3">لا توجد مستندات محصلة في هذه الفترة</p>;
 
   const allDocs = docs || [];
-  const deliveryDocs = allDocs.filter(d => d.source === 'delivery');
-  const pendingDocs = allDocs.filter(d => d.source === 'pending_collection');
+  // Exclude cash-bucket items (Versement Cash / Virement Cash / cash) — this section
+  // is for documents only, not cash receipts.
+  const isCashOnly = (d: CollectedDoc) => {
+    const m = (d.documentType || '').toLowerCase();
+    if (m === 'cash') return true;
+    if ((m === 'receipt' || m === 'versement' || m === 'transfer' || m === 'virement') && d.bucket === 'cash') return true;
+    return false;
+  };
+  const deliveryDocs = allDocs.filter(d => d.source === 'delivery' && !isCashOnly(d));
+  const pendingDocs = allDocs.filter(d => d.source === 'pending_collection' && !isCashOnly(d));
   const totalAmount = allDocs.reduce((s, d) => s + d.orderTotal, 0);
 
   const renderDocCard = (doc: CollectedDoc) => {
