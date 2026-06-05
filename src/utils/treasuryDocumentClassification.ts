@@ -10,16 +10,17 @@ export const resolveReceiptBucket = (
   order?: { payment_status?: string | null; payment_method_resolved?: string | null } | null,
 ): 'cash' | 'doc' => {
   const verification = getDocumentVerification(value);
+  // عند وجود تعارض بين paid_by_cash=false و manager_receipt_bucket='cash' القديم
+  // (يحدث بعد استئناف مبيعة نقدية وتحويلها إلى Versement Doc بدون مسح bucket القديم)،
+  // نعتمد paid_by_cash=false كمصدر صحيح ونصنّفها doc.
+  if (verification.paid_by_cash === false) {
+    return 'doc';
+  }
   if (verification.manager_receipt_bucket === 'cash' || verification.manager_receipt_bucket === 'doc') {
     return verification.manager_receipt_bucket;
   }
   if (verification.paid_by_cash === true) {
     return 'cash';
-  }
-  // إذا تم تصريح paid_by_cash=false بشكل صريح → مستند، حتى لو كان payment_status='cash'
-  // (يحدث عند استئناف مبيعة نقدية وتحويلها إلى Versement Doc).
-  if (verification.paid_by_cash === false) {
-    return 'doc';
   }
 
   if (order?.payment_status === 'cash') {
