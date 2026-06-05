@@ -254,8 +254,6 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
 
       (data || []).forEach((o: any) => {
         const orderTs = orderAccountingTime(o);
-        if (!perManager && rangeFromTs !== null && orderTs < rangeFromTs) return;
-        if (!perManager && rangeToTs !== null && orderTs > rangeToTs) return;
         if (perManager) {
           if (!o.assigned_worker_id) return;
           const isCovered = sessionWindows.some((w) => w.worker_id === o.assigned_worker_id && orderTs >= w.start && orderTs <= w.end);
