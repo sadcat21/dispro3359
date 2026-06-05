@@ -157,6 +157,15 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
     if (invoicePrompt) advance(invoicePrompt, v);
   };
 
+  const handleRowAction = (row: Row) => {
+    if (busyId === row.id) return;
+    if (row.stage === 'ready') {
+      openInvoicePrompt(row);
+      return;
+    }
+    void advance(row);
+  };
+
   const renderList = (list: Row[], emptyText: string) => {
     if (isLoading) return <p className="text-center text-sm text-muted-foreground py-6">جاري التحميل...</p>;
     if (list.length === 0) return <p className="text-center text-sm text-muted-foreground py-6">{emptyText}</p>;
@@ -169,11 +178,11 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
               key={r.id}
               role="button"
               tabIndex={0}
-              onClick={() => openInvoicePrompt(r)}
+              onClick={() => handleRowAction(r)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  openInvoicePrompt(r);
+                  handleRowAction(r);
                 }
               }}
               className="flex items-center justify-between gap-2 rounded-lg border bg-card p-3 text-start transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
