@@ -211,6 +211,10 @@ const DebtDetailsDialog: React.FC<DebtDetailsDialogProps> = ({
                   </div>
                 </div>
 
+                <PaymentMethodBreakdown payments={groupedPayments} title="تفصيل المسدّد حسب طريقة الدفع" />
+
+
+
                 <div className="rounded-lg border border-border/60 overflow-hidden">
                   <div className="bg-muted/50 px-3 py-2 flex items-center justify-between">
                     <span className="text-xs font-medium text-muted-foreground">سجل العميل المجمّع</span>
