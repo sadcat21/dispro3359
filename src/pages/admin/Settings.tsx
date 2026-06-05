@@ -18,6 +18,7 @@ import NavbarCustomization from '@/components/settings/NavbarCustomization';
 import DataManagement from '@/components/settings/DataManagement';
 import LocationSettingsCard from '@/components/settings/LocationSettingsCard';
 import CustomerTypesCard from '@/components/settings/CustomerTypesCard';
+import RegistrationTypesCard from '@/components/settings/RegistrationTypesCard';
 import CompanyInfoCard from '@/components/settings/CompanyInfoCard';
 import VerificationChecklistCard from '@/components/settings/VerificationChecklistCard';
 import SmsSettingsCard from '@/components/settings/SmsSettingsCard';
@@ -219,6 +220,7 @@ const Settings: React.FC = () => {
             <CompanyInfoCard />
             <LocationSettingsCard />
             <CustomerTypesCard />
+            <RegistrationTypesCard />
             <VerificationChecklistCard />
             <SmsSettingsCard />
             <AppUpdateSettingsCard />
