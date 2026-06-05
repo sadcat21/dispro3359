@@ -160,7 +160,9 @@ const InvoiceTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId }
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
+
       <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
