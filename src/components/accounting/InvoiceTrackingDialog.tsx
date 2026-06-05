@@ -1,10 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { ClipboardList, Stamp, CheckCircle2, Truck, ArrowLeft } from 'lucide-react';
 
@@ -49,6 +51,8 @@ const InvoiceTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId }
   const { toast } = useToast();
   const [tab, setTab] = useState<Exclude<Stage, 'delivered'>>('unsealed');
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [invoicePrompt, setInvoicePrompt] = useState<Row | null>(null);
+  const [invoiceNumber, setInvoiceNumber] = useState('');
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ['invoice-tracking', branchId],
@@ -82,23 +86,40 @@ const InvoiceTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId }
     ready: rows.filter(r => r.stage === 'ready'),
   }), [rows]);
 
-  const advance = async (row: Row) => {
+  const advance = async (row: Row, invoiceNo?: string) => {
     if (row.stage === 'delivered') return;
     const next = NEXT_STAGE[row.stage];
+    if (row.stage === 'ready' && !invoiceNo) {
+      setInvoiceNumber('');
+      setInvoicePrompt(row);
+      return;
+    }
     setBusyId(row.id);
     try {
+      const updates: any = { invoice_stage: next };
+      if (invoiceNo) updates.invoice_number = invoiceNo;
       const { error } = await supabase
         .from('orders')
-        .update({ invoice_stage: next })
+        .update(updates)
         .eq('id', row.id);
       if (error) throw error;
       toast({ title: 'تم التحديث', description: `الفاتورة انتقلت إلى: ${next === 'sealed' ? 'ممهورة' : next === 'ready' ? 'جاهزة' : 'مُسلَّمة'}` });
       qc.invalidateQueries({ queryKey: ['invoice-tracking', branchId] });
+      setInvoicePrompt(null);
     } catch (e: any) {
       toast({ title: 'خطأ', description: e?.message || 'تعذّر التحديث', variant: 'destructive' });
     } finally {
       setBusyId(null);
     }
+  };
+
+  const confirmInvoicePrompt = () => {
+    const v = invoiceNumber.trim();
+    if (!v) {
+      toast({ title: 'مطلوب', description: 'يجب إدخال رقم الفاتورة', variant: 'destructive' });
+      return;
+    }
+    if (invoicePrompt) advance(invoicePrompt, v);
   };
 
   const renderList = (list: Row[], emptyText: string) => {
@@ -177,6 +198,28 @@ const InvoiceTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId }
           </TabsContent>
         </Tabs>
       </DialogContent>
+
+      <Dialog open={!!invoicePrompt} onOpenChange={(o) => !o && setInvoicePrompt(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>إدخال رقم الفاتورة</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label className="text-xs">العميل: {invoicePrompt?.customerName}</Label>
+            <Input
+              autoFocus
+              value={invoiceNumber}
+              onChange={(e) => setInvoiceNumber(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') confirmInvoicePrompt(); }}
+              placeholder="رقم الفاتورة (إلزامي)"
+            />
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setInvoicePrompt(null)}>إلغاء</Button>
+            <Button onClick={confirmInvoicePrompt} disabled={!invoiceNumber.trim() || busyId === invoicePrompt?.id}>تأكيد التسليم</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 };
