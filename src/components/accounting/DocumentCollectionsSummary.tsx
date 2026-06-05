@@ -472,19 +472,6 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           </div>
         )}
 
-        {!v.verified && (
-          <div className="flex justify-end">
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-6 text-[10px] px-2 gap-1"
-              onClick={(e) => { e.stopPropagation(); setVerifyDoc(doc); }}
-            >
-              <ClipboardCheck className="w-3 h-3" />
-              تحقق
-            </Button>
-          </div>
-        )}
       </div>
     );
   };
