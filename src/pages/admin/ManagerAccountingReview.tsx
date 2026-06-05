@@ -1089,7 +1089,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Rapport Quotidien</title>
+  <title>Rapport — ${escapeHtml((periodTo || periodFrom || today).slice(0, 10))} ${escapeHtml(translateBranchToFr(branchName) || '')}</title>
   <style>
     @page { size: A4 portrait; margin: 5mm 2mm; }
     * { box-sizing: border-box; }
