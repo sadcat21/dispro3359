@@ -43,6 +43,7 @@ interface CollectedDoc {
   orderTotal: number;
   source: 'delivery' | 'pending_collection';
   documentStatus: string | null;
+  bucket: 'cash' | 'doc' | null;
   verification: {
     checkNumber?: string;
     checkDate?: string;
