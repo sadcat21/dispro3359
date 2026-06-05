@@ -366,8 +366,20 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
         newDebts += debtAmount;
         if (debtAmount > 0) {
           const pType = order.payment_type || 'without_invoice';
-          if (pType === 'with_invoice') newDebtsByInvoice.invoice1 += debtAmount;
-          else newDebtsByInvoice.invoice2 += debtAmount;
+          if (pType === 'with_invoice') {
+            newDebtsByInvoice.invoice1 += debtAmount;
+            // Classify debt by intended invoice payment method
+            const im = String(order.invoice_payment_method || '').toLowerCase();
+            const docVer = (order as any).document_verification;
+            const paidByCash = docVer && typeof docVer === 'object' && docVer.paid_by_cash === true;
+            if (im === 'check') newDebtsByInvoice.invoice1Methods.check += debtAmount;
+            else if ((im === 'receipt' || im === 'transfer' || im === 'versement' || im === 'virement') && paidByCash) newDebtsByInvoice.invoice1Methods.versementCash += debtAmount;
+            else if (im === 'transfer' || im === 'virement') newDebtsByInvoice.invoice1Methods.transfer += debtAmount;
+            else if (im === 'receipt' || im === 'versement') newDebtsByInvoice.invoice1Methods.receipt += debtAmount;
+            else newDebtsByInvoice.invoice1Methods.espaceCash += debtAmount;
+          } else {
+            newDebtsByInvoice.invoice2 += debtAmount;
+          }
         }
 
         // Calculate gift value and promo tracking from items
