@@ -268,6 +268,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
         const order = c.order as any;
         if (!order) continue;
         const docType = order.invoice_payment_method || 'check';
+        const dv: any = order.document_verification || {};
         result.push({
           orderId: order.id,
           customerName: order.customer?.name || 'غير معروف',
@@ -275,6 +276,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           orderTotal: Number(order.total_amount || 0),
           source: 'pending_collection',
           documentStatus: order.document_status,
+          bucket: dv.manager_receipt_bucket === 'cash' || dv.manager_receipt_bucket === 'doc' ? dv.manager_receipt_bucket : null,
           verification: parseVerification(order.document_verification, docType),
         });
       }
