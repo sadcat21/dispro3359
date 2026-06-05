@@ -198,6 +198,22 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
     }
   }, [stampDialog]);
 
+  const upsertDraft = async (
+    orderId: string,
+    kind: 'document' | 'stamp_invoice',
+    decision: 'received' | 'not_received',
+    payload: Record<string, any>,
+  ) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('not_authenticated');
+    return await (supabase as any)
+      .from('manager_decision_drafts')
+      .upsert(
+        { manager_id: user.id, worker_id: workerId, order_id: orderId, kind, decision, payload },
+        { onConflict: 'manager_id,worker_id,order_id,kind' },
+      );
+  };
+
   const handleConfirmStamp = async () => {
     if (!stampDialog) return;
     if (!stampInvoiceNumber.trim() || !stampIssueDate) {
@@ -205,38 +221,23 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
       return;
     }
     setStampSaving(true);
-    const { data, error } = await (supabase as any).rpc('confirm_order_invoice_receipt', {
-      p_order_id: stampDialog.orderId,
-      p_invoice_number: stampInvoiceNumber.trim(),
-      p_issue_date: stampIssueDate,
+    const { error } = await upsertDraft(stampDialog.orderId, 'stamp_invoice', 'received', {
+      invoice_number: stampInvoiceNumber.trim(),
+      issue_date: stampIssueDate,
     });
     setStampSaving(false);
     if (error) {
-      console.error('[stamp confirm] rpc error', error);
-      const msg = String(error.message || '');
-      if (msg.includes('permission_denied')) {
-        toast.error('لا تملك صلاحية تأكيد استلام هذه الفاتورة');
-      } else if (msg.includes('order_not_invoice_based')) {
-        toast.error('هذا الطلب ليس بفاتورة');
-      } else if (msg.includes('order_not_found')) {
-        toast.error('الطلب غير موجود');
-      } else if (msg.includes('invoice_number_required')) {
-        toast.error('يرجى إدخال رقم الفاتورة');
-      } else {
-        toast.error('فشل تأكيد استلام الفاتورة: ' + msg);
-      }
+      toast.error('فشل حفظ المسودة: ' + String((error as any).message || ''));
       return;
     }
-    console.info('[stamp confirm] rpc ok', data);
-    toast.success('تم تأكيد استلام الفاتورة');
+    toast.success('تم حفظ القرار كمسودة — سيُطبَّق عند حفظ الجلسة');
     if (onReceivedDocsChange) {
       onReceivedDocsChange({ ...(receivedDocs || {}), [`stamp_${stampDialog.orderId}`]: true });
     }
-    await queryClient.invalidateQueries({ queryKey: ['session-stamped-invoices'] });
-    await queryClient.refetchQueries({ queryKey: ['session-stamped-invoices'] });
-    await queryClient.invalidateQueries({ queryKey: ['invoice-tracking'] });
+    await queryClient.invalidateQueries({ queryKey: ['manager-decision-drafts', workerId] });
     setStampDialog(null);
   };
+
 
   const { data: docs, isLoading } = useQuery({
     queryKey: ['session-document-collections', workerId, periodStart, periodEnd],
