@@ -51,6 +51,8 @@ const InvoiceTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId }
   const { toast } = useToast();
   const [tab, setTab] = useState<Exclude<Stage, 'delivered'>>('unsealed');
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [invoicePrompt, setInvoicePrompt] = useState<Row | null>(null);
+  const [invoiceNumber, setInvoiceNumber] = useState('');
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ['invoice-tracking', branchId],
