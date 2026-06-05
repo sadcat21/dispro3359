@@ -1330,15 +1330,23 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
           const existingDv: any = (order as any).document_verification && typeof (order as any).document_verification === 'object' ? (order as any).document_verification : {};
           // Virement/Chèque دائماً مستند. Versement حسب الاختيار.
           const isCash = invoicePaymentMethod === 'receipt' && invoicePaymentSubType === 'cash';
+          // لا نفترض أن المستند مستلَم تلقائياً عند التبديل إلى Doc — نحافظ على القيمة الموجودة.
+          const receiptReceived = isCash ? !!existingDv.receipt_received : !!existingDv.receipt_received;
           orderUpdate.document_verification = {
             ...existingDv,
             type: invoicePaymentMethod,
             paid_by_cash: isCash,
             manager_receipt_bucket: isCash ? 'cash' : 'doc',
-            receipt_received: !isCash ? true : !!existingDv.receipt_received,
+            receipt_received: receiptReceived,
             verified_at: new Date().toISOString(),
           };
-          orderUpdate.document_status = isCash ? 'none' : 'received';
+          orderUpdate.document_status = isCash ? 'none' : (receiptReceived ? 'received' : 'pending');
+          // إذا كانت Versement (Doc) ولم يُستلم المستند → يجب أن تُسجَّل كدَين كاملاً
+          // بصرف النظر عن مبلغ الدفع المُدخَل (لأن قيمة المستند ليست مقبوضة فعلاً).
+          if (!isCash && !receiptReceived) {
+            orderUpdate.payment_status = 'pending';
+            orderUpdate.partial_amount = null;
+          }
         } else if (paymentType !== 'with_invoice') {
           orderUpdate.document_verification = null;
           orderUpdate.document_status = null;
