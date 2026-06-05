@@ -107,9 +107,9 @@ const CustomerLabel: React.FC<CustomerLabelProps> = ({
   if (compact) {
     return (
       <span className={cn('inline-flex items-center gap-1 min-w-0', className)}>
-        {regLabel && (
+        {ownerLabel && (
           <span className="text-[10px] text-muted-foreground font-medium shrink-0" dir="ltr">
-            {regLabel}
+            {ownerLabel}
           </span>
         )}
         <span className="font-bold text-sm truncate">{displayName}</span>
@@ -124,9 +124,9 @@ const CustomerLabel: React.FC<CustomerLabelProps> = ({
   return (
     <div className={cn('min-w-0', className)}>
       <div className="flex items-center gap-1 flex-wrap">
-        {regLabel && (
+        {ownerLabel && (
           <span className="text-[10px] text-muted-foreground font-medium shrink-0" dir="ltr">
-            {regLabel}
+            {ownerLabel}
           </span>
         )}
         <span className="font-bold text-sm truncate">{displayName}</span>
