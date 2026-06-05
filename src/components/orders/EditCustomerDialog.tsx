@@ -417,6 +417,7 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
         owner_first_name_fr: isRegistered ? (ownerFirstNameFr.trim() || null) : null,
         owner_last_name_fr: isRegistered ? (ownerLastNameFr.trim() || null) : null,
         registration_type: isRegistered ? (registrationType || null) : null,
+        registration_sub_types: isRegistered && registrationType ? registrationSubTypes : [],
         default_delivery_worker_id: defaultDeliveryWorkerId || null,
       };
 
