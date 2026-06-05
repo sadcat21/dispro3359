@@ -977,14 +977,6 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                 setDocDialog(null);
               }}
             >
-                setDocSaving(false);
-                if (error) { toast.error('فشل التحديث: ' + String(error.message || '')); return; }
-                toast.success('تم تأكيد استلام المستند');
-                await queryClient.invalidateQueries({ queryKey: ['session-document-collections'] });
-                await queryClient.invalidateQueries({ queryKey: ['document-tracking'] });
-                setDocDialog(null);
-              }}
-            >
               {docSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'تأكيد الاستلام'}
             </Button>
           </DialogFooter>
