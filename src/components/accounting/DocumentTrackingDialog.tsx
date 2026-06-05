@@ -15,6 +15,7 @@ interface Props {
 }
 
 type Stage = 'pending' | 'received' | 'ready' | 'handed';
+type DocType = 'check' | 'receipt' | 'transfer' | null;
 
 interface Row {
   id: string;
@@ -22,7 +23,20 @@ interface Row {
   total: number;
   createdAt: string;
   stage: Stage;
+  docType: DocType;
 }
+
+const DOC_TYPE_LABEL: Record<Exclude<DocType, null>, string> = {
+  check: 'شيك',
+  receipt: 'وصل دفع',
+  transfer: 'تحويل',
+};
+
+const DOC_TYPE_CLASS: Record<Exclude<DocType, null>, string> = {
+  check: 'bg-blue-100 text-blue-700 border-blue-200',
+  receipt: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+  transfer: 'bg-purple-100 text-purple-700 border-purple-200',
+};
 
 const formatMoney = (n: number) => new Intl.NumberFormat('ar-DZ').format(n);
 
@@ -57,7 +71,7 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
       const { data, error } = await supabase
         .from('orders')
         .select(`
-          id, total_amount, created_at, document_stage,
+          id, total_amount, created_at, document_stage, invoice_payment_method,
           customer:customers!orders_customer_id_fkey(name)
         `)
         .eq('branch_id', branchId!)
@@ -72,6 +86,7 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
         total: Number(o.total_amount || 0),
         createdAt: o.created_at,
         stage: (o.document_stage || 'pending') as Stage,
+        docType: (o.invoice_payment_method || null) as DocType,
       }));
     },
   });
@@ -111,7 +126,18 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
           return (
             <div key={r.id} className="flex items-center justify-between gap-2 p-3 rounded-lg border bg-white border-slate-200">
               <div className="min-w-0 flex-1">
-                <p className="font-semibold text-sm text-slate-900 truncate">{r.customerName}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-sm text-slate-900 truncate">{r.customerName}</p>
+                  {r.docType ? (
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${DOC_TYPE_CLASS[r.docType]}`}>
+                      {DOC_TYPE_LABEL[r.docType]}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded border bg-slate-100 text-slate-600 border-slate-200 shrink-0">
+                      غير محدد
+                    </span>
+                  )}
+                </div>
                 <p className="text-[11px] text-slate-500">{new Date(r.createdAt).toLocaleDateString('ar-DZ')}</p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
