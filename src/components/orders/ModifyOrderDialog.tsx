@@ -2215,17 +2215,19 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
         return sum + (paidQty * Number(item.unit_price || 0));
       }, 0);
 
-      // إذا كانت الطلبية محفوظة كـ Versement (Cash) أو دفع نقدي،
-      // فالاستئناف يعني دفع كامل نقداً بصرف النظر عن paidAmount الممرّر.
+      // احترام المبلغ المُدخَل في نافذة الاستئناف دائماً.
+      // فقط في حال لم يُدخل المستخدم أي مبلغ (0/فارغ) وكانت الطلبية
+      // محفوظة كـ Versement (Cash) → اعتبرها مدفوعة نقداً بالكامل.
       const dv: any = (order as any).document_verification || {};
-      const forceFullCash =
+      const wasCashSale =
         dv?.paid_by_cash === true ||
         dv?.manager_receipt_bucket === 'cash' ||
         (order as any).payment_status === 'cash';
+      const enteredPaid = Number(paidAmount || 0);
 
-      const clampedPaid = forceFullCash
+      const clampedPaid = (enteredPaid <= 0 && wasCashSale)
         ? totalAmount
-        : Math.max(0, Math.min(Number(paidAmount || 0), totalAmount));
+        : Math.max(0, Math.min(enteredPaid, totalAmount));
       const remainingAmount = Math.max(0, totalAmount - clampedPaid);
       const nextPaymentStatus = remainingAmount <= 0
         ? 'cash'
