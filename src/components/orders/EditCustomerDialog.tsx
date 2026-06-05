@@ -20,6 +20,7 @@ import { useCustomerDebtSummary, useCreateDebt, useUpdateDebtPayment } from '@/h
 import { useAuth } from '@/contexts/AuthContext';
 import { reverseGeocode } from '@/utils/geoUtils';
 import { useCustomerTypes, getCustomerTypeColor } from '@/hooks/useCustomerTypes';
+import { useRegistrationTypes, getRegistrationTypeColor } from '@/hooks/useRegistrationTypes';
 import { useCustomerFieldSettings } from '@/hooks/useCustomerFieldSettings';
 import { CUSTOMER_FIELD_LABELS, type CustomerFieldKey } from '@/types/customerFieldSettings';
 import { useLanguage } from '@/contexts/LanguageContext';
