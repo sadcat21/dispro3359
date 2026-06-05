@@ -258,7 +258,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
       // 1) Pending documents that were actually collected (source of truth)
       const { data: pendingCollections } = await supabase
         .from('document_collections')
-        .select(`id, action, status, collection_date, created_at, order_id, order:orders!document_collections_order_id_fkey(id, total_amount, invoice_payment_method, document_status, document_verification, customer:customers!orders_customer_id_fkey(name))`)
+        .select(`id, action, status, collection_date, created_at, order_id, order:orders!document_collections_order_id_fkey(id, total_amount, invoice_payment_method, document_status, document_verification, payment_status, customer:customers!orders_customer_id_fkey(name))`)
         .eq('worker_id', workerId)
         .eq('action', 'collected')
         .neq('status', 'rejected')
@@ -270,6 +270,10 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
         if (!order) continue;
         const docType = order.invoice_payment_method || 'check';
         const dv: any = order.document_verification || {};
+        const bucket: 'cash' | 'doc' | null =
+          dv.manager_receipt_bucket === 'cash' || dv.manager_receipt_bucket === 'doc'
+            ? dv.manager_receipt_bucket
+            : (dv.paid_by_cash === true || order.payment_status === 'cash' ? 'cash' : null);
         result.push({
           orderId: order.id,
           customerName: order.customer?.name || 'غير معروف',
@@ -277,10 +281,11 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           orderTotal: Number(order.total_amount || 0),
           source: 'pending_collection',
           documentStatus: order.document_status,
-          bucket: dv.manager_receipt_bucket === 'cash' || dv.manager_receipt_bucket === 'doc' ? dv.manager_receipt_bucket : (dv.paid_by_cash === true ? 'cash' : null),
+          bucket,
           verification: parseVerification(order.document_verification, docType),
         });
       }
+
 
       const pendingOrderIds = new Set(result.map((r) => r.orderId));
 
