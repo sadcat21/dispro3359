@@ -62,6 +62,10 @@ const NEXT_ICON: Record<Exclude<Stage, 'handed'>, React.ReactNode> = {
   ready: <Truck className="w-3 h-3" />,
 };
 
+const deferOpenInvoicePrompt = (openPrompt: () => void) => {
+  window.setTimeout(openPrompt, 0);
+};
+
 const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId }) => {
   const qc = useQueryClient();
   const { toast } = useToast();
@@ -69,6 +73,11 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
   const [busyId, setBusyId] = useState<string | null>(null);
   const [invoicePrompt, setInvoicePrompt] = useState<Row | null>(null);
   const [invoiceNumber, setInvoiceNumber] = useState('');
+
+  const openInvoicePrompt = (row: Row) => {
+    setInvoiceNumber('');
+    deferOpenInvoicePrompt(() => setInvoicePrompt(row));
+  };
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ['document-tracking', branchId],
@@ -107,8 +116,7 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
     if (row.stage === 'handed') return;
     const next = NEXT_STAGE[row.stage];
     if (row.stage === 'ready' && !invoiceNo) {
-      setInvoiceNumber('');
-      setInvoicePrompt(row);
+      openInvoicePrompt(row);
       return;
     }
     setBusyId(row.id);
@@ -130,8 +138,7 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
     } catch (e: any) {
       const msg = String(e?.message || '');
       if (msg.includes('invoice_number_required')) {
-        setInvoiceNumber('');
-        setInvoicePrompt(row);
+        openInvoicePrompt(row);
         toast({ title: 'مطلوب', description: 'يجب إدخال رقم الفاتورة قبل تسليم الوثيقة', variant: 'destructive' });
       } else {
         toast({ title: 'خطأ', description: msg || 'تعذّر التحديث', variant: 'destructive' });
@@ -163,7 +170,11 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => { setInvoiceNumber(''); setInvoicePrompt(r); }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      openInvoicePrompt(r);
+                    }}
                     className="font-semibold text-sm text-slate-900 truncate hover:text-purple-600 hover:underline text-start"
                   >
                     {r.customerName}
