@@ -8,7 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertTriangle, Banknote, CheckCircle, FileText, Loader2, XCircle } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { formatNumber } from '@/utils/formatters';
-import { parseAmountInput } from '@/utils/amountFormatting';
+import { parseAmountInput, roundToMaxFraction } from '@/utils/amountFormatting';
 
 interface ReceiptPaymentDialogProps {
   open: boolean;
@@ -41,11 +41,15 @@ const ReceiptPaymentDialog: React.FC<ReceiptPaymentDialogProps> = ({
   const methodLabel = paymentMethod === 'receipt' ? 'Versement' : paymentMethod === 'transfer' ? 'Virement' : 'Chèque';
   const docLabel = methodLabel;
   const allowCash = paymentMethod !== 'check' && !hideCash;
+  const displayOrderTotal = roundToMaxFraction(orderTotal, 3);
 
-  const enteredAmount = parseAmountInput(mode === 'receipt' ? receiptAmount : cashAmount, { expectedTotal: orderTotal });
-  const remainingDebt = Math.max(0, orderTotal - enteredAmount);
+  const enteredAmount = parseAmountInput(mode === 'receipt' ? receiptAmount : cashAmount, {
+    expectedTotal: displayOrderTotal,
+    maximumFractionDigits: 3,
+  });
+  const remainingDebt = Math.max(0, displayOrderTotal - enteredAmount);
   const hasDebt = remainingDebt > 0 && enteredAmount > 0;
-  const isOverpayment = enteredAmount > orderTotal;
+  const isOverpayment = enteredAmount > displayOrderTotal;
 
   const handleReset = () => {
     setMode('choose');
@@ -62,13 +66,13 @@ const ReceiptPaymentDialog: React.FC<ReceiptPaymentDialogProps> = ({
     if (enteredAmount <= 0) return;
     setIsSubmitting(true);
     try {
-      const effectiveAmount = Math.min(enteredAmount, orderTotal);
+      const effectiveAmount = Math.min(enteredAmount, displayOrderTotal);
       await onConfirm({
         receiptReceived: mode === 'receipt',
         paidByCash: mode === 'cash',
         receiptAmount: mode === 'receipt' ? effectiveAmount : 0,
         cashAmount: mode === 'cash' ? effectiveAmount : 0,
-        remainingDebt: Math.max(0, orderTotal - effectiveAmount),
+        remainingDebt: Math.max(0, displayOrderTotal - effectiveAmount),
       });
       handleReset();
     } finally {
@@ -84,7 +88,7 @@ const ReceiptPaymentDialog: React.FC<ReceiptPaymentDialogProps> = ({
         paidByCash: false,
         receiptAmount: 0,
         cashAmount: 0,
-        remainingDebt: orderTotal,
+        remainingDebt: displayOrderTotal,
       });
       handleReset();
     } finally {
@@ -107,7 +111,7 @@ const ReceiptPaymentDialog: React.FC<ReceiptPaymentDialogProps> = ({
             <div className="space-y-4">
               <div className="bg-muted/50 rounded-lg p-3 space-y-1">
                 <p className="text-sm text-muted-foreground">{customerName}</p>
-                <p className="text-2xl font-bold">{formatNumber(orderTotal, language)} DA</p>
+                <p className="text-2xl font-bold">{formatNumber(displayOrderTotal, language)} DA</p>
                 <Badge variant="outline" className="text-xs">{methodLabel} - Facture 1</Badge>
               </div>
 
@@ -157,7 +161,7 @@ const ReceiptPaymentDialog: React.FC<ReceiptPaymentDialogProps> = ({
                 <p className="text-sm text-muted-foreground">{customerName}</p>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">إجمالي الطلبية:</span>
-                  <span className="text-lg font-bold">{formatNumber(orderTotal, language)} DA</span>
+                  <span className="text-lg font-bold">{formatNumber(displayOrderTotal, language)} DA</span>
                 </div>
               </div>
 
@@ -166,19 +170,20 @@ const ReceiptPaymentDialog: React.FC<ReceiptPaymentDialogProps> = ({
                   {mode === 'receipt' ? `مبلغ ${docLabel}` : 'مبلغ الكاش المستلم'}
                 </Label>
                 <Input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   value={mode === 'receipt' ? receiptAmount : cashAmount}
                   onChange={(e) => mode === 'receipt' ? setReceiptAmount(e.target.value) : setCashAmount(e.target.value)}
                   placeholder="0"
-                  min="0"
                   className="text-lg font-bold h-12 mt-1"
+                  dir="ltr"
                 />
               </div>
 
               {isOverpayment && (
                 <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-sm text-amber-800 dark:text-amber-300">
                   <AlertTriangle className="w-4 h-4 inline me-1" />
-                  المبلغ المدخل أكبر من قيمة الطلبية. سيتم احتساب {formatNumber(orderTotal, language)} DA فقط.
+                  المبلغ المدخل أكبر من قيمة الطلبية. سيتم احتساب {formatNumber(displayOrderTotal, language)} DA فقط.
                 </div>
               )}
 
@@ -194,7 +199,7 @@ const ReceiptPaymentDialog: React.FC<ReceiptPaymentDialogProps> = ({
                 </div>
               )}
 
-              {enteredAmount > 0 && enteredAmount >= orderTotal && !isOverpayment && (
+              {enteredAmount > 0 && enteredAmount >= displayOrderTotal && !isOverpayment && (
                 <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-3 text-sm text-green-700 dark:text-green-400">
                   <CheckCircle className="w-4 h-4 inline me-1" />
                   المبلغ يغطي كامل قيمة الطلبية ✓
