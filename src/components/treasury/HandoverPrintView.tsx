@@ -255,17 +255,9 @@ const HandoverPrintView: React.FC<Props> = ({
   const cashItemsStampTotal = cashItemsWithStamp.reduce((sum, item) => sum + Number(item.stamp_amount || 0), 0);
 
   const renderClientCell = (item: HandoverItem) => {
-    const appName = item.customer_app_name || item.customer_name || '-';
-    const frName = item.customer_name_fr;
-    const showFr = frName && frName.trim() && frName.trim() !== (item.customer_app_name || '').trim();
-    return (
-      <>
-        <div>{appName}</div>
-        {showFr && (
-          <div style={{ fontSize: '9px', color: '#dc2626' }}>{frName}</div>
-        )}
-      </>
-    );
+    const frName = item.customer_name_fr && item.customer_name_fr.trim();
+    const displayName = frName || item.customer_app_name || item.customer_name || '-';
+    return <div style={{ color: '#dc2626' }}>{displayName}</div>;
   };
 
   const renderSimpleTable = (
