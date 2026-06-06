@@ -600,7 +600,9 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
             {stampedInvoices.map(inv => {
               const stampKey = `stamp_${inv.orderId}`;
               const draftDecision = receivedDocs ? receivedDocs[stampKey] : undefined;
-              const isGreen = inv.received || draftDecision === true;
+              // Draft decision (when present) overrides the persisted invoice state
+              // so toggling inside the edit dialog recolors the row immediately.
+              const isGreen = draftDecision === true || (draftDecision === undefined && inv.received);
               const isRed = draftDecision === false;
               return (
               <div
