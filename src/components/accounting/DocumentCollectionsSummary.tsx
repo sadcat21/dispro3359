@@ -463,7 +463,12 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
   const renderDocCard = (doc: CollectedDoc) => {
     const v = doc.verification;
     const docKey = `doc_${doc.orderId}`;
-    const receivedState = receivedDocs ? receivedDocs[docKey] : undefined;
+    const draftDecision = receivedDocs ? receivedDocs[docKey] : undefined;
+    // Draft (when present) overrides the persisted document_status so toggling
+    // recolors the row immediately inside the edit session dialog.
+    const persistedReceived = doc.documentStatus === 'received' || doc.documentStatus === 'verified';
+    const receivedState: boolean | undefined =
+      draftDecision !== undefined ? draftDecision : (persistedReceived ? true : undefined);
     const borderCls =
       receivedState === true
         ? 'border-2 border-emerald-500 bg-emerald-100/70 dark:bg-emerald-900/30 ring-2 ring-emerald-400/60 shadow-md shadow-emerald-500/20'
