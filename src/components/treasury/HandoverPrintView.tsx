@@ -7,6 +7,7 @@ import { StampPriceTier } from '@/types/stamp';
 import { calculateStampAmount } from '@/hooks/useStampTiers';
 import { useCompanyInfo } from '@/hooks/useCompanyInfo';
 import { PrintHeader } from '@/utils/printHeader';
+import logoAsset from '@/assets/logo.png';
 
 interface HandoverItem {
   order_id: string;
