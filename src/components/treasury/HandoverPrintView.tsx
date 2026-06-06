@@ -342,7 +342,7 @@ const HandoverPrintView: React.FC<Props> = ({
           ) : (
             cashItemsWithStamp.map((item, index) => (
               <tr key={`cash-invoice1-${index}`}>
-                <td style={{ textAlign: 'left' }}>{item.customer_name || '-'}</td>
+                <td style={{ textAlign: 'left' }}>{renderClientCell(item)}</td>
                 <td style={{ textAlign: 'left' }}>{item.invoice_number || '-'}</td>
                 <td style={{ textAlign: 'right' }}>{Number(item.base_amount || 0).toLocaleString()}</td>
                 <td style={{ textAlign: 'right' }}>{Number(item.stamp_percentage || 0).toLocaleString()}%</td>
