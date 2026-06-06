@@ -96,7 +96,7 @@ export const useUnreviewedSessions = () => {
         .is('review_session_id', null)
         .order('completed_at', { ascending: false });
 
-      if (activeBranch?.id) query = query.eq('branch_id', activeBranch.id);
+      if (activeBranch?.id) query = query.or(`branch_id.eq.${activeBranch.id},branch_id.is.null`);
 
       const { data, error } = await query;
       if (error) throw error;
