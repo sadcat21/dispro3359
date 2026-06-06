@@ -299,6 +299,11 @@ body.native-print-active > [data-native-print-keepalive] {
   overflow: auto !important;
   background: white !important;
   pointer-events: none !important;
+  transform: translateZ(0) !important;
+  -webkit-transform: translateZ(0) !important;
+  -webkit-backface-visibility: hidden !important;
+  backface-visibility: hidden !important;
+  contain: none !important;
 }
 
 body.native-print-active > [data-native-print-keepalive] .print-container,
@@ -311,6 +316,10 @@ body.native-print-active > [data-native-print-keepalive] .print-handover {
   overflow: visible !important;
   color: #000 !important;
   background: white !important;
+  min-height: 100vh !important;
+  transform: translateZ(0) !important;
+  -webkit-transform: translateZ(0) !important;
+  contain: none !important;
 }
 
 body.native-print-active #print-portal,
@@ -361,6 +370,7 @@ body.native-print-active #session-print-portal {
     height: auto !important;
     width: auto !important;
     overflow: visible !important;
+    opacity: 1 !important;
   }
 
   /* When a native-print snapshot is active, hide the live originals to avoid duplicates */
@@ -390,6 +400,9 @@ body.native-print-active #session-print-portal {
     background: white !important;
     padding: 0 !important;
     margin: 0 !important;
+    min-height: 100vh !important;
+    transform: translateZ(0) !important;
+    -webkit-transform: translateZ(0) !important;
   }
 
   .print-container * {
