@@ -71,6 +71,7 @@ const HandoverPrintView: React.FC<Props> = ({
   onReady,
 }) => {
   const [items, setItems] = useState<HandoverItem[]>([]);
+  const [debtCashCollected, setDebtCashCollected] = useState(0);
   const [loading, setLoading] = useState(true);
   const { companyInfo } = useCompanyInfo();
 
