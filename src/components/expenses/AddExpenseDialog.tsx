@@ -102,6 +102,21 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
     if (!isAdvanceCategory) setAdvanceWorkerId('');
   }, [isAdvanceCategory]);
 
+  useEffect(() => {
+    if (open && expense) {
+      setCategoryId(expense.category_id || '');
+      setAmount(String(expense.amount ?? ''));
+      const desc = expense.description || '';
+      setDescription(desc.startsWith('مسبق أجرة:') ? desc.replace(/^مسبق أجرة:[^—]*(—\s*)?/, '') : desc);
+      setExpenseDate(expense.expense_date || format(new Date(), 'yyyy-MM-dd'));
+      setReceiptFiles([]);
+      setPaymentMethod(expense.payment_method || 'cash');
+    } else if (open && !expense) {
+      resetForm();
+    }
+  }, [open, expense]);
+
+
   const addFiles = (files: FileList | null) => {
     if (!files) return;
     setReceiptFiles(prev => [...prev, ...Array.from(files)]);
