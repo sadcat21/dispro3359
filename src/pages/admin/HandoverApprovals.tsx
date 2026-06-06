@@ -170,6 +170,7 @@ const HandoverApprovals = () => {
                   intermediaryName={selected.intermediary_name}
                   bankTransferReference={selected.bank_transfer_reference}
                   receivedBy={selected.receiver_name}
+                  senderName={selected.manager?.full_name}
                   unifiedCash={selected.unified_cash}
                 />
               </div>
