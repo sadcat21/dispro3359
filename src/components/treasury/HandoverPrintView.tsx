@@ -71,11 +71,19 @@ const HandoverPrintView: React.FC<Props> = ({
   onReady,
 }) => {
   const [items, setItems] = useState<HandoverItem[]>([]);
+  const [debtCashCollected, setDebtCashCollected] = useState(0);
   const [loading, setLoading] = useState(true);
   const { companyInfo } = useCompanyInfo();
 
   useEffect(() => {
     const fetchItems = async () => {
+      const { data: handoverRow } = await supabase
+        .from('manager_handovers')
+        .select('debt_cash_amount')
+        .eq('id', handoverId)
+        .maybeSingle();
+      setDebtCashCollected(Number(handoverRow?.debt_cash_amount || 0));
+
       const { data: stampTiers } = await supabase
         .from('stamp_price_tiers')
         .select('*')
@@ -460,9 +468,9 @@ const HandoverPrintView: React.FC<Props> = ({
           <div className="hv-block-body">
             {(() => {
               const displayedStamp = Math.max(cashItemsStampTotal, stampAmount);
-              // "Recouvrement dettes / cash suppl." = portion impayée des factures Versement Cash
-              // (la part qui devient une nouvelle dette à recouvrer). Source: receipt_cash.remaining_amount.
-              const recouvrementSuppl = receiptCashRemainingTotal > 0 ? receiptCashRemainingTotal : extraCashTotal;
+              // "Recouvrement dettes / cash suppl." = montant cash réellement collecté
+              // sur les dettes et inclus dans cette remise (manager_handovers.debt_cash_amount).
+              const recouvrementSuppl = debtCashCollected > 0 ? debtCashCollected : extraCashTotal;
               const totalEspecesBrut = cashItemsTotal + receiptCashPaidTotal + displayedStamp + cashInvoice2 + recouvrementSuppl;
               const totalEspeces = totalEspecesBrut - expensesAmount;
               return unifiedCash ? (
