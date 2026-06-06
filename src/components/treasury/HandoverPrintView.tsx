@@ -56,6 +56,7 @@ const HandoverPrintView: React.FC<Props> = ({
   receiptsAmount,
   transfersAmount,
   totalAmount,
+  expensesAmount = 0,
   branchWilaya,
   deliveryMethod,
   intermediaryName,
