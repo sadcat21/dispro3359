@@ -17,6 +17,36 @@ const PRINT_PORTAL_IDS = [
   'session-print-portal',
 ];
 
+const KEEPALIVE_ATTRIBUTE = 'data-native-print-keepalive';
+const PRINTABLE_ROOT_SELECTOR = '.print-container, .print-handover';
+
+const forcePrintableVisibility = (root: HTMLElement) => {
+  const printableRoots = [
+    ...(root.matches(PRINTABLE_ROOT_SELECTOR) ? [root] : []),
+    ...Array.from(root.querySelectorAll<HTMLElement>(PRINTABLE_ROOT_SELECTOR)),
+  ];
+
+  for (const node of printableRoots) {
+    node.removeAttribute('hidden');
+    node.hidden = false;
+    node.style.setProperty('display', 'block', 'important');
+    node.style.setProperty('visibility', 'visible', 'important');
+    node.style.setProperty('height', 'auto', 'important');
+    node.style.setProperty('overflow', 'visible', 'important');
+    node.style.setProperty('opacity', '1', 'important');
+  }
+};
+
+const waitForNextPaint = async () => {
+  if (typeof window === 'undefined') return;
+
+  await new Promise<void>((resolve) => {
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => resolve());
+    });
+  });
+};
+
 /**
  * On native Android the print dialog opens asynchronously, but most callers
  * unmount the React print component immediately after calling window.print().
@@ -28,6 +58,11 @@ const PRINT_PORTAL_IDS = [
 const keepPrintPortalsAlive = (): (() => void) => {
   if (typeof document === 'undefined') return () => {};
 
+  for (const staleClone of document.querySelectorAll<HTMLElement>(`[${KEEPALIVE_ATTRIBUTE}]`)) {
+    staleClone.remove();
+  }
+  document.body.classList.remove('native-print-active');
+
   const clones: HTMLElement[] = [];
   for (const id of PRINT_PORTAL_IDS) {
     const el = document.getElementById(id);
@@ -35,7 +70,14 @@ const keepPrintPortalsAlive = (): (() => void) => {
     const clone = el.cloneNode(true) as HTMLElement;
     // Strip the id from the clone so it can coexist briefly with the live node
     clone.removeAttribute('id');
-    clone.setAttribute('data-native-print-keepalive', id);
+    clone.setAttribute(KEEPALIVE_ATTRIBUTE, id);
+    clone.style.setProperty('display', 'block', 'important');
+    clone.style.setProperty('visibility', 'visible', 'important');
+    clone.style.setProperty('position', 'relative', 'important');
+    clone.style.setProperty('width', '100%', 'important');
+    clone.style.setProperty('height', 'auto', 'important');
+    clone.style.setProperty('overflow', 'visible', 'important');
+    forcePrintableVisibility(clone);
     document.body.appendChild(clone);
     clones.push(clone);
   }
@@ -69,17 +111,23 @@ export const installNativePrintBridge = () => {
 
     const cleanup = keepPrintPortalsAlive();
 
-    NativePrint.printCurrentPage({ jobName: document.title || 'Laser Food' })
-      .catch((error) => {
+    void (async () => {
+      try {
+        // Let the cloned portals paint before Android's WebView creates the
+        // print document adapter; otherwise the adapter may snapshot an empty page.
+        await waitForNextPaint();
+        await NativePrint.printCurrentPage({ jobName: document.title || 'Laser Food' });
+      } catch (error) {
         console.error('[NativePrint] Failed to open Android print dialog:', error);
         cleanup();
         browserPrint();
-      })
-      .finally(() => {
-        // Give Android's print framework enough time to render the WebView to
-        // PDF before we drop the keep-alive snapshot. The print dialog itself
-        // is shown by the OS; rendering happens shortly after.
-        window.setTimeout(cleanup, 30000);
-      });
+        return;
+      }
+
+      // Give Android's print framework enough time to render the WebView to
+      // PDF before we drop the keep-alive snapshot. The print dialog itself
+      // is shown by the OS; rendering happens shortly after.
+      window.setTimeout(cleanup, 30000);
+    })();
   };
 };
