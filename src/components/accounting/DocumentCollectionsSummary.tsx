@@ -36,7 +36,7 @@ interface DocumentCollectionsSummaryProps {
   periodEnd: string;
   receivedDocs?: Record<string, boolean>;
   onReceivedDocsChange?: (docs: Record<string, boolean>) => void;
-  onItemsChange?: (items: { docIds: string[]; stampIds: string[] }) => void;
+  onItemsChange?: (items: { docIds: string[]; stampIds: string[]; receivedStampIds: string[] }) => void;
 }
 
 interface CollectedDoc {
