@@ -13,6 +13,8 @@ interface HandoverItem {
   payment_method: string;
   amount: number;
   customer_name: string | null;
+  customer_name_fr?: string | null;
+  customer_app_name?: string | null;
   base_amount?: number;
   stamp_amount?: number;
   stamp_percentage?: number;
