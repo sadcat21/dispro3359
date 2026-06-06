@@ -594,7 +594,10 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-xs font-semibold text-violet-700 dark:text-violet-400">
             <Stamp className="w-3.5 h-3.5" />
-            <span>فواتير مختومة ({stampedInvoices.filter(s => s.received).length}/{stampedInvoices.length})</span>
+            <span>فواتير مختومة ({stampedInvoices.filter(s => {
+              const d = receivedDocs ? receivedDocs[`stamp_${s.orderId}`] : undefined;
+              return d === true || (d === undefined && s.received);
+            }).length}/{stampedInvoices.length})</span>
           </div>
           <div className="border-2 border-violet-200 dark:border-violet-900/40 rounded-xl p-2.5 space-y-2 bg-violet-50/30 dark:bg-violet-900/10">
             {stampedInvoices.map(inv => {
