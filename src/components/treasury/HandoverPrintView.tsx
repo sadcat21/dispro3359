@@ -139,7 +139,8 @@ const HandoverPrintView: React.FC<Props> = ({
         const treasuryEntry = item.treasury_entry_id ? treasuryMap[item.treasury_entry_id] : null;
         const order = item.order_id ? orderMap[item.order_id] : null;
         const customer = order?.customers;
-        const customerNameFr = customer?.name_fr || null;
+        const ownerFr = [customer?.owner_last_name_fr, customer?.owner_first_name_fr].filter(Boolean).join(' ').trim();
+        const customerNameFr = ownerFr || customer?.name_fr || null;
         const customerAppName = customer?.name || item.customer_name || null;
         const customerName = customerNameFr || customerAppName;
         const itemsSubtotal = (order?.order_items || []).reduce((sum: number, orderItem: any) => sum + Number(orderItem.total_price || 0), 0);
