@@ -469,7 +469,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
         ? 'border-2 border-emerald-500 bg-emerald-100/70 dark:bg-emerald-900/30 ring-2 ring-emerald-400/60 shadow-md shadow-emerald-500/20'
         : receivedState === false
           ? 'border-2 border-destructive bg-destructive/10'
-          : 'border';
+          : 'border border-sky-300 bg-sky-100/70 dark:bg-sky-900/20';
 
     return (
       <div
@@ -489,13 +489,15 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                   ? { label: 'دين', cls: 'bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300' }
                   : null;
           const isReceived = receivedState === true;
+          const isRejected = receivedState === false;
+          const isUnsubmitted = receivedState === undefined;
           return (
             <div className="flex items-start gap-2">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isReceived ? 'bg-emerald-500 shadow-md shadow-emerald-500/40' : 'bg-primary/10'}`}>
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isReceived ? 'bg-emerald-500 shadow-md shadow-emerald-500/40' : isUnsubmitted || isRejected ? 'bg-red-500 shadow-md shadow-red-500/40' : 'bg-primary/10'}`}>
                 {isReceived ? (
                   <CheckCircle className="w-5 h-5 text-white" strokeWidth={3} />
                 ) : (
-                  <FileCheck2 className="w-4 h-4 text-primary" />
+                  <XCircle className="w-5 h-5 text-white" strokeWidth={3} />
                 )}
               </div>
               <div className="min-w-0 flex-1">
