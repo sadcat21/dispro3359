@@ -162,29 +162,42 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
       ? `مسبق أجرة: ${workerName}${description ? ` — ${description}` : ''}`
       : (description || undefined);
 
-    await createExpense.mutateAsync({
-      category_id: categoryId,
-      amount: parseFloat(amount),
-      description: finalDescription,
-      expense_date: expenseDate,
-      receipt_url: receiptUrls[0],
-      receipt_urls: receiptUrls,
-      payment_method: isFuelCategory ? paymentMethod : 'cash',
-    });
+    if (isEdit && expense) {
+      await updateExpense.mutateAsync({
+        id: expense.id,
+        category_id: categoryId,
+        amount: parseFloat(amount),
+        description: finalDescription ?? null,
+        expense_date: expenseDate,
+        ...(receiptUrls.length > 0 ? { receipt_url: receiptUrls[0], receipt_urls: receiptUrls } : {}),
+        payment_method: isFuelCategory ? paymentMethod : 'cash',
+      });
+    } else {
+      await createExpense.mutateAsync({
+        category_id: categoryId,
+        amount: parseFloat(amount),
+        description: finalDescription,
+        expense_date: expenseDate,
+        receipt_url: receiptUrls[0],
+        receipt_urls: receiptUrls,
+        payment_method: isFuelCategory ? paymentMethod : 'cash',
+      });
 
-    if (isAdvanceCategory && advanceWorkerId) {
-      try {
-        await createWorkerDebt.mutateAsync({
-          worker_id: advanceWorkerId,
-          amount: parseFloat(amount),
-          debt_type: 'advance',
-          description: `مسبق أجرة بتاريخ ${expenseDate}${description ? ` — ${description}` : ''}`,
-        });
-        toast.success('تم تسجيل المسبق ضمن ديون العامل');
-      } catch (err: any) {
-        toast.error('تعذر تسجيل دين العامل: ' + (err?.message || ''));
+      if (isAdvanceCategory && advanceWorkerId) {
+        try {
+          await createWorkerDebt.mutateAsync({
+            worker_id: advanceWorkerId,
+            amount: parseFloat(amount),
+            debt_type: 'advance',
+            description: `مسبق أجرة بتاريخ ${expenseDate}${description ? ` — ${description}` : ''}`,
+          });
+          toast.success('تم تسجيل المسبق ضمن ديون العامل');
+        } catch (err: any) {
+          toast.error('تعذر تسجيل دين العامل: ' + (err?.message || ''));
+        }
       }
     }
+
 
     resetForm();
     onOpenChange(false);
