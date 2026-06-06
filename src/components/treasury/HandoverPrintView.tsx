@@ -398,21 +398,32 @@ const HandoverPrintView: React.FC<Props> = ({
         .print-handover .hv-sign .line { display: inline-block; border-top: 1px solid #0f172a; min-width: 220px; margin-left: 8px; padding-top: 4px; }
       `}</style>
 
-      <PrintHeader companyInfo={companyInfo} dir="ltr" />
+      {(() => {
+        const logo = companyInfo?.company_logo || logoAsset;
+        const name = companyInfo?.company_name || 'SARL LASER FOOD';
+        return (
+          <div data-pdf-section style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, borderBottom: '2px solid #0f172a', padding: '10px 6px', marginBottom: 14 }}>
+            <img src={logo} alt={name} style={{ height: 62, width: 'auto', objectFit: 'contain' }} />
+            <div style={{ flex: 1, textAlign: 'center' }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', letterSpacing: 1, textTransform: 'uppercase' }}>Bordereau de Versement</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#334155', marginTop: 2 }}>{name}</div>
+            </div>
+            <img src={logo} alt={name} style={{ height: 62, width: 'auto', objectFit: 'contain' }} />
+          </div>
+        );
+      })()}
 
       <div className="hv-header" data-pdf-section>
         <div className="hv-meta">
-          <b>Date d'envoi :</b> {dateStr}{wilayaFr ? `  |  Dépôt : ${wilayaFr}` : ''}
+          <b>Date d'envoi :</b> {dateStr}
+          {wilayaFr && <> &nbsp;|&nbsp; <b>Dépôt :</b> {wilayaFr}</>}
+          {deliveryMethod && <> &nbsp;|&nbsp; <b>Mode :</b> {deliveryMethod === 'direct' ? 'Remise directe' : deliveryMethod === 'bank_transfer' ? 'Virement bancaire' : 'Par intermédiaire'}</>}
+          {receivedBy && <> &nbsp;|&nbsp; <b>Destinataire :</b> {receivedBy}</>}
+          {deliveryMethod === 'intermediary' && intermediaryName && <> &nbsp;|&nbsp; <b>Intermédiaire :</b> {intermediaryName}</>}
+          {deliveryMethod === 'bank_transfer' && bankTransferReference && <> &nbsp;|&nbsp; <b>Réf. virement :</b> {bankTransferReference}</>}
         </div>
-        {deliveryMethod && (
-          <div className="hv-meta">
-            <b>Mode :</b> {deliveryMethod === 'direct' ? 'Remise directe' : deliveryMethod === 'bank_transfer' ? 'Virement bancaire' : 'Par intermédiaire'}
-            {receivedBy && <> &nbsp;|&nbsp; <b>Destinataire :</b> {receivedBy}</>}
-            {deliveryMethod === 'intermediary' && intermediaryName && <> &nbsp;|&nbsp; <b>Intermédiaire :</b> {intermediaryName}</>}
-            {deliveryMethod === 'bank_transfer' && bankTransferReference && <> &nbsp;|&nbsp; <b>Réf. virement :</b> {bankTransferReference}</>}
-          </div>
-        )}
       </div>
+
 
       {(() => {
         const sections: Array<{ title: string; isEmpty: boolean; node: React.ReactNode }> = [
