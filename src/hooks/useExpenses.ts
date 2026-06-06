@@ -163,3 +163,54 @@ export const useDeleteExpense = () => {
     },
   });
 };
+
+export const useUpdateExpense = () => {
+  const queryClient = useQueryClient();
+  const { t } = useLanguage();
+
+  return useMutation({
+    mutationFn: async (data: {
+      id: string;
+      category_id?: string;
+      amount?: number;
+      description?: string | null;
+      expense_date?: string;
+      receipt_url?: string | null;
+      receipt_urls?: string[];
+      payment_method?: string;
+    }) => {
+      const { id, ...patch } = data;
+      const { error } = await supabase.from('expenses').update(patch).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      toast.success(t('common.success'));
+    },
+    onError: (error: any) => {
+      toast.error(t('common.error') + ': ' + error.message);
+    },
+  });
+};
+
+export const useWorkerAccountedRanges = (workerId?: string | null) => {
+  return useQuery({
+    queryKey: ['worker-accounted-ranges', workerId],
+    enabled: !!workerId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('accounting_sessions')
+        .select('period_start, period_end, completed_at')
+        .eq('worker_id', workerId!)
+        .eq('status', 'completed');
+      if (error) throw error;
+      return (data || []).map((r: any) => {
+        const start = new Date(r.period_start).getTime();
+        const endRaw = r.completed_at && new Date(r.completed_at).getTime() > new Date(r.period_end).getTime()
+          ? r.completed_at
+          : r.period_end;
+        return { start, end: new Date(endRaw).getTime() };
+      });
+    },
+  });
+};
