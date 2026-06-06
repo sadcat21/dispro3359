@@ -77,6 +77,13 @@ const HandoverPrintView: React.FC<Props> = ({
 
   useEffect(() => {
     const fetchItems = async () => {
+      const { data: handoverRow } = await supabase
+        .from('manager_handovers')
+        .select('debt_cash_amount')
+        .eq('id', handoverId)
+        .maybeSingle();
+      setDebtCashCollected(Number(handoverRow?.debt_cash_amount || 0));
+
       const { data: stampTiers } = await supabase
         .from('stamp_price_tiers')
         .select('*')
