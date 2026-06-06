@@ -1299,7 +1299,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
           aggOffered[p.id] = (aggOffered[p.id] || 0) + Number((off as any)[p.id] || 0);
         });
       });
-      const gHeader = `<tr><td colspan="${totalCols}" style="background:#15803d;color:#fff;text-align:left;padding:4px 8px;font-weight:800;text-transform:uppercase;font-size:10px">Total Général (Tous les Vendeurs)</td></tr>`;
+      const gHeader = `<tr><td colspan="${totalCols}" style="background:#bbf7d0 !important;color:#000 !important;text-align:center;padding:4px 8px;font-weight:800;text-transform:uppercase;font-size:10px;-webkit-print-color-adjust:exact;print-color-adjust:exact">Total Général (Tous les Vendeurs)</td></tr>`;
       const gBody = renderBlock(
         (k, pid) => aggMQty[k]?.[pid] || { paid: 0, debt: 0, paidAmt: 0, debtAmt: 0 },
         (pid) => Number(aggOffered[pid] || 0),
