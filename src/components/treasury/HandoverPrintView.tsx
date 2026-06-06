@@ -108,7 +108,7 @@ const HandoverPrintView: React.FC<Props> = ({
       if (orderIds.length > 0) {
         const { data: orders } = await supabase
           .from('orders')
-          .select('id, created_at, delivery_date, total_amount, order_items(total_price), customers(name_fr, name, store_name_fr, store_name)')
+          .select('id, created_at, delivery_date, total_amount, order_items(total_price), customers(name_fr, name, store_name_fr, store_name, owner_first_name_fr, owner_last_name_fr)')
           .in('id', orderIds);
         (orders || []).forEach((order) => {
           orderMap[order.id] = order;
