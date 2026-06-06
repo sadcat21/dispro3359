@@ -66,6 +66,7 @@ const HandoverPrintView: React.FC<Props> = ({
   intermediaryName,
   bankTransferReference,
   receivedBy,
+  senderName,
   unifiedCash,
   onReady,
 }) => {
