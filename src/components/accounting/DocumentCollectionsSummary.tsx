@@ -431,6 +431,15 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
     },
   });
 
+  useEffect(() => {
+    if (!onItemsChange) return;
+    onItemsChange({
+      docIds: (docs || []).map((d) => d.orderId),
+      stampIds: (stampedInvoices || []).map((s) => s.orderId),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [docs, stampedInvoices]);
+
   if (isLoading) return <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div>;
   if ((!docs || docs.length === 0) && (!stampedInvoices || stampedInvoices.length === 0)) return <p data-empty="true" className="text-xs text-muted-foreground text-center py-3">لا توجد مستندات محصلة في هذه الفترة</p>;
 
