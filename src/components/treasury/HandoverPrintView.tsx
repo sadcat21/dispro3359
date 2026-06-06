@@ -189,8 +189,10 @@ const HandoverPrintView: React.FC<Props> = ({
 
   const cashItemsTotal = cashItems.reduce((sum, item) => sum + Number(item.amount || 0), 0);
   const receiptCashTotal = receiptCash.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  const receiptCashPaidTotal = receiptCash.reduce((sum, item) => sum + Number(item.paid_amount ?? item.amount ?? 0), 0);
+  const receiptCashRemainingTotal = receiptCash.reduce((sum, item) => sum + Number(item.remaining_amount ?? 0), 0);
   const extraCashTotal = Math.max(0, totalAmount - (cashInvoice1 + cashInvoice2 + checksAmount + receiptsAmount + transfersAmount));
-  const stampAmount = Math.max(0, cashInvoice1 - cashItemsTotal - receiptCashTotal);
+  const stampAmount = Math.max(0, cashInvoice1 - cashItemsTotal - receiptCashPaidTotal);
   const dateStr = format(new Date(handoverDate), 'dd/MM/yyyy');
   const wilayaFr = branchWilaya ? ALGERIAN_WILAYAS.find((wilaya) => wilaya.name === branchWilaya)?.nameFr || branchWilaya : '';
   const cashItemsWithStamp: HandoverItem[] = (() => {
