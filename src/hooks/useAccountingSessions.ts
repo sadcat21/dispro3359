@@ -337,6 +337,9 @@ export const useDeleteSession = () => {
       queryClient.invalidateQueries({ queryKey: ['all-workers-liability'] });
       queryClient.invalidateQueries({ queryKey: ['my-worker-stock'] });
       queryClient.invalidateQueries({ queryKey: ['worker-truck-stock'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-documents'] });
+      queryClient.invalidateQueries({ queryKey: ['invoice-tracking'] });
+      queryClient.invalidateQueries({ queryKey: ['manager-confirmations'] });
       queryClient.invalidateQueries({ predicate: (q) => typeof q.queryKey[0] === 'string' && (q.queryKey[0] as string).startsWith('frozen-workers') });
     },
   });
