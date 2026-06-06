@@ -994,8 +994,10 @@ const ManagerTreasury = () => {
           (summary?.cash_invoice1_handed || 0) +
           (summary?.receipt_cash_handed || 0) +
           (summary?.cash_invoice2_handed || 0);
-        const physicalRemaining = cashAvailableBeforeHandover - cashHanded;
-        const nonCashPending = nonCash - nonCashHanded;
+        // Align "رصيد الكاش" with "الموجود فعلياً (بعد التسليم والمصاريف)" inside the budget dialog:
+        // clamp at 0 so over-handover doesn't display a misleading negative balance.
+        const physicalRemaining = Math.max(0, cashAvailableBeforeHandover - cashHanded);
+        const nonCashPending = Math.max(0, nonCash - nonCashHanded);
         const overallRemaining = physicalRemaining + nonCashPending;
         return (
           <>
