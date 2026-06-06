@@ -1014,7 +1014,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             <Button
               className="flex-1 rounded-xl h-11 text-base font-bold"
               onClick={handleShowConfirmation}
-              disabled={isSubmitting || createSession.isPending || updateSession.isPending || !selectedWorkerId || !calc || (!isEditMode && !isFrozen && !allDocsDecided)}
+              disabled={isSubmitting || createSession.isPending || updateSession.isPending || !selectedWorkerId || !calc || (!isFrozen && !allDocsDecided)}
             >
               {isEditMode ? (t('accounting.update_session') || t('common.save')) : t('accounting.save_session')}
             </Button>
