@@ -740,7 +740,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 {/* ━━━ Step 3: Document Collections ━━━ */}
                 {selectedWorkerId && periodStart && periodEnd && (
                   <StepSection step={3} title={t('create_session.collected_documents')} color="blue">
-                    <DocumentCollectionsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} receivedDocs={receivedDocs} onReceivedDocsChange={setReceivedDocs} />
+                    <DocumentCollectionsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} receivedDocs={receivedDocs} onReceivedDocsChange={setReceivedDocs} onItemsChange={setDocItems} />
                   </StepSection>
                 )}
 
