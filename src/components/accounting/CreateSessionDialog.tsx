@@ -1024,7 +1024,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
               onClick={handleShowConfirmation}
               disabled={isSubmitting || createSession.isPending || updateSession.isPending || !selectedWorkerId || !calc || (!isFrozen && !allDocsDecided) || pendingStampedCount > 0}
             >
-              {isEditMode ? (t('accounting.update_session') || t('common.save')) : t('accounting.save_session')}
+              {isEditMode ? 'حفظ التعديلات' : t('accounting.save_session')}
             </Button>
           </div>
         </div>
