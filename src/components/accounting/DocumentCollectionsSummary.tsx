@@ -17,6 +17,7 @@ interface StampedInvoice {
   orderId: string;
   customerName: string;
   storeName: string | null;
+  ownerName: string | null;
   customerPhone: string | null;
   orderTotal: number;
   paymentMethod: string;
@@ -41,6 +42,7 @@ interface CollectedDoc {
   orderId: string;
   customerName: string;
   storeName: string | null;
+  ownerName: string | null;
   documentType: string;
   orderTotal: number;
   paymentStatus: string | null;
@@ -58,6 +60,7 @@ interface CollectedDoc {
     totalFields?: number;
   };
 }
+
 
 const fmt = (n: number) => n.toLocaleString();
 const extractDate = (v: string): string => v.replace('T', ' ').substring(0, 10);
