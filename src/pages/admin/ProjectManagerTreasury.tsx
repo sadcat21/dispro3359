@@ -534,7 +534,10 @@ const ProjectManagerTreasury = () => {
           ) : openCard ? (
             (() => {
               const field = cardField[openCard];
-              const rows = (handovers || []).filter((h: any) => Number(h[field] || 0) > 0);
+              const isDocCard = openCard === 'checks' || openCard === 'receipts' || openCard === 'transfers';
+              const rows = (handovers || []).filter(
+                (h: any) => Number(h[field] || 0) > 0 && (!isDocCard || isDocsUnlocked(h.id))
+              );
               const sum = rows.reduce((s: number, h: any) => s + Number(h[field] || 0), 0);
               if (rows.length === 0) {
                 return <div className="text-center text-muted-foreground py-8">لا توجد بيانات</div>;
