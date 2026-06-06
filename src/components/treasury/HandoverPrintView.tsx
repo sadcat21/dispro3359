@@ -138,7 +138,9 @@ const HandoverPrintView: React.FC<Props> = ({
         const treasuryEntry = item.treasury_entry_id ? treasuryMap[item.treasury_entry_id] : null;
         const order = item.order_id ? orderMap[item.order_id] : null;
         const customer = order?.customers;
-        const customerName = customer?.name_fr || customer?.name || item.customer_name;
+        const customerNameFr = customer?.name_fr || null;
+        const customerAppName = customer?.name || item.customer_name || null;
+        const customerName = customerNameFr || customerAppName;
         const itemsSubtotal = (order?.order_items || []).reduce((sum: number, orderItem: any) => sum + Number(orderItem.total_price || 0), 0);
         const stampBaseAmount = itemsSubtotal > 0 ? itemsSubtotal : Number(order?.total_amount || item.amount || 0);
         const activeTiers = (stampTiers || []) as StampPriceTier[];
@@ -152,6 +154,8 @@ const HandoverPrintView: React.FC<Props> = ({
         return {
           ...item,
           customer_name: customerName || item.customer_name,
+          customer_name_fr: customerNameFr,
+          customer_app_name: customerAppName,
           base_amount: item.payment_method === 'cash'
             ? Number((Number(item.amount || 0) - exactStampAmount).toFixed(2))
             : undefined,
