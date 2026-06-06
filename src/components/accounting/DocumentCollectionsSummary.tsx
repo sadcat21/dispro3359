@@ -36,7 +36,7 @@ interface DocumentCollectionsSummaryProps {
   periodEnd: string;
   receivedDocs?: Record<string, boolean>;
   onReceivedDocsChange?: (docs: Record<string, boolean>) => void;
-  onItemsChange?: (items: { docIds: string[]; stampIds: string[] }) => void;
+  onItemsChange?: (items: { docIds: string[]; stampIds: string[]; receivedStampIds: string[] }) => void;
 }
 
 interface CollectedDoc {
@@ -444,6 +444,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
     onItemsChange({
       docIds: (docs || []).map((d) => d.orderId),
       stampIds: (stampedInvoices || []).map((s) => s.orderId),
+      receivedStampIds: (stampedInvoices || []).filter((s) => s.received).map((s) => s.orderId),
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [docs, stampedInvoices]);
