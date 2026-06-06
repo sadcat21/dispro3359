@@ -623,8 +623,8 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                   {(() => { return null; })()}
                   <div className="text-end">
                     <span className="font-bold text-xs">{fmt(inv.orderTotal)} DA</span>
-                    <p className={`text-[10px] font-medium ${inv.received ? 'text-green-600' : 'text-destructive'}`}>
-                      {inv.received ? 'تم الاستلام ✓' : 'لم تُستلم'}
+                    <p className={`text-[10px] font-medium ${isGreen ? 'text-green-600' : isRed ? 'text-destructive' : 'text-muted-foreground'}`}>
+                      {isGreen ? 'تم الاستلام ✓' : isRed ? 'لم تُستلم' : '—'}
                     </p>
                   </div>
                 </div>
