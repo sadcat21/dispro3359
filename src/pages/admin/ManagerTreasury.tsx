@@ -606,7 +606,30 @@ const ManagerTreasury = () => {
   const pureCashInvoice1Amount = pickedCash.reduce((s, i) => s + i.amount, 0);
   const pickedCashStampAmount = pickedCash.reduce((s, i) => s + Number(i.stamp_amount || 0), 0);
   const pickedCashInvoice1WithStamp = pickedCash.reduce((s, i) => s + Number(i.total_with_stamp || i.amount || 0), 0);
-  const receiptCashAmount = pickedReceiptCash.reduce((s, i) => s + i.amount, 0);
+  // For Versement Cash items, only the actually-paid cash portion (debt_payments)
+  // contributes to invoice 1 cash. Using the order total here would inflate
+  // invoice1CashAmountWithStamp and shrink the cash allocated to invoice 2,
+  // leaving an unintended residual after a full handover.
+  const receiptCashOrderIdsKey = pickedReceiptCash.map(i => i.order_id).filter(Boolean).sort().join(',');
+  const { data: receiptCashPaidMap } = useQuery({
+    queryKey: ['handover-receipt-cash-paid', receiptCashOrderIdsKey],
+    enabled: receiptCashOrderIdsKey.length > 0,
+    queryFn: async () => {
+      const ids = receiptCashOrderIdsKey.split(',').filter(Boolean);
+      if (!ids.length) return {} as Record<string, number>;
+      const { data } = await supabase
+        .from('customer_debts')
+        .select('order_id, paid_amount')
+        .in('order_id', ids);
+      const map: Record<string, number> = {};
+      (data || []).forEach((d: any) => { map[d.order_id] = Number(d.paid_amount || 0); });
+      return map;
+    },
+  });
+  const receiptCashAmount = pickedReceiptCash.reduce((s, i) => {
+    const paid = receiptCashPaidMap?.[i.order_id as string];
+    return s + (paid !== undefined ? paid : Number(i.amount || 0));
+  }, 0);
   const invoice1CashAmount = pureCashInvoice1Amount + receiptCashAmount;
   const invoice1CashAmountWithStamp = pickedCashInvoice1WithStamp + receiptCashAmount;
   const receiptsAmount = pickedReceipts.reduce((s, i) => s + i.amount, 0);
