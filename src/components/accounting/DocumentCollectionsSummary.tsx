@@ -275,6 +275,10 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
 
   const { data: docs, isLoading } = useQuery({
     queryKey: ['session-document-collections', workerId, periodStart, periodEnd],
+    enabled: !!workerId && !!periodStart && !!periodEnd,
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       const startDate = extractDate(periodStart);
       const endDate = extractDate(periodEnd);
@@ -378,6 +382,10 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
   // Query stamped invoices (فاتورة مختومة) - for with_invoice + check/cash
   const { data: stampedInvoices } = useQuery({
     queryKey: ['session-stamped-invoices', workerId, periodStart, periodEnd],
+    enabled: !!workerId && !!periodStart && !!periodEnd,
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       const toTz2 = (v: string, isEnd: boolean) => {
         if (v.includes('+') || v.includes('Z')) return v;
