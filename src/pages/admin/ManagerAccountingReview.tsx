@@ -1099,7 +1099,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
     tr.worker-name-row td, tr.worker-name-row td:nth-child(2) { background: #dbeafe !important; color: #000 !important; text-align: center !important; font-weight: 800 !important; }
     body { width: 206mm; min-height: 287mm; }
     .sheet { width: 100%; padding: 0; }
-    .header { border-bottom: 3px double #0f172a; padding-bottom: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+    .header { border-bottom: 3px double #0f172a; padding-bottom: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
     .title { font-size: 18px; font-weight: 800; letter-spacing: 0.3px; }
     .subtitle { font-size: 10px; color: #000; margin-top: 6px; line-height: 1.8; }
     .meta { font-size: 10px; color: #000; text-align: right; line-height: 1.5; }
