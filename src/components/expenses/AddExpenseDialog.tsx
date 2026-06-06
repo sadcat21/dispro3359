@@ -207,7 +207,7 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md" dir={dir}>
         <DialogHeader>
-          <DialogTitle>{t('expenses.add_expense')}</DialogTitle>
+          <DialogTitle>{isEdit ? t('common.edit') : t('expenses.add_expense')}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
