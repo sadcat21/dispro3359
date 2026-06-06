@@ -343,7 +343,7 @@ const ProjectManagerTreasury = () => {
           label="Versement Doc"
           total={totals.receipts}
           color="purple"
-          count={(handovers || []).filter((h: any) => Number(h.receipts_amount) > 0).length}
+          count={(handovers || []).filter((h: any) => Number(h.receipts_amount) > 0 && isDocsUnlocked(h.id)).length}
           onClick={() => setOpenCard('receipts')}
         />
         <TreasuryCard
