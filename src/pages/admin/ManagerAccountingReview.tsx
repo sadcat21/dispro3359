@@ -1132,7 +1132,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         ${qrDataUrl ? `<div style="border:2px solid #0f172a;padding:4px;border-radius:4px;background:#fff"><img src="${qrDataUrl}" alt="QR" style="width:64px;height:64px;display:block" /></div>` : ''}
       </div>
       <div style="flex:1;text-align:center">
-        <div class="title" style="text-align:center">التقرير المحاسبي — ${escapeHtml((periodTo || periodFrom || today).slice(0, 10))}</div>
+        <div class="title" dir="ltr" style="text-align:center">Rapport Comptable — ${escapeHtml((periodTo || periodFrom || today).slice(0, 10))}</div>
         <div class="subtitle" dir="ltr" style="text-align:center"><b>Dépôt :</b> ${escapeHtml(translateBranchToFr(branchName) || '—')} &nbsp; <b>Comptable :</b> ${escapeHtml(accountantName || '—')} &nbsp;|&nbsp; <b>Période :</b> <span dir="ltr" style="unicode-bidi:isolate">${escapeHtml(periodFrom)} &rarr; ${escapeHtml(periodTo)}</span></div>
       </div>
       <div style="width:90px;display:flex;align-items:center;justify-content:flex-end"><img src="${companyLogo}" alt="Logo" style="max-width:80px;max-height:70px;object-fit:contain" /></div>
