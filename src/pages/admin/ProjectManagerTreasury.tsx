@@ -396,7 +396,12 @@ const ProjectManagerTreasury = () => {
             <Card><CardContent className="text-center text-muted-foreground py-12">لا توجد تسليمات موافَق عليها</CardContent></Card>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {handovers.map((h: any) => (
+              {handovers.map((h: any) => {
+                const unlocked = isDocsUnlocked(h.id);
+                const docs = Number(h.checks_amount || 0) + Number(h.receipts_amount || 0) + Number(h.transfers_amount || 0);
+                const displayTotal = unlocked ? Number(h.amount || 0) : Number(h.amount || 0) - docs;
+                const lockedLabel = 'بانتظار مراجعة الجلسات';
+                return (
                 <Card key={h.id} className="hover:shadow-md transition-shadow">
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between gap-2">
@@ -404,7 +409,14 @@ const ProjectManagerTreasury = () => {
                         <Building2 className="w-4 h-4 text-primary" />
                         {h.branch?.name || '—'}
                       </CardTitle>
-                      <Badge className="bg-green-100 text-green-800 border-green-300">موافَق</Badge>
+                      <div className="flex items-center gap-1">
+                        {!unlocked && docs > 0 && (
+                          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300 text-[10px]">
+                            مستندات محجوبة
+                          </Badge>
+                        )}
+                        <Badge className="bg-green-100 text-green-800 border-green-300">موافَق</Badge>
+                      </div>
                     </div>
                     <p className="text-xs text-muted-foreground">
                       {h.manager?.full_name || '—'} • {format(new Date(h.handover_date), 'PPP', { locale: ar })}
@@ -413,14 +425,14 @@ const ProjectManagerTreasury = () => {
                   <CardContent className="space-y-2 pt-0">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">الإجمالي</span>
-                      <Money value={Number(h.amount || 0)} className="font-bold text-primary" />
+                      <Money value={displayTotal} className="font-bold text-primary" />
                     </div>
                     <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground">
                       <span>كاش 1: {Number(h.cash_invoice1 || 0).toLocaleString()}</span>
                       <span>كاش 2: {Number(h.cash_invoice2 || 0).toLocaleString()}</span>
-                      <span>شيكات: {Number(h.checks_amount || 0).toLocaleString()}</span>
-                      <span>Vers. Doc: {Number(h.receipts_amount || 0).toLocaleString()}</span>
-                      <span>Virement: {Number(h.transfers_amount || 0).toLocaleString()}</span>
+                      <span>شيكات: {unlocked ? Number(h.checks_amount || 0).toLocaleString() : lockedLabel}</span>
+                      <span>Vers. Doc: {unlocked ? Number(h.receipts_amount || 0).toLocaleString() : lockedLabel}</span>
+                      <span>Virement: {unlocked ? Number(h.transfers_amount || 0).toLocaleString() : lockedLabel}</span>
                       <span>ديون: {Number(h.debt_cash_amount || 0).toLocaleString()}</span>
                     </div>
                     <Button size="sm" variant="outline" className="w-full mt-2" onClick={() => setSelected(h)}>
@@ -428,7 +440,8 @@ const ProjectManagerTreasury = () => {
                     </Button>
                   </CardContent>
                 </Card>
-              ))}
+                );
+              })}
             </div>
           )}
         </TabsContent>
