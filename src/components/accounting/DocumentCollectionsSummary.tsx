@@ -581,7 +581,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
             <Clock className="w-3.5 h-3.5" />
             <span>مستندات معلقة تم تحصيلها ({pendingDocs.length})</span>
           </div>
-          <div className="border-2 border-orange-200 dark:border-orange-900/40 rounded-xl p-2.5 space-y-2 bg-orange-50/30 dark:bg-orange-900/10">
+          <div className="border-2 border-orange-500 dark:border-orange-600 rounded-xl p-2.5 space-y-2 bg-orange-100/60 dark:bg-orange-900/20 shadow-md shadow-orange-500/20">
             {renderDocList(pendingDocs)}
           </div>
         </div>
