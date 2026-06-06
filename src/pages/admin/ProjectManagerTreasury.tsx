@@ -136,6 +136,60 @@ const ProjectManagerTreasury = () => {
     },
   });
 
+  // Gate: documents (checks/receipts/transfers) only counted once all
+  // related accounting sessions of the handover have been reviewed.
+  const { data: docsUnlockedSet } = useQuery({
+    queryKey: ['pmt-docs-unlocked', (handovers || []).map((h: any) => h.id).join(',')],
+    enabled: !!handovers && handovers.length > 0,
+    queryFn: async () => {
+      const ids = (handovers as any[]).map((h) => h.id);
+      const { data: items, error: e1 } = await supabase
+        .from('handover_items')
+        .select('handover_id, order:orders(id, assigned_worker_id, updated_at)')
+        .in('handover_id', ids);
+      if (e1) throw e1;
+      const rows = (items || []) as any[];
+      const workerIds = Array.from(new Set(rows.map((r) => r.order?.assigned_worker_id).filter(Boolean)));
+      if (workerIds.length === 0) {
+        // No linked orders → cannot verify review; treat all as locked for docs.
+        return new Set<string>();
+      }
+      const { data: sessions, error: e2 } = await supabase
+        .from('accounting_sessions')
+        .select('worker_id, period_start, period_end, status, review_session_id')
+        .in('worker_id', workerIds);
+      if (e2) throw e2;
+      const reviewed = (sessions || []).filter(
+        (s: any) => s.review_session_id && (s.status === 'reviewed' || s.status === 'completed')
+      );
+      const unlocked = new Set<string>();
+      const byHandover = new Map<string, any[]>();
+      for (const r of rows) {
+        if (!byHandover.has(r.handover_id)) byHandover.set(r.handover_id, []);
+        byHandover.get(r.handover_id)!.push(r);
+      }
+      for (const h of handovers as any[]) {
+        const hItems = byHandover.get(h.id) || [];
+        if (hItems.length === 0) continue; // locked
+        const allReviewed = hItems.every((r) => {
+          const o = r.order;
+          if (!o?.assigned_worker_id || !o?.updated_at) return false;
+          const t = new Date(o.updated_at).getTime();
+          return reviewed.some(
+            (s: any) =>
+              s.worker_id === o.assigned_worker_id &&
+              new Date(s.period_start).getTime() <= t &&
+              new Date(s.period_end).getTime() >= t
+          );
+        });
+        if (allReviewed) unlocked.add(h.id);
+      }
+      return unlocked;
+    },
+  });
+
+  const isDocsUnlocked = (id: string) => !!docsUnlockedSet?.has(id);
+
   const { data: expensesList } = useQuery({
     queryKey: ['pmt-expenses', dateFrom, dateTo, branchId],
     queryFn: async () => {
