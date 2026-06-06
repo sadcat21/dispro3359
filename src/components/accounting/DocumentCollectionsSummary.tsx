@@ -625,6 +625,15 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                 }`}
               >
                 <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isGreen ? 'bg-emerald-500 shadow-md shadow-emerald-500/40' : isRed ? 'bg-red-500 shadow-md shadow-red-500/40' : 'bg-sky-500 shadow-md shadow-sky-500/30'}`}>
+                    {isGreen ? (
+                      <CheckCircle className="w-5 h-5 text-white" strokeWidth={3} />
+                    ) : isRed ? (
+                      <XCircle className="w-5 h-5 text-white" strokeWidth={3} />
+                    ) : (
+                      <FileText className="w-5 h-5 text-white" strokeWidth={2.5} />
+                    )}
+                  </div>
                   <div className="min-w-0">
                     {/* Top: owner name from business profile (fallback to app name) */}
                     <p className="text-sm font-semibold truncate leading-tight" dir="auto">
