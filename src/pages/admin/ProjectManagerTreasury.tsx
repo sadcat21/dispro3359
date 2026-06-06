@@ -335,7 +335,7 @@ const ProjectManagerTreasury = () => {
           label="الشيكات"
           total={totals.checks}
           color="blue"
-          count={(handovers || []).filter((h: any) => Number(h.checks_amount) > 0).length}
+          count={(handovers || []).filter((h: any) => Number(h.checks_amount) > 0 && isDocsUnlocked(h.id)).length}
           onClick={() => setOpenCard('checks')}
         />
         <TreasuryCard
