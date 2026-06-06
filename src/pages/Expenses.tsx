@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useExpenses, useDeleteExpense } from '@/hooks/useExpenses';
+import { useExpenses, useDeleteExpense, useWorkerAccountedRanges } from '@/hooks/useExpenses';
 import { ExpenseWithDetails } from '@/types/expense';
 import AddExpenseDialog from '@/components/expenses/AddExpenseDialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { Plus, Trash2, Loader2, Receipt, Image, Filter } from 'lucide-react';
+import { Plus, Trash2, Loader2, Receipt, Image, Filter, Pencil } from 'lucide-react';
 import { getCategoryName } from '@/utils/categoryName';
 import { formatDate, formatNumber } from '@/utils/formatters';
 import {
@@ -28,9 +28,11 @@ const Expenses: React.FC = () => {
 
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showAdd, setShowAdd] = useState(false);
+  const [editExpense, setEditExpense] = useState<ExpenseWithDetails | null>(null);
 
   const { data: expenses, isLoading } = useExpenses(isManager ? null : workerId);
   const deleteExpense = useDeleteExpense();
+  const { data: accountedRanges } = useWorkerAccountedRanges(isManager ? null : workerId);
 
   // UI override checks
   const isAddExpenseHidden = useIsElementHidden('button', 'add_expense');
@@ -39,6 +41,12 @@ const Expenses: React.FC = () => {
   const filtered = expenses?.filter(e =>
     statusFilter === 'all' ? true : e.status === statusFilter
   );
+
+  const isAccounted = (createdAt: string) => {
+    if (!accountedRanges?.length) return false;
+    const t = new Date(createdAt).getTime();
+    return accountedRanges.some(r => t > r.start && t <= r.end);
+  };
 
   return (
     <div className="p-4 space-y-4" dir={dir}>
@@ -80,25 +88,36 @@ const Expenses: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-3">
-          {filtered?.map(expense => (
-            <ExpenseCard
-              key={expense.id}
-              expense={expense}
-              isManager={isManager}
-              isOwner={expense.worker_id === workerId}
-              onDelete={() => deleteExpense.mutate(expense.id)}
-              language={language}
-              t={t}
-              hideDelete={isDeleteExpenseHidden}
-            />
-          ))}
+          {filtered?.map(expense => {
+            const accounted = isAccounted(expense.created_at);
+            return (
+              <ExpenseCard
+                key={expense.id}
+                expense={expense}
+                isManager={isManager}
+                isOwner={expense.worker_id === workerId}
+                accounted={accounted}
+                onDelete={() => deleteExpense.mutate(expense.id)}
+                onEdit={() => setEditExpense(expense)}
+                language={language}
+                t={t}
+                hideDelete={isDeleteExpenseHidden}
+              />
+            );
+          })}
         </div>
       )}
 
       <AddExpenseDialog open={showAdd} onOpenChange={setShowAdd} />
+      <AddExpenseDialog
+        open={!!editExpense}
+        onOpenChange={(o) => { if (!o) setEditExpense(null); }}
+        expense={editExpense || undefined}
+      />
     </div>
   );
 };
+
 
 const STATUS_MAP_KEYS: Record<string, { labelKey: string; variant: 'default' | 'secondary' | 'destructive' }> = {
   pending: { labelKey: 'expenses.pending', variant: 'secondary' },
