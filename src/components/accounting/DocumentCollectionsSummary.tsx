@@ -268,12 +268,19 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
 
       const { data: pendingCollections } = await supabase
         .from('document_collections')
-        .select(`id, action, status, collection_date, created_at, order_id, order:orders!document_collections_order_id_fkey(id, total_amount, invoice_payment_method, document_status, document_verification, payment_status, payment_method_resolved, customer:customers!orders_customer_id_fkey(name, store_name))`)
+        .select(`id, action, status, collection_date, created_at, order_id, order:orders!document_collections_order_id_fkey(id, total_amount, invoice_payment_method, document_status, document_verification, payment_status, payment_method_resolved, customer:customers!orders_customer_id_fkey(name, store_name, owner_first_name_ar, owner_last_name_ar, owner_first_name_fr, owner_last_name_fr))`)
         .eq('worker_id', workerId)
         .eq('action', 'collected')
         .neq('status', 'rejected')
         .gte('created_at', startTz)
         .lte('created_at', endTz);
+
+      const buildOwner = (c: any): string | null => {
+        if (!c) return null;
+        const ar = [c.owner_first_name_ar, c.owner_last_name_ar].filter(Boolean).join(' ').trim();
+        const fr = [c.owner_first_name_fr, c.owner_last_name_fr].filter(Boolean).join(' ').trim();
+        return [ar, fr].filter(Boolean).join(' · ') || null;
+      };
 
       for (const c of (pendingCollections || [])) {
         const order = c.order as any;
@@ -284,6 +291,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           orderId: order.id,
           customerName: order.customer?.name || 'غير معروف',
           storeName: order.customer?.store_name || null,
+          ownerName: buildOwner(order.customer),
           documentType: docType,
           orderTotal: Number(order.total_amount || 0),
           paymentStatus: order.payment_status || null,
@@ -293,6 +301,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           verification: parseVerification(order.document_verification, docType),
         });
       }
+
 
 
       const pendingOrderIds = new Set(result.map((r) => r.orderId));
