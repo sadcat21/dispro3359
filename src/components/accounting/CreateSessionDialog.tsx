@@ -306,6 +306,14 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showUnloadDialog, setShowUnloadDialog] = useState(false);
   const [receivedDocs, setReceivedDocs] = useState<Record<string, boolean>>({});
+  const [docItems, setDocItems] = useState<{ docIds: string[]; stampIds: string[] }>({ docIds: [], stampIds: [] });
+  const allDocsDecided = (() => {
+    const totalCount = docItems.docIds.length + docItems.stampIds.length;
+    if (totalCount === 0) return false;
+    for (const id of docItems.docIds) if (typeof receivedDocs[`doc_${id}`] !== 'boolean') return false;
+    for (const id of docItems.stampIds) if (typeof receivedDocs[`stamp_${id}`] !== 'boolean') return false;
+    return true;
+  })();
   const [isUnfreezing, setIsUnfreezing] = useState(false);
   const queryClient = useQueryClient();
 
