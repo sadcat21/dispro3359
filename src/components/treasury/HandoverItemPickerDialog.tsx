@@ -33,7 +33,7 @@ interface Props {
 }
 
 const labels: Record<string, string> = {
-  check: 'Chèques',
+  check: 'الشيكات',
   receipt: 'Versement Doc',
   receipt_cash: 'Versement Cash',
   transfer: 'Virement',
