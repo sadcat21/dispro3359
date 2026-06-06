@@ -796,14 +796,17 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                     <Input type="number" value={actualCash} onChange={e => setActualCash(e.target.value)} className="h-11 text-lg font-bold text-center rounded-lg" placeholder="0" />
                   </div>
 
-                  {actualCash !== '' && (
-                    <div className={`rounded-xl p-3 text-center mt-2 ${cashDifference >= 0 ? 'bg-green-100 dark:bg-green-900/20' : 'bg-destructive/10'}`}>
+                  {actualCash !== '' && (() => {
+                    const displayDiff = Math.abs(cashDifference) < 0.005 ? 0 : cashDifference;
+                    return (
+                    <div className={`rounded-xl p-3 text-center mt-2 ${displayDiff >= 0 ? 'bg-green-100 dark:bg-green-900/20' : 'bg-destructive/10'}`}>
                       <p className="text-xs text-muted-foreground mb-0.5">{t('accounting.difference')}</p>
-                      <p className={`text-xl font-bold ${cashDifference >= 0 ? 'text-green-600' : 'text-destructive'}`}>
-                        {cashDifference >= 0 ? '+' : ''}{fmt(cashDifference)} DA
+                      <p className={`text-xl font-bold ${displayDiff >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+                        {displayDiff > 0 ? '+' : ''}{fmt(displayDiff)} DA
                       </p>
                     </div>
-                  )}
+                    );
+                  })()}
 
                   {actualCash !== '' && cashDifference < 0 && (
                     <div className="space-y-2 mt-2">
