@@ -17,6 +17,7 @@ interface StampedInvoice {
   orderId: string;
   customerName: string;
   storeName: string | null;
+  ownerName: string | null;
   customerPhone: string | null;
   orderTotal: number;
   paymentMethod: string;
@@ -41,6 +42,7 @@ interface CollectedDoc {
   orderId: string;
   customerName: string;
   storeName: string | null;
+  ownerName: string | null;
   documentType: string;
   orderTotal: number;
   paymentStatus: string | null;
@@ -58,6 +60,7 @@ interface CollectedDoc {
     totalFields?: number;
   };
 }
+
 
 const fmt = (n: number) => n.toLocaleString();
 const extractDate = (v: string): string => v.replace('T', ' ').substring(0, 10);
@@ -265,12 +268,19 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
 
       const { data: pendingCollections } = await supabase
         .from('document_collections')
-        .select(`id, action, status, collection_date, created_at, order_id, order:orders!document_collections_order_id_fkey(id, total_amount, invoice_payment_method, document_status, document_verification, payment_status, payment_method_resolved, customer:customers!orders_customer_id_fkey(name, store_name))`)
+        .select(`id, action, status, collection_date, created_at, order_id, order:orders!document_collections_order_id_fkey(id, total_amount, invoice_payment_method, document_status, document_verification, payment_status, payment_method_resolved, customer:customers!orders_customer_id_fkey(name, store_name, owner_first_name_ar, owner_last_name_ar, owner_first_name_fr, owner_last_name_fr))`)
         .eq('worker_id', workerId)
         .eq('action', 'collected')
         .neq('status', 'rejected')
         .gte('created_at', startTz)
         .lte('created_at', endTz);
+
+      const buildOwner = (c: any): string | null => {
+        if (!c) return null;
+        const ar = [c.owner_first_name_ar, c.owner_last_name_ar].filter(Boolean).join(' ').trim();
+        const fr = [c.owner_first_name_fr, c.owner_last_name_fr].filter(Boolean).join(' ').trim();
+        return [ar, fr].filter(Boolean).join(' · ') || null;
+      };
 
       for (const c of (pendingCollections || [])) {
         const order = c.order as any;
@@ -281,6 +291,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           orderId: order.id,
           customerName: order.customer?.name || 'غير معروف',
           storeName: order.customer?.store_name || null,
+          ownerName: buildOwner(order.customer),
           documentType: docType,
           orderTotal: Number(order.total_amount || 0),
           paymentStatus: order.payment_status || null,
@@ -292,11 +303,12 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
       }
 
 
+
       const pendingOrderIds = new Set(result.map((r) => r.orderId));
 
       const { data: deliveryOrders } = await supabase
         .from('orders')
-        .select(`id, total_amount, invoice_payment_method, document_status, document_verification, payment_status, payment_method_resolved, updated_at, customer:customers!orders_customer_id_fkey(name, store_name)`)
+        .select(`id, total_amount, invoice_payment_method, document_status, document_verification, payment_status, payment_method_resolved, updated_at, customer:customers!orders_customer_id_fkey(name, store_name, owner_first_name_ar, owner_last_name_ar, owner_first_name_fr, owner_last_name_fr)`)
         .eq('assigned_worker_id', workerId)
         .eq('status', 'delivered')
         .in('invoice_payment_method', ['check', 'receipt', 'transfer', 'versement', 'virement'])
@@ -313,6 +325,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           orderId: o.id,
           customerName: (o.customer as any)?.name || 'غير معروف',
           storeName: (o.customer as any)?.store_name || null,
+          ownerName: buildOwner(o.customer as any),
           documentType: docType,
           orderTotal: Number(o.total_amount || 0),
           paymentStatus: (o as any).payment_status || null,
@@ -322,6 +335,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           verification: parseVerification(o.document_verification, docType),
         });
       }
+
 
 
 
@@ -343,7 +357,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
 
       const { data } = await supabase
         .from('orders')
-        .select(`id, total_amount, invoice_payment_method, invoice_received_at, invoice_number, invoice_sent_at, updated_at, created_at, payment_type, payment_status, payment_method_resolved, document_status, document_verification, customer:customers!orders_customer_id_fkey(name, store_name, phone)`)
+        .select(`id, total_amount, invoice_payment_method, invoice_received_at, invoice_number, invoice_sent_at, updated_at, created_at, payment_type, payment_status, payment_method_resolved, document_status, document_verification, customer:customers!orders_customer_id_fkey(name, store_name, phone, owner_first_name_ar, owner_last_name_ar, owner_first_name_fr, owner_last_name_fr)`)
         .eq('assigned_worker_id', workerId)
         .eq('status', 'delivered')
         .eq('payment_type', 'with_invoice')
@@ -357,11 +371,17 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           ['receipt', 'versement', 'transfer', 'virement'].includes(String(o.invoice_payment_method || '').toLowerCase())
             ? resolveReceiptBucket(v, o)
             : null;
+        const c = o.customer || {};
+        const ar = [c.owner_first_name_ar, c.owner_last_name_ar].filter(Boolean).join(' ').trim();
+        const fr = [c.owner_first_name_fr, c.owner_last_name_fr].filter(Boolean).join(' ').trim();
+        const ownerName = [ar, fr].filter(Boolean).join(' · ') || null;
         return {
           orderId: o.id,
           customerName: o.customer?.name || 'غير معروف',
           storeName: o.customer?.store_name || null,
+          ownerName,
           customerPhone: o.customer?.phone || null,
+
           orderTotal: Number(o.total_amount || 0),
           paymentMethod: o.invoice_payment_method || 'cash',
           bucket,
@@ -438,6 +458,12 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                   <p className="text-[11px] text-muted-foreground truncate leading-tight">
                     {doc.storeName || <span className="italic opacity-70">بدون اسم محل</span>}
                   </p>
+                  {doc.ownerName && (
+                    <p className="text-[10px] text-muted-foreground/90 truncate leading-tight mt-0.5" dir="auto">
+                      {doc.ownerName}
+                    </p>
+                  )}
+
                   <div className="flex items-center gap-1 mt-1 flex-wrap">
                     <Badge className={`${docTypeColor(doc.documentType)} text-[9px] px-1.5 py-0 h-4`}>
                       {stampedMethodLabel(doc.documentType, doc.bucket)}
@@ -528,6 +554,12 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                   <div className="min-w-0">
                     <p className="text-sm font-semibold truncate">{inv.customerName}</p>
+                    {inv.ownerName && (
+                      <p className="text-[10px] text-muted-foreground/90 truncate leading-tight" dir="auto">
+                        {inv.ownerName}
+                      </p>
+                    )}
+
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="text-[10px] text-muted-foreground">#{inv.orderId.slice(0, 8)}</span>
                       <Badge variant="outline" className="text-[9px] px-1 py-0">
