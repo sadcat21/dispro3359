@@ -225,17 +225,27 @@ const ProjectManagerTreasury = () => {
     };
     if (!handovers) return init;
     for (const h of handovers as any[]) {
+      const unlocked = isDocsUnlocked(h.id);
       init.cash_invoice1 += Number(h.cash_invoice1 || 0);
       init.cash_invoice2 += Number(h.cash_invoice2 || 0);
-      init.checks += Number(h.checks_amount || 0);
-      init.receipts += Number(h.receipts_amount || 0);
-      init.transfers += Number(h.transfers_amount || 0);
       init.debt_cash += Number(h.debt_cash_amount || 0);
       init.stamps += Number(h.stamp_amount || 0);
-      init.grand += Number(h.amount || 0);
+      if (unlocked) {
+        init.checks += Number(h.checks_amount || 0);
+        init.receipts += Number(h.receipts_amount || 0);
+        init.transfers += Number(h.transfers_amount || 0);
+        init.grand += Number(h.amount || 0);
+      } else {
+        // Exclude the document portion from the grand total when locked.
+        init.grand +=
+          Number(h.amount || 0) -
+          Number(h.checks_amount || 0) -
+          Number(h.receipts_amount || 0) -
+          Number(h.transfers_amount || 0);
+      }
     }
     return init;
-  }, [handovers]);
+  }, [handovers, docsUnlockedSet]);
 
   // Per-branch breakdown
   const byBranch = useMemo(() => {
