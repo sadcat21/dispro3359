@@ -36,6 +36,7 @@ interface Props {
   receiptsAmount: number;
   transfersAmount: number;
   totalAmount: number;
+  expensesAmount?: number;
   branchName?: string;
   branchWilaya?: string;
   deliveryMethod?: string;
