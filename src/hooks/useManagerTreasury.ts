@@ -370,7 +370,11 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
       // approved/receipted by the branch manager.
       const noReviewedSessions = perManager && sessionWindows.length === 0;
       const effectiveDebtCashCollected = noReviewedSessions ? 0 : debtCashCollected;
-      const effectiveTotalExpenses = totalExpenses;
+      // Expenses card must reflect the value recorded in the reviewed
+      // accounting sessions (authoritative ledger). Live `expenses` table may
+      // have been edited or deleted after sessions were confirmed.
+      const sessionExpensesTotal = sessionItemTotals['expenses']?.amount || 0;
+      const effectiveTotalExpenses = sessionExpensesTotal > 0 ? sessionExpensesTotal : totalExpenses;
 
 
 
