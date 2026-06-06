@@ -351,7 +351,7 @@ const ProjectManagerTreasury = () => {
           label="Virement (فاتورة 2)"
           total={totals.transfers}
           color="orange"
-          count={(handovers || []).filter((h: any) => Number(h.transfers_amount) > 0).length}
+          count={(handovers || []).filter((h: any) => Number(h.transfers_amount) > 0 && isDocsUnlocked(h.id)).length}
           onClick={() => setOpenCard('transfers')}
         />
         <TreasuryCard
