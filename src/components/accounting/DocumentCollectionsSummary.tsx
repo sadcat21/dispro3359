@@ -458,6 +458,12 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                   <p className="text-[11px] text-muted-foreground truncate leading-tight">
                     {doc.storeName || <span className="italic opacity-70">بدون اسم محل</span>}
                   </p>
+                  {doc.ownerName && (
+                    <p className="text-[10px] text-muted-foreground/90 truncate leading-tight mt-0.5" dir="auto">
+                      {doc.ownerName}
+                    </p>
+                  )}
+
                   <div className="flex items-center gap-1 mt-1 flex-wrap">
                     <Badge className={`${docTypeColor(doc.documentType)} text-[9px] px-1.5 py-0 h-4`}>
                       {stampedMethodLabel(doc.documentType, doc.bucket)}
