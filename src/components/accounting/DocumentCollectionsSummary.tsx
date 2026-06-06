@@ -483,19 +483,6 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [docs, stampedInvoices]);
 
-  useEffect(() => {
-    if (!onItemsChange) return;
-    onItemsChange({
-      docIds: (docs || []).map((d) => d.orderId),
-      stampIds: (stampedInvoices || []).map((s) => s.orderId),
-      receivedStampIds: (stampedInvoices || []).filter((s) => s.received).map((s) => s.orderId),
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [docs, stampedInvoices]);
-
-  if (isLoading) return <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div>;
-  if ((!docs || docs.length === 0) && (!stampedInvoices || stampedInvoices.length === 0)) return <p data-empty="true" className="text-xs text-muted-foreground text-center py-3">لا توجد مستندات محصلة في هذه الفترة</p>;
-
   const allDocs = docs || [];
   // Exclude ONLY explicit cash items: documentType === 'cash', or Versement/Virement
   // explicitly marked as cash via verification flags. Versement/Virement Doc variants
@@ -512,6 +499,23 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
   const deliveryDocs = allDocs.filter(d => d.source === 'delivery' && !isCashOnly(d));
   const pendingDocs = allDocs.filter(d => d.source === 'pending_collection' && !isCashOnly(d));
   const totalAmount = allDocs.reduce((s, d) => s + d.orderTotal, 0);
+
+  useEffect(() => {
+    if (!onItemsChange) return;
+
+    const unique = (ids: string[]) => Array.from(new Set(ids));
+    const visibleDocIds = unique([...deliveryDocs, ...pendingDocs].map((d) => d.orderId));
+
+    onItemsChange({
+      docIds: visibleDocIds,
+      stampIds: unique((stampedInvoices || []).map((s) => s.orderId)),
+      receivedStampIds: unique((stampedInvoices || []).filter((s) => s.received).map((s) => s.orderId)),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deliveryDocs, pendingDocs, stampedInvoices]);
+
+  if (isLoading) return <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div>;
+  if ((!docs || docs.length === 0) && (!stampedInvoices || stampedInvoices.length === 0)) return <p data-empty="true" className="text-xs text-muted-foreground text-center py-3">لا توجد مستندات محصلة في هذه الفترة</p>;
 
   const renderDocCard = (doc: CollectedDoc) => {
     const v = doc.verification;
