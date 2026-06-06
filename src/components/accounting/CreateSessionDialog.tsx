@@ -487,6 +487,15 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
           p_worker_id: selectedWorkerId,
           p_session_id: sessionId,
         });
+        // Reflect updated invoice/document statuses across tracking dialogs
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ['invoice-tracking'] }),
+          queryClient.invalidateQueries({ queryKey: ['invoice1-status'] }),
+          queryClient.invalidateQueries({ queryKey: ['session-stamped-invoices'] }),
+          queryClient.invalidateQueries({ queryKey: ['session-document-collections'] }),
+          queryClient.invalidateQueries({ queryKey: ['manager-decision-drafts', selectedWorkerId] }),
+          queryClient.invalidateQueries({ queryKey: ['pending-documents'] }),
+        ]);
       } catch (e) {
         console.warn('Failed to apply manager decision drafts', e);
       }

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Badge } from '@/components/ui/badge';
@@ -106,6 +107,8 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [swipeMode, setSwipeMode] = useState(false);
   const [emptyKeys, setEmptyKeys] = useState<Set<string>>(new Set());
+  const [applyingDrafts, setApplyingDrafts] = useState(false);
+  const queryClient = useQueryClient();
   const handleEmptyChange = React.useCallback((key: string, empty: boolean) => {
     setEmptyKeys(prev => {
       if (empty && prev.has(key)) return prev;
@@ -140,6 +143,30 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
       toast.success(t('session_details.deficit_added'));
     } catch {
       toast.error(t('session_details.deficit_add_error'));
+    }
+  };
+
+  const handleApplyDrafts = async () => {
+    setApplyingDrafts(true);
+    try {
+      const { error } = await (supabase as any).rpc('apply_manager_decision_drafts', {
+        p_worker_id: session.worker_id,
+        p_session_id: session.id,
+      });
+      if (error) throw error;
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['invoice-tracking'] }),
+        queryClient.invalidateQueries({ queryKey: ['invoice1-status'] }),
+        queryClient.invalidateQueries({ queryKey: ['session-stamped-invoices'] }),
+        queryClient.invalidateQueries({ queryKey: ['session-document-collections'] }),
+        queryClient.invalidateQueries({ queryKey: ['manager-decision-drafts', session.worker_id] }),
+        queryClient.invalidateQueries({ queryKey: ['pending-documents'] }),
+      ]);
+      toast.success('تم حفظ التعديلات وتحديث الفواتير والوثائق');
+    } catch (e: any) {
+      toast.error('تعذّر حفظ التعديلات: ' + String(e?.message || ''));
+    } finally {
+      setApplyingDrafts(false);
     }
   };
 
@@ -426,6 +453,17 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
                 <Label className="text-[10px] text-muted-foreground">تمرير</Label>
                 <Switch checked={swipeMode} onCheckedChange={setSwipeMode} />
               </div>
+              {Object.keys(receivedDocs).length > 0 && (
+                <Button
+                  size="sm"
+                  className="gap-1.5 rounded-lg h-7 px-2 text-xs bg-green-600 hover:bg-green-700"
+                  onClick={handleApplyDrafts}
+                  disabled={applyingDrafts}
+                >
+                  {applyingDrafts ? <Loader2 className="w-3 h-3 animate-spin" /> : <FileCheck2 className="w-3 h-3" />}
+                  حفظ التعديلات
+                </Button>
+              )}
               <Button
                 size="sm"
                 variant="outline"
