@@ -491,8 +491,9 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                 {/* 2-col 3-row grid */}
                 <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 mt-1 items-center">
                   <div className="text-[11px] text-muted-foreground truncate" dir="auto">
-                    {doc.ownerName ? doc.ownerName : '—'}
+                    —
                   </div>
+
 
                   <div className="text-end">
                     <span className="font-bold text-sm text-primary">{fmt(doc.orderTotal)} DA</span>
