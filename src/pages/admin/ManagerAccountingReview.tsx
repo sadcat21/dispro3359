@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import ExpensesDetailsSummary from '@/components/accounting/ExpensesDetailsSummary';
+import companyLogo from '@/assets/logo.png';
 import SessionDetailsDialog from '@/components/accounting/SessionDetailsDialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, Receipt } from 'lucide-react';
@@ -1095,10 +1096,10 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
     * { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; background: #fff; color: #0f172a; font-family: 'Helvetica Neue', Arial, sans-serif; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-    tr.worker-name-row td, tr.worker-name-row td:nth-child(2) { background: #000 !important; color: #fff !important; text-align: center !important; font-weight: 800 !important; }
+    tr.worker-name-row td, tr.worker-name-row td:nth-child(2) { background: #dbeafe !important; color: #000 !important; text-align: center !important; font-weight: 800 !important; }
     body { width: 206mm; min-height: 287mm; }
     .sheet { width: 100%; padding: 0; }
-    .header { border-bottom: 3px double #0f172a; padding-bottom: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+    .header { border-bottom: 3px double #0f172a; padding-bottom: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
     .title { font-size: 18px; font-weight: 800; letter-spacing: 0.3px; }
     .subtitle { font-size: 10px; color: #000; margin-top: 6px; line-height: 1.8; }
     .meta { font-size: 10px; color: #000; text-align: right; line-height: 1.5; }
@@ -1127,11 +1128,14 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
 <body>
   <main class="sheet">
     <header class="header">
-      <div style="flex:1">
-        <div class="title">Rapport Quotidien — ${escapeHtml((periodTo || periodFrom || today).slice(0, 10))}</div>
-        <div class="subtitle" dir="ltr" style="text-align:left"><b>Dépôt :</b> ${escapeHtml(translateBranchToFr(branchName) || '—')} &nbsp; <b>Comptable :</b> ${escapeHtml(accountantName || '—')} &nbsp;|&nbsp; <b>Période :</b> <span dir="ltr" style="unicode-bidi:isolate">${escapeHtml(periodFrom)} &rarr; ${escapeHtml(periodTo)}</span></div>
+      <div style="width:90px;display:flex;align-items:center;justify-content:flex-start"><img src="${companyLogo}" alt="Logo" style="max-width:80px;max-height:70px;object-fit:contain" /></div>
+      <div style="flex:1;text-align:center">
+        <div class="title" style="text-align:center">Rapport Quotidien — ${escapeHtml((periodTo || periodFrom || today).slice(0, 10))}</div>
+        <div class="subtitle" dir="ltr" style="text-align:center"><b>Dépôt :</b> ${escapeHtml(translateBranchToFr(branchName) || '—')} &nbsp; <b>Comptable :</b> ${escapeHtml(accountantName || '—')} &nbsp;|&nbsp; <b>Période :</b> <span dir="ltr" style="unicode-bidi:isolate">${escapeHtml(periodFrom)} &rarr; ${escapeHtml(periodTo)}</span></div>
       </div>
-      ${qrDataUrl ? `<div style="border:2px solid #0f172a;padding:4px;border-radius:4px;background:#fff"><img src="${qrDataUrl}" alt="QR" style="width:64px;height:64px;display:block" /></div>` : ''}
+      <div style="width:90px;display:flex;align-items:center;justify-content:flex-end">
+        ${qrDataUrl ? `<div style="border:2px solid #0f172a;padding:4px;border-radius:4px;background:#fff"><img src="${qrDataUrl}" alt="QR" style="width:64px;height:64px;display:block" /></div>` : ''}
+      </div>
     </header>
 
     <section class="kpis">
@@ -1295,7 +1299,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
           aggOffered[p.id] = (aggOffered[p.id] || 0) + Number((off as any)[p.id] || 0);
         });
       });
-      const gHeader = `<tr><td colspan="${totalCols}" style="background:#15803d;color:#fff;text-align:left;padding:4px 8px;font-weight:800;text-transform:uppercase;font-size:10px">Total Général (Tous les Vendeurs)</td></tr>`;
+      const gHeader = `<tr><td colspan="${totalCols}" style="background:#bbf7d0 !important;color:#000 !important;text-align:center;padding:4px 8px;font-weight:800;text-transform:uppercase;font-size:10px;-webkit-print-color-adjust:exact;print-color-adjust:exact">Total Général (Tous les Vendeurs)</td></tr>`;
       const gBody = renderBlock(
         (k, pid) => aggMQty[k]?.[pid] || { paid: 0, debt: 0, paidAmt: 0, debtAmt: 0 },
         (pid) => Number(aggOffered[pid] || 0),
