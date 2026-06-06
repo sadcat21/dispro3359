@@ -1412,6 +1412,7 @@ const ManagerTreasury = () => {
                   intermediaryName={(h as any).intermediary_name}
                   bankTransferReference={(h as any).bank_transfer_reference}
                   receivedBy={(h as any).receiver_name || (h as any).received_by}
+                  senderName={(h as any).manager?.full_name}
                   unifiedCash={(h as any).unified_cash ?? true}
                   expensesAmount={summary?.totalExpenses || 0}
                 />
