@@ -263,6 +263,11 @@ export const useCancelSession = () => {
         .maybeSingle();
       if (sessionFetchError) throw sessionFetchError;
 
+      // Revert any document/invoice decisions applied with this session
+      try {
+        await (supabase as any).rpc('revert_accounting_session_decisions', { p_session_id: sessionId });
+      } catch (e) { console.warn('revert_accounting_session_decisions failed', e); }
+
       // Cancel = full revert: delete treasury entries, items, then session
       await supabase.from('manager_treasury').delete().eq('session_id', sessionId);
       await supabase.from('accounting_session_items').delete().eq('session_id', sessionId);
@@ -289,6 +294,9 @@ export const useCancelSession = () => {
       queryClient.invalidateQueries({ queryKey: ['all-workers-liability'] });
       queryClient.invalidateQueries({ queryKey: ['my-worker-stock'] });
       queryClient.invalidateQueries({ queryKey: ['worker-truck-stock'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-documents'] });
+      queryClient.invalidateQueries({ queryKey: ['invoice-tracking'] });
+      queryClient.invalidateQueries({ queryKey: ['manager-confirmations'] });
       queryClient.invalidateQueries({ predicate: (q) => typeof q.queryKey[0] === 'string' && (q.queryKey[0] as string).startsWith('frozen-workers') });
     },
   });
@@ -304,6 +312,11 @@ export const useDeleteSession = () => {
         .eq('id', sessionId)
         .maybeSingle();
       if (sessionFetchError) throw sessionFetchError;
+
+      // Revert any document/invoice decisions applied with this session
+      try {
+        await (supabase as any).rpc('revert_accounting_session_decisions', { p_session_id: sessionId });
+      } catch (e) { console.warn('revert_accounting_session_decisions failed', e); }
 
       // Delete = remove session record only (no treasury revert)
       await supabase.from('accounting_session_items').delete().eq('session_id', sessionId);
@@ -324,6 +337,9 @@ export const useDeleteSession = () => {
       queryClient.invalidateQueries({ queryKey: ['all-workers-liability'] });
       queryClient.invalidateQueries({ queryKey: ['my-worker-stock'] });
       queryClient.invalidateQueries({ queryKey: ['worker-truck-stock'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-documents'] });
+      queryClient.invalidateQueries({ queryKey: ['invoice-tracking'] });
+      queryClient.invalidateQueries({ queryKey: ['manager-confirmations'] });
       queryClient.invalidateQueries({ predicate: (q) => typeof q.queryKey[0] === 'string' && (q.queryKey[0] as string).startsWith('frozen-workers') });
     },
   });
