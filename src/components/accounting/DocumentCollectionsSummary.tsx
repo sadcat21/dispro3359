@@ -436,7 +436,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
         onClick={() => setDocDialog(doc)}
         className={`border rounded-lg p-3 space-y-2 cursor-pointer transition-colors hover:bg-muted/40 ${borderCls}`}
       >
-        {/* Header: customer + amount */}
+        {/* Header: owner name on top, then 2-col 3-row grid */}
         {(() => {
           const ps = (doc.paymentStatus || '').toLowerCase();
           const psMeta =
@@ -448,37 +448,46 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                   ? { label: 'دين', cls: 'bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300' }
                   : null;
           return (
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex items-start gap-2 min-w-0 flex-1">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                  <FileCheck2 className="w-4 h-4 text-primary" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-foreground truncate leading-tight">{doc.customerName}</p>
-                  <p className="text-[11px] text-muted-foreground truncate leading-tight">
-                    {doc.storeName || <span className="italic opacity-70">بدون اسم محل</span>}
-                  </p>
-                  {doc.ownerName && (
-                    <p className="text-[10px] text-muted-foreground/90 truncate leading-tight mt-0.5" dir="auto">
-                      {doc.ownerName}
-                    </p>
-                  )}
+            <div className="flex items-start gap-2">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <FileCheck2 className="w-4 h-4 text-primary" />
+              </div>
+              <div className="min-w-0 flex-1">
+                {/* Top line: owner full name from business file */}
+                <p className="text-sm font-bold text-foreground truncate leading-tight" dir="auto">
+                  {doc.ownerName || <span className="italic opacity-70 font-normal">بدون اسم صاحب المحل</span>}
+                </p>
+                {/* 2-col 3-row grid */}
+                <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 mt-1 items-center">
+                  <div className="text-[11px] text-muted-foreground truncate" dir="auto">
+                    {doc.ownerName || '—'}
+                  </div>
+                  <div className="text-end">
+                    <span className="font-bold text-sm text-primary">{fmt(doc.orderTotal)} DA</span>
+                  </div>
 
-                  <div className="flex items-center gap-1 mt-1 flex-wrap">
+                  <div className="text-[11px] text-foreground/80 truncate" dir="auto">
+                    {doc.customerName}
+                  </div>
+                  <div className="text-end">
                     <Badge className={`${docTypeColor(doc.documentType)} text-[9px] px-1.5 py-0 h-4`}>
                       {stampedMethodLabel(doc.documentType, doc.bucket)}
                     </Badge>
-                    {psMeta && (
+                  </div>
+
+                  <div className="text-[11px] text-muted-foreground truncate">
+                    {doc.storeName || <span className="italic opacity-70">بدون اسم محل</span>}
+                  </div>
+                  <div className="text-end">
+                    {psMeta ? (
                       <Badge className={`${psMeta.cls} text-[9px] px-1.5 py-0 h-4 border-0`}>
                         {psMeta.label}
                       </Badge>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground">#{doc.orderId.slice(0, 8)}</span>
                     )}
                   </div>
                 </div>
-              </div>
-              <div className="text-end shrink-0">
-                <span className="font-bold text-sm text-primary">{fmt(doc.orderTotal)} DA</span>
-                <p className="text-[10px] text-muted-foreground mt-0.5">#{doc.orderId.slice(0, 8)}</p>
               </div>
             </div>
           );
