@@ -100,12 +100,25 @@ export const useCreateSession = () => {
       const completedAt = new Date().toISOString();
       const effectivePeriodEnd = getEffectiveAccountingSessionEnd(toTz(params.period_end), completedAt);
       
+      // Fallback: if no active branch in context, derive branch from worker or manager
+      let resolvedBranchId: string | null = activeBranch?.id || null;
+      if (!resolvedBranchId) {
+        const { data: w } = await supabase
+          .from('workers')
+          .select('branch_id')
+          .in('id', [params.worker_id, workerId!])
+          .not('branch_id', 'is', null)
+          .limit(1)
+          .maybeSingle();
+        resolvedBranchId = (w as any)?.branch_id || null;
+      }
+
       const { data: session, error: sessionErr } = await supabase
         .from('accounting_sessions')
         .insert({
           worker_id: params.worker_id,
           manager_id: workerId!,
-          branch_id: activeBranch?.id || null,
+          branch_id: resolvedBranchId,
           period_start: toTz(params.period_start),
           period_end: effectivePeriodEnd,
           notes: params.notes || null,
