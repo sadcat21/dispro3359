@@ -158,6 +158,24 @@ const ManagerTreasury = () => {
   const [collectedDebtsOpen, setCollectedDebtsOpen] = useState(false);
   const [expensesOpen, setExpensesOpen] = useState(false);
   const [handoversListOpen, setHandoversListOpen] = useState(false);
+  const [selectedHandoverIds, setSelectedHandoverIds] = useState<string[]>([]);
+  const toggleHandoverSelected = (id: string) => setSelectedHandoverIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  const clearHandoverSelection = () => setSelectedHandoverIds([]);
+  const bulkDeleteHandovers = async () => {
+    if (!selectedHandoverIds.length) return;
+    if (!confirm(`${t('common.confirm_delete')} (${selectedHandoverIds.length})`)) return;
+    try {
+      await supabase.from('handover_items').delete().in('handover_id', selectedHandoverIds);
+      const { error } = await supabase.from('manager_handovers').delete().in('id', selectedHandoverIds);
+      if (error) throw error;
+      toast.success(t('common.deleted'));
+      clearHandoverSelection();
+      queryClient.invalidateQueries({ queryKey: ['manager-handovers'] });
+      queryClient.invalidateQueries({ queryKey: ['treasury-summary'] });
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
   const [workerHeldOpen, setWorkerHeldOpen] = useState(false);
   const [addForm, setAddForm] = useState({ payment_method: 'cash_invoice1', amount: '', customer_name: '', invoice_number: '', invoice_date: '', check_number: '', check_bank: '', check_date: '', receipt_number: '', transfer_reference: '', notes: '' });
   const [handoverForm, setHandoverForm] = useState({ cash_invoice1: '', cash_invoice2: '', cash_delivered: '', notes: '', delivery_method: 'direct', intermediary_name: '', bank_transfer_reference: '', received_by: '', bank_account_id: '', receipt_image_url: '' });
