@@ -485,6 +485,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
       try {
         await (supabase as any).rpc('apply_manager_decision_drafts', {
           p_worker_id: selectedWorkerId,
+          p_session_id: sessionId,
         });
       } catch (e) {
         console.warn('Failed to apply manager decision drafts', e);

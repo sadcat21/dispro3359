@@ -26,6 +26,44 @@ export type Database = {
         }
         Relationships: []
       }
+      accounting_session_decisions: {
+        Row: {
+          created_at: string
+          decision: string
+          id: string
+          kind: string
+          order_id: string
+          prior_state: Json
+          session_id: string
+        }
+        Insert: {
+          created_at?: string
+          decision: string
+          id?: string
+          kind: string
+          order_id: string
+          prior_state?: Json
+          session_id: string
+        }
+        Update: {
+          created_at?: string
+          decision?: string
+          id?: string
+          kind?: string
+          order_id?: string
+          prior_state?: Json
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_session_decisions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       accounting_session_items: {
         Row: {
           actual_amount: number
@@ -9745,10 +9783,12 @@ export type Database = {
     }
     Functions: {
       "55555555520262026": { Args: never; Returns: string }
-      apply_manager_decision_drafts: {
-        Args: { p_worker_id: string }
-        Returns: number
-      }
+      apply_manager_decision_drafts:
+        | { Args: { p_worker_id: string }; Returns: number }
+        | {
+            Args: { p_session_id?: string; p_worker_id: string }
+            Returns: number
+          }
       approve_factory_order: {
         Args: { p_notes?: string; p_order_id: string }
         Returns: Json
@@ -10185,6 +10225,10 @@ export type Database = {
         Returns: undefined
       }
       repair_offer_ledger: { Args: never; Returns: Json }
+      revert_accounting_session_decisions: {
+        Args: { p_session_id: string }
+        Returns: number
+      }
       search_orders_by_prefix: {
         Args: { p_limit?: number; p_prefix: string }
         Returns: {
