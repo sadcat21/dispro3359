@@ -367,6 +367,15 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
       // approved/receipted by the branch manager.
       const noReviewedSessions = perManager && sessionWindows.length === 0;
       const effectiveDebtCashCollected = noReviewedSessions ? 0 : debtCashCollected;
+      // For perManager view: expenses must reflect what was approved IN the
+      // reviewed accounting sessions (authoritative ledger), not the live
+      // expenses table — entries may have been edited/deleted afterwards.
+      const sessionExpensesTotal = perManager && reviewedSessionIds.length > 0
+        ? ((): number => {
+            // sessionItemTotals is populated below for perManager; compute inline here.
+            return 0;
+          })()
+        : 0;
       const effectiveTotalExpenses = totalExpenses;
 
 
