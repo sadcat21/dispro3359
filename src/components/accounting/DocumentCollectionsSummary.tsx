@@ -187,6 +187,45 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
   }, [existingDrafts]);
 
   useEffect(() => {
+    if (!onReceivedDocsChange) return;
+    const next: Record<string, boolean> = { ...(receivedDocs || {}) };
+    let changed = false;
+
+    for (const doc of docs || []) {
+      const key = `doc_${doc.orderId}`;
+      if (next[key] !== undefined) continue;
+      if (doc.managerDecision === 'received') {
+        next[key] = true;
+        changed = true;
+      } else if (doc.managerDecision === 'not_received') {
+        next[key] = false;
+        changed = true;
+      } else if (doc.documentStatus === 'received' || doc.documentStatus === 'verified') {
+        next[key] = true;
+        changed = true;
+      }
+    }
+
+    for (const stamp of stampedInvoices || []) {
+      const key = `stamp_${stamp.orderId}`;
+      if (next[key] !== undefined) continue;
+      if (stamp.managerDecision === 'received') {
+        next[key] = true;
+        changed = true;
+      } else if (stamp.managerDecision === 'not_received') {
+        next[key] = false;
+        changed = true;
+      } else if (stamp.received) {
+        next[key] = true;
+        changed = true;
+      }
+    }
+
+    if (changed) onReceivedDocsChange(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [docs, stampedInvoices]);
+
+  useEffect(() => {
     if (docDialog) {
       const v = docDialog.verification || {};
       const t = docDialog.documentType;
@@ -306,7 +345,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
 
       const { data: pendingCollections } = await supabase
         .from('document_collections')
-        .select(`id, action, status, collection_date, created_at, order_id, order:orders!document_collections_order_id_fkey(id, total_amount, invoice_payment_method, document_status, document_verification, payment_status, payment_method_resolved, customer:customers!orders_customer_id_fkey(name, store_name, owner_first_name_ar, owner_last_name_ar, owner_first_name_fr, owner_last_name_fr))`)
+        .select(`id, action, status, collection_date, created_at, order_id, order:orders!document_collections_order_id_fkey(id, total_amount, invoice_payment_method, document_status, document_manager_decision, document_verification, payment_status, payment_method_resolved, customer:customers!orders_customer_id_fkey(name, store_name, owner_first_name_ar, owner_last_name_ar, owner_first_name_fr, owner_last_name_fr))`)
         .eq('worker_id', workerId)
         .eq('action', 'collected')
         .neq('status', 'rejected')
@@ -347,7 +386,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
 
       const { data: deliveryOrders } = await supabase
         .from('orders')
-        .select(`id, total_amount, invoice_payment_method, document_status, document_verification, payment_status, payment_method_resolved, updated_at, customer:customers!orders_customer_id_fkey(name, store_name, owner_first_name_ar, owner_last_name_ar, owner_first_name_fr, owner_last_name_fr)`)
+        .select(`id, total_amount, invoice_payment_method, document_status, document_manager_decision, document_verification, payment_status, payment_method_resolved, updated_at, customer:customers!orders_customer_id_fkey(name, store_name, owner_first_name_ar, owner_last_name_ar, owner_first_name_fr, owner_last_name_fr)`)
         .eq('assigned_worker_id', workerId)
         .eq('status', 'delivered')
         .in('invoice_payment_method', ['check', 'receipt', 'transfer', 'versement', 'virement'])
@@ -401,7 +440,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
 
       const { data } = await supabase
         .from('orders')
-        .select(`id, total_amount, invoice_payment_method, invoice_received_at, invoice_number, invoice_sent_at, updated_at, created_at, payment_type, payment_status, payment_method_resolved, document_status, document_verification, customer:customers!orders_customer_id_fkey(name, store_name, phone, owner_first_name_ar, owner_last_name_ar, owner_first_name_fr, owner_last_name_fr)`)
+        .select(`id, total_amount, invoice_payment_method, invoice_received_at, invoice_number, invoice_sent_at, updated_at, created_at, payment_type, payment_status, payment_method_resolved, document_status, invoice_manager_decision, document_verification, customer:customers!orders_customer_id_fkey(name, store_name, phone, owner_first_name_ar, owner_last_name_ar, owner_first_name_fr, owner_last_name_fr)`)
         .eq('assigned_worker_id', workerId)
         .eq('status', 'delivered')
         .eq('payment_type', 'with_invoice')
@@ -435,6 +474,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           issueDate: o.invoice_sent_at ? String(o.invoice_sent_at).substring(0, 10) : null,
           documentVerification: o.document_verification,
           documentStatus: o.document_status,
+          managerDecision: o.invoice_manager_decision || null,
         };
       }).sort((a, b) => {
         if (a.received !== b.received) return a.received ? 1 : -1;
