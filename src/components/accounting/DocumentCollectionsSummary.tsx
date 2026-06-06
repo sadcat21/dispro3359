@@ -28,6 +28,7 @@ interface StampedInvoice {
   issueDate: string | null;
   documentVerification: any;
   documentStatus: string | null;
+  managerDecision: 'received' | 'not_received' | null;
 }
 
 interface DocumentCollectionsSummaryProps {
@@ -49,6 +50,7 @@ interface CollectedDoc {
   paymentStatus: string | null;
   source: 'delivery' | 'pending_collection';
   documentStatus: string | null;
+  managerDecision: 'received' | 'not_received' | null;
   bucket: 'cash' | 'doc' | null;
   verification: {
     checkNumber?: string;
@@ -333,6 +335,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           paymentStatus: order.payment_status || null,
           source: 'pending_collection',
           documentStatus: order.document_status,
+          managerDecision: (order as any).document_manager_decision || null,
           bucket: resolveBucket(dv, order),
           verification: parseVerification(order.document_verification, docType),
         });
@@ -367,6 +370,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           paymentStatus: (o as any).payment_status || null,
           source: 'delivery',
           documentStatus: o.document_status,
+          managerDecision: (o as any).document_manager_decision || null,
           bucket: resolveBucket(dv, o),
           verification: parseVerification(o.document_verification, docType),
         });
