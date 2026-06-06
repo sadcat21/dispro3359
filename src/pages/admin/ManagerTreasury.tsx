@@ -1261,17 +1261,45 @@ const ManagerTreasury = () => {
 
 
 
-              <Dialog open={handoversListOpen} onOpenChange={setHandoversListOpen}>
+              <Dialog open={handoversListOpen} onOpenChange={(open) => { setHandoversListOpen(open); if (!open) clearHandoverSelection(); }}>
                 <DialogContent dir={dir} className="max-h-[90vh] overflow-y-auto">
                   <DialogHeader><DialogTitle>📤 التسليمات</DialogTitle></DialogHeader>
+                  {handovers && handovers.length > 0 && (
+                    <div className="flex items-center justify-between gap-2 border rounded-lg p-2 bg-muted/40 sticky top-0 z-10">
+                      <label className="flex items-center gap-2 text-xs cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4"
+                          checked={selectedHandoverIds.length === handovers.length}
+                          ref={el => { if (el) el.indeterminate = selectedHandoverIds.length > 0 && selectedHandoverIds.length < handovers.length; }}
+                          onChange={(e) => setSelectedHandoverIds(e.target.checked ? handovers.map(h => h.id) : [])}
+                        />
+                        <span>تحديد الكل ({selectedHandoverIds.length}/{handovers.length})</span>
+                      </label>
+                      {selectedHandoverIds.length > 0 && (
+                        <div className="flex items-center gap-1">
+                          <Button size="sm" variant="outline" className="h-7" onClick={clearHandoverSelection}>إلغاء</Button>
+                          <Button size="sm" variant="destructive" className="h-7" onClick={bulkDeleteHandovers}>
+                            <Trash2 className="w-3.5 h-3.5 mx-1" /> حذف ({selectedHandoverIds.length})
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   <div className="space-y-2">
                     {(!handovers || handovers.length === 0) ? (
                       <p className="text-center text-muted-foreground py-8">{t('treasury.no_handovers')}</p>
                     ) : handovers.map(h => (
-                      <Card key={h.id}>
+                      <Card key={h.id} className={selectedHandoverIds.includes(h.id) ? 'ring-2 ring-primary' : ''}>
                         <CardContent className="p-3 space-y-2">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                className="w-4 h-4"
+                                checked={selectedHandoverIds.includes(h.id)}
+                                onChange={() => toggleHandoverSelected(h.id)}
+                              />
                               <Send className="w-4 h-4 text-destructive" />
                               <p className="font-bold">{Number(h.amount).toLocaleString()} {cur}</p>
                             </div>
