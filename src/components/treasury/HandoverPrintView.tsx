@@ -459,7 +459,8 @@ const HandoverPrintView: React.FC<Props> = ({
           <div className="hv-block-title">Argent Physique (Espèces)</div>
           <div className="hv-block-body">
             {(() => {
-              const totalEspecesBrut = cashItemsTotal + receiptCashPaidTotal + cashItemsStampTotal + cashInvoice2 + extraCashTotal;
+              const displayedStamp = Math.max(cashItemsStampTotal, stampAmount);
+              const totalEspecesBrut = cashItemsTotal + receiptCashPaidTotal + displayedStamp + cashInvoice2 + extraCashTotal;
               const totalEspeces = totalEspecesBrut - expensesAmount;
               return unifiedCash ? (
                 summaryRow('Espèces', totalEspeces, '#15803d')
