@@ -156,6 +156,13 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
         const coinItem = editSession.items?.find(i => i.item_type === 'coin_amount');
         setActualCash(cashItem ? String(Number(cashItem.actual_amount)) : '');
         setCoinAmount(coinItem ? String(Number(coinItem.actual_amount)) : '');
+        // Auto-refresh collected-documents data when re-opening edit dialog,
+        // so "مستندات مستلمة أثناء التوصيل" syncs with the session period
+        // without needing a manual refresh click.
+        queryClient.invalidateQueries({ queryKey: ['session-document-collections'] });
+        queryClient.invalidateQueries({ queryKey: ['session-stamped-invoices'] });
+        queryClient.invalidateQueries({ queryKey: ['manager-decision-drafts', editSession.worker_id] });
+        queryClient.invalidateQueries({ queryKey: ['pending-documents'] });
       } else {
         const fetchLastSession = async () => {
           if (!selectedWorkerId) return;
