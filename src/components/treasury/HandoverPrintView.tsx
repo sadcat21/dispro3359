@@ -23,6 +23,8 @@ interface HandoverItem {
   check_bank?: string;
   receipt_number?: string;
   transfer_reference?: string;
+  paid_amount?: number;
+  remaining_amount?: number;
 }
 
 interface Props {
@@ -108,6 +110,26 @@ const HandoverPrintView: React.FC<Props> = ({
         });
       }
 
+      // Per-order paid / remaining for receipt_cash items
+      const receiptCashOrderIds = data
+        .filter((it) => it.payment_method === 'receipt_cash')
+        .map((it) => it.order_id)
+        .filter(Boolean) as string[];
+      const debtMap: Record<string, { paid: number; remaining: number; total: number }> = {};
+      if (receiptCashOrderIds.length > 0) {
+        const { data: debts } = await supabase
+          .from('customer_debts')
+          .select('order_id, paid_amount, remaining_amount, total_amount')
+          .in('order_id', receiptCashOrderIds);
+        (debts || []).forEach((d: any) => {
+          debtMap[d.order_id] = {
+            paid: Number(d.paid_amount || 0),
+            remaining: Number(d.remaining_amount || 0),
+            total: Number(d.total_amount || 0),
+          };
+        });
+      }
+
       const enriched: HandoverItem[] = data.map((item) => {
         const treasuryEntry = item.treasury_entry_id ? treasuryMap[item.treasury_entry_id] : null;
         const order = item.order_id ? orderMap[item.order_id] : null;
@@ -122,6 +144,7 @@ const HandoverPrintView: React.FC<Props> = ({
         const exactStampAmount = item.payment_method === 'cash' && matchedTier
           ? Number(calculateStampAmount(stampBaseAmount, activeTiers).toFixed(2))
           : 0;
+        const debt = item.payment_method === 'receipt_cash' && item.order_id ? debtMap[item.order_id] : null;
         return {
           ...item,
           customer_name: customerName || item.customer_name,
@@ -137,6 +160,8 @@ const HandoverPrintView: React.FC<Props> = ({
           check_bank: treasuryEntry?.check_bank || undefined,
           receipt_number: treasuryEntry?.receipt_number || undefined,
           transfer_reference: treasuryEntry?.transfer_reference || undefined,
+          paid_amount: debt ? debt.paid : (item.payment_method === 'receipt_cash' ? Number(item.amount || 0) : undefined),
+          remaining_amount: debt ? debt.remaining : (item.payment_method === 'receipt_cash' ? 0 : undefined),
         };
       });
 
@@ -164,8 +189,10 @@ const HandoverPrintView: React.FC<Props> = ({
 
   const cashItemsTotal = cashItems.reduce((sum, item) => sum + Number(item.amount || 0), 0);
   const receiptCashTotal = receiptCash.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  const receiptCashPaidTotal = receiptCash.reduce((sum, item) => sum + Number(item.paid_amount ?? item.amount ?? 0), 0);
+  const receiptCashRemainingTotal = receiptCash.reduce((sum, item) => sum + Number(item.remaining_amount ?? 0), 0);
   const extraCashTotal = Math.max(0, totalAmount - (cashInvoice1 + cashInvoice2 + checksAmount + receiptsAmount + transfersAmount));
-  const stampAmount = Math.max(0, cashInvoice1 - cashItemsTotal - receiptCashTotal);
+  const stampAmount = Math.max(0, cashInvoice1 - cashItemsTotal - receiptCashPaidTotal);
   const dateStr = format(new Date(handoverDate), 'dd/MM/yyyy');
   const wilayaFr = branchWilaya ? ALGERIAN_WILAYAS.find((wilaya) => wilaya.name === branchWilaya)?.nameFr || branchWilaya : '';
   const cashItemsWithStamp: HandoverItem[] = (() => {
@@ -373,6 +400,8 @@ const HandoverPrintView: React.FC<Props> = ({
           { title: 'ESPÈCES FACTURE 1', isEmpty: cashItemsWithStamp.length === 0, node: renderCashInvoice1Table() },
           { title: 'VERSEMENT CASH', isEmpty: receiptCash.length === 0, node: renderSimpleTable('VERSEMENT CASH', receiptCash, receiptCashTotal, [
             { header: 'N° Reçu', cell: (item) => item.receipt_number || '-' },
+            { header: 'Payé', cell: (item) => Number(item.paid_amount ?? item.amount ?? 0).toLocaleString() },
+            { header: 'Restant', cell: (item) => Number(item.remaining_amount ?? 0).toLocaleString() },
           ]) },
           { title: 'VERSEMENT DOC', isEmpty: receiptDocs.length === 0, node: renderSimpleTable('VERSEMENT DOC', receiptDocs, receiptsAmount, [
             { header: 'N° Reçu', cell: (item) => item.receipt_number || '-' },
@@ -413,7 +442,7 @@ const HandoverPrintView: React.FC<Props> = ({
             ) : (
               <>
                 {summaryRow('Espèces Facture 1', cashItemsTotal)}
-                {summaryRow('Versement Cash', receiptCashTotal)}
+                {summaryRow('Versement Cash (Payé)', receiptCashPaidTotal)}
                 {summaryRow('Timbre Facture 1', cashItemsStampTotal)}
                 {summaryRow('Espèces Facture 2', cashInvoice2)}
                 {summaryRow('Recouvrement dettes / cash suppl.', extraCashTotal)}
