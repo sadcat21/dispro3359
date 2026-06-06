@@ -463,7 +463,12 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
   const renderDocCard = (doc: CollectedDoc) => {
     const v = doc.verification;
     const docKey = `doc_${doc.orderId}`;
-    const receivedState = receivedDocs ? receivedDocs[docKey] : undefined;
+    const draftDecision = receivedDocs ? receivedDocs[docKey] : undefined;
+    // Draft (when present) overrides the persisted document_status so toggling
+    // recolors the row immediately inside the edit session dialog.
+    const persistedReceived = doc.documentStatus === 'received' || doc.documentStatus === 'verified';
+    const receivedState: boolean | undefined =
+      draftDecision !== undefined ? draftDecision : (persistedReceived ? true : undefined);
     const borderCls =
       receivedState === true
         ? 'border-2 border-emerald-500 bg-emerald-100/70 dark:bg-emerald-900/30 ring-2 ring-emerald-400/60 shadow-md shadow-emerald-500/20'
@@ -594,13 +599,18 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-xs font-semibold text-violet-700 dark:text-violet-400">
             <Stamp className="w-3.5 h-3.5" />
-            <span>فواتير مختومة ({stampedInvoices.filter(s => s.received).length}/{stampedInvoices.length})</span>
+            <span>فواتير مختومة ({stampedInvoices.filter(s => {
+              const d = receivedDocs ? receivedDocs[`stamp_${s.orderId}`] : undefined;
+              return d === true || (d === undefined && s.received);
+            }).length}/{stampedInvoices.length})</span>
           </div>
           <div className="border-2 border-violet-200 dark:border-violet-900/40 rounded-xl p-2.5 space-y-2 bg-violet-50/30 dark:bg-violet-900/10">
             {stampedInvoices.map(inv => {
               const stampKey = `stamp_${inv.orderId}`;
               const draftDecision = receivedDocs ? receivedDocs[stampKey] : undefined;
-              const isGreen = inv.received || draftDecision === true;
+              // Draft decision (when present) overrides the persisted invoice state
+              // so toggling inside the edit dialog recolors the row immediately.
+              const isGreen = draftDecision === true || (draftDecision === undefined && inv.received);
               const isRed = draftDecision === false;
               return (
               <div
