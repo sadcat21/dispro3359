@@ -519,17 +519,10 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
         summary.bank_transfer += pick('invoice1_transfer') + pick('debt_collections_transfer');
         summary.transferCount += pickCount('invoice1_transfer') + pickCount('debt_collections_transfer');
 
-        if (stampTiers?.length && cash1 > 0) {
-          summary.cash_invoice1_stamp += calculateStampAmount(cash1, stampTiers as StampPriceTier[]);
-        }
-
-        // Override expenses with the authoritative value recorded in the
-        // reviewed accounting sessions. The live `expenses` table can drift
-        // (entries edited or deleted) after the session was confirmed, so
-        // trust the session ledger instead.
-        const sessionExpenses = pick('expenses');
-        if (sessionExpenses > 0) {
-          summary.totalExpenses = sessionExpenses;
+        // Stamp is computed on the espace portion of facture 1 only —
+        // versement cash carries no stamp.
+        if (stampTiers?.length && espaceAmt > 0) {
+          summary.cash_invoice1_stamp += calculateStampAmount(espaceAmt, stampTiers as StampPriceTier[]);
         }
       } else {
         scopedOrders.forEach((o: any) => {
