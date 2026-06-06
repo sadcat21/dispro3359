@@ -460,7 +460,10 @@ const HandoverPrintView: React.FC<Props> = ({
           <div className="hv-block-body">
             {(() => {
               const displayedStamp = Math.max(cashItemsStampTotal, stampAmount);
-              const totalEspecesBrut = cashItemsTotal + receiptCashPaidTotal + displayedStamp + cashInvoice2 + extraCashTotal;
+              // "Recouvrement dettes / cash suppl." = portion impayée des factures Versement Cash
+              // (la part qui devient une nouvelle dette à recouvrer). Source: receipt_cash.remaining_amount.
+              const recouvrementSuppl = receiptCashRemainingTotal > 0 ? receiptCashRemainingTotal : extraCashTotal;
+              const totalEspecesBrut = cashItemsTotal + receiptCashPaidTotal + displayedStamp + cashInvoice2 + recouvrementSuppl;
               const totalEspeces = totalEspecesBrut - expensesAmount;
               return unifiedCash ? (
                 summaryRow('Espèces', totalEspeces, '#15803d')
@@ -470,7 +473,7 @@ const HandoverPrintView: React.FC<Props> = ({
                   {summaryRow('Versement Cash (Payé)', receiptCashPaidTotal)}
                   {summaryRow('Timbre Facture 1', displayedStamp)}
                   {summaryRow('Espèces Facture 2', cashInvoice2)}
-                  {summaryRow('Recouvrement dettes / cash suppl.', extraCashTotal)}
+                  {summaryRow('Recouvrement dettes / cash suppl.', recouvrementSuppl)}
                   {expensesAmount > 0 && summaryRow('Dépenses (révisées)', -expensesAmount, '#b91c1c')}
                   {summaryRow('Total Espèces', totalEspeces, '#15803d')}
                 </>
