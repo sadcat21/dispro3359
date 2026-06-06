@@ -569,7 +569,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
             <Truck className="w-3.5 h-3.5" />
             <span>مستندات مستلمة أثناء التوصيل ({deliveryDocs.length})</span>
           </div>
-          <div className="border-2 border-green-200 dark:border-green-900/40 rounded-xl p-2.5 space-y-2 bg-green-50/30 dark:bg-green-900/10">
+          <div className="border-2 border-emerald-500 dark:border-emerald-600 rounded-xl p-2.5 space-y-2 bg-emerald-100/60 dark:bg-emerald-900/20 shadow-md shadow-emerald-500/20">
             {renderDocList(deliveryDocs)}
           </div>
         </div>
