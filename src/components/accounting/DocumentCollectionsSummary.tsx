@@ -152,6 +152,37 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
   const [docInvoiceDate, setDocInvoiceDate] = useState('');
   const [detailsOrderId, setDetailsOrderId] = useState<string | null>(null);
 
+  // Load existing manager_decision_drafts so previously-saved decisions
+  // re-color the rows when the dialog is reopened.
+  const { data: existingDrafts } = useQuery({
+    queryKey: ['manager-decision-drafts', workerId],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !workerId) return [];
+      const { data, error } = await (supabase as any)
+        .from('manager_decision_drafts')
+        .select('order_id, kind, decision')
+        .eq('manager_id', user.id)
+        .eq('worker_id', workerId);
+      if (error) return [];
+      return (data || []) as Array<{ order_id: string; kind: string; decision: string }>;
+    },
+    enabled: !!workerId,
+  });
+
+  useEffect(() => {
+    if (!existingDrafts || !onReceivedDocsChange) return;
+    const next: Record<string, boolean> = { ...(receivedDocs || {}) };
+    let changed = false;
+    for (const d of existingDrafts) {
+      const key = d.kind === 'stamp_invoice' ? `stamp_${d.order_id}` : `doc_${d.order_id}`;
+      const val = d.decision === 'received';
+      if (next[key] !== val) { next[key] = val; changed = true; }
+    }
+    if (changed) onReceivedDocsChange(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [existingDrafts]);
+
   useEffect(() => {
     if (docDialog) {
       const v = docDialog.verification || {};
@@ -731,6 +762,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                 setStampSaving(false);
                 if (error) { toast.error('فشل حفظ المسودة: ' + String((error as any).message || '')); return; }
                 toast.success('تم تسجيل: لم تُستلم (مسودة)');
+                if (onReceivedDocsChange) onReceivedDocsChange({ ...(receivedDocs || {}), [`stamp_${stampDialog.orderId}`]: false });
                 await queryClient.invalidateQueries({ queryKey: ['manager-decision-drafts', workerId] });
                 setStampDialog(null);
               }}
@@ -897,6 +929,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                 setDocSaving(false);
                 if (error) { toast.error('فشل حفظ المسودة: ' + String((error as any).message || '')); return; }
                 toast.success('تم تسجيل: لم تُستلم (مسودة)');
+                if (onReceivedDocsChange) onReceivedDocsChange({ ...(receivedDocs || {}), [`doc_${docDialog.orderId}`]: false });
                 await queryClient.invalidateQueries({ queryKey: ['manager-decision-drafts', workerId] });
                 setDocDialog(null);
               }}
@@ -928,6 +961,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                 setDocSaving(false);
                 if (error) { toast.error('فشل حفظ المسودة: ' + String((error as any).message || '')); return; }
                 toast.success('تم حفظ القرار كمسودة — سيُطبَّق عند حفظ الجلسة');
+                if (onReceivedDocsChange) onReceivedDocsChange({ ...(receivedDocs || {}), [`doc_${docDialog.orderId}`]: true });
                 await queryClient.invalidateQueries({ queryKey: ['manager-decision-drafts', workerId] });
                 setDocDialog(null);
               }}
