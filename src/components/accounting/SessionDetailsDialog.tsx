@@ -106,6 +106,8 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [swipeMode, setSwipeMode] = useState(false);
   const [emptyKeys, setEmptyKeys] = useState<Set<string>>(new Set());
+  const [applyingDrafts, setApplyingDrafts] = useState(false);
+  const queryClient = require('@tanstack/react-query').useQueryClient();
   const handleEmptyChange = React.useCallback((key: string, empty: boolean) => {
     setEmptyKeys(prev => {
       if (empty && prev.has(key)) return prev;
