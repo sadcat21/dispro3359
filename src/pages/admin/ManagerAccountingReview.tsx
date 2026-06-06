@@ -1128,14 +1128,14 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
 <body>
   <main class="sheet">
     <header class="header">
-      <div style="width:90px;display:flex;align-items:center;justify-content:flex-start"><img src="${companyLogo}" alt="Logo" style="max-width:80px;max-height:70px;object-fit:contain" /></div>
-      <div style="flex:1;text-align:center">
-        <div class="title" style="text-align:center">Rapport Quotidien — ${escapeHtml((periodTo || periodFrom || today).slice(0, 10))}</div>
-        <div class="subtitle" dir="ltr" style="text-align:center"><b>Dépôt :</b> ${escapeHtml(translateBranchToFr(branchName) || '—')} &nbsp; <b>Comptable :</b> ${escapeHtml(accountantName || '—')} &nbsp;|&nbsp; <b>Période :</b> <span dir="ltr" style="unicode-bidi:isolate">${escapeHtml(periodFrom)} &rarr; ${escapeHtml(periodTo)}</span></div>
-      </div>
-      <div style="width:90px;display:flex;align-items:center;justify-content:flex-end">
+      <div style="width:90px;display:flex;align-items:center;justify-content:flex-start">
         ${qrDataUrl ? `<div style="border:2px solid #0f172a;padding:4px;border-radius:4px;background:#fff"><img src="${qrDataUrl}" alt="QR" style="width:64px;height:64px;display:block" /></div>` : ''}
       </div>
+      <div style="flex:1;text-align:center">
+        <div class="title" style="text-align:center">التقرير المحاسبي — ${escapeHtml((periodTo || periodFrom || today).slice(0, 10))}</div>
+        <div class="subtitle" dir="ltr" style="text-align:center"><b>Dépôt :</b> ${escapeHtml(translateBranchToFr(branchName) || '—')} &nbsp; <b>Comptable :</b> ${escapeHtml(accountantName || '—')} &nbsp;|&nbsp; <b>Période :</b> <span dir="ltr" style="unicode-bidi:isolate">${escapeHtml(periodFrom)} &rarr; ${escapeHtml(periodTo)}</span></div>
+      </div>
+      <div style="width:90px;display:flex;align-items:center;justify-content:flex-end"><img src="${companyLogo}" alt="Logo" style="max-width:80px;max-height:70px;object-fit:contain" /></div>
     </header>
 
     <section class="kpis">
