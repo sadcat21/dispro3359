@@ -328,10 +328,13 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
       if (perManager) sessQuery = sessQuery.eq('manager_id', perManager);
       const { data: sessions } = await sessQuery;
 
-      // Aggregate confirmed-session items as the authoritative breakdown source for perManager.
+      // Aggregate confirmed-session items as the authoritative breakdown source.
+      // We populate this for both perManager and branch views — it is used to
+      // (a) override expenses with the value recorded at review time, and
+      // (b) drive perManager bucket allocations.
       const reviewedSessionIds = (sessions || []).map((s: any) => s.id);
       const sessionItemTotals: Record<string, { amount: number; count: number }> = {};
-      if (perManager && reviewedSessionIds.length > 0) {
+      if (reviewedSessionIds.length > 0) {
         const { data: sItems } = await supabase
           .from('accounting_session_items')
           .select('item_type, actual_amount, session_id')
