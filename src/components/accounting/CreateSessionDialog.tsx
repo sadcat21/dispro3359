@@ -809,15 +809,19 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                         (calc.debtCollections?.cash || 0) === 0 &&
                         (calc.customerSurplusCash || 0) === 0;
                       if (onlyExpenses) {
+                        const negVal = String(-calc.cashExpenses);
+                        const checked = actualCash === negVal;
                         return (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => setActualCash(String(calc.cashExpenses))}
-                            className="w-full h-11 text-lg font-bold rounded-lg border-dashed"
-                          >
-                            {fmt(calc.cashExpenses)} DA
-                          </Button>
+                          <label className="flex items-center justify-between gap-3 w-full h-11 px-3 rounded-lg border border-dashed cursor-pointer hover:bg-accent/50">
+                            <div className="flex items-center gap-2">
+                              <Checkbox
+                                checked={checked}
+                                onCheckedChange={(v) => setActualCash(v ? negVal : '')}
+                              />
+                              <span className="text-xs text-muted-foreground">{t('accounting.expenses')}</span>
+                            </div>
+                            <span className="text-lg font-bold text-destructive">-{fmt(calc.cashExpenses)} DA</span>
+                          </label>
                         );
                       }
                       return (
