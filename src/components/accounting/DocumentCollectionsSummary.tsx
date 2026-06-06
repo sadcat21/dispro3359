@@ -36,6 +36,7 @@ interface DocumentCollectionsSummaryProps {
   periodEnd: string;
   receivedDocs?: Record<string, boolean>;
   onReceivedDocsChange?: (docs: Record<string, boolean>) => void;
+  onItemsChange?: (items: { docIds: string[]; stampIds: string[] }) => void;
 }
 
 interface CollectedDoc {
@@ -137,7 +138,7 @@ const isCollectedDuringDelivery = (order: any) => {
   return true;
 };
 
-const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({ workerId, periodStart, periodEnd, receivedDocs, onReceivedDocsChange }) => {
+const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({ workerId, periodStart, periodEnd, receivedDocs, onReceivedDocsChange, onItemsChange }) => {
   const queryClient = useQueryClient();
   const [verifyDoc, setVerifyDoc] = useState<CollectedDoc | null>(null);
   const [stampDialog, setStampDialog] = useState<StampedInvoice | null>(null);
@@ -429,6 +430,15 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
       });
     },
   });
+
+  useEffect(() => {
+    if (!onItemsChange) return;
+    onItemsChange({
+      docIds: (docs || []).map((d) => d.orderId),
+      stampIds: (stampedInvoices || []).map((s) => s.orderId),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [docs, stampedInvoices]);
 
   if (isLoading) return <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div>;
   if ((!docs || docs.length === 0) && (!stampedInvoices || stampedInvoices.length === 0)) return <p data-empty="true" className="text-xs text-muted-foreground text-center py-3">لا توجد مستندات محصلة في هذه الفترة</p>;

@@ -306,6 +306,14 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showUnloadDialog, setShowUnloadDialog] = useState(false);
   const [receivedDocs, setReceivedDocs] = useState<Record<string, boolean>>({});
+  const [docItems, setDocItems] = useState<{ docIds: string[]; stampIds: string[] }>({ docIds: [], stampIds: [] });
+  const allDocsDecided = (() => {
+    const totalCount = docItems.docIds.length + docItems.stampIds.length;
+    if (totalCount === 0) return false;
+    for (const id of docItems.docIds) if (typeof receivedDocs[`doc_${id}`] !== 'boolean') return false;
+    for (const id of docItems.stampIds) if (typeof receivedDocs[`stamp_${id}`] !== 'boolean') return false;
+    return true;
+  })();
   const [isUnfreezing, setIsUnfreezing] = useState(false);
   const queryClient = useQueryClient();
 
@@ -732,7 +740,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 {/* ━━━ Step 3: Document Collections ━━━ */}
                 {selectedWorkerId && periodStart && periodEnd && (
                   <StepSection step={3} title={t('create_session.collected_documents')} color="blue">
-                    <DocumentCollectionsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} receivedDocs={receivedDocs} onReceivedDocsChange={setReceivedDocs} />
+                    <DocumentCollectionsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} receivedDocs={receivedDocs} onReceivedDocsChange={setReceivedDocs} onItemsChange={setDocItems} />
                   </StepSection>
                 )}
 
@@ -996,7 +1004,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             <Button
               className="flex-1 rounded-xl h-11 text-base font-bold"
               onClick={handleShowConfirmation}
-              disabled={isSubmitting || createSession.isPending || updateSession.isPending || !selectedWorkerId || !calc || (!isEditMode && !isFrozen)}
+              disabled={isSubmitting || createSession.isPending || updateSession.isPending || !selectedWorkerId || !calc || (!isEditMode && !isFrozen && !allDocsDecided)}
             >
               {isEditMode ? (t('accounting.update_session') || t('common.save')) : t('accounting.save_session')}
             </Button>
