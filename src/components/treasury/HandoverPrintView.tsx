@@ -36,6 +36,7 @@ interface Props {
   receiptsAmount: number;
   transfersAmount: number;
   totalAmount: number;
+  expensesAmount?: number;
   branchName?: string;
   branchWilaya?: string;
   deliveryMethod?: string;
@@ -55,6 +56,7 @@ const HandoverPrintView: React.FC<Props> = ({
   receiptsAmount,
   transfersAmount,
   totalAmount,
+  expensesAmount = 0,
   branchWilaya,
   deliveryMethod,
   intermediaryName,
@@ -438,7 +440,8 @@ const HandoverPrintView: React.FC<Props> = ({
           <div className="hv-block-title">Argent Physique (Espèces)</div>
           <div className="hv-block-body">
             {(() => {
-              const totalEspeces = cashItemsTotal + receiptCashPaidTotal + cashItemsStampTotal + cashInvoice2 + extraCashTotal;
+              const totalEspecesBrut = cashItemsTotal + receiptCashPaidTotal + cashItemsStampTotal + cashInvoice2 + extraCashTotal;
+              const totalEspeces = totalEspecesBrut - expensesAmount;
               return unifiedCash ? (
                 summaryRow('Espèces', totalEspeces, '#15803d')
               ) : (
@@ -448,6 +451,7 @@ const HandoverPrintView: React.FC<Props> = ({
                   {summaryRow('Timbre Facture 1', cashItemsStampTotal)}
                   {summaryRow('Espèces Facture 2', cashInvoice2)}
                   {summaryRow('Recouvrement dettes / cash suppl.', extraCashTotal)}
+                  {expensesAmount > 0 && summaryRow('Dépenses (révisées)', -expensesAmount, '#b91c1c')}
                   {summaryRow('Total Espèces', totalEspeces, '#15803d')}
                 </>
               );
@@ -468,7 +472,7 @@ const HandoverPrintView: React.FC<Props> = ({
 
       <div className="hv-grand" data-pdf-section>
         <span>Total Général</span>
-        <strong>{(totalAmount - (receiptCashTotal - receiptCashPaidTotal)).toLocaleString()} DA</strong>
+        <strong>{(totalAmount - (receiptCashTotal - receiptCashPaidTotal) - expensesAmount).toLocaleString()} DA</strong>
       </div>
 
       <div className="hv-sign" data-pdf-section>
