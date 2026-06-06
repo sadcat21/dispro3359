@@ -129,14 +129,17 @@ const ExpenseCard: React.FC<{
   expense: ExpenseWithDetails;
   isManager: boolean;
   isOwner: boolean;
+  accounted: boolean;
   onDelete: () => void;
+  onEdit: () => void;
   language: string;
   t: (key: string) => string;
   hideDelete?: boolean;
-}> = ({ expense, isManager, isOwner, onDelete, language, t, hideDelete }) => {
+}> = ({ expense, isManager, isOwner, accounted, onDelete, onEdit, language, t, hideDelete }) => {
   const status = STATUS_MAP_KEYS[expense.status] || STATUS_MAP_KEYS.pending;
   const receiptUrls = expense.receipt_urls?.length ? expense.receipt_urls : (expense.receipt_url ? [expense.receipt_url] : []);
   const [showReceipt, setShowReceipt] = useState(false);
+  const canModify = isOwner && !accounted && expense.status !== 'rejected';
 
   return (
     <>
@@ -193,14 +196,24 @@ const ExpenseCard: React.FC<{
         )}
 
         <div className="flex gap-2 pt-1">
-          {isOwner && expense.status === 'pending' && !hideDelete && (
+          {canModify && (
+            <Button variant="outline" size="sm" onClick={onEdit}>
+              <Pencil className="w-3 h-3 me-1" />
+              {t('common.edit')}
+            </Button>
+          )}
+          {canModify && !hideDelete && (
             <Button variant="destructive" size="sm" onClick={onDelete}>
               <Trash2 className="w-3 h-3 me-1" />
               {t('common.delete')}
             </Button>
           )}
+          {isOwner && accounted && (
+            <span className="text-[10px] text-muted-foreground">{t('expenses.locked_accounted')}</span>
+          )}
         </div>
       </Card>
+
 
       <ReceiptViewerDialog
         open={showReceipt}
