@@ -263,6 +263,11 @@ export const useCancelSession = () => {
         .maybeSingle();
       if (sessionFetchError) throw sessionFetchError;
 
+      // Revert any document/invoice decisions applied with this session
+      try {
+        await (supabase as any).rpc('revert_accounting_session_decisions', { p_session_id: sessionId });
+      } catch (e) { console.warn('revert_accounting_session_decisions failed', e); }
+
       // Cancel = full revert: delete treasury entries, items, then session
       await supabase.from('manager_treasury').delete().eq('session_id', sessionId);
       await supabase.from('accounting_session_items').delete().eq('session_id', sessionId);
