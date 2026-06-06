@@ -328,10 +328,13 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
       if (perManager) sessQuery = sessQuery.eq('manager_id', perManager);
       const { data: sessions } = await sessQuery;
 
-      // Aggregate confirmed-session items as the authoritative breakdown source for perManager.
+      // Aggregate confirmed-session items as the authoritative breakdown source.
+      // We populate this for both perManager and branch views — it is used to
+      // (a) override expenses with the value recorded at review time, and
+      // (b) drive perManager bucket allocations.
       const reviewedSessionIds = (sessions || []).map((s: any) => s.id);
       const sessionItemTotals: Record<string, { amount: number; count: number }> = {};
-      if (perManager && reviewedSessionIds.length > 0) {
+      if (reviewedSessionIds.length > 0) {
         const { data: sItems } = await supabase
           .from('accounting_session_items')
           .select('item_type, actual_amount, session_id')
@@ -367,7 +370,11 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
       // approved/receipted by the branch manager.
       const noReviewedSessions = perManager && sessionWindows.length === 0;
       const effectiveDebtCashCollected = noReviewedSessions ? 0 : debtCashCollected;
-      const effectiveTotalExpenses = totalExpenses;
+      // Expenses card must reflect the value recorded in the reviewed
+      // accounting sessions (authoritative ledger). Live `expenses` table may
+      // have been edited or deleted after sessions were confirmed.
+      const sessionExpensesTotal = sessionItemTotals['expenses']?.amount || 0;
+      const effectiveTotalExpenses = sessionExpensesTotal > 0 ? sessionExpensesTotal : totalExpenses;
 
 
 
@@ -476,9 +483,24 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
         const pick = (k: string) => sessionItemTotals[k]?.amount || 0;
         const pickCount = (k: string) => sessionItemTotals[k]?.count || 0;
 
-        const cash1 = pick('invoice1_espace_cash') + pick('invoice1_versement_cash');
-        summary.cash_invoice1 += cash1;
-        summary.cash_invoice1_count += pickCount('invoice1_espace_cash') + pickCount('invoice1_versement_cash');
+        const espaceAmt = pick('invoice1_espace_cash');
+        const versementAmt = pick('invoice1_versement_cash');
+        const cash1 = espaceAmt + versementAmt;
+        // Espèces Facture 1 (espace only)
+        summary.cash_invoice1 += espaceAmt;
+        summary.cash_invoice1_count += pickCount('invoice1_espace_cash');
+        // Versement Cash — independent card
+        summary.receipt_cash += versementAmt;
+        summary.receiptCashCount += pickCount('invoice1_versement_cash');
+        // Reallocate handed cash_invoice1 (lumped historically) proportionally
+        // between espace and versement so "net after handover" stays correct.
+        const handedCash1Combined = summary.cash_invoice1_handed;
+        if (cash1 > 0 && handedCash1Combined > 0) {
+          const versementShare = Number(((handedCash1Combined * versementAmt) / cash1).toFixed(2));
+          const espaceShare = Math.max(0, handedCash1Combined - versementShare);
+          summary.cash_invoice1_handed = espaceShare;
+          summary.receipt_cash_handed += versementShare;
+        }
 
         summary.cash_invoice2 += pick('invoice2_cash');
         // Real operations/customers count from scoped orders (without_invoice paid)
@@ -497,17 +519,10 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
         summary.bank_transfer += pick('invoice1_transfer') + pick('debt_collections_transfer');
         summary.transferCount += pickCount('invoice1_transfer') + pickCount('debt_collections_transfer');
 
-        if (stampTiers?.length && cash1 > 0) {
-          summary.cash_invoice1_stamp += calculateStampAmount(cash1, stampTiers as StampPriceTier[]);
-        }
-
-        // Override expenses with the authoritative value recorded in the
-        // reviewed accounting sessions. The live `expenses` table can drift
-        // (entries edited or deleted) after the session was confirmed, so
-        // trust the session ledger instead.
-        const sessionExpenses = pick('expenses');
-        if (sessionExpenses > 0) {
-          summary.totalExpenses = sessionExpenses;
+        // Stamp is computed on the espace portion of facture 1 only —
+        // versement cash carries no stamp.
+        if (stampTiers?.length && espaceAmt > 0) {
+          summary.cash_invoice1_stamp += calculateStampAmount(espaceAmt, stampTiers as StampPriceTier[]);
         }
       } else {
         scopedOrders.forEach((o: any) => {
