@@ -291,12 +291,12 @@
 body.native-print-active > [data-native-print-keepalive] {
   display: block !important;
   visibility: visible !important;
-  position: fixed !important;
-  inset: 0 !important;
+  position: relative !important;
+  inset: auto !important;
   z-index: 2147483647 !important;
-  width: 100vw !important;
+  width: 100% !important;
   min-height: 100vh !important;
-  overflow: auto !important;
+  overflow: visible !important;
   background: white !important;
   pointer-events: none !important;
   transform: translateZ(0) !important;
