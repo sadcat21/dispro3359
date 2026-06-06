@@ -187,45 +187,6 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
   }, [existingDrafts]);
 
   useEffect(() => {
-    if (!onReceivedDocsChange) return;
-    const next: Record<string, boolean> = { ...(receivedDocs || {}) };
-    let changed = false;
-
-    for (const doc of docs || []) {
-      const key = `doc_${doc.orderId}`;
-      if (next[key] !== undefined) continue;
-      if (doc.managerDecision === 'received') {
-        next[key] = true;
-        changed = true;
-      } else if (doc.managerDecision === 'not_received') {
-        next[key] = false;
-        changed = true;
-      } else if (doc.documentStatus === 'received' || doc.documentStatus === 'verified') {
-        next[key] = true;
-        changed = true;
-      }
-    }
-
-    for (const stamp of stampedInvoices || []) {
-      const key = `stamp_${stamp.orderId}`;
-      if (next[key] !== undefined) continue;
-      if (stamp.managerDecision === 'received') {
-        next[key] = true;
-        changed = true;
-      } else if (stamp.managerDecision === 'not_received') {
-        next[key] = false;
-        changed = true;
-      } else if (stamp.received) {
-        next[key] = true;
-        changed = true;
-      }
-    }
-
-    if (changed) onReceivedDocsChange(next);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [docs, stampedInvoices]);
-
-  useEffect(() => {
     if (docDialog) {
       const v = docDialog.verification || {};
       const t = docDialog.documentType;
