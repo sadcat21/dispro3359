@@ -483,9 +483,24 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
         const pick = (k: string) => sessionItemTotals[k]?.amount || 0;
         const pickCount = (k: string) => sessionItemTotals[k]?.count || 0;
 
-        const cash1 = pick('invoice1_espace_cash') + pick('invoice1_versement_cash');
-        summary.cash_invoice1 += cash1;
-        summary.cash_invoice1_count += pickCount('invoice1_espace_cash') + pickCount('invoice1_versement_cash');
+        const espaceAmt = pick('invoice1_espace_cash');
+        const versementAmt = pick('invoice1_versement_cash');
+        const cash1 = espaceAmt + versementAmt;
+        // Espèces Facture 1 (espace only)
+        summary.cash_invoice1 += espaceAmt;
+        summary.cash_invoice1_count += pickCount('invoice1_espace_cash');
+        // Versement Cash — independent card
+        summary.receipt_cash += versementAmt;
+        summary.receiptCashCount += pickCount('invoice1_versement_cash');
+        // Reallocate handed cash_invoice1 (lumped historically) proportionally
+        // between espace and versement so "net after handover" stays correct.
+        const handedCash1Combined = summary.cash_invoice1_handed;
+        if (cash1 > 0 && handedCash1Combined > 0) {
+          const versementShare = Number(((handedCash1Combined * versementAmt) / cash1).toFixed(2));
+          const espaceShare = Math.max(0, handedCash1Combined - versementShare);
+          summary.cash_invoice1_handed = espaceShare;
+          summary.receipt_cash_handed += versementShare;
+        }
 
         summary.cash_invoice2 += pick('invoice2_cash');
         // Real operations/customers count from scoped orders (without_invoice paid)
