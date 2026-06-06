@@ -400,6 +400,8 @@ const HandoverPrintView: React.FC<Props> = ({
           { title: 'ESPÈCES FACTURE 1', isEmpty: cashItemsWithStamp.length === 0, node: renderCashInvoice1Table() },
           { title: 'VERSEMENT CASH', isEmpty: receiptCash.length === 0, node: renderSimpleTable('VERSEMENT CASH', receiptCash, receiptCashTotal, [
             { header: 'N° Reçu', cell: (item) => item.receipt_number || '-' },
+            { header: 'Payé', cell: (item) => Number(item.paid_amount ?? item.amount ?? 0).toLocaleString() },
+            { header: 'Restant', cell: (item) => Number(item.remaining_amount ?? 0).toLocaleString() },
           ]) },
           { title: 'VERSEMENT DOC', isEmpty: receiptDocs.length === 0, node: renderSimpleTable('VERSEMENT DOC', receiptDocs, receiptsAmount, [
             { header: 'N° Reçu', cell: (item) => item.receipt_number || '-' },
