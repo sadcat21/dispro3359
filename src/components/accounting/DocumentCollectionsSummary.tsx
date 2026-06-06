@@ -582,27 +582,33 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           <div className="border-2 border-violet-200 dark:border-violet-900/40 rounded-xl p-2.5 space-y-2 bg-violet-50/30 dark:bg-violet-900/10">
             {stampedInvoices.map(inv => {
               const stampKey = `stamp_${inv.orderId}`;
-              const isStampReceived = receivedDocs ? receivedDocs[stampKey] !== false : true;
+              const draftDecision = receivedDocs ? receivedDocs[stampKey] : undefined;
+              const isGreen = inv.received || draftDecision === true;
+              const isRed = draftDecision === false;
               return (
               <div
                 key={inv.orderId}
                 onClick={() => setStampDialog(inv)}
                 className={`border rounded-lg p-2.5 flex items-center justify-between gap-2 cursor-pointer transition-colors hover:bg-muted/40 ${
-                  inv.received
-                    ? 'border-green-300 dark:border-green-800 bg-green-50/60 dark:bg-green-900/20'
-                    : !isStampReceived ? 'border-destructive/40 bg-destructive/5' : ''
+                  isGreen
+                    ? 'border-green-500 bg-green-50/40 dark:bg-green-900/10'
+                    : isRed ? 'border-destructive bg-destructive/5' : ''
                 }`}
               >
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold truncate">{inv.customerName}</p>
+                    {/* Top: owner name from business profile (fallback to app name) */}
+                    <p className="text-sm font-semibold truncate leading-tight" dir="auto">
+                      {inv.ownerName || inv.customerName}
+                    </p>
+                    {/* Bottom: app customer name (only if distinct from top) */}
                     {inv.ownerName && (
-                      <p className="text-[10px] text-muted-foreground/90 truncate leading-tight" dir="auto">
-                        {inv.ownerName}
+                      <p className="text-[11px] text-muted-foreground truncate leading-tight" dir="auto">
+                        {inv.customerName}
                       </p>
                     )}
 
-                    <div className="flex items-center gap-1.5 flex-wrap">
+                    <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
                       <span className="text-[10px] text-muted-foreground">#{inv.orderId.slice(0, 8)}</span>
                       <Badge variant="outline" className="text-[9px] px-1 py-0">
                         {stampedMethodLabel(inv.paymentMethod, inv.bucket)}
