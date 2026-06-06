@@ -275,6 +275,10 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
 
   const { data: docs, isLoading } = useQuery({
     queryKey: ['session-document-collections', workerId, periodStart, periodEnd],
+    enabled: !!workerId && !!periodStart && !!periodEnd,
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       const startDate = extractDate(periodStart);
       const endDate = extractDate(periodEnd);
