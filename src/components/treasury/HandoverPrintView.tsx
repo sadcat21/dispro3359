@@ -13,6 +13,8 @@ interface HandoverItem {
   payment_method: string;
   amount: number;
   customer_name: string | null;
+  customer_name_fr?: string | null;
+  customer_app_name?: string | null;
   base_amount?: number;
   stamp_amount?: number;
   stamp_percentage?: number;
@@ -136,7 +138,9 @@ const HandoverPrintView: React.FC<Props> = ({
         const treasuryEntry = item.treasury_entry_id ? treasuryMap[item.treasury_entry_id] : null;
         const order = item.order_id ? orderMap[item.order_id] : null;
         const customer = order?.customers;
-        const customerName = customer?.name_fr || customer?.name || item.customer_name;
+        const customerNameFr = customer?.name_fr || null;
+        const customerAppName = customer?.name || item.customer_name || null;
+        const customerName = customerNameFr || customerAppName;
         const itemsSubtotal = (order?.order_items || []).reduce((sum: number, orderItem: any) => sum + Number(orderItem.total_price || 0), 0);
         const stampBaseAmount = itemsSubtotal > 0 ? itemsSubtotal : Number(order?.total_amount || item.amount || 0);
         const activeTiers = (stampTiers || []) as StampPriceTier[];
@@ -150,6 +154,8 @@ const HandoverPrintView: React.FC<Props> = ({
         return {
           ...item,
           customer_name: customerName || item.customer_name,
+          customer_name_fr: customerNameFr,
+          customer_app_name: customerAppName,
           base_amount: item.payment_method === 'cash'
             ? Number((Number(item.amount || 0) - exactStampAmount).toFixed(2))
             : undefined,
@@ -246,6 +252,20 @@ const HandoverPrintView: React.FC<Props> = ({
   const cashItemsNetTotal = cashItemsWithStamp.reduce((sum, item) => sum + Number(item.base_amount || 0), 0);
   const cashItemsStampTotal = cashItemsWithStamp.reduce((sum, item) => sum + Number(item.stamp_amount || 0), 0);
 
+  const renderClientCell = (item: HandoverItem) => {
+    const primary = item.customer_name_fr || item.customer_name || '-';
+    const appName = item.customer_app_name;
+    const showApp = appName && appName.trim() && appName.trim() !== (item.customer_name_fr || '').trim();
+    return (
+      <>
+        <div>{primary}</div>
+        {showApp && (
+          <div style={{ fontSize: '9px', color: '#dc2626' }}>{appName}</div>
+        )}
+      </>
+    );
+  };
+
   const renderSimpleTable = (
     title: string,
     tableItems: HandoverItem[],
@@ -280,7 +300,7 @@ const HandoverPrintView: React.FC<Props> = ({
             ) : (
               tableItems.map((item, index) => (
                 <tr key={`${title}-${index}`}>
-                  <td style={{ textAlign: 'left' }}>{item.customer_name || '-'}</td>
+                  <td style={{ textAlign: 'left' }}>{renderClientCell(item)}</td>
                   <td style={{ textAlign: 'left' }}>{item.invoice_number || '-'}</td>
                   <td style={{ textAlign: 'right' }}>{item.amount.toLocaleString()}</td>
                   {extras.map((column) => (
@@ -322,7 +342,7 @@ const HandoverPrintView: React.FC<Props> = ({
           ) : (
             cashItemsWithStamp.map((item, index) => (
               <tr key={`cash-invoice1-${index}`}>
-                <td style={{ textAlign: 'left' }}>{item.customer_name || '-'}</td>
+                <td style={{ textAlign: 'left' }}>{renderClientCell(item)}</td>
                 <td style={{ textAlign: 'left' }}>{item.invoice_number || '-'}</td>
                 <td style={{ textAlign: 'right' }}>{Number(item.base_amount || 0).toLocaleString()}</td>
                 <td style={{ textAlign: 'right' }}>{Number(item.stamp_percentage || 0).toLocaleString()}%</td>
