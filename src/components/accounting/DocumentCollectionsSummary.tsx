@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, FileCheck2, Truck, Clock, ShieldCheck, ShieldAlert, AlertCircle, ClipboardCheck, Stamp, CheckCircle, XCircle, Package, ImageIcon, Gift, Paperclip } from 'lucide-react';
+import { Loader2, FileCheck2, FileText, Truck, Clock, ShieldCheck, ShieldAlert, AlertCircle, ClipboardCheck, Stamp, CheckCircle, XCircle, Package, ImageIcon, Gift, Paperclip } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -498,11 +498,13 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           const isUnsubmitted = receivedState === undefined;
           return (
             <div className="flex items-start gap-2">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isReceived ? 'bg-emerald-500 shadow-md shadow-emerald-500/40' : isUnsubmitted || isRejected ? 'bg-red-500 shadow-md shadow-red-500/40' : 'bg-primary/10'}`}>
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isReceived ? 'bg-emerald-500 shadow-md shadow-emerald-500/40' : isRejected ? 'bg-red-500 shadow-md shadow-red-500/40' : 'bg-sky-500 shadow-md shadow-sky-500/30'}`}>
                 {isReceived ? (
                   <CheckCircle className="w-5 h-5 text-white" strokeWidth={3} />
-                ) : (
+                ) : isRejected ? (
                   <XCircle className="w-5 h-5 text-white" strokeWidth={3} />
+                ) : (
+                  <FileText className="w-5 h-5 text-white" strokeWidth={2.5} />
                 )}
               </div>
               <div className="min-w-0 flex-1">
