@@ -444,6 +444,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
     onItemsChange({
       docIds: (docs || []).map((d) => d.orderId),
       stampIds: (stampedInvoices || []).map((s) => s.orderId),
+      receivedStampIds: (stampedInvoices || []).filter((s) => s.received).map((s) => s.orderId),
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [docs, stampedInvoices]);
