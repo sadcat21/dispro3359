@@ -1412,6 +1412,7 @@ const ManagerTreasury = () => {
                   bankTransferReference={(h as any).bank_transfer_reference}
                   receivedBy={(h as any).receiver_name || (h as any).received_by}
                   unifiedCash={(h as any).unified_cash ?? true}
+                  expensesAmount={summary?.totalExpenses || 0}
                 />
               </div>
             </DialogContent>
