@@ -33,16 +33,19 @@ public class NativePrintPlugin extends Plugin {
                 }
 
                 String jobName = call.getString("jobName", "Laser Food");
-                PrintDocumentAdapter adapter;
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     webView.invalidate();
                     webView.requestLayout();
-                    webView.postVisualStateCallback(System.nanoTime(), new WebView.VisualStateCallback() {
-                        @Override
-                        public void onComplete(long requestId) {
-                            new Handler(Looper.getMainLooper()).postDelayed(() -> startPrintJob(call, webView, printManager, jobName), PRINT_PREPARE_DELAY_MS);
-                        }
-                    });
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        webView.postVisualStateCallback(System.nanoTime(), new WebView.VisualStateCallback() {
+                            @Override
+                            public void onComplete(long requestId) {
+                                new Handler(Looper.getMainLooper()).postDelayed(() -> startPrintJob(call, webView, printManager, jobName), PRINT_PREPARE_DELAY_MS);
+                            }
+                        });
+                    } else {
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> startPrintJob(call, webView, printManager, jobName), PRINT_PREPARE_DELAY_MS);
+                    }
                 } else {
                     call.reject("إصدار أندرويد لا يدعم الطباعة الأصلية");
                     return;
