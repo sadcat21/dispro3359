@@ -138,7 +138,7 @@ const isCollectedDuringDelivery = (order: any) => {
   return true;
 };
 
-const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({ workerId, periodStart, periodEnd, receivedDocs, onReceivedDocsChange }) => {
+const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({ workerId, periodStart, periodEnd, receivedDocs, onReceivedDocsChange, onItemsChange }) => {
   const queryClient = useQueryClient();
   const [verifyDoc, setVerifyDoc] = useState<CollectedDoc | null>(null);
   const [stampDialog, setStampDialog] = useState<StampedInvoice | null>(null);
