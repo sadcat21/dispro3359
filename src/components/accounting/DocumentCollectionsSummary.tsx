@@ -466,16 +466,16 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
     const receivedState = receivedDocs ? receivedDocs[docKey] : undefined;
     const borderCls =
       receivedState === true
-        ? 'border-green-500 bg-green-50/40 dark:bg-green-900/10'
+        ? 'border-2 border-emerald-500 bg-emerald-100/70 dark:bg-emerald-900/30 ring-2 ring-emerald-400/60 shadow-md shadow-emerald-500/20'
         : receivedState === false
-          ? 'border-destructive bg-destructive/5'
-          : '';
+          ? 'border-2 border-destructive bg-destructive/10'
+          : 'border';
 
     return (
       <div
         key={doc.orderId}
         onClick={() => setDocDialog(doc)}
-        className={`border rounded-lg p-3 space-y-2 cursor-pointer transition-colors hover:bg-muted/40 ${borderCls}`}
+        className={`rounded-lg p-3 space-y-2 cursor-pointer transition-colors hover:bg-muted/40 ${borderCls}`}
       >
         {/* Header: owner name on top, then 2-col 3-row grid */}
         {(() => {
@@ -488,10 +488,15 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                 : ps === 'debt' || ps === 'unpaid' || ps === 'pending'
                   ? { label: 'دين', cls: 'bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300' }
                   : null;
+          const isReceived = receivedState === true;
           return (
             <div className="flex items-start gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <FileCheck2 className="w-4 h-4 text-primary" />
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isReceived ? 'bg-emerald-500 shadow-md shadow-emerald-500/40' : 'bg-primary/10'}`}>
+                {isReceived ? (
+                  <CheckCircle className="w-5 h-5 text-white" strokeWidth={3} />
+                ) : (
+                  <FileCheck2 className="w-4 h-4 text-primary" />
+                )}
               </div>
               <div className="min-w-0 flex-1">
                 {/* Top line: owner full name from business file (fallback to app name) */}
@@ -564,7 +569,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
             <Truck className="w-3.5 h-3.5" />
             <span>مستندات مستلمة أثناء التوصيل ({deliveryDocs.length})</span>
           </div>
-          <div className="border-2 border-green-200 dark:border-green-900/40 rounded-xl p-2.5 space-y-2 bg-green-50/30 dark:bg-green-900/10">
+          <div className="border-2 border-emerald-500 dark:border-emerald-600 rounded-xl p-2.5 space-y-2 bg-emerald-100/60 dark:bg-emerald-900/20 shadow-md shadow-emerald-500/20">
             {renderDocList(deliveryDocs)}
           </div>
         </div>
@@ -576,7 +581,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
             <Clock className="w-3.5 h-3.5" />
             <span>مستندات معلقة تم تحصيلها ({pendingDocs.length})</span>
           </div>
-          <div className="border-2 border-orange-200 dark:border-orange-900/40 rounded-xl p-2.5 space-y-2 bg-orange-50/30 dark:bg-orange-900/10">
+          <div className="border-2 border-orange-500 dark:border-orange-600 rounded-xl p-2.5 space-y-2 bg-orange-100/60 dark:bg-orange-900/20 shadow-md shadow-orange-500/20">
             {renderDocList(pendingDocs)}
           </div>
         </div>
