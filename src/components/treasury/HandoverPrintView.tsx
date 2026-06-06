@@ -46,6 +46,7 @@ interface Props {
   intermediaryName?: string;
   bankTransferReference?: string;
   receivedBy?: string;
+  senderName?: string;
   unifiedCash?: boolean;
   onReady?: () => void;
 }
