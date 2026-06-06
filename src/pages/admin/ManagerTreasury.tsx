@@ -158,6 +158,24 @@ const ManagerTreasury = () => {
   const [collectedDebtsOpen, setCollectedDebtsOpen] = useState(false);
   const [expensesOpen, setExpensesOpen] = useState(false);
   const [handoversListOpen, setHandoversListOpen] = useState(false);
+  const [selectedHandoverIds, setSelectedHandoverIds] = useState<string[]>([]);
+  const toggleHandoverSelected = (id: string) => setSelectedHandoverIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  const clearHandoverSelection = () => setSelectedHandoverIds([]);
+  const bulkDeleteHandovers = async () => {
+    if (!selectedHandoverIds.length) return;
+    if (!confirm(`${t('common.confirm_delete')} (${selectedHandoverIds.length})`)) return;
+    try {
+      await supabase.from('handover_items').delete().in('handover_id', selectedHandoverIds);
+      const { error } = await supabase.from('manager_handovers').delete().in('id', selectedHandoverIds);
+      if (error) throw error;
+      toast.success(t('common.deleted'));
+      clearHandoverSelection();
+      queryClient.invalidateQueries({ queryKey: ['manager-handovers'] });
+      queryClient.invalidateQueries({ queryKey: ['treasury-summary'] });
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
   const [workerHeldOpen, setWorkerHeldOpen] = useState(false);
   const [addForm, setAddForm] = useState({ payment_method: 'cash_invoice1', amount: '', customer_name: '', invoice_number: '', invoice_date: '', check_number: '', check_bank: '', check_date: '', receipt_number: '', transfer_reference: '', notes: '' });
   const [handoverForm, setHandoverForm] = useState({ cash_invoice1: '', cash_invoice2: '', cash_delivered: '', notes: '', delivery_method: 'direct', intermediary_name: '', bank_transfer_reference: '', received_by: '', bank_account_id: '', receipt_image_url: '' });
@@ -1243,17 +1261,45 @@ const ManagerTreasury = () => {
 
 
 
-              <Dialog open={handoversListOpen} onOpenChange={setHandoversListOpen}>
+              <Dialog open={handoversListOpen} onOpenChange={(open) => { setHandoversListOpen(open); if (!open) clearHandoverSelection(); }}>
                 <DialogContent dir={dir} className="max-h-[90vh] overflow-y-auto">
                   <DialogHeader><DialogTitle>📤 التسليمات</DialogTitle></DialogHeader>
+                  {handovers && handovers.length > 0 && (
+                    <div className="flex items-center justify-between gap-2 border rounded-lg p-2 bg-muted/40 sticky top-0 z-10">
+                      <label className="flex items-center gap-2 text-xs cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4"
+                          checked={selectedHandoverIds.length === handovers.length}
+                          ref={el => { if (el) el.indeterminate = selectedHandoverIds.length > 0 && selectedHandoverIds.length < handovers.length; }}
+                          onChange={(e) => setSelectedHandoverIds(e.target.checked ? handovers.map(h => h.id) : [])}
+                        />
+                        <span>تحديد الكل ({selectedHandoverIds.length}/{handovers.length})</span>
+                      </label>
+                      {selectedHandoverIds.length > 0 && (
+                        <div className="flex items-center gap-1">
+                          <Button size="sm" variant="outline" className="h-7" onClick={clearHandoverSelection}>إلغاء</Button>
+                          <Button size="sm" variant="destructive" className="h-7" onClick={bulkDeleteHandovers}>
+                            <Trash2 className="w-3.5 h-3.5 mx-1" /> حذف ({selectedHandoverIds.length})
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   <div className="space-y-2">
                     {(!handovers || handovers.length === 0) ? (
                       <p className="text-center text-muted-foreground py-8">{t('treasury.no_handovers')}</p>
                     ) : handovers.map(h => (
-                      <Card key={h.id}>
+                      <Card key={h.id} className={selectedHandoverIds.includes(h.id) ? 'ring-2 ring-primary' : ''}>
                         <CardContent className="p-3 space-y-2">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                className="w-4 h-4"
+                                checked={selectedHandoverIds.includes(h.id)}
+                                onChange={() => toggleHandoverSelected(h.id)}
+                              />
                               <Send className="w-4 h-4 text-destructive" />
                               <p className="font-bold">{Number(h.amount).toLocaleString()} {cur}</p>
                             </div>
