@@ -253,14 +253,14 @@ const HandoverPrintView: React.FC<Props> = ({
   const cashItemsStampTotal = cashItemsWithStamp.reduce((sum, item) => sum + Number(item.stamp_amount || 0), 0);
 
   const renderClientCell = (item: HandoverItem) => {
-    const primary = item.customer_name_fr || item.customer_name || '-';
-    const appName = item.customer_app_name;
-    const showApp = appName && appName.trim() && appName.trim() !== (item.customer_name_fr || '').trim();
+    const appName = item.customer_app_name || item.customer_name || '-';
+    const frName = item.customer_name_fr;
+    const showFr = frName && frName.trim() && frName.trim() !== (item.customer_app_name || '').trim();
     return (
       <>
-        <div>{primary}</div>
-        {showApp && (
-          <div style={{ fontSize: '9px', color: '#dc2626' }}>{appName}</div>
+        <div>{appName}</div>
+        {showFr && (
+          <div style={{ fontSize: '9px', color: '#dc2626' }}>{frName}</div>
         )}
       </>
     );
