@@ -800,7 +800,30 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
 
                   <div className="space-y-1.5 mt-3">
                     <Label className="text-xs font-semibold">{t('accounting.actual_cash_received')}</Label>
-                    <Input type="number" value={actualCash} onChange={e => setActualCash(e.target.value)} className="h-11 text-lg font-bold text-center rounded-lg" placeholder="0" />
+                    {(() => {
+                      const onlyExpenses =
+                        calc.cashExpenses > 0 &&
+                        (calc.invoice2?.cash || 0) === 0 &&
+                        (calc.invoice1?.espaceCash || 0) === 0 &&
+                        (calc.invoice1?.versementCash || 0) === 0 &&
+                        (calc.debtCollections?.cash || 0) === 0 &&
+                        (calc.customerSurplusCash || 0) === 0;
+                      if (onlyExpenses) {
+                        return (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setActualCash(String(calc.cashExpenses))}
+                            className="w-full h-11 text-lg font-bold rounded-lg border-dashed"
+                          >
+                            {fmt(calc.cashExpenses)} DA
+                          </Button>
+                        );
+                      }
+                      return (
+                        <Input type="number" value={actualCash} onChange={e => setActualCash(e.target.value)} className="h-11 text-lg font-bold text-center rounded-lg" placeholder="0" />
+                      );
+                    })()}
                   </div>
 
                   {actualCash !== '' && (() => {
