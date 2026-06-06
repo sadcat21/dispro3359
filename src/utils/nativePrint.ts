@@ -19,6 +19,19 @@ const PRINT_PORTAL_IDS = [
 
 const KEEPALIVE_ATTRIBUTE = 'data-native-print-keepalive';
 const PRINTABLE_ROOT_SELECTOR = '.print-container, .print-handover';
+const PREPARING_ATTRIBUTE = 'data-native-print-preparing';
+
+const cleanupNativePrintState = () => {
+  if (typeof document === 'undefined') return;
+
+  document.body.classList.remove('native-print-active');
+  document.documentElement.classList.remove('native-print-active');
+  document.body.removeAttribute(PREPARING_ATTRIBUTE);
+
+  for (const staleClone of document.querySelectorAll<HTMLElement>(`[${KEEPALIVE_ATTRIBUTE}]`)) {
+    staleClone.remove();
+  }
+};
 
 const forcePrintableVisibility = (root: HTMLElement) => {
   const printableRoots = [
@@ -47,6 +60,21 @@ const waitForNextPaint = async () => {
   });
 };
 
+const waitForPrintableLayout = async () => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+  await waitForNextPaint();
+
+  const printableRoots = Array.from(document.querySelectorAll<HTMLElement>(`[${KEEPALIVE_ATTRIBUTE}] ${PRINTABLE_ROOT_SELECTOR}`));
+  for (const node of printableRoots) {
+    void node.offsetHeight;
+    void node.getBoundingClientRect();
+  }
+
+  await new Promise<void>((resolve) => window.setTimeout(resolve, 120));
+  await waitForNextPaint();
+};
+
 /**
  * On native Android the print dialog opens asynchronously, but most callers
  * unmount the React print component immediately after calling window.print().
@@ -58,10 +86,8 @@ const waitForNextPaint = async () => {
 const keepPrintPortalsAlive = (): (() => void) => {
   if (typeof document === 'undefined') return () => {};
 
-  for (const staleClone of document.querySelectorAll<HTMLElement>(`[${KEEPALIVE_ATTRIBUTE}]`)) {
-    staleClone.remove();
-  }
-  document.body.classList.remove('native-print-active');
+  cleanupNativePrintState();
+  document.body.setAttribute(PREPARING_ATTRIBUTE, 'true');
 
   const clones: HTMLElement[] = [];
   for (const id of PRINT_PORTAL_IDS) {
@@ -76,7 +102,10 @@ const keepPrintPortalsAlive = (): (() => void) => {
     clone.style.setProperty('position', 'relative', 'important');
     clone.style.setProperty('width', '100%', 'important');
     clone.style.setProperty('height', 'auto', 'important');
+    clone.style.setProperty('min-height', '100vh', 'important');
     clone.style.setProperty('overflow', 'visible', 'important');
+    clone.style.setProperty('opacity', '1', 'important');
+    clone.style.setProperty('contain', 'none', 'important');
     forcePrintableVisibility(clone);
     document.body.appendChild(clone);
     clones.push(clone);
@@ -85,15 +114,14 @@ const keepPrintPortalsAlive = (): (() => void) => {
   if (clones.length === 0) return () => {};
 
   document.body.classList.add('native-print-active');
+  document.documentElement.classList.add('native-print-active');
+  document.body.removeAttribute(PREPARING_ATTRIBUTE);
 
   let cleaned = false;
   return () => {
     if (cleaned) return;
     cleaned = true;
-    document.body.classList.remove('native-print-active');
-    for (const c of clones) {
-      if (c.parentNode) c.parentNode.removeChild(c);
-    }
+    cleanupNativePrintState();
   };
 };
 
@@ -115,7 +143,7 @@ export const installNativePrintBridge = () => {
       try {
         // Let the cloned portals paint before Android's WebView creates the
         // print document adapter; otherwise the adapter may snapshot an empty page.
-        await waitForNextPaint();
+        await waitForPrintableLayout();
         await NativePrint.printCurrentPage({ jobName: document.title || 'Laser Food' });
       } catch (error) {
         console.error('[NativePrint] Failed to open Android print dialog:', error);
