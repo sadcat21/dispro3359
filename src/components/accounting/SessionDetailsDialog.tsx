@@ -453,6 +453,17 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
                 <Label className="text-[10px] text-muted-foreground">تمرير</Label>
                 <Switch checked={swipeMode} onCheckedChange={setSwipeMode} />
               </div>
+              {Object.keys(receivedDocs).length > 0 && (
+                <Button
+                  size="sm"
+                  className="gap-1.5 rounded-lg h-7 px-2 text-xs bg-green-600 hover:bg-green-700"
+                  onClick={handleApplyDrafts}
+                  disabled={applyingDrafts}
+                >
+                  {applyingDrafts ? <Loader2 className="w-3 h-3 animate-spin" /> : <FileCheck2 className="w-3 h-3" />}
+                  حفظ التعديلات
+                </Button>
+              )}
               <Button
                 size="sm"
                 variant="outline"
