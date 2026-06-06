@@ -500,6 +500,15 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
         if (stampTiers?.length && cash1 > 0) {
           summary.cash_invoice1_stamp += calculateStampAmount(cash1, stampTiers as StampPriceTier[]);
         }
+
+        // Override expenses with the authoritative value recorded in the
+        // reviewed accounting sessions. The live `expenses` table can drift
+        // (entries edited or deleted) after the session was confirmed, so
+        // trust the session ledger instead.
+        const sessionExpenses = pick('expenses');
+        if (sessionExpenses > 0) {
+          summary.totalExpenses = sessionExpenses;
+        }
       } else {
         scopedOrders.forEach((o: any) => {
           const totalAmount = Number(o.total_amount || 0);
