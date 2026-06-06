@@ -300,7 +300,7 @@ const HandoverPrintView: React.FC<Props> = ({
             ) : (
               tableItems.map((item, index) => (
                 <tr key={`${title}-${index}`}>
-                  <td style={{ textAlign: 'left' }}>{item.customer_name || '-'}</td>
+                  <td style={{ textAlign: 'left' }}>{renderClientCell(item)}</td>
                   <td style={{ textAlign: 'left' }}>{item.invoice_number || '-'}</td>
                   <td style={{ textAlign: 'right' }}>{item.amount.toLocaleString()}</td>
                   {extras.map((column) => (
