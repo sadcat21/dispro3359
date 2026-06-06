@@ -615,7 +615,24 @@ const ManagerTreasury = () => {
   const transferBadge = buildBadgeText(remainingCounts?.transfer, Math.max((summary?.bank_transfer || 0) - (summary?.transfer_handed || 0), 0));
 
   const handleHandover = async () => {
-    const finalCash1 = invoice1CashAmountWithStamp;
+    // For receipt_cash items, "amount" in PickedItem is the order total, but only
+    // a portion is actually paid in cash (paid_amount). We must record the actually
+    // paid amount in manager_handovers.cash_invoice1, not the full sales total.
+    const receiptCashOrderIds = pickedReceiptCash.map(i => i.order_id).filter(Boolean) as string[];
+    let receiptCashPaidAmount = receiptCashAmount;
+    if (receiptCashOrderIds.length > 0) {
+      const { data: debts } = await supabase
+        .from('customer_debts')
+        .select('order_id, paid_amount')
+        .in('order_id', receiptCashOrderIds);
+      const paidMap: Record<string, number> = {};
+      (debts || []).forEach((d: any) => { paidMap[d.order_id] = Number(d.paid_amount || 0); });
+      receiptCashPaidAmount = pickedReceiptCash.reduce((s, i) => {
+        const paid = paidMap[i.order_id];
+        return s + (paid !== undefined ? paid : Number(i.amount || 0));
+      }, 0);
+    }
+    const finalCash1 = pickedCashInvoice1WithStamp + receiptCashPaidAmount;
     const finalCash2 = invoice2CashAmount;
     if (deliveredCashAmount < finalCash1) {
       toast.error('الكاش المسلم يجب أن يكون أكبر من أو يساوي كاش فاتورة 1');
