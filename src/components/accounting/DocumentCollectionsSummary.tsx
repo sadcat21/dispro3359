@@ -960,6 +960,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                 setDocSaving(false);
                 if (error) { toast.error('فشل حفظ المسودة: ' + String((error as any).message || '')); return; }
                 toast.success('تم حفظ القرار كمسودة — سيُطبَّق عند حفظ الجلسة');
+                if (onReceivedDocsChange) onReceivedDocsChange({ ...(receivedDocs || {}), [`doc_${docDialog.orderId}`]: true });
                 await queryClient.invalidateQueries({ queryKey: ['manager-decision-drafts', workerId] });
                 setDocDialog(null);
               }}
