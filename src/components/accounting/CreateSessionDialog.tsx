@@ -732,7 +732,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                     })()}
                     <div className="bg-orange-50 dark:bg-orange-900/10 rounded-lg p-2.5 text-center">
                       <p className="text-[10px] text-muted-foreground">المصاريف</p>
-                      <p className="font-bold text-lg text-orange-700">{fmt(calc.cashExpenses || 0)} DA</p>
+                      <p className="font-bold text-lg text-orange-700">{fmt(calc.expenses || 0)} DA</p>
                     </div>
                     <div className="bg-orange-50 dark:bg-orange-900/10 rounded-lg p-2.5 text-center">
                       <p className="text-[10px] text-muted-foreground">الديون المحصلة</p>
