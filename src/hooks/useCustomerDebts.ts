@@ -72,6 +72,11 @@ export const useCustomerDebts = (filters?: {
 
       if (filters?.status && filters.status !== 'all') {
         query = query.eq('status', filters.status);
+      } else {
+        // Debts attached to cancelled orders must never appear in the standard
+        // listing — they're already settled at the order level. Legacy rows
+        // can still have remaining_amount > 0, so filter by status here.
+        query = query.neq('status', 'cancelled');
       }
       if (filters?.workerId) {
         query = query.eq('worker_id', filters.workerId);
