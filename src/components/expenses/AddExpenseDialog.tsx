@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useExpenseCategories, useCreateExpense } from '@/hooks/useExpenses';
+import { useExpenseCategories, useCreateExpense, useUpdateExpense } from '@/hooks/useExpenses';
 import { useCreateWorkerDebt } from '@/hooks/useWorkerDebts';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,15 +16,20 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getCategoryName } from '@/utils/categoryName';
 import { isAdminRole } from '@/lib/utils';
 import { toast } from 'sonner';
+import type { ExpenseWithDetails } from '@/types/expense';
 
 interface AddExpenseDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  expense?: ExpenseWithDetails;
 }
 
-const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange }) => {
+const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange, expense }) => {
   const { data: categories } = useExpenseCategories();
   const createExpense = useCreateExpense();
+  const updateExpense = useUpdateExpense();
+  const isEdit = !!expense;
+
   const createWorkerDebt = useCreateWorkerDebt();
   const { language, t, dir } = useLanguage();
   const { role, activeRole, activeBranch } = useAuth();
@@ -97,6 +102,21 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange 
     if (!isAdvanceCategory) setAdvanceWorkerId('');
   }, [isAdvanceCategory]);
 
+  useEffect(() => {
+    if (open && expense) {
+      setCategoryId(expense.category_id || '');
+      setAmount(String(expense.amount ?? ''));
+      const desc = expense.description || '';
+      setDescription(desc.startsWith('مسبق أجرة:') ? desc.replace(/^مسبق أجرة:[^—]*(—\s*)?/, '') : desc);
+      setExpenseDate(expense.expense_date || format(new Date(), 'yyyy-MM-dd'));
+      setReceiptFiles([]);
+      setPaymentMethod(expense.payment_method || 'cash');
+    } else if (open && !expense) {
+      resetForm();
+    }
+  }, [open, expense]);
+
+
   const addFiles = (files: FileList | null) => {
     if (!files) return;
     setReceiptFiles(prev => [...prev, ...Array.from(files)]);
@@ -142,29 +162,42 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange 
       ? `مسبق أجرة: ${workerName}${description ? ` — ${description}` : ''}`
       : (description || undefined);
 
-    await createExpense.mutateAsync({
-      category_id: categoryId,
-      amount: parseFloat(amount),
-      description: finalDescription,
-      expense_date: expenseDate,
-      receipt_url: receiptUrls[0],
-      receipt_urls: receiptUrls,
-      payment_method: isFuelCategory ? paymentMethod : 'cash',
-    });
+    if (isEdit && expense) {
+      await updateExpense.mutateAsync({
+        id: expense.id,
+        category_id: categoryId,
+        amount: parseFloat(amount),
+        description: finalDescription ?? null,
+        expense_date: expenseDate,
+        ...(receiptUrls.length > 0 ? { receipt_url: receiptUrls[0], receipt_urls: receiptUrls } : {}),
+        payment_method: isFuelCategory ? paymentMethod : 'cash',
+      });
+    } else {
+      await createExpense.mutateAsync({
+        category_id: categoryId,
+        amount: parseFloat(amount),
+        description: finalDescription,
+        expense_date: expenseDate,
+        receipt_url: receiptUrls[0],
+        receipt_urls: receiptUrls,
+        payment_method: isFuelCategory ? paymentMethod : 'cash',
+      });
 
-    if (isAdvanceCategory && advanceWorkerId) {
-      try {
-        await createWorkerDebt.mutateAsync({
-          worker_id: advanceWorkerId,
-          amount: parseFloat(amount),
-          debt_type: 'advance',
-          description: `مسبق أجرة بتاريخ ${expenseDate}${description ? ` — ${description}` : ''}`,
-        });
-        toast.success('تم تسجيل المسبق ضمن ديون العامل');
-      } catch (err: any) {
-        toast.error('تعذر تسجيل دين العامل: ' + (err?.message || ''));
+      if (isAdvanceCategory && advanceWorkerId) {
+        try {
+          await createWorkerDebt.mutateAsync({
+            worker_id: advanceWorkerId,
+            amount: parseFloat(amount),
+            debt_type: 'advance',
+            description: `مسبق أجرة بتاريخ ${expenseDate}${description ? ` — ${description}` : ''}`,
+          });
+          toast.success('تم تسجيل المسبق ضمن ديون العامل');
+        } catch (err: any) {
+          toast.error('تعذر تسجيل دين العامل: ' + (err?.message || ''));
+        }
       }
     }
+
 
     resetForm();
     onOpenChange(false);
@@ -174,7 +207,7 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md" dir={dir}>
         <DialogHeader>
-          <DialogTitle>{t('expenses.add_expense')}</DialogTitle>
+          <DialogTitle>{isEdit ? t('common.edit') : t('expenses.add_expense')}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -307,10 +340,11 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange 
           <Button
             type="submit"
             className="w-full"
-            disabled={!categoryId || !amount || createExpense.isPending || uploading || createWorkerDebt.isPending || (isAdvanceCategory && !advanceWorkerId)}
+            disabled={!categoryId || !amount || createExpense.isPending || updateExpense.isPending || uploading || createWorkerDebt.isPending || (!isEdit && isAdvanceCategory && !advanceWorkerId)}
           >
-            {(createExpense.isPending || uploading) && <Loader2 className="w-4 h-4 animate-spin me-2" />}
-            {t('expenses.add_button')}
+            {(createExpense.isPending || updateExpense.isPending || uploading) && <Loader2 className="w-4 h-4 animate-spin me-2" />}
+            {isEdit ? t('common.save') : t('expenses.add_button')}
+
           </Button>
         </form>
       </DialogContent>

@@ -10010,6 +10010,7 @@ export type Database = {
         Args: { p_conversation_id: string }
         Returns: boolean
       }
+      is_expense_accounted: { Args: { _expense_id: string }; Returns: boolean }
       is_worker: { Args: never; Returns: boolean }
       is_worker_frozen: { Args: { _worker_id: string }; Returns: boolean }
       is_worker_role_active: {
