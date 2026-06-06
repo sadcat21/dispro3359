@@ -442,7 +442,7 @@ const HandoverPrintView: React.FC<Props> = ({
             ) : (
               <>
                 {summaryRow('Espèces Facture 1', cashItemsTotal)}
-                {summaryRow('Versement Cash', receiptCashTotal)}
+                {summaryRow('Versement Cash (Payé)', receiptCashPaidTotal)}
                 {summaryRow('Timbre Facture 1', cashItemsStampTotal)}
                 {summaryRow('Espèces Facture 2', cashInvoice2)}
                 {summaryRow('Recouvrement dettes / cash suppl.', extraCashTotal)}
