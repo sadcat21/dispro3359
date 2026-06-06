@@ -146,6 +146,30 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
     }
   };
 
+  const handleApplyDrafts = async () => {
+    setApplyingDrafts(true);
+    try {
+      const { error } = await (supabase as any).rpc('apply_manager_decision_drafts', {
+        p_worker_id: session.worker_id,
+        p_session_id: session.id,
+      });
+      if (error) throw error;
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['invoice-tracking'] }),
+        queryClient.invalidateQueries({ queryKey: ['invoice1-status'] }),
+        queryClient.invalidateQueries({ queryKey: ['session-stamped-invoices'] }),
+        queryClient.invalidateQueries({ queryKey: ['session-document-collections'] }),
+        queryClient.invalidateQueries({ queryKey: ['manager-decision-drafts', session.worker_id] }),
+        queryClient.invalidateQueries({ queryKey: ['pending-documents'] }),
+      ]);
+      toast.success('تم حفظ التعديلات وتحديث الفواتير والوثائق');
+    } catch (e: any) {
+      toast.error('تعذّر حفظ التعديلات: ' + String(e?.message || ''));
+    } finally {
+      setApplyingDrafts(false);
+    }
+  };
+
   const statusColor = (s: string) => {
     switch (s) {
       case 'open': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
