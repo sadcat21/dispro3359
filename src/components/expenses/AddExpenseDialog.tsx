@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useExpenseCategories, useCreateExpense } from '@/hooks/useExpenses';
+import { useExpenseCategories, useCreateExpense, useUpdateExpense } from '@/hooks/useExpenses';
 import { useCreateWorkerDebt } from '@/hooks/useWorkerDebts';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,15 +16,20 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getCategoryName } from '@/utils/categoryName';
 import { isAdminRole } from '@/lib/utils';
 import { toast } from 'sonner';
+import type { ExpenseWithDetails } from '@/types/expense';
 
 interface AddExpenseDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  expense?: ExpenseWithDetails;
 }
 
-const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange }) => {
+const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange, expense }) => {
   const { data: categories } = useExpenseCategories();
   const createExpense = useCreateExpense();
+  const updateExpense = useUpdateExpense();
+  const isEdit = !!expense;
+
   const createWorkerDebt = useCreateWorkerDebt();
   const { language, t, dir } = useLanguage();
   const { role, activeRole, activeBranch } = useAuth();
