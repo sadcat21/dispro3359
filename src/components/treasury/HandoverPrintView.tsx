@@ -472,7 +472,7 @@ const HandoverPrintView: React.FC<Props> = ({
 
       <div className="hv-grand" data-pdf-section>
         <span>Total Général</span>
-        <strong>{(totalAmount - (receiptCashTotal - receiptCashPaidTotal)).toLocaleString()} DA</strong>
+        <strong>{(totalAmount - (receiptCashTotal - receiptCashPaidTotal) - expensesAmount).toLocaleString()} DA</strong>
       </div>
 
       <div className="hv-sign" data-pdf-section>
