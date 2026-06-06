@@ -23,6 +23,8 @@ interface HandoverItem {
   check_bank?: string;
   receipt_number?: string;
   transfer_reference?: string;
+  paid_amount?: number;
+  remaining_amount?: number;
 }
 
 interface Props {
