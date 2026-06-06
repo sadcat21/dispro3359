@@ -353,40 +353,36 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
         end: parseAccountingTime(s.period_end),
       }));
 
-      // Only count expenses for workers who have a CONFIRMED accounting
-      // session whose window covers the expense date. Until the worker is
-      // accounted for, their expenses come out of the cash they will hand
-      // over — not the manager's treasury.
-      const totalExpenses = (expensesData || []).reduce((s: number, e: any) => {
-        const wId = e.worker_id;
-        if (!wId) return s;
-        const t = parseAccountingTime(e.created_at || e.expense_date);
-        const covered = sessionWindows.some(
-          (w) => w.worker_id === wId && t >= w.start && t <= w.end,
-        );
-        return covered ? s + Number(e.amount || 0) : s;
-      }, 0);
+      // Approved expenses are receipted by the branch manager and therefore
+      // must be deducted from the manager's treasury balance immediately,
+      // exactly like other handovers — no session-window gating.
+      const totalExpenses = (expensesData || []).reduce(
+        (s: number, e: any) => s + Number(e.amount || 0),
+        0,
+      );
 
       // When viewing as a specific manager with no reviewed sessions yet,
-      // nothing should be displayed in the budget — zero out expenses and
-      // debt-cash collections too (sales are already gated via scopedOrders).
+      // nothing should be displayed in the budget — zero out debt-cash
+      // collections. Expenses remain deducted because they were already
+      // approved/receipted by the branch manager.
       const noReviewedSessions = perManager && sessionWindows.length === 0;
       const effectiveDebtCashCollected = noReviewedSessions ? 0 : debtCashCollected;
-      const effectiveTotalExpenses = noReviewedSessions ? 0 : totalExpenses;
+      const effectiveTotalExpenses = totalExpenses;
 
 
 
 
-      // For worker-held calculation we must consider ALL completed sessions in the branch
-      // (any manager). Use shared util so the card matches the dialog exactly.
-      let scopedOrders = orders || [];
-      if (perManager) {
-        scopedOrders = (orders || []).filter((o: any) => {
-          if (!o.assigned_worker_id) return false;
-          const t = orderAccountingTime(o);
-          return sessionWindows.some((w) => w.worker_id === o.assigned_worker_id && t >= w.start && t <= w.end);
-        });
-      }
+      // Show only sales that fall inside a reviewed/confirmed accounting
+      // session window. This applies at both branch and per-manager levels:
+      // unreviewed orders must NOT contribute to treasury totals.
+      let scopedOrders = (orders || []).filter((o: any) => {
+        if (!o.assigned_worker_id) return false;
+        const t = orderAccountingTime(o);
+        return sessionWindows.some(
+          (w) => w.worker_id === o.assigned_worker_id && t >= w.start && t <= w.end,
+        );
+      });
+
 
       const { computeWorkerHeld } = await import('@/utils/computeWorkerHeld');
       const workerHeldResult = await computeWorkerHeld(activeBranch?.id, range);
