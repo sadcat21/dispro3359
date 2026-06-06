@@ -51,21 +51,28 @@ const HandoverItemPickerDialog = ({ open, onOpenChange, paymentMethod, onConfirm
     queryKey: ['handover-picker', paymentMethod, activeBranch?.id, perManagerId],
     enabled: open,
     queryFn: async () => {
+      const isDocMethod = paymentMethod === 'check' || paymentMethod === 'receipt' || paymentMethod === 'transfer';
+
       let sessionWindows: Array<{ worker_id: string; start: number; end: number }> = [];
-      if (perManagerId) {
+      if (perManagerId || isDocMethod) {
         let sessionQuery = supabase
           .from('accounting_sessions')
-          .select('worker_id, period_start, period_end')
-          .eq('status', 'completed')
-          .eq('manager_id', perManagerId);
+          .select('worker_id, period_start, period_end, status, review_session_id')
+          .eq('status', 'completed');
+        if (perManagerId) sessionQuery = sessionQuery.eq('manager_id', perManagerId);
         if (activeBranch?.id) sessionQuery = sessionQuery.eq('branch_id', activeBranch.id);
         const { data: sessions, error: sessionsError } = await sessionQuery;
         if (sessionsError) throw sessionsError;
-        sessionWindows = (sessions || []).map((session: any) => ({
-          worker_id: session.worker_id,
-          start: parseAccountingTime(session.period_start),
-          end: parseAccountingTime(session.period_end),
-        }));
+        sessionWindows = (sessions || [])
+          // For document payment methods, only sessions that have already been
+          // reviewed by the project manager are eligible — hides amounts that
+          // belong to unreviewed sessions from cards, totals, and lists.
+          .filter((session: any) => (isDocMethod ? !!session.review_session_id : true))
+          .map((session: any) => ({
+            worker_id: session.worker_id,
+            start: parseAccountingTime(session.period_start),
+            end: parseAccountingTime(session.period_end),
+          }));
       }
 
       const baseQuery = () => {
@@ -82,6 +89,14 @@ const HandoverItemPickerDialog = ({ open, onOpenChange, paymentMethod, onConfirm
         return query;
       };
 
+      const inSessionWindow = (order: any) => {
+        if (!order.assigned_worker_id) return false;
+        const orderTs = orderAccountingTime(order);
+        return sessionWindows.some(
+          (w) => w.worker_id === order.assigned_worker_id && orderTs >= w.start && orderTs <= w.end,
+        );
+      };
+
       let orders: any[] = [];
       if (paymentMethod === 'cash') {
         const { data, error } = await baseQuery().in('invoice_payment_method', ['cash', 'receipt', 'transfer']);
@@ -89,21 +104,17 @@ const HandoverItemPickerDialog = ({ open, onOpenChange, paymentMethod, onConfirm
          orders = (data || []).filter((order: any) => {
            if (order.invoice_payment_method !== 'cash') return false;
            if (!perManagerId) return true;
-           if (!order.assigned_worker_id) return false;
-           const orderTs = orderAccountingTime(order);
-           return sessionWindows.some((window) => window.worker_id === order.assigned_worker_id && orderTs >= window.start && orderTs <= window.end);
+           return inSessionWindow(order);
          });
       } else {
         const invoiceMethod = paymentMethod === 'receipt_cash' ? 'receipt' : paymentMethod;
         const { data, error } = await baseQuery().eq('invoice_payment_method', invoiceMethod);
         if (error) throw error;
         orders = (data || []).filter((order: any) => {
-          if (perManagerId) {
-            if (!order.assigned_worker_id) return false;
-            const orderTs = orderAccountingTime(order);
-            const isInsideManagerWindow = sessionWindows.some((window) => window.worker_id === order.assigned_worker_id && orderTs >= window.start && orderTs <= window.end);
-            if (!isInsideManagerWindow) return false;
-          }
+          // Document payment methods are gated by reviewed sessions for ALL
+          // roles; perManager mode keeps its existing scope check too.
+          if (isDocMethod && !inSessionWindow(order)) return false;
+          if (perManagerId && !isDocMethod && !inSessionWindow(order)) return false;
           if (paymentMethod === 'receipt_cash') {
             return resolveReceiptBucket(order.document_verification) === 'cash';
           }
@@ -116,6 +127,7 @@ const HandoverItemPickerDialog = ({ open, onOpenChange, paymentMethod, onConfirm
           return true;
         });
       }
+
 
       let handedQuery = supabase
         .from('handover_items')
