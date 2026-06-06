@@ -307,21 +307,17 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
   const [showUnloadDialog, setShowUnloadDialog] = useState(false);
   const [receivedDocs, setReceivedDocs] = useState<Record<string, boolean>>({});
   const [docItems, setDocItems] = useState<{ docIds: string[]; stampIds: string[]; receivedStampIds: string[] }>({ docIds: [], stampIds: [], receivedStampIds: [] });
-  const allDocsDecided = (() => {
-    const totalCount = docItems.docIds.length + docItems.stampIds.length;
-    if (totalCount === 0) return false;
-    for (const id of docItems.docIds) if (typeof receivedDocs[`doc_${id}`] !== 'boolean') return false;
-    for (const id of docItems.stampIds) if (typeof receivedDocs[`stamp_${id}`] !== 'boolean') return false;
-    return true;
-  })();
-  // Outstanding stamped invoices = stamps not yet marked received (neither persisted nor draft true, or explicitly draft false)
+  const hasUndecidedDocuments = docItems.docIds.some((id) => typeof receivedDocs[`doc_${id}`] !== 'boolean');
   const receivedStampSet = new Set(docItems.receivedStampIds);
+  // Outstanding stamped invoices = stamps with no decision yet.
+  // Both true (received) and false (not received) are considered processed.
   const pendingStampedCount = docItems.stampIds.filter((id) => {
     const draft = receivedDocs[`stamp_${id}`];
     if (draft === true) return false;
-    if (draft === false) return true;
+    if (draft === false) return false;
     return !receivedStampSet.has(id);
   }).length;
+  const hasOutstandingCollections = hasUndecidedDocuments || pendingStampedCount > 0;
   const [isUnfreezing, setIsUnfreezing] = useState(false);
   const queryClient = useQueryClient();
 
@@ -1022,7 +1018,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             <Button
               className="flex-1 rounded-xl h-11 text-base font-bold"
               onClick={handleShowConfirmation}
-              disabled={isSubmitting || createSession.isPending || updateSession.isPending || !selectedWorkerId || !calc || (!isFrozen && !allDocsDecided) || pendingStampedCount > 0}
+              disabled={isSubmitting || createSession.isPending || updateSession.isPending || !selectedWorkerId || !calc || (!isFrozen && hasUndecidedDocuments) || pendingStampedCount > 0}
             >
               {isEditMode ? 'حفظ التعديلات' : t('accounting.save_session')}
             </Button>
@@ -1056,7 +1052,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             )}
 
             {/* Warning for unchecked document items */}
-            {Object.entries(receivedDocs).some(([k, v]) => k.startsWith('doc_') && !v || k.startsWith('stamp_') && !v) && (
+            {hasOutstandingCollections && (
               <div className="mt-2 p-2.5 rounded-lg bg-destructive/10 border border-destructive/20 flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
                 <p className="text-xs text-destructive">
