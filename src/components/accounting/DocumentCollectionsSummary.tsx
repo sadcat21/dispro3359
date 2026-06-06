@@ -484,15 +484,17 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                 <FileCheck2 className="w-4 h-4 text-primary" />
               </div>
               <div className="min-w-0 flex-1">
-                {/* Top line: owner full name from business file */}
+                {/* Top line: owner full name from business file (fallback to app name) */}
                 <p className="text-sm font-bold text-foreground truncate leading-tight" dir="auto">
-                  {doc.ownerName || <span className="italic opacity-70 font-normal">بدون اسم صاحب المحل</span>}
+                  {doc.ownerName || doc.customerName || <span className="italic opacity-70 font-normal">بدون اسم صاحب المحل</span>}
                 </p>
                 {/* 2-col 3-row grid */}
                 <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 mt-1 items-center">
                   <div className="text-[11px] text-muted-foreground truncate" dir="auto">
-                    {doc.ownerName || '—'}
+                    —
                   </div>
+
+
                   <div className="text-end">
                     <span className="font-bold text-sm text-primary">{fmt(doc.orderTotal)} DA</span>
                   </div>
