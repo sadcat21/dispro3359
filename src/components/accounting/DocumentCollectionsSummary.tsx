@@ -762,6 +762,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                 setStampSaving(false);
                 if (error) { toast.error('فشل حفظ المسودة: ' + String((error as any).message || '')); return; }
                 toast.success('تم تسجيل: لم تُستلم (مسودة)');
+                if (onReceivedDocsChange) onReceivedDocsChange({ ...(receivedDocs || {}), [`stamp_${stampDialog.orderId}`]: false });
                 await queryClient.invalidateQueries({ queryKey: ['manager-decision-drafts', workerId] });
                 setStampDialog(null);
               }}
