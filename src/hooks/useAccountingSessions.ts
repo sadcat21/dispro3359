@@ -310,6 +310,11 @@ export const useDeleteSession = () => {
         .maybeSingle();
       if (sessionFetchError) throw sessionFetchError;
 
+      // Revert any document/invoice decisions applied with this session
+      try {
+        await (supabase as any).rpc('revert_accounting_session_decisions', { p_session_id: sessionId });
+      } catch (e) { console.warn('revert_accounting_session_decisions failed', e); }
+
       // Delete = remove session record only (no treasury revert)
       await supabase.from('accounting_session_items').delete().eq('session_id', sessionId);
       const { error } = await supabase.from('accounting_sessions').delete().eq('id', sessionId);
