@@ -554,6 +554,12 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                   <div className="min-w-0">
                     <p className="text-sm font-semibold truncate">{inv.customerName}</p>
+                    {inv.ownerName && (
+                      <p className="text-[10px] text-muted-foreground/90 truncate leading-tight" dir="auto">
+                        {inv.ownerName}
+                      </p>
+                    )}
+
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="text-[10px] text-muted-foreground">#{inv.orderId.slice(0, 8)}</span>
                       <Badge variant="outline" className="text-[9px] px-1 py-0">
