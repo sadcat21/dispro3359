@@ -13,11 +13,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Loader2, PackageX, Truck, Warehouse } from 'lucide-react';
 
 interface EmptyTruckItem {
-  id: string;
+  id: string | null; // null = لا يوجد صف في worker_stock (مُستنتَج من الشحنات)
   product_id: string;
   product_name: string;
-  currentQty: number; // ما في الشاحنة حالياً
+  currentQty: number; // ما في الشاحنة حالياً (حسب worker_stock أو الرصيد المتوقَّع)
   returnQty: number;  // الكمية المراد إرجاعها للمخزن
+  inferred?: boolean; // الرصيد محسوب من الشحنات لا من worker_stock
 }
 
 interface EmptyTruckDialogProps {
