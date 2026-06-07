@@ -321,8 +321,9 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
 
       let expQuery = supabase
         .from('expenses')
-        .select('amount, worker_id, created_at, expense_date')
-        .eq('status', 'approved');
+        .select('amount, worker_id, created_at, expense_date, handover_id')
+        .eq('status', 'approved')
+        .is('handover_id', null);
       if (activeBranch?.id) expQuery = expQuery.eq('branch_id', activeBranch.id);
       if (lastHandoverAt) expQuery = expQuery.gt('created_at', lastHandoverAt);
       const { data: expensesData } = await expQuery;
