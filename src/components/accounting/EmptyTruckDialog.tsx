@@ -274,16 +274,27 @@ const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onO
         });
         if (itemErr) throw new Error(`فشل تسجيل عنصر الجلسة: ${itemErr.message}`);
 
-        // خصم من رصيد العامل
+        // خصم من رصيد العامل (أو إنشاء صف بصفر إن لم يكن موجوداً)
         const newWorkerQty = Math.max(0, item.currentQty - item.returnQty);
-        const { data: updatedRows, error: wsErr } = await supabase
-          .from('worker_stock')
-          .update({ quantity: newWorkerQty })
-          .eq('id', item.id)
-          .select('id');
-        if (wsErr) throw new Error(`فشل خصم رصيد العامل: ${wsErr.message}`);
-        if (!updatedRows || updatedRows.length === 0) {
-          throw new Error(`لم يتم خصم رصيد العامل للمنتج "${item.product_name}" — تحقق من صلاحيات RLS على worker_stock`);
+        if (item.id) {
+          const { data: updatedRows, error: wsErr } = await supabase
+            .from('worker_stock')
+            .update({ quantity: newWorkerQty })
+            .eq('id', item.id)
+            .select('id');
+          if (wsErr) throw new Error(`فشل خصم رصيد العامل: ${wsErr.message}`);
+          if (!updatedRows || updatedRows.length === 0) {
+            throw new Error(`لم يتم خصم رصيد العامل للمنتج "${item.product_name}" — تحقق من صلاحيات RLS على worker_stock`);
+          }
+        } else {
+          // لا يوجد صف worker_stock — أنشئ واحداً بكمية متبقية (عادةً 0)
+          const { error: wsInsErr } = await supabase.from('worker_stock').insert({
+            worker_id: workerId,
+            product_id: item.product_id,
+            branch_id: branchId,
+            quantity: newWorkerQty,
+          });
+          if (wsInsErr) throw new Error(`فشل إنشاء رصيد العامل: ${wsInsErr.message}`);
         }
 
         // إضافة للمستودع
