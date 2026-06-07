@@ -46,6 +46,10 @@ export const useExpenses = (workerFilter?: string | null) => {
         query = query.eq('branch_id', activeBranch.id);
       }
 
+      // Hide expenses already handed over to higher authority — they now live
+      // in the project manager treasury and must not appear in branch lists.
+      query = query.is('handover_id', null);
+
       const { data, error } = await query;
       if (error) throw error;
 

@@ -197,6 +197,7 @@ const ProjectManagerTreasury = () => {
         .from('expenses')
         .select('*, branch:branches(id, name)')
         .eq('status', 'approved')
+        .not('handover_id', 'is', null)
         .order('expense_date', { ascending: false });
       if (dateFrom) q = q.gte('expense_date', dateFrom);
       if (dateTo) q = q.lte('expense_date', dateTo);
