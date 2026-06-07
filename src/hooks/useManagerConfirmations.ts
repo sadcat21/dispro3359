@@ -46,7 +46,68 @@ export const useManagerConfirmations = () => {
           });
         }
       }
-      return confirmations;
+
+      // Also include unload sessions managed by this manager — they don't go through
+      // approval but should appear in the operations log as "approved".
+      const { data: unloadSessions } = await supabase
+        .from('loading_sessions')
+        .select(`
+          id, worker_id, manager_id, branch_id, status, notes, created_at, updated_at,
+          manager:workers!loading_sessions_manager_id_fkey(full_name),
+          worker:workers!loading_sessions_worker_id_fkey(full_name),
+          loading_session_items(product_id, quantity, gift_quantity)
+        `)
+        .eq('manager_id', currentWorkerId)
+        .eq('status', 'unloaded')
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      const unloadProductIds = [...new Set((unloadSessions || []).flatMap((s: any) => (s.loading_session_items || []).map((i: any) => i.product_id)))];
+      const unloadProductMap = new Map<string, any>();
+      if (unloadProductIds.length > 0) {
+        const { data: uProducts } = await supabase
+          .from('products')
+          .select('id, name, app_name, image_url, pieces_per_box')
+          .in('id', unloadProductIds);
+        (uProducts || []).forEach((p: any) => unloadProductMap.set(p.id, p));
+      }
+
+      const unloadAsConfirmations: StockConfirmation[] = (unloadSessions || []).map((s: any) => ({
+        id: `unload-${s.id}`,
+        operation_type: 'unload',
+        worker_id: s.worker_id,
+        manager_id: s.manager_id,
+        branch_id: s.branch_id,
+        status: 'approved',
+        items: (s.loading_session_items || []).map((it: any) => {
+          const prod = unloadProductMap.get(it.product_id);
+          return {
+            product_id: it.product_id,
+            product_name: prod?.name || '',
+            product_app_name: prod?.app_name || null,
+            quantity: Number(it.quantity) || 0,
+            gift_quantity: Number(it.gift_quantity) || 0,
+            pieces_per_box: prod?.pieces_per_box,
+            image_url: prod?.image_url || null,
+          };
+        }),
+        previous_items: null,
+        source_session_id: s.id,
+        rejection_note: null,
+        amendment_note: null,
+        parent_confirmation_id: null,
+        frozen_at: null,
+        frozen_by: null,
+        created_at: s.created_at,
+        responded_at: s.updated_at,
+        updated_at: s.updated_at,
+        manager: s.manager,
+        worker: s.worker,
+      }));
+
+      return [...confirmations, ...unloadAsConfirmations].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
     },
     enabled: isReady,
   });
