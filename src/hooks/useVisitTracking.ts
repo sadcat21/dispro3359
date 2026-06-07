@@ -74,17 +74,36 @@ export const useTrackVisit = () => {
 
     try {
       if (params.operationId) {
-        const dedupeSince = new Date(Date.now() - 15_000).toISOString();
+        const orderLikeTypes = ['order', 'direct_sale', 'delivery'];
+        const isOrderLike = orderLikeTypes.includes(params.operationType);
+
+        // For order-like ops: dedupe across all 3 types (avoid duplicates with
+        // the server-side trg_ensure_order_visit_tracking fallback row).
         const { data: existing } = await supabase
           .from('visit_tracking')
-          .select('id')
+          .select('id, operation_type, notes')
           .eq('worker_id', workerId)
-          .eq('operation_type', params.operationType)
           .eq('operation_id', params.operationId)
-          .gte('created_at', dedupeSince)
-          .limit(1);
+          .in('operation_type', isOrderLike ? orderLikeTypes : [params.operationType]);
 
-        if ((existing?.length || 0) > 0) {
+        const rows = existing || [];
+
+        // If a fallback row exists with a different type, replace its type
+        // instead of inserting a second row.
+        if (isOrderLike) {
+          const fallback = rows.find(
+            (r: any) => r.notes === 'auto: server fallback' && r.operation_type !== params.operationType
+          );
+          if (fallback) {
+            await supabase
+              .from('visit_tracking')
+              .update({ operation_type: params.operationType, notes: params.notes || null })
+              .eq('id', (fallback as any).id);
+            return;
+          }
+        }
+
+        if (rows.length > 0) {
           return;
         }
       }
