@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Package, History, TrendingDown, PackageOpen, Truck, AlertTriangle, RotateCcw, Filter, ClipboardList, X } from 'lucide-react';
+import { Package, History, TrendingDown, PackageOpen, Truck, AlertTriangle, RotateCcw, Filter, ClipboardList, X, ShoppingCart } from 'lucide-react';
 import { dbBPDisplay } from '@/utils/boxPieceInput';
 
 interface Props {
@@ -20,7 +20,7 @@ interface Props {
   piecesPerBox: number;
 }
 
-type MvType = 'receipt' | 'load' | 'return' | 'factory_return' | 'damaged';
+type MvType = 'receipt' | 'load' | 'return' | 'sale' | 'factory_return' | 'damaged';
 
 interface Mv {
   id: string;
@@ -40,6 +40,7 @@ const TYPE_STYLE: Record<MvType, { badge: string; card: string; delta: string; i
   receipt:        { badge: 'bg-blue-100 text-blue-700 border-blue-200',          card: 'bg-blue-50 border-blue-200',       delta: 'text-blue-700',    icon: <PackageOpen className="w-3 h-3" /> },
   load:           { badge: 'bg-red-100 text-red-700 border-red-200',             card: 'bg-red-50 border-red-200',         delta: 'text-red-700',     icon: <Truck className="w-3 h-3" /> },
   return:         { badge: 'bg-emerald-100 text-emerald-700 border-emerald-200', card: 'bg-emerald-50 border-emerald-200', delta: 'text-emerald-700', icon: <RotateCcw className="w-3 h-3" /> },
+  sale:           { badge: 'bg-amber-100 text-amber-700 border-amber-200',       card: 'bg-amber-50 border-amber-200',     delta: 'text-amber-700',   icon: <ShoppingCart className="w-3 h-3" /> },
   factory_return: { badge: 'bg-orange-100 text-orange-700 border-orange-200',    card: 'bg-orange-50 border-orange-200',   delta: 'text-orange-700',  icon: <TrendingDown className="w-3 h-3" /> },
   damaged:        { badge: 'bg-rose-100 text-rose-700 border-rose-200',          card: 'bg-rose-50 border-rose-200',       delta: 'text-rose-700',    icon: <AlertTriangle className="w-3 h-3" /> },
 };
@@ -48,9 +49,11 @@ const TYPE_LABEL_AR: Record<MvType, string> = {
   receipt: 'استلام',
   load: 'شحن',
   return: 'تفريغ',
+  sale: 'بيع للزبون',
   factory_return: 'للمصنع',
   damaged: 'تالف',
 };
+
 
 // Render notes nicely — parse JSON-like payloads into readable Arabic key/value rows.
 const renderNote = (note: string, pieces: number) => {
