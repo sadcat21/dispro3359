@@ -287,7 +287,8 @@ const WarehouseProductMovementDialog: React.FC<Props> = ({
                 <Badge className={TYPE_STYLE.receipt.badge}>استلام {fmt(totals.receipt)}</Badge>
                 <Badge className={TYPE_STYLE.load.badge}>شحن {fmt(totals.load)}</Badge>
                 <Badge className={TYPE_STYLE.return.badge}>تفريغ {fmt(totals.return)}</Badge>
-                <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">للزبون {fmt(Math.max(0, totals.load - totals.return))}</Badge>
+                <Badge className={TYPE_STYLE.sale.badge}>بيع للزبون {fmt(totals.sale)}</Badge>
+
                 {totals.factory_return > 0 && (
                   <Badge className={TYPE_STYLE.factory_return.badge}>للمصنع {fmt(totals.factory_return)}</Badge>
                 )}
