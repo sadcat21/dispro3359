@@ -150,8 +150,13 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
         .eq('status', 'completed');
       if (effFrom) q = q.gte('created_at', effFrom);
       if (effTo) q = q.lte('created_at', effTo);
-      const { data: sessions } = await q;
-      if (!sessions?.length) return [];
+      const { data: sessionsRaw } = await q;
+      // Exclude review sessions — they are stock-verification, not actual shipments,
+      // so their quantities must not be counted toward "loaded" totals.
+      const sessions = (sessionsRaw || []).filter(
+        (s: any) => !String(s.notes || '').trim().startsWith('جلسة مراجعة')
+      );
+      if (!sessions.length) return [];
       const { data: items } = await supabase
         .from('loading_session_items')
         .select('session_id, product_id, quantity, gift_quantity, gift_unit, previous_quantity')
