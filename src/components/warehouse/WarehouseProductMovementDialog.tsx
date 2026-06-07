@@ -172,16 +172,18 @@ const WarehouseProductMovementDialog: React.FC<Props> = ({
       }
 
       for (const m of (movements || [])) {
-        const isLoad = m.movement_type === 'load';
+        const mt = m.movement_type;
         const sess: any = m.reference_type === 'loading_session' && m.reference_id
           ? sessionById.get(m.reference_id) : null;
+        const type: MvType = mt === 'load' ? 'load' : mt === 'delivery' ? 'sale' : 'return';
+        const label = mt === 'load' ? 'شحن للعامل' : mt === 'delivery' ? 'بيع للزبون' : 'تفريغ من العامل';
         list.push({
           id: `m-${m.id}`,
-          type: isLoad ? 'load' : 'return',
-          label: isLoad ? 'شحن للعامل' : 'تفريغ من العامل',
+          type,
+          label,
           when: m.created_at,
           qty: Number(m.quantity || 0),
-          sign: isLoad ? -1 : 1,
+          sign: mt === 'return' ? 1 : -1,
           note: m.notes,
           who: workerNameById.get(m.worker_id || m.created_by || '') || null,
           whoId: m.worker_id || m.created_by || null,
@@ -189,6 +191,7 @@ const WarehouseProductMovementDialog: React.FC<Props> = ({
           sessionStatus: sess?.status || null,
         });
       }
+
 
       const parseDisplay = (v: any): number => {
         if (v == null) return 0;
