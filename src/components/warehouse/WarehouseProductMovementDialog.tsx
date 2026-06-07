@@ -349,7 +349,7 @@ const WarehouseProductMovementDialog: React.FC<Props> = ({
                       <SelectTrigger className="h-8 text-[11px]"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">كل الحركات</SelectItem>
-                        {(['receipt','load','return','factory_return','damaged'] as MvType[]).map(t => (
+                        {(['receipt','load','return','sale','factory_return','damaged'] as MvType[]).map(t => (
                           <SelectItem key={t} value={t}>{TYPE_LABEL_AR[t]}</SelectItem>
                         ))}
                       </SelectContent>
