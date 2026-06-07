@@ -386,7 +386,27 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
       // Expenses card must reflect the value recorded in the reviewed
       // accounting sessions (authoritative ledger). Live `expenses` table may
       // have been edited or deleted after sessions were confirmed.
-      const sessionExpensesTotal = sessionItemTotals['expenses']?.amount || 0;
+      // Also: drop expense items from sessions whose period ended BEFORE the
+      // last handover — those amounts were already handed to higher authority.
+      let sessionExpensesTotal = 0;
+      if (reviewedSessionIds.length > 0) {
+        const eligibleSessionIds = lastHandoverAt
+          ? (sessions || [])
+              .filter((s: any) => parseAccountingTime(s.period_end) > new Date(lastHandoverAt).getTime())
+              .map((s: any) => s.id)
+          : reviewedSessionIds;
+        if (eligibleSessionIds.length > 0) {
+          const { data: expItems } = await supabase
+            .from('accounting_session_items')
+            .select('actual_amount')
+            .eq('item_type', 'expenses')
+            .in('session_id', eligibleSessionIds);
+          sessionExpensesTotal = (expItems || []).reduce(
+            (s: number, it: any) => s + Math.max(0, Number(it.actual_amount || 0)),
+            0,
+          );
+        }
+      }
       const effectiveTotalExpenses = sessionExpensesTotal > 0 ? sessionExpensesTotal : totalExpenses;
 
 
