@@ -38,15 +38,17 @@ const Expenses: React.FC = () => {
   const isAddExpenseHidden = useIsElementHidden('button', 'add_expense');
   const isDeleteExpenseHidden = useIsElementHidden('action', 'delete_expense');
 
-  const filtered = expenses?.filter(e =>
-    statusFilter === 'all' ? true : e.status === statusFilter
-  );
-
   const isAccounted = (createdAt: string) => {
     if (!accountedRanges?.length) return false;
     const t = new Date(createdAt).getTime();
     return accountedRanges.some(r => t > r.start && t <= r.end);
   };
+
+  const filtered = expenses?.filter(e => {
+    // Hide accounted expenses from the worker's own view (already settled with the manager)
+    if (!isManager && isAccounted(e.created_at)) return false;
+    return statusFilter === 'all' ? true : e.status === statusFilter;
+  });
 
   return (
     <div className="p-4 space-y-4" dir={dir}>
