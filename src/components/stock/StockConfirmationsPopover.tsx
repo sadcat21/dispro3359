@@ -562,7 +562,10 @@ const HistoryTab: React.FC<{ confirmations: StockConfirmation[]; isLoading: bool
               </Badge>
               <Badge className={`${statusInfo.color} text-white text-[9px] px-1.5 py-0`}>{statusInfo.label}</Badge>
               <span className="text-[10px] flex-1 truncate">{conf.worker?.full_name || conf.manager?.full_name || ''}</span>
-              <span className="text-[9px] text-muted-foreground">{new Date(conf.created_at).toLocaleDateString('ar-DZ')}</span>
+              <span className="text-[9px] flex items-center gap-1" dir="ltr">
+                <span className="text-foreground">{new Date(conf.created_at).toLocaleDateString('en-GB')}</span>
+                <span className="text-red-600 font-semibold">{new Date(conf.created_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</span>
+              </span>
               {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
             </button>
             {isExpanded && (
