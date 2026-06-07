@@ -303,15 +303,28 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
       const debtCashHanded = (handovers || []).reduce((s: number, h: any) => s + Number(h.debt_cash_amount || 0), 0);
       const debtCashCollected = Math.max(debtCashCollectedGross - debtCashHanded, 0);
 
-      // Get approved expenses (we'll filter by reviewed session windows below
-      // so that expenses for workers who haven't been accounted for yet are
-      // NOT deducted from the manager's treasury — they belong to the cash the
-      // worker will hand over later).
+      // Get approved expenses.
+      // Once the manager has handed funds over to higher authority, any
+      // expenses created BEFORE that handover were already deducted from the
+      // cash that was handed — so they must NOT keep reducing the displayed
+      // treasury balance. We therefore only consider expenses created after
+      // the latest manager_handover for this branch/manager.
+      let lastHandoverQ = supabase
+        .from('manager_handovers')
+        .select('created_at')
+        .order('created_at', { ascending: false })
+        .limit(1);
+      if (activeBranch?.id) lastHandoverQ = lastHandoverQ.eq('branch_id', activeBranch.id);
+      if (perManager) lastHandoverQ = lastHandoverQ.eq('manager_id', perManager);
+      const { data: lastHandoverRows } = await lastHandoverQ;
+      const lastHandoverAt: string | null = lastHandoverRows?.[0]?.created_at || null;
+
       let expQuery = supabase
         .from('expenses')
         .select('amount, worker_id, created_at, expense_date')
         .eq('status', 'approved');
       if (activeBranch?.id) expQuery = expQuery.eq('branch_id', activeBranch.id);
+      if (lastHandoverAt) expQuery = expQuery.gt('created_at', lastHandoverAt);
       const { data: expensesData } = await expQuery;
 
       // Get completed accounting sessions to determine covered orders.
