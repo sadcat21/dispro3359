@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Package, History, TrendingDown, PackageOpen, Truck, AlertTriangle, RotateCcw, Filter, ClipboardList, X } from 'lucide-react';
+import { Package, History, TrendingDown, PackageOpen, Truck, AlertTriangle, RotateCcw, Filter, ClipboardList, X, ShoppingCart } from 'lucide-react';
 import { dbBPDisplay } from '@/utils/boxPieceInput';
 
 interface Props {
@@ -20,7 +20,7 @@ interface Props {
   piecesPerBox: number;
 }
 
-type MvType = 'receipt' | 'load' | 'return' | 'factory_return' | 'damaged';
+type MvType = 'receipt' | 'load' | 'return' | 'sale' | 'factory_return' | 'damaged';
 
 interface Mv {
   id: string;
@@ -40,6 +40,7 @@ const TYPE_STYLE: Record<MvType, { badge: string; card: string; delta: string; i
   receipt:        { badge: 'bg-blue-100 text-blue-700 border-blue-200',          card: 'bg-blue-50 border-blue-200',       delta: 'text-blue-700',    icon: <PackageOpen className="w-3 h-3" /> },
   load:           { badge: 'bg-red-100 text-red-700 border-red-200',             card: 'bg-red-50 border-red-200',         delta: 'text-red-700',     icon: <Truck className="w-3 h-3" /> },
   return:         { badge: 'bg-emerald-100 text-emerald-700 border-emerald-200', card: 'bg-emerald-50 border-emerald-200', delta: 'text-emerald-700', icon: <RotateCcw className="w-3 h-3" /> },
+  sale:           { badge: 'bg-amber-100 text-amber-700 border-amber-200',       card: 'bg-amber-50 border-amber-200',     delta: 'text-amber-700',   icon: <ShoppingCart className="w-3 h-3" /> },
   factory_return: { badge: 'bg-orange-100 text-orange-700 border-orange-200',    card: 'bg-orange-50 border-orange-200',   delta: 'text-orange-700',  icon: <TrendingDown className="w-3 h-3" /> },
   damaged:        { badge: 'bg-rose-100 text-rose-700 border-rose-200',          card: 'bg-rose-50 border-rose-200',       delta: 'text-rose-700',    icon: <AlertTriangle className="w-3 h-3" /> },
 };
@@ -48,9 +49,11 @@ const TYPE_LABEL_AR: Record<MvType, string> = {
   receipt: 'استلام',
   load: 'شحن',
   return: 'تفريغ',
+  sale: 'بيع للزبون',
   factory_return: 'للمصنع',
   damaged: 'تالف',
 };
+
 
 // Render notes nicely — parse JSON-like payloads into readable Arabic key/value rows.
 const renderNote = (note: string, pieces: number) => {
@@ -117,8 +120,9 @@ const WarehouseProductMovementDialog: React.FC<Props> = ({
         .select('id, movement_type, quantity, created_at, notes, worker_id, created_by, status, reference_type, reference_id')
         .eq('branch_id', branchId)
         .eq('product_id', productId)
-        .in('movement_type', ['load', 'return'])
+        .in('movement_type', ['load', 'return', 'delivery'])
         .neq('status', 'rejected');
+
 
       const sessionIds = Array.from(new Set(
         (movements || [])
@@ -168,16 +172,18 @@ const WarehouseProductMovementDialog: React.FC<Props> = ({
       }
 
       for (const m of (movements || [])) {
-        const isLoad = m.movement_type === 'load';
+        const mt = m.movement_type;
         const sess: any = m.reference_type === 'loading_session' && m.reference_id
           ? sessionById.get(m.reference_id) : null;
+        const type: MvType = mt === 'load' ? 'load' : mt === 'delivery' ? 'sale' : 'return';
+        const label = mt === 'load' ? 'شحن للعامل' : mt === 'delivery' ? 'بيع للزبون' : 'تفريغ من العامل';
         list.push({
           id: `m-${m.id}`,
-          type: isLoad ? 'load' : 'return',
-          label: isLoad ? 'شحن للعامل' : 'تفريغ من العامل',
+          type,
+          label,
           when: m.created_at,
           qty: Number(m.quantity || 0),
-          sign: isLoad ? -1 : 1,
+          sign: mt === 'return' ? 1 : -1,
           note: m.notes,
           who: workerNameById.get(m.worker_id || m.created_by || '') || null,
           whoId: m.worker_id || m.created_by || null,
@@ -185,6 +191,7 @@ const WarehouseProductMovementDialog: React.FC<Props> = ({
           sessionStatus: sess?.status || null,
         });
       }
+
 
       const parseDisplay = (v: any): number => {
         if (v == null) return 0;
@@ -246,10 +253,11 @@ const WarehouseProductMovementDialog: React.FC<Props> = ({
   }, [data, dateFrom, dateTo, workerFilter, typeFilter]);
 
   const totals = useMemo(() => {
-    const t = { receipt: 0, load: 0, return: 0, factory_return: 0, damaged: 0 };
+    const t = { receipt: 0, load: 0, return: 0, sale: 0, factory_return: 0, damaged: 0 };
     for (const m of filtered) t[m.type] += m.qty;
     return t;
   }, [filtered]);
+
 
   const hasActiveFilter = dateFrom || dateTo || workerFilter !== 'all' || typeFilter !== 'all';
 
@@ -279,7 +287,8 @@ const WarehouseProductMovementDialog: React.FC<Props> = ({
                 <Badge className={TYPE_STYLE.receipt.badge}>استلام {fmt(totals.receipt)}</Badge>
                 <Badge className={TYPE_STYLE.load.badge}>شحن {fmt(totals.load)}</Badge>
                 <Badge className={TYPE_STYLE.return.badge}>تفريغ {fmt(totals.return)}</Badge>
-                <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">للزبون {fmt(Math.max(0, totals.load - totals.return))}</Badge>
+                <Badge className={TYPE_STYLE.sale.badge}>بيع للزبون {fmt(totals.sale)}</Badge>
+
                 {totals.factory_return > 0 && (
                   <Badge className={TYPE_STYLE.factory_return.badge}>للمصنع {fmt(totals.factory_return)}</Badge>
                 )}
@@ -340,7 +349,7 @@ const WarehouseProductMovementDialog: React.FC<Props> = ({
                       <SelectTrigger className="h-8 text-[11px]"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">كل الحركات</SelectItem>
-                        {(['receipt','load','return','factory_return','damaged'] as MvType[]).map(t => (
+                        {(['receipt','load','return','sale','factory_return','damaged'] as MvType[]).map(t => (
                           <SelectItem key={t} value={t}>{TYPE_LABEL_AR[t]}</SelectItem>
                         ))}
                       </SelectContent>
