@@ -133,7 +133,7 @@ const NavButton: React.FC<{
         isAchievements
           ? 'bg-green-500 hover:bg-green-600'
               : isHome
-                ? 'bg-emerald-500 hover:bg-emerald-600'
+                ? 'bg-purple-500 hover:bg-purple-600'
               : 'hover:bg-white/5',
       )}
       style={
