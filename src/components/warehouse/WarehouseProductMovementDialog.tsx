@@ -253,10 +253,11 @@ const WarehouseProductMovementDialog: React.FC<Props> = ({
   }, [data, dateFrom, dateTo, workerFilter, typeFilter]);
 
   const totals = useMemo(() => {
-    const t = { receipt: 0, load: 0, return: 0, factory_return: 0, damaged: 0 };
+    const t = { receipt: 0, load: 0, return: 0, sale: 0, factory_return: 0, damaged: 0 };
     for (const m of filtered) t[m.type] += m.qty;
     return t;
   }, [filtered]);
+
 
   const hasActiveFilter = dateFrom || dateTo || workerFilter !== 'all' || typeFilter !== 'all';
 
