@@ -2110,6 +2110,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           expense_date: string
+          handover_id: string | null
           id: string
           payment_method: string | null
           receipt_url: string | null
@@ -2128,6 +2129,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           expense_date?: string
+          handover_id?: string | null
           id?: string
           payment_method?: string | null
           receipt_url?: string | null
@@ -2146,6 +2148,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           expense_date?: string
+          handover_id?: string | null
           id?: string
           payment_method?: string | null
           receipt_url?: string | null
@@ -2170,6 +2173,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "expense_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_handover_id_fkey"
+            columns: ["handover_id"]
+            isOneToOne: false
+            referencedRelation: "manager_handovers"
             referencedColumns: ["id"]
           },
           {
