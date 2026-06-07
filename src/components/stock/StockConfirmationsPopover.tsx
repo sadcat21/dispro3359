@@ -545,13 +545,68 @@ const OutgoingTab: React.FC<{
 // ─── History Tab ───
 const HistoryTab: React.FC<{ confirmations: StockConfirmation[]; isLoading: boolean }> = ({ confirmations, isLoading }) => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [dateFilter, setDateFilter] = useState<'all' | 'week' | 'month' | 'year'>('all');
+  const [workerFilter, setWorkerFilter] = useState<string>('all');
+
+  const workerOptions = useMemo(() => {
+    const set = new Map<string, string>();
+    confirmations.forEach(c => {
+      const name = c.worker?.full_name || c.manager?.full_name;
+      if (name) set.set(name, name);
+    });
+    return Array.from(set.keys()).sort();
+  }, [confirmations]);
+
+  const filtered = useMemo(() => {
+    const now = Date.now();
+    const spans: Record<string, number> = {
+      week: 7 * 86400000,
+      month: 30 * 86400000,
+      year: 365 * 86400000,
+    };
+    return confirmations.filter(c => {
+      if (dateFilter !== 'all') {
+        const age = now - new Date(c.created_at).getTime();
+        if (age > spans[dateFilter]) return false;
+      }
+      if (workerFilter !== 'all') {
+        const name = c.worker?.full_name || c.manager?.full_name || '';
+        if (name !== workerFilter) return false;
+      }
+      return true;
+    });
+  }, [confirmations, dateFilter, workerFilter]);
 
   if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>;
-  if (confirmations.length === 0) return <div className="text-center py-8 text-muted-foreground text-sm">لا يوجد سجل</div>;
 
   return (
     <div className="space-y-2">
-      {confirmations.map(conf => {
+      <div className="flex gap-2 flex-wrap">
+        <select
+          value={dateFilter}
+          onChange={(e) => setDateFilter(e.target.value as any)}
+          className="text-[11px] border rounded-md px-2 py-1 bg-background flex-1 min-w-[100px]"
+        >
+          <option value="all">كل التواريخ</option>
+          <option value="week">آخر أسبوع</option>
+          <option value="month">آخر شهر</option>
+          <option value="year">آخر سنة</option>
+        </select>
+        <select
+          value={workerFilter}
+          onChange={(e) => setWorkerFilter(e.target.value)}
+          className="text-[11px] border rounded-md px-2 py-1 bg-background flex-1 min-w-[120px]"
+        >
+          <option value="all">كل العمال</option>
+          {workerOptions.map(name => (
+            <option key={name} value={name}>{name}</option>
+          ))}
+        </select>
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="text-center py-8 text-muted-foreground text-sm">لا يوجد سجل</div>
+      ) : filtered.map(conf => {
         const isExpanded = expandedId === conf.id;
         const statusInfo = STATUS_CONFIG[conf.status] || { label: conf.status, color: 'bg-gray-500' };
         return (
@@ -594,6 +649,7 @@ const HistoryTab: React.FC<{ confirmations: StockConfirmation[]; isLoading: bool
     </div>
   );
 };
+
 
 // ─── Main Component ───
 const StockConfirmationsPopover: React.FC = () => {
