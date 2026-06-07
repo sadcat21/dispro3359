@@ -701,12 +701,16 @@ const StockConfirmationsPopover: React.FC = () => {
   }, [isWarehouseManager, managerHook.confirmations, workerHook.confirmations]);
 
   const historyConfirmations = useMemo(() => {
-    const source = isWarehouseManager ? (managerHook.confirmations || []) : (workerHook.confirmations || []);
-
-    return source
-      .filter(c => c.status === 'approved' || c.status === 'disputed' || c.status === 'cancelled' || (!isWarehouseManager && c.status === 'rejected'))
+    // السجل يجب أن يعرض كل العمليات (الواردة والصادرة) بكل حالاتها
+    const workerList = workerHook.confirmations || [];
+    const managerList = managerHook.confirmations || [];
+    const map = new Map<string, StockConfirmation>();
+    [...workerList, ...managerList].forEach(c => {
+      if (!map.has(c.id)) map.set(c.id, c);
+    });
+    return Array.from(map.values())
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  }, [isWarehouseManager, managerHook.confirmations, workerHook.confirmations]);
+  }, [managerHook.confirmations, workerHook.confirmations]);
 
   const totalBadge = isWarehouseManager ? managerHook.needsAttentionCount : workerHook.pendingCount;
 
