@@ -120,8 +120,9 @@ const WarehouseProductMovementDialog: React.FC<Props> = ({
         .select('id, movement_type, quantity, created_at, notes, worker_id, created_by, status, reference_type, reference_id')
         .eq('branch_id', branchId)
         .eq('product_id', productId)
-        .in('movement_type', ['load', 'return'])
+        .in('movement_type', ['load', 'return', 'delivery'])
         .neq('status', 'rejected');
+
 
       const sessionIds = Array.from(new Set(
         (movements || [])
