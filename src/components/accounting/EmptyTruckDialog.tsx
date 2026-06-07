@@ -387,7 +387,14 @@ const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onO
                   <Card key={item.product_id} className="border">
                     <CardContent className="p-3 space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="font-semibold text-sm">{item.product_name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-sm">{item.product_name}</span>
+                          {item.inferred && (
+                            <Badge variant="outline" className="text-[10px] border-amber-500 text-amber-600">
+                              مُستنتَج
+                            </Badge>
+                          )}
+                        </div>
                         <Badge variant="secondary" className="text-xs">
                           <Truck className="w-3 h-3 ml-1" />
                           {item.currentQty}
