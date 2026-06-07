@@ -13,11 +13,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Loader2, PackageX, Truck, Warehouse } from 'lucide-react';
 
 interface EmptyTruckItem {
-  id: string;
+  id: string | null; // null = لا يوجد صف في worker_stock (مُستنتَج من الشحنات)
   product_id: string;
   product_name: string;
-  currentQty: number; // ما في الشاحنة حالياً
+  currentQty: number; // ما في الشاحنة حالياً (حسب worker_stock أو الرصيد المتوقَّع)
   returnQty: number;  // الكمية المراد إرجاعها للمخزن
+  inferred?: boolean; // الرصيد محسوب من الشحنات لا من worker_stock
 }
 
 interface EmptyTruckDialogProps {
@@ -43,26 +44,144 @@ const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onO
     if (!workerId || !branchId || !currentWorkerId) return;
     setIsLoading(true);
 
+    // 1) جلب رصيد الشاحنة من worker_stock
     const { data: workerStock } = await supabase
       .from('worker_stock')
       .select('id, product_id, quantity, product:products(name)')
-      .eq('worker_id', workerId)
-      .gt('quantity', 0);
+      .eq('worker_id', workerId);
 
-    if (!workerStock || workerStock.length === 0) {
+    const stockMap = new Map<string, { id: string; quantity: number; name: string }>();
+    (workerStock || []).forEach((ws: any) => {
+      stockMap.set(ws.product_id, {
+        id: ws.id,
+        quantity: Number(ws.quantity || 0),
+        name: ws.product?.name || ws.product_id,
+      });
+    });
+
+    // 2) استنتاج الرصيد المتوقَّع منذ آخر جلسة محاسبة مغلقة
+    //    (شحنات − مبيعات) لاكتشاف منتجات بقيت في الشاحنة لكن worker_stock أصبح غير متزامن.
+    const { data: lastSession } = await supabase
+      .from('accounting_sessions')
+      .select('period_end, completed_at')
+      .eq('worker_id', workerId)
+      .eq('status', 'completed')
+      .order('period_end', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const sinceIso = lastSession
+      ? (new Date(lastSession.completed_at || lastSession.period_end).toISOString())
+      : new Date(0).toISOString();
+
+    // شحنات (تستثني جلسات المراجعة وجلسات التفريغ)
+    const { data: shipSessions } = await supabase
+      .from('loading_sessions')
+      .select('id, notes, status')
+      .eq('worker_id', workerId)
+      .gte('created_at', sinceIso)
+      .neq('status', 'unloaded');
+
+    const shipSessionIds = (shipSessions || [])
+      .filter((s: any) => !(s.notes || '').startsWith('جلسة مراجعة'))
+      .map((s: any) => s.id);
+
+    const inferredMap = new Map<string, number>();
+    if (shipSessionIds.length > 0) {
+      const { data: shipItems } = await supabase
+        .from('loading_session_items')
+        .select('product_id, quantity')
+        .in('session_id', shipSessionIds);
+      (shipItems || []).forEach((it: any) => {
+        inferredMap.set(it.product_id, (inferredMap.get(it.product_id) || 0) + Number(it.quantity || 0));
+      });
+    }
+
+    // تفريغات سابقة منذ آخر محاسبة
+    const { data: unloadSessions } = await supabase
+      .from('loading_sessions')
+      .select('id')
+      .eq('worker_id', workerId)
+      .eq('status', 'unloaded')
+      .gte('created_at', sinceIso);
+    const unloadIds = (unloadSessions || []).map((s: any) => s.id);
+    if (unloadIds.length > 0) {
+      const { data: unloadItems } = await supabase
+        .from('loading_session_items')
+        .select('product_id, quantity')
+        .in('session_id', unloadIds);
+      (unloadItems || []).forEach((it: any) => {
+        inferredMap.set(it.product_id, (inferredMap.get(it.product_id) || 0) - Number(it.quantity || 0));
+      });
+    }
+
+    // المبيعات
+    const productIds = Array.from(new Set([...inferredMap.keys(), ...stockMap.keys()]));
+    if (productIds.length > 0) {
+      const { data: orders } = await supabase
+        .from('orders')
+        .select('id, order_items(product_id, quantity)')
+        .eq('assigned_worker_id', workerId)
+        .eq('status', 'delivered')
+        .gte('updated_at', sinceIso);
+      (orders || []).forEach((o: any) => {
+        (o.order_items || []).forEach((oi: any) => {
+          if (inferredMap.has(oi.product_id) || stockMap.has(oi.product_id)) {
+            inferredMap.set(
+              oi.product_id,
+              (inferredMap.get(oi.product_id) || 0) - Number(oi.quantity || 0),
+            );
+          }
+        });
+      });
+    }
+
+    // أسماء المنتجات المُستنتَجة غير الموجودة في stockMap
+    const missingNames = productIds.filter(pid => !stockMap.has(pid));
+    const namesMap = new Map<string, string>();
+    if (missingNames.length > 0) {
+      const { data: prods } = await supabase
+        .from('products')
+        .select('id, name')
+        .in('id', missingNames);
+      (prods || []).forEach((p: any) => namesMap.set(p.id, p.name));
+    }
+
+    // 3) دمج: أي منتج برصيد > 0 (سواء من worker_stock أو الاستنتاج)
+    const merged = new Map<string, EmptyTruckItem>();
+    stockMap.forEach((v, pid) => {
+      const inferred = inferredMap.get(pid);
+      const qty = v.quantity > 0 ? v.quantity : (inferred && inferred > 0 ? inferred : 0);
+      if (qty > 0) {
+        merged.set(pid, {
+          id: v.id,
+          product_id: pid,
+          product_name: v.name,
+          currentQty: qty,
+          returnQty: qty,
+          inferred: v.quantity <= 0 && (inferred || 0) > 0,
+        });
+      }
+    });
+    inferredMap.forEach((qty, pid) => {
+      if (merged.has(pid) || qty <= 0) return;
+      merged.set(pid, {
+        id: null,
+        product_id: pid,
+        product_name: namesMap.get(pid) || pid,
+        currentQty: qty,
+        returnQty: qty,
+        inferred: true,
+      });
+    });
+
+    const mapped = Array.from(merged.values());
+    if (mapped.length === 0) {
       toast.error(t('stock.empty_truck_nothing'));
       setIsLoading(false);
       onOpenChange(false);
       return;
     }
-
-    const mapped: EmptyTruckItem[] = workerStock.map(ws => ({
-      id: ws.id,
-      product_id: ws.product_id,
-      product_name: (ws.product as any)?.name || ws.product_id,
-      currentQty: ws.quantity,
-      returnQty: ws.quantity, // افتراضياً: تفريغ كلي
-    }));
 
     setItems(mapped);
     setLoaded(true);
@@ -155,16 +274,27 @@ const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onO
         });
         if (itemErr) throw new Error(`فشل تسجيل عنصر الجلسة: ${itemErr.message}`);
 
-        // خصم من رصيد العامل
+        // خصم من رصيد العامل (أو إنشاء صف بصفر إن لم يكن موجوداً)
         const newWorkerQty = Math.max(0, item.currentQty - item.returnQty);
-        const { data: updatedRows, error: wsErr } = await supabase
-          .from('worker_stock')
-          .update({ quantity: newWorkerQty })
-          .eq('id', item.id)
-          .select('id');
-        if (wsErr) throw new Error(`فشل خصم رصيد العامل: ${wsErr.message}`);
-        if (!updatedRows || updatedRows.length === 0) {
-          throw new Error(`لم يتم خصم رصيد العامل للمنتج "${item.product_name}" — تحقق من صلاحيات RLS على worker_stock`);
+        if (item.id) {
+          const { data: updatedRows, error: wsErr } = await supabase
+            .from('worker_stock')
+            .update({ quantity: newWorkerQty })
+            .eq('id', item.id)
+            .select('id');
+          if (wsErr) throw new Error(`فشل خصم رصيد العامل: ${wsErr.message}`);
+          if (!updatedRows || updatedRows.length === 0) {
+            throw new Error(`لم يتم خصم رصيد العامل للمنتج "${item.product_name}" — تحقق من صلاحيات RLS على worker_stock`);
+          }
+        } else {
+          // لا يوجد صف worker_stock — أنشئ واحداً بكمية متبقية (عادةً 0)
+          const { error: wsInsErr } = await supabase.from('worker_stock').insert({
+            worker_id: workerId,
+            product_id: item.product_id,
+            branch_id: branchId,
+            quantity: newWorkerQty,
+          });
+          if (wsInsErr) throw new Error(`فشل إنشاء رصيد العامل: ${wsInsErr.message}`);
         }
 
         // إضافة للمستودع
@@ -257,7 +387,14 @@ const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onO
                   <Card key={item.product_id} className="border">
                     <CardContent className="p-3 space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="font-semibold text-sm">{item.product_name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-sm">{item.product_name}</span>
+                          {item.inferred && (
+                            <Badge variant="outline" className="text-[10px] border-amber-500 text-amber-600">
+                              مُستنتَج
+                            </Badge>
+                          )}
+                        </div>
                         <Badge variant="secondary" className="text-xs">
                           <Truck className="w-3 h-3 ml-1" />
                           {item.currentQty}
