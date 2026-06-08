@@ -15,6 +15,7 @@ import { OrderItem, OrderWithDetails, Product } from '@/types/database';
 import { supabase } from '@/integrations/supabase/client';
 import { formatAmountWithMaxFraction } from '@/utils/amountFormatting';
 import { dbBPDisplayAlways, boxesToBPAlways } from '@/utils/boxPieceInput';
+import { isRemiseOrderItem } from '@/utils/remise';
 
 interface OrderDetailsDialogProps {
   open: boolean;
@@ -327,11 +328,17 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                   const n = normalizeSaleItem(item);
                   const productImage = item?.product?.image_url || item?.image_url || null;
                   const catalogUnitLabel = n.pricingUnit === 'kg' ? 'Kg' : n.pricingUnit === 'unit' ? 'pcs' : '';
+                  const isRemise = isRemiseOrderItem(item, item?.product);
                   return (
                     <div
                       key={item.id || idx}
-                      className="flex flex-col rounded-xl overflow-hidden shadow border border-border"
+                      className="relative flex flex-col rounded-xl overflow-hidden shadow border border-border"
                     >
+                      {isRemise && (
+                        <span className="absolute top-1 start-1 z-10 inline-flex items-center rounded px-1.5 py-0.5 text-[9px] font-bold bg-red-600 text-white border border-red-700 shadow">
+                          Remise
+                        </span>
+                      )}
                       <div className="px-1.5 py-1 border-b bg-muted border-border">
                         <span className="font-bold text-[10px] leading-tight block truncate text-foreground">
                           {n.productName}

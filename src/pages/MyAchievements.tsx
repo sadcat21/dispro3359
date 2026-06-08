@@ -28,6 +28,7 @@ import type { OrderWithDetails } from '@/types/database';
 import { isAdminRole } from '@/lib/utils';
 import WarehouseTodayAchievements from '@/components/warehouse/WarehouseTodayAchievements';
 import PendingOffersTab from '@/components/offers/PendingOffersTab';
+import { isRemiseOrderItem } from '@/utils/remise';
 import { resolveReceiptBucket } from '@/utils/treasuryDocumentClassification';
 
 const OPERATION_ICONS: Record<string, React.ReactNode> = {
@@ -714,7 +715,7 @@ const MyAchievements: React.FC = () => {
           : Promise.resolve({ data: [] as any[] }),
         // 3. Order items (price_subtype + product/gift info for filtering & promo badge)
         orderIds.length
-          ? supabase.from('order_items').select('order_id, price_subtype, product_id, gift_quantity, gift_pieces').in('order_id', orderIds)
+          ? supabase.from('order_items').select('order_id, price_subtype, product_id, gift_quantity, gift_pieces, unit_price, pricing_unit, payment_type, weight_per_box, pieces_per_box, product:products(price_retail, price_gros, price_super_gros, price_invoice, weight_per_box, pieces_per_box, pricing_unit)').in('order_id', orderIds)
           : Promise.resolve({ data: [] as any[] }),
         // 4. Customer debts
         orderIds.length
@@ -765,6 +766,7 @@ const MyAchievements: React.FC = () => {
       const debtCollectionAmountMap = new Map<string, number>();
       const orderProductsMap = new Map<string, Set<string>>();
       const orderPromoCountMap = new Map<string, number>();
+      const orderRemiseSet = new Set<string>();
       if (orderIds.length) {
         const orders = ordersResult.data;
         const orderItems = orderItemsResult.data;
@@ -783,6 +785,9 @@ const MyAchievements: React.FC = () => {
           }
           if (Number(item.gift_quantity || 0) > 0 || Number(item.gift_pieces || 0) > 0) {
             orderPromoCountMap.set(item.order_id, (orderPromoCountMap.get(item.order_id) || 0) + 1);
+          }
+          if (isRemiseOrderItem(item, item.product)) {
+            orderRemiseSet.add(item.order_id);
           }
         });
 
@@ -876,6 +881,7 @@ const MyAchievements: React.FC = () => {
             : '',
           orderProductIds: visit.operation_id ? Array.from(orderProductsMap.get(visit.operation_id) || []) : [],
           promoCount: visit.operation_id ? (orderPromoCountMap.get(visit.operation_id) || 0) : 0,
+          hasRemise: visit.operation_id ? orderRemiseSet.has(visit.operation_id) : false,
         };
       }).filter((visit: any) => {
         if (['direct_sale', 'delivery', 'order'].includes(visit.operation_type) && visit.operation_id) {
@@ -1577,6 +1583,11 @@ const MyAchievements: React.FC = () => {
                           <span className="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-bold border bg-emerald-50 text-emerald-700 border-emerald-300">
                             <Gift className="w-3 h-3" />
                             {visit.promoCount}
+                          </span>
+                        )}
+                        {visit.hasRemise && (
+                          <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-bold bg-red-600 text-white border border-red-700">
+                            Remise
                           </span>
                         )}
                       </div>
