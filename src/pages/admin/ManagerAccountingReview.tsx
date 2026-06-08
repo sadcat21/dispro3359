@@ -1281,7 +1281,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
 
       // Per-worker blocks
       const blocks = productMatrix.workers.map(w => {
-        const mQty = productMatrix.workerMethodProductQty?.[w.id] || { invoice1: {}, super_gros: {}, gros: {}, retail: {} } as any;
+        const mQty = productMatrix.workerMethodProductQty?.[w.id] || { invoice1: {}, super_gros: {}, gros: {}, retail: {}, remise: {} } as any;
         const offered = productMatrix.workerOfferedQty?.[w.id] || {};
         const wAmt = productMatrix.workerProductAmount?.[w.id] || {};
         const workerTotalAmount = products.reduce((a, p) => a + Number(wAmt[p.id] || 0), 0);
