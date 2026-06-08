@@ -23,16 +23,19 @@ export const resolveReceiptBucket = (
     return 'cash';
   }
 
-  if (order?.payment_status === 'cash') {
-    return 'cash';
-  }
-
+  // payment_method_resolved is more authoritative than payment_status because
+  // payment_status='cash' on a receipt order may just mean "paid", while
+  // payment_method_resolved suffix (_cash / _doc) reflects the actual bucket.
   const resolved = String(order?.payment_method_resolved || '');
   if (resolved.endsWith('_cash')) {
     return 'cash';
   }
   if (resolved.endsWith('_doc')) {
     return 'doc';
+  }
+
+  if (order?.payment_status === 'cash') {
+    return 'cash';
   }
 
   return 'doc';
