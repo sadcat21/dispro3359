@@ -288,6 +288,23 @@
   }
 }
 
+/* During Android native print: hide everything except the keep-alive snapshot
+   so the WebView->PDF capture starts at the print content (not a blank modal). */
+body.native-print-active {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: white !important;
+  overflow: visible !important;
+}
+body.native-print-active > *:not([data-native-print-keepalive]) {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  width: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+}
+
 body.native-print-active > [data-native-print-keepalive] {
   display: block !important;
   visibility: visible !important;
