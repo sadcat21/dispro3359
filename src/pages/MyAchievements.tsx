@@ -1603,25 +1603,11 @@ const MyAchievements: React.FC = () => {
                           <p className="text-[13px] font-bold tabular-nums leading-5" dir="ltr">
                             {Number(displayAmount).toLocaleString()} <span className="text-[9px] font-normal text-muted-foreground">DA</span>
                           </p>
-                          {visit.isDebtSale && visit.debtMoney && (() => {
-                            const orderTotal = Number(visit.orderTotal || 0);
-                            const remaining = Number(visit.debtMoney.remainingAmount || 0);
-                            const paid = Math.max(0, orderTotal - remaining);
-                            return (
-                              <div className="flex flex-col items-end gap-0.5 leading-tight">
-                                {paid > 0 && (
-                                  <p className="text-[10px] font-bold text-emerald-600 tabular-nums" dir="ltr">
-                                    <span className="text-muted-foreground font-normal">مدفوع: </span>
-                                    {Math.round(paid).toLocaleString()} DA
-                                  </p>
-                                )}
-                                <p className="text-[10px] font-bold text-destructive tabular-nums" dir="ltr">
-                                  <span className="text-muted-foreground font-normal">متبقي: </span>
-                                  {Math.round(remaining).toLocaleString()} DA
-                                </p>
-                              </div>
-                            );
-                          })()}
+                          {visit.isDebtSale && visit.debtMoney && (
+                            <p className="text-[10px] font-bold text-destructive tabular-nums leading-tight" dir="ltr">
+                              {Number(visit.debtMoney.remainingAmount).toLocaleString()} DA
+                            </p>
+                          )}
                         </div>
                       )}
                     </div>
