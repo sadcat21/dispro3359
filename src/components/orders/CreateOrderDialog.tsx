@@ -663,8 +663,9 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
         }
       })();
 
-      // Track visit GPS
-      trackVisit({ customerId: selectedCustomerId, operationType: 'order', operationId: order.id });
+      // Track visit GPS — classify as direct_sale so achievements row matches
+      // the actual sale produced by the worker.
+      trackVisit({ customerId: selectedCustomerId, operationType: 'direct_sale', operationId: order.id });
 
       handleClose(false);
     } catch (error: any) {
