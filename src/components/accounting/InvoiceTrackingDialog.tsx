@@ -175,7 +175,7 @@ const InvoiceTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId }
       if (activeIds.length) {
         const { error } = await supabase
           .from('orders')
-          .update({ invoice_stage: null })
+          .update({ invoice_stage: 'delivered' })
           .in('id', activeIds);
         if (error) throw error;
       }
