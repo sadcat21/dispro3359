@@ -334,11 +334,6 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                       key={item.id || idx}
                       className="relative flex flex-col rounded-xl overflow-hidden shadow border border-border"
                     >
-                      {isRemise && (
-                        <span className="absolute top-1 start-1 z-10 inline-flex items-center rounded px-1.5 py-0.5 text-[9px] font-bold bg-red-600 text-white border border-red-700 shadow">
-                          Remise
-                        </span>
-                      )}
                       <div className="px-1.5 py-1 border-b bg-muted border-border">
                         <span className="font-bold text-[10px] leading-tight block truncate text-foreground">
                           {n.productName}
@@ -348,6 +343,11 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                         className="relative w-full aspect-[4/3] bg-muted overflow-hidden cursor-pointer"
                         onClick={() => setExpandedItemIdx(expandedItemIdx === idx ? null : idx)}
                       >
+                        {isRemise && (
+                          <span className="absolute top-1 start-1 z-10 inline-flex items-center rounded px-1.5 py-0.5 text-[9px] font-bold bg-red-600 text-white border border-red-700 shadow">
+                            Remise
+                          </span>
+                        )}
                         {productImage ? (
                           <img src={productImage} alt={n.productName} className="w-full h-full object-contain" loading="lazy" />
                         ) : (
