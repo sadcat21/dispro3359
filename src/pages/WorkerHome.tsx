@@ -510,9 +510,12 @@ const WorkerHome: React.FC = () => {
           if ((hasOrdersAccess || isWarehouseManager) && !isOrdersPageHidden && !isCreateOrderHidden) {
             quickActions.push({ key: 'create-order', icon: <ShoppingCart className="w-6 h-6" />, label: t('orders.create_new'), onClick: () => setShowCustomerPickerForOrder(true) });
             if (!isWarehouseManager) {
-              // إخفاء زر إدارة الطلبيات من الواجهة الرئيسية بناءً على طلب المستخدم
+              quickActions.push({ key: 'manage-orders', icon: <ClipboardCheck className="w-6 h-6" />, label: t('orders.manage'), onClick: () => navigate('/orders') });
               quickActions.push({ key: 'order-tracking', icon: <ClipboardCheck className="w-6 h-6" />, label: t('worker_home.my_order_tracking'), onClick: () => navigate('/my-order-tracking') });
             }
+          }
+          if (hasDeliveryAccess && !isDeliveriesPageHidden) {
+            quickActions.push({ key: 'manage-deliveries', icon: <Package className="w-6 h-6" />, label: t('worker_home.manage_deliveries'), onClick: () => navigate('/my-deliveries') });
           }
           if (hasOrdersAccess && !hasDeliveryAccess && !isWarehouseManager && !isMyPromosPageHidden) {
             quickActions.push({ key: 'promos', icon: <Gift className="w-6 h-6" />, label: t('promos.add_new'), onClick: () => navigate('/my-promos') });
