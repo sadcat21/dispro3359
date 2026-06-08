@@ -130,20 +130,25 @@ export function buildPricingGroups(items: any[], orders: any[]): PricingGroupDat
       catalogPrice,
     };
 
-    // Add to subtype group
-    if (!groups[subtype]) groups[subtype] = [];
-    
-    // Merge with existing product in same group with same price
-    const existing = groups[subtype].find(e => e.productName === productName && Math.abs(e.unitPrice - unitPrice) < 0.01);
-    if (existing) {
-      existing.quantity += paidQty;
-      existing.total += lineTotal;
-    } else {
-      groups[subtype].push({ ...entry });
-    }
-
-    // Also add to custom if applicable
     if (isCustomPrice) {
+      // Custom-priced items belong ONLY to the custom group
+      const existingCustom = customProducts.find(e => e.productName === productName && Math.abs(e.unitPrice - unitPrice) < 0.01);
+      if (existingCustom) {
+        existingCustom.quantity += paidQty;
+        existingCustom.total += lineTotal;
+      } else {
+        customProducts.push({ ...entry });
+      }
+    } else {
+      if (!groups[subtype]) groups[subtype] = [];
+      const existing = groups[subtype].find(e => e.productName === productName && Math.abs(e.unitPrice - unitPrice) < 0.01);
+      if (existing) {
+        existing.quantity += paidQty;
+        existing.total += lineTotal;
+      } else {
+        groups[subtype].push({ ...entry });
+      }
+    }
       const existingCustom = customProducts.find(e => e.productName === productName && Math.abs(e.unitPrice - unitPrice) < 0.01);
       if (existingCustom) {
         existingCustom.quantity += paidQty;
