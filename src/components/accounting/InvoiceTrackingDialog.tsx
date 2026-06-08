@@ -8,7 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { ClipboardList, Stamp, CheckCircle2, Truck, ArrowLeft } from 'lucide-react';
+import { ClipboardList, Stamp, CheckCircle2, Truck, ArrowLeft, Eraser } from 'lucide-react';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface Props {
   open: boolean;
@@ -57,6 +61,8 @@ const InvoiceTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId }
   const [busyId, setBusyId] = useState<string | null>(null);
   const [invoicePrompt, setInvoicePrompt] = useState<Row | null>(null);
   const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [confirmClear, setConfirmClear] = useState(false);
+  const [clearing, setClearing] = useState(false);
 
   const openInvoicePrompt = (row: Row) => {
     setInvoiceNumber('');
@@ -141,6 +147,30 @@ const InvoiceTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId }
     if (invoicePrompt) advance(invoicePrompt, v);
   };
 
+  const currentList = groups[tab];
+
+  const handleClearCurrent = async () => {
+    if (!currentList.length) { setConfirmClear(false); return; }
+    setClearing(true);
+    try {
+      const ids = currentList.map(r => r.id);
+      const { error } = await supabase
+        .from('orders')
+        .update({ invoice_stage: 'delivered' })
+        .in('id', ids);
+      if (error) throw error;
+      toast({ title: 'تم التفريغ', description: `تم تفريغ ${ids.length} فاتورة من السجل` });
+      await qc.invalidateQueries({ queryKey: ['invoice-tracking', branchId] });
+    } catch (e: any) {
+      toast({ title: 'خطأ', description: e?.message || 'تعذّر التفريغ', variant: 'destructive' });
+    } finally {
+      setClearing(false);
+      setConfirmClear(false);
+    }
+  };
+
+
+
   const renderList = (list: Row[], emptyText: string) => {
     if (isLoading) return <p className="text-center text-sm text-muted-foreground py-6">جاري التحميل...</p>;
     if (list.length === 0) return <p className="text-center text-sm text-muted-foreground py-6">{emptyText}</p>;
@@ -190,9 +220,21 @@ const InvoiceTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId }
 
       <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <ClipboardList className="w-5 h-5 text-indigo-600" />
-            تتبع الفواتير
+          <DialogTitle className="flex items-center justify-between gap-2">
+            <span className="flex items-center gap-2">
+              <ClipboardList className="w-5 h-5 text-indigo-600" />
+              تتبع الفواتير
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1 text-xs text-destructive border-destructive/40 hover:bg-destructive/10 me-6"
+              disabled={!currentList.length || clearing}
+              onClick={() => setConfirmClear(true)}
+            >
+              <Eraser className="w-3.5 h-3.5" />
+              تفريغ السجل
+            </Button>
           </DialogTitle>
         </DialogHeader>
 
@@ -253,6 +295,23 @@ const InvoiceTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId }
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={confirmClear} onOpenChange={setConfirmClear}>
+        <AlertDialogContent className="!z-[10000]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>تفريغ السجل</AlertDialogTitle>
+            <AlertDialogDescription>
+              سيتم نقل {currentList.length} فاتورة من هذه القائمة إلى الحالة "مُسلَّمة" وإزالتها من تتبع الفواتير. هل تريد المتابعة؟
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={clearing}>إلغاء</AlertDialogCancel>
+            <AlertDialogAction onClick={handleClearCurrent} disabled={clearing} className="bg-destructive hover:bg-destructive/90">
+              تأكيد التفريغ
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
