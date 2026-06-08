@@ -225,24 +225,47 @@ const PricingGroupCard: React.FC<{ group: PricingGroupData }> = ({ group }) => {
               <span className="text-center">{t('pricing_groups.price')}</span>
               <span className="text-center">{t('pricing_groups.total')}</span>
             </div>
-            {group.products.map((product, idx) => (
-              <div key={idx} className="grid grid-cols-4 gap-1 text-xs items-center py-1.5 px-1 border-b border-dashed last:border-0">
-                <div className="flex items-center gap-1 min-w-0">
-                  <span className="truncate">{product.productName}</span>
-                  {product.isCustomPrice && group.subtype !== 'custom' && (
-                    <AlertTriangle className="w-3 h-3 text-amber-500 shrink-0" />
-                  )}
+            {group.products.map((product, idx) => {
+              const discountPerUnit = product.isCustomPrice && product.catalogPrice
+                ? Math.max(0, product.catalogPrice - product.unitPrice)
+                : 0;
+              const totalDiscount = Math.round(discountPerUnit * product.quantity);
+              return (
+                <div key={idx} className="grid grid-cols-4 gap-1 text-xs items-center py-1.5 px-1 border-b border-dashed last:border-0">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    {product.imageUrl ? (
+                      <img
+                        src={product.imageUrl}
+                        alt={product.productName}
+                        className="w-7 h-7 rounded object-cover border shrink-0 bg-muted"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-7 h-7 rounded border bg-muted shrink-0 flex items-center justify-center">
+                        <Package className="w-3.5 h-3.5 text-muted-foreground" />
+                      </div>
+                    )}
+                    <span className="truncate">{product.productName}</span>
+                    {product.isCustomPrice && group.subtype !== 'custom' && (
+                      <AlertTriangle className="w-3 h-3 text-amber-500 shrink-0" />
+                    )}
+                  </div>
+                  <span className="text-center font-bold">{fmtQty(product.quantity)}</span>
+                  <div className="text-center">
+                    <span className="text-muted-foreground">{fmt(product.unitPrice)}</span>
+                    {product.isCustomPrice && product.catalogPrice && (
+                      <span className="block text-[9px] text-amber-600 line-through">{fmt(product.catalogPrice)}</span>
+                    )}
+                  </div>
+                  <div className="text-center">
+                    <span className="font-semibold">{fmt(Math.round(product.total))}</span>
+                    {totalDiscount > 0 && (
+                      <span className="block text-[9px] text-red-600 font-medium">-{fmt(totalDiscount)} DA</span>
+                    )}
+                  </div>
                 </div>
-                <span className="text-center font-bold">{fmtQty(product.quantity)}</span>
-                <div className="text-center">
-                  <span className="text-muted-foreground">{fmt(product.unitPrice)}</span>
-                  {product.isCustomPrice && product.catalogPrice && (
-                    <span className="block text-[9px] text-amber-600 line-through">{fmt(product.catalogPrice)}</span>
-                  )}
-                </div>
-                <span className="text-center font-semibold">{fmt(Math.round(product.total))}</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </CollapsibleContent>
       </div>
