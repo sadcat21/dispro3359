@@ -767,6 +767,7 @@ const MyAchievements: React.FC = () => {
       const orderProductsMap = new Map<string, Set<string>>();
       const orderPromoCountMap = new Map<string, number>();
       const orderRemiseSet = new Set<string>();
+      if (orderIds.length) {
         const orders = ordersResult.data;
         const orderItems = orderItemsResult.data;
         const debts = debtsResult.data;
@@ -784,6 +785,9 @@ const MyAchievements: React.FC = () => {
           }
           if (Number(item.gift_quantity || 0) > 0 || Number(item.gift_pieces || 0) > 0) {
             orderPromoCountMap.set(item.order_id, (orderPromoCountMap.get(item.order_id) || 0) + 1);
+          }
+          if (isRemiseOrderItem(item, item.product)) {
+            orderRemiseSet.add(item.order_id);
           }
         });
 
