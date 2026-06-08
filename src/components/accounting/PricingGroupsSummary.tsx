@@ -149,14 +149,6 @@ export function buildPricingGroups(items: any[], orders: any[]): PricingGroupDat
         groups[subtype].push({ ...entry });
       }
     }
-      const existingCustom = customProducts.find(e => e.productName === productName && Math.abs(e.unitPrice - unitPrice) < 0.01);
-      if (existingCustom) {
-        existingCustom.quantity += paidQty;
-        existingCustom.total += lineTotal;
-      } else {
-        customProducts.push({ ...entry });
-      }
-    }
   }
 
   const result: PricingGroupData[] = [];
