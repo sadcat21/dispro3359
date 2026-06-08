@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { ChevronDown, Package, AlertTriangle } from 'lucide-react';
 import { inferPricingSubtype, PricingSubtype } from '@/utils/pricingSubtype';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { isRemiseOrderItem } from '@/utils/remise';
 
 interface PricingGroupsSummaryProps {
   workerId: string;
