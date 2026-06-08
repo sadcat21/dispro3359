@@ -1214,11 +1214,12 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
 
     ${(() => {
       if (!productMatrix || !productMatrix.workers?.length || !productMatrix.products.length) return '';
-      const methods: Array<['invoice1' | 'super_gros' | 'gros' | 'retail', string]> = [
+      const methods: Array<['invoice1' | 'super_gros' | 'gros' | 'retail' | 'remise', string]> = [
         ['invoice1', 'Facture 1'],
         ['super_gros', 'Super Gros'],
         ['gros', 'Gros'],
         ['retail', 'Détail'],
+        ['remise', 'Remise'],
       ];
       const products = productMatrix.products;
       // Columns: Produit | (Méthode Payé | Méthode Crédit) x4 | PROMO | TOTAL
