@@ -830,8 +830,8 @@ export type ProductMatrix = {
   rows: Record<string, Record<string, number>>;
   workers: { id: string; name: string }[];
   workerRows: Record<string, Record<string, number>>;
-  workerMethodAmounts: Record<string, { invoice1: number; super_gros: number; gros: number; retail: number }>;
-  workerMethodProductQty: Record<string, { invoice1: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>; super_gros: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>; gros: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>; retail: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }> }>;
+  workerMethodAmounts: Record<string, { invoice1: number; super_gros: number; gros: number; retail: number; remise: number }>;
+  workerMethodProductQty: Record<string, { invoice1: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>; super_gros: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>; gros: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>; retail: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>; remise: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }> }>;
   workerOfferedQty: Record<string, Record<string, number>>;
   workerProductAmount: Record<string, Record<string, number>>;
 };
