@@ -20,6 +20,7 @@ import CreateSessionDialog, { SwipeStack } from './CreateSessionDialog';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import PricingGroupsSummary from './PricingGroupsSummary';
+import RemiseSummary from './RemiseSummary';
 import DebtCollectionsSummary from './DebtCollectionsSummary';
 import DocumentCollectionsSummary from './DocumentCollectionsSummary';
 import ExpensesDetailsSummary from './ExpensesDetailsSummary';
@@ -557,6 +558,22 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
               />
             </CollapsibleSection>
             )}
+
+            <CollapsibleSection
+              icon={<Tag className="w-4 h-4 text-red-600" />}
+              title="Remise"
+              sectionKey="remise"
+              activeKey={activeSection}
+              onToggle={toggleSection}
+              onEmptyChange={handleEmptyChange}
+            >
+              <RemiseSummary
+                workerId={session.worker_id}
+                periodStart={session.period_start}
+                periodEnd={session.period_end}
+              />
+            </CollapsibleSection>
+
 
             <CollapsibleSection
               icon={<Package className="w-4 h-4 text-primary" />}
