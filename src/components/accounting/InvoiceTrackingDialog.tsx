@@ -149,11 +149,13 @@ const InvoiceTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId }
 
   const currentList = groups[tab];
 
+  const allRows = useMemo(() => [...groups.unsealed, ...groups.sealed, ...groups.ready], [groups]);
+
   const handleClearCurrent = async () => {
-    if (!currentList.length) { setConfirmClear(false); return; }
+    if (!allRows.length) { setConfirmClear(false); return; }
     setClearing(true);
     try {
-      const ids = currentList.map(r => r.id);
+      const ids = allRows.map(r => r.id);
       // 1) Fetch order statuses to separate cancelled from active
       const { data: ords, error: fetchErr } = await supabase
         .from('orders')
