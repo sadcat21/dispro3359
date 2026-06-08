@@ -1243,7 +1243,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         getCell: (k: string, pid: string) => { paid: number; debt: number; paidAmt: number; debtAmt: number },
         getOffered: (pid: string) => number,
       ) => {
-        const totals: Record<string, { paidAmt: number; debtAmt: number }> = { invoice1: { paidAmt: 0, debtAmt: 0 }, super_gros: { paidAmt: 0, debtAmt: 0 }, gros: { paidAmt: 0, debtAmt: 0 }, retail: { paidAmt: 0, debtAmt: 0 } };
+        const totals: Record<string, { paidAmt: number; debtAmt: number }> = { invoice1: { paidAmt: 0, debtAmt: 0 }, super_gros: { paidAmt: 0, debtAmt: 0 }, gros: { paidAmt: 0, debtAmt: 0 }, retail: { paidAmt: 0, debtAmt: 0 }, remise: { paidAmt: 0, debtAmt: 0 } };
         let totOffered = 0;
         let grandQty = 0;
         const rowsHtml = products.map(p => {
