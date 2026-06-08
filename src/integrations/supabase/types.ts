@@ -10380,8 +10380,8 @@ export type Database = {
         | "company_manager"
         | "internal_supervisor"
         | "external_supervisor"
-      document_stage: "pending" | "received" | "ready" | "handed"
-      invoice_stage: "unsealed" | "sealed" | "ready" | "delivered"
+      document_stage: "pending" | "received" | "ready" | "handed" | "cancelled"
+      invoice_stage: "unsealed" | "sealed" | "ready" | "delivered" | "cancelled"
       target_metric_type: "sales_amount" | "deliveries_count" | "cartons_sold"
       target_period_type: "daily" | "weekly" | "monthly"
       target_progress_status: "in_progress" | "achieved" | "missed"
@@ -10528,8 +10528,8 @@ export const Constants = {
         "internal_supervisor",
         "external_supervisor",
       ],
-      document_stage: ["pending", "received", "ready", "handed"],
-      invoice_stage: ["unsealed", "sealed", "ready", "delivered"],
+      document_stage: ["pending", "received", "ready", "handed", "cancelled"],
+      invoice_stage: ["unsealed", "sealed", "ready", "delivered", "cancelled"],
       target_metric_type: ["sales_amount", "deliveries_count", "cartons_sold"],
       target_period_type: ["daily", "weekly", "monthly"],
       target_progress_status: ["in_progress", "achieved", "missed"],
