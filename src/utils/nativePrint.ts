@@ -9,6 +9,7 @@ const PRINT_PORTAL_IDS = [
   'loadsheet-print-portal',
   'print-portal-promo-details',
   'session-print-portal',
+  'receipt-print-portal',
 ];
 
 const KEEPALIVE_ATTRIBUTE = 'data-native-print-keepalive';
