@@ -336,13 +336,13 @@ const AccountingSessions: React.FC = () => {
                   const hasExpenses = expensesWorkerIds.has(worker.id);
                   const hasIssue = liabValue !== 0 || hasDocs || hasDebts || hasExpenses;
                   const isReviewed = reviewedWorkerIds.has(worker.id);
-                  // Green only when warehouse manager confirmed final review (and no outstanding issue)
-                  const colorClass = isReviewed && !hasIssue
+                  // بمجرد مراجعة العامل واحتسابه يعود للون الطبيعي (أخضر) حتى لو كان هناك ديون/مصاريف/وثائق سابقة
+                  const colorClass = isReviewed
                     ? 'bg-emerald-600 border-emerald-600 hover:bg-emerald-700 hover:border-emerald-700 text-white'
                     : hasIssue
                       ? 'bg-red-600 border-red-600 hover:bg-red-700 hover:border-red-700 text-white'
                       : 'hover:border-primary/40 hover:bg-primary/5';
-                  const isColored = (isReviewed && !hasIssue) || hasIssue;
+                  const isColored = isReviewed || hasIssue;
                   return (
                     <Button
                       key={worker.id}
