@@ -1272,6 +1272,54 @@ const MyDeliveries: React.FC = () => {
         products={products}
         onPrint={handlePrint}
         onExportCSV={handleExportCSV}
+        onDownload={async (filterWorkerId, _printPerWorker, filteredOrders, _groupCustomers, _groupProducts, columnConfig) => {
+          if (!filteredOrders || filteredOrders.length === 0) {
+            toast.error(t('print.no_orders'));
+            return;
+          }
+          try {
+            if (columnConfig) setPrintColumnConfig(columnConfig);
+            const orderIds = filteredOrders.map(o => o.id);
+            const { data: items } = await supabase
+              .from('order_items')
+              .select('*, product:products(*)')
+              .in('order_id', orderIds);
+            const itemsRecord: Record<string, any[]> = {};
+            items?.forEach((item: any) => {
+              if (!itemsRecord[item.order_id]) itemsRecord[item.order_id] = [];
+              itemsRecord[item.order_id].push(item);
+            });
+            setAllOrderItems(itemsRecord);
+
+            let workerName: string | null = null;
+            if (filterWorkerId && filterWorkerId !== 'unassigned') {
+              workerName = workersList.find(w => w.id === filterWorkerId)?.full_name || null;
+            }
+            setFilteredOrdersForPrint(filteredOrders);
+            setPrintWorkerName(workerName);
+            setIsPrintReady(true);
+
+            await new Promise(resolve => setTimeout(resolve, 600));
+
+            const target = printRef.current?.querySelector<HTMLElement>('.print-container, .print-handover')
+              || printRef.current;
+            if (!target) {
+              toast.error(t('print.print_error'));
+              setIsPrintReady(false);
+              return;
+            }
+
+            const { generatePDF } = await import('@/utils/generatePDF');
+            const safeName = (workerName || t('deliveries.delivery_list') || 'deliveries').replace(/[\\/:*?"<>|]+/g, '_');
+            await generatePDF(target, `${safeName}.pdf`, 'save');
+            toast.success(t('print.print_success') || 'تم التحميل');
+          } catch (err) {
+            console.error(err);
+            toast.error(t('print.print_error'));
+          } finally {
+            setIsPrintReady(false);
+          }
+        }}
         onPreview={async (filteredOrders, columnConfig) => {
           const orderIds = filteredOrders.map(o => o.id);
           const { data: items } = await supabase
