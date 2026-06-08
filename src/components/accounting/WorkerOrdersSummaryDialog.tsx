@@ -637,12 +637,31 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
       // Close print settings dialog AFTER data is ready, then print after a delay
       setShowPrintSettings(false);
 
-      setTimeout(() => {
-        window.print();
-        setTimeout(() => {
-          setIsPrintReady(false);
-          isPrintingRef.current = false;
-        }, 500);
+      setTimeout(async () => {
+        if (printActionRef.current === 'drive') {
+          try {
+            setIsDriveLoading(true);
+            const target = printRef.current;
+            if (!target) throw new Error('print target missing');
+            const { generatePDF } = await import('@/utils/generatePDF');
+            const filename = `${printTitle.replace(/[\\/:*?"<>|]+/g, '_')}.pdf`;
+            await generatePDF(target, filename);
+            toast.success('تم تجهيز ملف PDF — اضغط "مشاركة" ثم اختر Google Drive لحفظه');
+          } catch (e) {
+            console.error('Drive export error:', e);
+            toast.error('تعذّر إنشاء ملف PDF للتصدير');
+          } finally {
+            setIsDriveLoading(false);
+            setIsPrintReady(false);
+            isPrintingRef.current = false;
+          }
+        } else {
+          window.print();
+          setTimeout(() => {
+            setIsPrintReady(false);
+            isPrintingRef.current = false;
+          }, 500);
+        }
       }, 800);
     } catch (err) {
       console.error('Print error:', err);
