@@ -1604,8 +1604,8 @@ const MyAchievements: React.FC = () => {
                             {Number(displayAmount).toLocaleString()} <span className="text-[9px] font-normal text-muted-foreground">DA</span>
                           </p>
                           {visit.isDebtSale && visit.debtMoney && (
-                            <p className="text-[10px] text-muted-foreground tabular-nums leading-tight" dir="ltr">
-                              دين {visit.debtMoney.remainingAmount.toLocaleString()} DA
+                            <p className="text-[10px] font-bold text-destructive tabular-nums leading-tight" dir="ltr">
+                              {Number(visit.debtMoney.remainingAmount).toLocaleString()} DA
                             </p>
                           )}
                         </div>
