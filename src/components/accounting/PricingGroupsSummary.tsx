@@ -28,6 +28,7 @@ export interface PricingGroupData {
 
 export interface PricingGroupProduct {
   productName: string;
+  imageUrl?: string | null;
   quantity: number;
   unitPrice: number;
   total: number;
