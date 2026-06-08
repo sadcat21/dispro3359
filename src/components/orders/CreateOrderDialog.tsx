@@ -1394,6 +1394,7 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                   className="flex-1 h-10 text-sm"
                   disabled={
                     (currentStep === 1 && !selectedCustomerId) ||
+                    (currentStep === 1 && paymentType === 'with_invoice' && invoicePaymentMethod === 'receipt' && !invoicePaymentSubType) ||
                     (currentStep === 2 && orderItems.length === 0)
                   }
                   onClick={() => setCurrentStep(prev => prev + 1)}
