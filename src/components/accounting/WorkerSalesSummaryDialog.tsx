@@ -228,6 +228,7 @@ const PriceTrackingTab: React.FC<{ priceTracking: PriceTrackedProduct[] }> = ({ 
     gros: t('sales_summary.subtype_gros'),
     super_gros: t('sales_summary.subtype_super_gros'),
     invoice: t('sales_summary.subtype_invoice'),
+    remise: 'Remise',
   };
   if (!priceTracking.length) {
     return <p className="text-center text-muted-foreground py-6 text-sm">{t('sales_summary.no_data')}</p>;
