@@ -501,10 +501,20 @@ const HandoverPrintView: React.FC<Props> = ({
         </div>
       </div>
 
-      <div className="hv-grand" data-pdf-section>
-        <span>Total Général</span>
-        <strong>{(totalAmount - (receiptCashTotal - receiptCashPaidTotal) - expensesAmount).toLocaleString()} DA</strong>
-      </div>
+      {(() => {
+        const displayedStamp = Math.max(cashItemsStampTotal, stampAmount);
+        const recouvrementSuppl = debtCashCollected > 0 ? debtCashCollected : extraCashTotal;
+        const totalEspeces =
+          cashItemsTotal + receiptCashPaidTotal + displayedStamp + cashInvoice2 + recouvrementSuppl - expensesAmount;
+        const totalValeurs = checksAmount + receiptsAmount + transfersAmount;
+        const grandTotal = totalEspeces + totalValeurs;
+        return (
+          <div className="hv-grand" data-pdf-section>
+            <span>Total Général</span>
+            <strong>{grandTotal.toLocaleString()} DA</strong>
+          </div>
+        );
+      })()}
 
       <div className="hv-sign" data-pdf-section>
         <b>Signature :</b> <span className="line"></span>
