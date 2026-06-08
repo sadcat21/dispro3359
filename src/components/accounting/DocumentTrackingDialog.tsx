@@ -341,7 +341,7 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
       </Dialog>
 
       <AlertDialog open={confirmClear} onOpenChange={setConfirmClear}>
-        <AlertDialogContent className="!z-[10000]">
+        <AlertDialogContent className="!z-[100000] !pointer-events-auto">
           <AlertDialogHeader>
             <AlertDialogTitle>تفريغ السجل</AlertDialogTitle>
             <AlertDialogDescription>
