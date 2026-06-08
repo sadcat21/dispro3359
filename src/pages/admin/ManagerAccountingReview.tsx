@@ -118,6 +118,8 @@ const ManagerAccountingReview: React.FC = () => {
   });
 
   const confirmMutation = useConfirmManagerReview();
+  const undoMutation = useUndoManagerReview();
+  const [undoTargetId, setUndoTargetId] = useState<string | null>(null);
 
   // Filter pending by date range (uses completed_at)
   const filteredPendingSessions = useMemo(() => {
