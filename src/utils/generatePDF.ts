@@ -106,7 +106,60 @@ function openPdfPreview(blob: Blob, filename: string) {
   };
 }
 
-export async function generatePDF(element: HTMLElement, filename: string) {
+// Wait for all images in the element to finish loading (avoids blank canvas on Android)
+async function waitForImages(root: HTMLElement) {
+  const imgs = Array.from(root.querySelectorAll('img'));
+  await Promise.all(
+    imgs.map(
+      (img) =>
+        new Promise<void>((resolve) => {
+          if (img.complete && img.naturalWidth > 0) return resolve();
+          const done = () => {
+            img.removeEventListener('load', done);
+            img.removeEventListener('error', done);
+            resolve();
+          };
+          img.addEventListener('load', done);
+          img.addEventListener('error', done);
+          // safety timeout
+          setTimeout(done, 4000);
+        })
+    )
+  );
+}
+
+// Replace any computed color that html2canvas can't parse (oklch, color(), lab, lch)
+// by re-applying the browser-resolved color as inline rgb() on every cloned node.
+function sanitizeColorsForHtml2Canvas(orig: HTMLElement, clone: HTMLElement) {
+  const origAll = [orig, ...Array.from(orig.querySelectorAll<HTMLElement>('*'))];
+  const cloneAll = [clone, ...Array.from(clone.querySelectorAll<HTMLElement>('*'))];
+  const n = Math.min(origAll.length, cloneAll.length);
+  for (let i = 0; i < n; i++) {
+    const o = origAll[i];
+    const c = cloneAll[i];
+    if (!(c instanceof HTMLElement)) continue;
+    const cs = window.getComputedStyle(o);
+    // These come back as rgb()/rgba() from the browser regardless of source notation.
+    c.style.color = cs.color;
+    c.style.backgroundColor = cs.backgroundColor;
+    c.style.borderTopColor = cs.borderTopColor;
+    c.style.borderRightColor = cs.borderRightColor;
+    c.style.borderBottomColor = cs.borderBottomColor;
+    c.style.borderLeftColor = cs.borderLeftColor;
+    const fill = cs.fill;
+    const stroke = cs.stroke;
+    if (fill && fill !== 'none') c.style.fill = fill;
+    if (stroke && stroke !== 'none') c.style.stroke = stroke;
+  }
+}
+
+export type GeneratePdfMode = 'auto' | 'save' | 'preview';
+
+export async function generatePDF(
+  element: HTMLElement,
+  filename: string,
+  mode: GeneratePdfMode = 'auto'
+) {
   const saved: { el: HTMLElement; overflow: string; maxHeight: string; height: string; transform: string }[] = [];
   let ancestor: HTMLElement | null = element;
   while (ancestor && ancestor !== document.documentElement) {
@@ -119,15 +172,27 @@ export async function generatePDF(element: HTMLElement, filename: string) {
     ancestor = ancestor.parentElement;
   }
 
+  // Make sure images are decoded before snapshot.
+  await waitForImages(element);
+
   let canvas: HTMLCanvasElement;
   try {
     canvas = await html2canvas(element, {
       scale: 2,
       useCORS: true,
+      allowTaint: true,
       logging: false,
       backgroundColor: '#ffffff',
+      imageTimeout: 0,
       width: element.scrollWidth,
       height: element.scrollHeight,
+      onclone: (_doc, clonedEl) => {
+        try {
+          sanitizeColorsForHtml2Canvas(element, clonedEl as HTMLElement);
+        } catch (e) {
+          console.warn('[generatePDF] color sanitize failed', e);
+        }
+      },
     });
   } finally {
     for (const { el, overflow, maxHeight, height, transform } of saved) {
@@ -163,7 +228,21 @@ export async function generatePDF(element: HTMLElement, filename: string) {
     }
   }
 
-  if (isMobileDevice()) {
+  // Save mode: always trigger a direct download (no overlay).
+  if (mode === 'save') {
+    const blob = pdf.output('blob');
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    return;
+  }
+
+  if (mode === 'preview' || isMobileDevice()) {
     const blob = pdf.output('blob');
     openPdfPreview(blob, filename);
   } else {

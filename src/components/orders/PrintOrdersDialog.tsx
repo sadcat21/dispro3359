@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Printer, Users, UserCheck, Calendar, Download, Layers, Package, Settings2, Filter, Eye } from 'lucide-react';
+import { Printer, Users, UserCheck, Calendar, Download, Layers, Package, Settings2, Filter, Eye, FileDown } from 'lucide-react';
 import { Worker, OrderWithDetails, Product } from '@/types/database';
 import { format } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
@@ -24,6 +24,7 @@ interface PrintOrdersDialogProps {
   onPrint: (filterWorkerId: string | null, printPerWorker: boolean, filteredOrders: OrderWithDetails[], groupCustomers: boolean, groupProducts: boolean, columnConfig: PrintColumnConfig[]) => void;
   onExportCSV: (filteredOrders: OrderWithDetails[]) => void;
   onPreview?: (filteredOrders: OrderWithDetails[], columnConfig: PrintColumnConfig[]) => void;
+  onDownload?: (filterWorkerId: string | null, printPerWorker: boolean, filteredOrders: OrderWithDetails[], groupCustomers: boolean, groupProducts: boolean, columnConfig: PrintColumnConfig[]) => void;
 }
 
 const PrintOrdersDialog: React.FC<PrintOrdersDialogProps> = ({
@@ -35,6 +36,7 @@ const PrintOrdersDialog: React.FC<PrintOrdersDialogProps> = ({
   onPrint,
   onExportCSV,
   onPreview,
+  onDownload,
 }) => {
   const { t, language, dir } = useLanguage();
   const { columns: dbColumns, saveColumns } = usePrintColumnsConfig();
@@ -331,15 +333,32 @@ const PrintOrdersDialog: React.FC<PrintOrdersDialogProps> = ({
             </div>
 
             {/* Action Buttons */}
-            <div className="grid grid-cols-3 gap-2">
-              <Button 
-                onClick={handlePrint} 
+            <div className={`grid ${onDownload ? 'grid-cols-2' : 'grid-cols-3'} gap-2`}>
+              <Button
+                onClick={handlePrint}
                 disabled={getDisplayOrdersCount() === 0}
                 className="h-9"
               >
                 <Printer className="w-4 h-4 ms-2" />
                 {t('common.print')}
               </Button>
+              {onDownload && (
+                <Button
+                  variant="default"
+                  onClick={() => {
+                    const filterWorkerId = selectedWorkerFilter === 'all' ? null :
+                                          selectedWorkerFilter === 'unassigned' ? 'unassigned' :
+                                          selectedWorkerFilter;
+                    onDownload(filterWorkerId, printPerWorker, filteredOrders, groupCustomers, groupProducts, columnConfig);
+                    onOpenChange(false);
+                  }}
+                  disabled={getDisplayOrdersCount() === 0}
+                  className="h-9 bg-emerald-600 hover:bg-emerald-700 text-white"
+                >
+                  <FileDown className="w-4 h-4 ms-2" />
+                  تحميل
+                </Button>
+              )}
               {onPreview && (
                 <Button
                   variant="secondary"
