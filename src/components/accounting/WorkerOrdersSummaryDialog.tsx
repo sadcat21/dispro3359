@@ -483,8 +483,9 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
   }, [currentData, allProducts]);
 
   // Open print settings dialog instead of printing directly
-  const handlePrintClick = () => {
+  const handlePrintClick = (action: 'print' | 'drive' = 'print') => {
     if (!workerId || currentData.length === 0) return;
+    printActionRef.current = action;
     // Only initialize all customers if no saved selection exists
     if (selectedCustomerIds.size === 0) {
       const allIds = new Set(uniqueCustomers.map(c => c.id));
