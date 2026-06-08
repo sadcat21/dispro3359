@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { ClipboardList, Package, User, Calendar, ChevronLeft, ChevronRight, Loader2, ShoppingCart, UserCheck, Printer, Settings2, Layers, Gift, Users, Truck, Minus, Plus, Check, Save } from 'lucide-react';
+import { ClipboardList, Package, User, Calendar, ChevronLeft, ChevronRight, Loader2, ShoppingCart, UserCheck, Printer, Settings2, Layers, Gift, Users, Truck, Minus, Plus, Check, Save, Cloud } from 'lucide-react';
 import { format, addDays, subDays } from 'date-fns';
 import OrdersPrintView from '@/components/print/OrdersPrintView';
 import type { PrintColumnConfig } from '@/components/print/OrdersPrintView';
