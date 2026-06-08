@@ -817,7 +817,13 @@ const MyAchievements: React.FC = () => {
           const remaining = Number(d.remaining_amount || 0);
           const totalAmount = Number(d.total_amount || 0);
           if (remaining > 0) {
-            debtStatusMap.set(d.order_id, paidAmount > 0 ? 'partial' : 'full');
+            // Partial when: payments recorded on the debt, OR the debt itself
+            // is smaller than the order total (customer paid part in cash upfront
+            // and only the difference became debt).
+            const orderTotal = Number(orderMetaMap.get(d.order_id)?.totalAmount || 0);
+            const upfrontPaid = orderTotal > 0 && totalAmount > 0 && totalAmount + 0.5 < orderTotal;
+            const isPartial = paidAmount > 0 || upfrontPaid;
+            debtStatusMap.set(d.order_id, isPartial ? 'partial' : 'full');
             debtMoneyMap.set(d.order_id, { paidAmount, remainingAmount: remaining, totalAmount });
           }
         });
