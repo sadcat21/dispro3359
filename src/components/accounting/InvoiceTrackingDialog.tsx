@@ -295,6 +295,23 @@ const InvoiceTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId }
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={confirmClear} onOpenChange={setConfirmClear}>
+        <AlertDialogContent className="!z-[10000]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>تفريغ السجل</AlertDialogTitle>
+            <AlertDialogDescription>
+              سيتم نقل {currentList.length} فاتورة من هذه القائمة إلى الحالة "مُسلَّمة" وإزالتها من تتبع الفواتير. هل تريد المتابعة؟
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={clearing}>إلغاء</AlertDialogCancel>
+            <AlertDialogAction onClick={handleClearCurrent} disabled={clearing} className="bg-destructive hover:bg-destructive/90">
+              تأكيد التفريغ
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
