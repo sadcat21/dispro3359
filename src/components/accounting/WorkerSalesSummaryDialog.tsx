@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ShoppingBag, Package, User, Clock, Calendar, ChevronLeft, ChevronRight, ChevronDown, TrendingUp, Tag, ArrowUpCircle, Wallet } from 'lucide-react';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { inferPricingSubtype } from '@/utils/pricingSubtype';
+import { isRemiseOrderItem } from '@/utils/remise';
 import PromoTrackingSummary from './PromoTrackingSummary';
 import { fetchSessionCalculations } from '@/hooks/useSessionCalculations';
 import { getGiftTotalPieces, getPaidQuantity } from '@/utils/orderItemQuantities';
@@ -211,12 +212,13 @@ const fmtQty = (v: number): string => {
   return rounded.toFixed(2).replace(/0+$/, '');
 };
 
-const subtypeAbbrMap: Record<string, string> = { retail: 'D', gros: 'G', super_gros: 'SG', invoice: 'F1' };
+const subtypeAbbrMap: Record<string, string> = { retail: 'D', gros: 'G', super_gros: 'SG', invoice: 'F1', remise: 'RMZ' };
 const subtypeColorMap: Record<string, string> = {
   retail: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
   gros: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
   super_gros: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
   invoice: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+  remise: 'bg-red-600 text-white dark:bg-red-700 dark:text-white',
 };
 
 const PriceTrackingTab: React.FC<{ priceTracking: PriceTrackedProduct[] }> = ({ priceTracking }) => {
@@ -226,6 +228,7 @@ const PriceTrackingTab: React.FC<{ priceTracking: PriceTrackedProduct[] }> = ({ 
     gros: t('sales_summary.subtype_gros'),
     super_gros: t('sales_summary.subtype_super_gros'),
     invoice: t('sales_summary.subtype_invoice'),
+    remise: 'Remise',
   };
   if (!priceTracking.length) {
     return <p className="text-center text-muted-foreground py-6 text-sm">{t('sales_summary.no_data')}</p>;
@@ -564,7 +567,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
         const itemWeightPerBox = Number((item as any).weight_per_box || 0);
         const itemPiecesPerBox = Number((item as any).pieces_per_box || 0);
 
-        const subtype = inferPricingSubtype({
+        const inferredSubtype = inferPricingSubtype({
           itemPaymentType,
           unitPrice,
           explicitSubtype: (item as any).price_subtype || null,
@@ -574,6 +577,19 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
           weightPerBox: itemWeightPerBox > 0 ? itemWeightPerBox : null,
           piecesPerBox: itemPiecesPerBox > 0 ? itemPiecesPerBox : null,
         });
+        const subtype = isRemiseOrderItem(
+          {
+            unit_price: unitPrice,
+            price_subtype: (item as any).price_subtype || null,
+            payment_type: itemPaymentType,
+            pricing_unit: itemPricingUnit,
+            weight_per_box: itemWeightPerBox,
+            pieces_per_box: itemPiecesPerBox,
+          },
+          prod || null,
+        )
+          ? 'remise'
+          : inferredSubtype;
         const lineTotal = totalPrice > 0 ? totalPrice : paidQty * unitPrice;
 
         if (!priceMap[productName]) {
