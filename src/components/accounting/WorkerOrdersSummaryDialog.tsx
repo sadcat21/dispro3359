@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { ClipboardList, Package, User, Calendar, ChevronLeft, ChevronRight, Loader2, ShoppingCart, UserCheck, Printer, Settings2, Layers, Gift, Users, Truck, Minus, Plus, Check, Save } from 'lucide-react';
+import { ClipboardList, Package, User, Calendar, ChevronLeft, ChevronRight, Loader2, ShoppingCart, UserCheck, Printer, Settings2, Layers, Gift, Users, Truck, Minus, Plus, Check, Save, Cloud } from 'lucide-react';
 import { format, addDays, subDays } from 'date-fns';
 import OrdersPrintView from '@/components/print/OrdersPrintView';
 import type { PrintColumnConfig } from '@/components/print/OrdersPrintView';
@@ -204,6 +204,8 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
   const [isPrintLoading, setIsPrintLoading] = useState(false);
   const isPrintingRef = useRef(false);
   const printRef = useRef<HTMLDivElement>(null);
+  const printActionRef = useRef<'print' | 'drive'>('print');
+  const [isDriveLoading, setIsDriveLoading] = useState(false);
 
   // Print settings dialog state
   const [showPrintSettings, setShowPrintSettings] = useState(false);
@@ -481,8 +483,9 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
   }, [currentData, allProducts]);
 
   // Open print settings dialog instead of printing directly
-  const handlePrintClick = () => {
+  const handlePrintClick = (action: 'print' | 'drive' = 'print') => {
     if (!workerId || currentData.length === 0) return;
+    printActionRef.current = action;
     // Only initialize all customers if no saved selection exists
     if (selectedCustomerIds.size === 0) {
       const allIds = new Set(uniqueCustomers.map(c => c.id));
@@ -634,12 +637,31 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
       // Close print settings dialog AFTER data is ready, then print after a delay
       setShowPrintSettings(false);
 
-      setTimeout(() => {
-        window.print();
-        setTimeout(() => {
-          setIsPrintReady(false);
-          isPrintingRef.current = false;
-        }, 500);
+      setTimeout(async () => {
+        if (printActionRef.current === 'drive') {
+          try {
+            setIsDriveLoading(true);
+            const target = printRef.current;
+            if (!target) throw new Error('print target missing');
+            const { generatePDF } = await import('@/utils/generatePDF');
+            const filename = `${printTitle.replace(/[\\/:*?"<>|]+/g, '_')}.pdf`;
+            await generatePDF(target, filename);
+            toast.success('تم تجهيز ملف PDF — اضغط "مشاركة" ثم اختر Google Drive لحفظه');
+          } catch (e) {
+            console.error('Drive export error:', e);
+            toast.error('تعذّر إنشاء ملف PDF للتصدير');
+          } finally {
+            setIsDriveLoading(false);
+            setIsPrintReady(false);
+            isPrintingRef.current = false;
+          }
+        } else {
+          window.print();
+          setTimeout(() => {
+            setIsPrintReady(false);
+            isPrintingRef.current = false;
+          }, 500);
+        }
       }, 800);
     } catch (err) {
       console.error('Print error:', err);
@@ -841,20 +863,32 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
           </TabsContent>
         </Tabs>
 
-        <div className="shrink-0 border-t bg-background/95 p-3">
+        <div className="shrink-0 border-t bg-background/95 p-3 grid grid-cols-[1fr_auto] gap-2">
           <Button
             variant="destructive"
             size="lg"
             className="w-full gap-2 font-bold shadow-lg"
-            onClick={handlePrintClick}
-            disabled={isPrintLoading || currentData.length === 0}
+            onClick={() => handlePrintClick('print')}
+            disabled={isPrintLoading || isDriveLoading || currentData.length === 0}
           >
-            {isPrintLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Printer className="w-5 h-5" />}
+            {isPrintLoading && printActionRef.current === 'print' ? <Loader2 className="w-5 h-5 animate-spin" /> : <Printer className="w-5 h-5" />}
             {t('orders_summary.print')}
+          </Button>
+          <Button
+            size="lg"
+            className="gap-2 font-bold shadow-lg bg-blue-600 hover:bg-blue-700 text-white"
+            onClick={() => handlePrintClick('drive')}
+            disabled={isPrintLoading || isDriveLoading || currentData.length === 0}
+            title="تصدير إلى Google Drive"
+          >
+            {(isDriveLoading || (isPrintLoading && printActionRef.current === 'drive')) ? <Loader2 className="w-5 h-5 animate-spin" /> : <Cloud className="w-5 h-5" />}
+            Drive
           </Button>
         </div>
       </DialogContent>
     </Dialog>
+
+
 
     {/* Print Settings Dialog */}
     <Dialog open={showPrintSettings} onOpenChange={setShowPrintSettings}>
