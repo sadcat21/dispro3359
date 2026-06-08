@@ -14,13 +14,15 @@ const toNum = (v: unknown): number => {
 const SUBTYPES = ['retail', 'gros', 'super_gros', 'invoice'] as const;
 
 const perUnitMultiplier = (pricingUnit: string | null | undefined, weightPerBox: number, piecesPerBox: number): number => {
+  // unit_price on order_items is stored per BOX; catalog prices are per pricing_unit (kg / piece / box).
+  // To compare them on the same scale, scale catalog price up by the number of pricing-units per box.
   if (pricingUnit === 'kg') {
     const w = Math.max(0, weightPerBox);
-    return w > 0 ? 1 / w : 1;
+    return w > 0 ? w : 1;
   }
   if (pricingUnit === 'unit') {
     const p = Math.max(0, piecesPerBox);
-    return p > 0 ? 1 / p : 1;
+    return p > 0 ? p : 1;
   }
   return 1; // box
 };
