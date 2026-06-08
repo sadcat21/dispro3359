@@ -20,6 +20,7 @@ import CreateSessionDialog, { SwipeStack } from './CreateSessionDialog';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import PricingGroupsSummary from './PricingGroupsSummary';
+import RemiseSummary from './RemiseSummary';
 import DebtCollectionsSummary from './DebtCollectionsSummary';
 import DocumentCollectionsSummary from './DocumentCollectionsSummary';
 import ExpensesDetailsSummary from './ExpensesDetailsSummary';
