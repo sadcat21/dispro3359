@@ -1294,10 +1294,10 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
       }).join('');
 
       // Aggregate totals across all workers
-      const aggMQty: Record<string, Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>> = { invoice1: {}, super_gros: {}, gros: {}, retail: {} };
+      const aggMQty: Record<string, Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>> = { invoice1: {}, super_gros: {}, gros: {}, retail: {}, remise: {} };
       const aggOffered: Record<string, number> = {};
       productMatrix.workers.forEach(w => {
-        const mQty = productMatrix.workerMethodProductQty?.[w.id] || { invoice1: {}, super_gros: {}, gros: {}, retail: {} } as any;
+        const mQty = productMatrix.workerMethodProductQty?.[w.id] || { invoice1: {}, super_gros: {}, gros: {}, retail: {}, remise: {} } as any;
         const off = productMatrix.workerOfferedQty?.[w.id] || {};
         methods.forEach(([k]) => {
           products.forEach(p => {
