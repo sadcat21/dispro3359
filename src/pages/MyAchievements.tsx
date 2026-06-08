@@ -28,6 +28,7 @@ import type { OrderWithDetails } from '@/types/database';
 import { isAdminRole } from '@/lib/utils';
 import WarehouseTodayAchievements from '@/components/warehouse/WarehouseTodayAchievements';
 import PendingOffersTab from '@/components/offers/PendingOffersTab';
+import { isRemiseOrderItem } from '@/utils/remise';
 import { resolveReceiptBucket } from '@/utils/treasuryDocumentClassification';
 
 const OPERATION_ICONS: Record<string, React.ReactNode> = {
