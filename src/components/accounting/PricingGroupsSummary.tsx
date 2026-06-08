@@ -287,7 +287,7 @@ const PricingGroupsSummary: React.FC<PricingGroupsSummaryProps> = ({
 
       const { data: items } = await supabase
         .from('order_items')
-        .select('order_id, product_id, quantity, gift_quantity, unit_price, total_price, price_subtype, payment_type, pricing_unit, weight_per_box, pieces_per_box, product:products(name, price_retail, price_gros, price_super_gros, price_invoice, pricing_unit, weight_per_box, pieces_per_box)')
+        .select('order_id, product_id, quantity, gift_quantity, unit_price, total_price, price_subtype, payment_type, pricing_unit, weight_per_box, pieces_per_box, product:products(name, image_url, price_retail, price_gros, price_super_gros, price_invoice, pricing_unit, weight_per_box, pieces_per_box)')
         .in('order_id', orderIds);
 
       return buildPricingGroups(items || [], orders || []);
