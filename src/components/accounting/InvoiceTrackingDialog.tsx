@@ -154,11 +154,31 @@ const InvoiceTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId }
     setClearing(true);
     try {
       const ids = currentList.map(r => r.id);
-      const { error } = await supabase
+      // 1) Fetch order statuses to separate cancelled from active
+      const { data: ords, error: fetchErr } = await supabase
         .from('orders')
-        .update({ invoice_stage: 'delivered' })
+        .select('id, status')
         .in('id', ids);
-      if (error) throw error;
+      if (fetchErr) throw fetchErr;
+      const cancelledIds = (ords || []).filter(o => o.status === 'cancelled').map(o => o.id);
+      const activeIds = ids.filter(id => !cancelledIds.includes(id));
+
+      // 2) For cancelled sales: delete invoice references entirely
+      if (cancelledIds.length) {
+        const { error: delErr } = await supabase
+          .from('orders')
+          .update({ invoice_stage: null, invoice_number: null })
+          .in('id', cancelledIds);
+        if (delErr) throw delErr;
+      }
+      // 3) For active orders: clear stage only (no false "delivered" assumption)
+      if (activeIds.length) {
+        const { error } = await supabase
+          .from('orders')
+          .update({ invoice_stage: null })
+          .in('id', activeIds);
+        if (error) throw error;
+      }
       toast({ title: 'تم التفريغ', description: `تم تفريغ ${ids.length} فاتورة من السجل` });
       await qc.invalidateQueries({ queryKey: ['invoice-tracking', branchId] });
     } catch (e: any) {
