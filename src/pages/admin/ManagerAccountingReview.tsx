@@ -964,6 +964,7 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       bumpWorkerOffered(o.assigned_worker_id, it.product_id, gift);
       bumpWorkerAmount(o.assigned_worker_id, it.product_id, lineAmount);
       // Resolve effective method: prefer explicit subtype, otherwise infer from unit price vs catalog
+      const explicitSub = (it.price_subtype || '').toString().toLowerCase();
       const resolvedSubtype = isInvoice1
         ? 'invoice'
         : inferPricingSubtype({
@@ -974,7 +975,21 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
             pricingUnit: it.pricing_unit,
             piecesPerBox: p.pieces_per_box,
           });
-      if (resolvedSubtype === 'invoice') {
+      // Detect Remise: explicit subtype OR effective box unit price below catalog retail price
+      const boxUnitPrice = (() => {
+        const up = Number(it.unit_price || 0);
+        if (!up) return 0;
+        if (itemPU === 'unit' || itemPU === 'piece') return up * ppb;
+        if (itemPU === 'kg') return up * Math.max(1, Number(p.weight_per_box || 1));
+        return up;
+      })();
+      const retailRef = Number(p.price_retail || 0);
+      const isRemise = !isInvoice1 && (explicitSub === 'remise' || (retailRef > 0 && boxUnitPrice > 0 && boxUnitPrice < retailRef * 0.95));
+      if (isRemise) {
+        bump('remise', it.product_id, qty);
+        bumpWorkerMethod(o.assigned_worker_id, 'remise', lineAmount);
+        bumpWMP(o.assigned_worker_id, 'remise', it.product_id, qty, lineAmount, isPaid);
+      } else if (resolvedSubtype === 'invoice') {
         bump('invoice1', it.product_id, qty);
         bumpWorkerMethod(o.assigned_worker_id, 'invoice1', lineAmount);
         bumpWMP(o.assigned_worker_id, 'invoice1', it.product_id, qty, lineAmount, isPaid);
