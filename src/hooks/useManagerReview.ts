@@ -195,3 +195,57 @@ export const useConfirmManagerReview = () => {
     },
   });
 };
+
+// Undo a confirmed review: unlink accounting sessions, remove treasury rows, delete review
+export const useUndoManagerReview = () => {
+  const queryClient = useQueryClient();
+  const { workerId } = useAuth();
+
+  return useMutation({
+    mutationFn: async (reviewId: string) => {
+      if (!workerId) throw new Error('No worker');
+
+      const { data: linkedSessions, error: linkedErr } = await supabase
+        .from('accounting_sessions')
+        .select('id')
+        .eq('review_session_id', reviewId)
+        .eq('manager_id', workerId);
+      if (linkedErr) throw linkedErr;
+
+      const sessionIds = (linkedSessions || []).map((s: any) => s.id);
+      if (sessionIds.length > 0) {
+        const { error: delTreasuryErr } = await supabase
+          .from('manager_treasury')
+          .delete()
+          .in('session_id', sessionIds)
+          .eq('manager_id', workerId)
+          .eq('source_type', 'accounting_session');
+        if (delTreasuryErr) throw delTreasuryErr;
+
+        const { error: unlinkErr } = await supabase
+          .from('accounting_sessions')
+          .update({ review_session_id: null, is_treasury_posted: false })
+          .in('id', sessionIds)
+          .eq('manager_id', workerId);
+        if (unlinkErr) throw unlinkErr;
+      }
+
+      const { error: delReviewErr } = await supabase
+        .from('manager_review_sessions')
+        .delete()
+        .eq('id', reviewId)
+        .eq('manager_id', workerId);
+      if (delReviewErr) throw delReviewErr;
+
+      return { reviewId, sessionsCount: sessionIds.length };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['unreviewed-accounting-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['manager-review-sessions-list'] });
+      queryClient.invalidateQueries({ queryKey: ['manager-treasury'] });
+      queryClient.invalidateQueries({ queryKey: ['treasury-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['accounting-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['worker-accounting-sessions'] });
+    },
+  });
+};
