@@ -501,6 +501,20 @@ const ManagerAccountingReview: React.FC = () => {
                       >
                         <Printer className="w-3 h-3" /> طباعة A4
                       </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 px-2 gap-1 text-amber-700 border-amber-300 hover:bg-amber-50"
+                        disabled={undoMutation.isPending}
+                        onClick={(e) => { e.stopPropagation(); setUndoTargetId(review.id); }}
+                      >
+                        {undoMutation.isPending && undoTargetId === review.id ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <Undo2 className="w-3 h-3" />
+                        )}
+                        تراجع
+                      </Button>
                     </div>
                   </div>
                   {review.notes && (
