@@ -124,6 +124,7 @@ export function buildPricingGroups(items: any[], orders: any[]): PricingGroupDat
 
     const entry: PricingGroupProduct = {
       productName,
+      imageUrl: prod?.image_url ?? null,
       quantity: paidQty,
       unitPrice,
       total: lineTotal,
