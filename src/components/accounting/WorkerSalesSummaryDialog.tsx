@@ -567,7 +567,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
         const itemWeightPerBox = Number((item as any).weight_per_box || 0);
         const itemPiecesPerBox = Number((item as any).pieces_per_box || 0);
 
-        const subtype = inferPricingSubtype({
+        const inferredSubtype = inferPricingSubtype({
           itemPaymentType,
           unitPrice,
           explicitSubtype: (item as any).price_subtype || null,
@@ -577,6 +577,19 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
           weightPerBox: itemWeightPerBox > 0 ? itemWeightPerBox : null,
           piecesPerBox: itemPiecesPerBox > 0 ? itemPiecesPerBox : null,
         });
+        const subtype = isRemiseOrderItem(
+          {
+            unit_price: unitPrice,
+            price_subtype: (item as any).price_subtype || null,
+            payment_type: itemPaymentType,
+            pricing_unit: itemPricingUnit,
+            weight_per_box: itemWeightPerBox,
+            pieces_per_box: itemPiecesPerBox,
+          },
+          prod || null,
+        )
+          ? 'remise'
+          : inferredSubtype;
         const lineTotal = totalPrice > 0 ? totalPrice : paidQty * unitPrice;
 
         if (!priceMap[productName]) {
