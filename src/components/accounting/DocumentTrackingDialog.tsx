@@ -364,7 +364,7 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
           <AlertDialogHeader>
             <AlertDialogTitle>تفريغ السجل</AlertDialogTitle>
             <AlertDialogDescription>
-              سيتم نقل {currentList.length} وثيقة من هذه القائمة إلى الحالة "مُسلَّمة" وإزالتها من تتبع الوثائق. هل تريد المتابعة؟
+              سيتم تفريغ {allRows.length} وثيقة من جميع القوائم (غير مستلمة، مستلمة، جاهزة). هل تريد المتابعة؟
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
