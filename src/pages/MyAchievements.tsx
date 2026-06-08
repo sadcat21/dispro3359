@@ -881,6 +881,7 @@ const MyAchievements: React.FC = () => {
             : '',
           orderProductIds: visit.operation_id ? Array.from(orderProductsMap.get(visit.operation_id) || []) : [],
           promoCount: visit.operation_id ? (orderPromoCountMap.get(visit.operation_id) || 0) : 0,
+          hasRemise: visit.operation_id ? orderRemiseSet.has(visit.operation_id) : false,
         };
       }).filter((visit: any) => {
         if (['direct_sale', 'delivery', 'order'].includes(visit.operation_type) && visit.operation_id) {
