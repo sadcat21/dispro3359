@@ -19,6 +19,8 @@ import { format } from 'date-fns';
 import ProductStockSummary from './ProductStockSummary';
 import SalesDetailsSummary from './SalesDetailsSummary';
 import PromoTrackingSummary from './PromoTrackingSummary';
+import PricingGroupsSummary from './PricingGroupsSummary';
+import RemiseSummary from './RemiseSummary';
 import StockDiscrepancySection from './StockDiscrepancySection';
 import DebtCollectionsSummary from './DebtCollectionsSummary';
 import DocumentCollectionsSummary from './DocumentCollectionsSummary';
