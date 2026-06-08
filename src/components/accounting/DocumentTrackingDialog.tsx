@@ -180,11 +180,28 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
     setClearing(true);
     try {
       const ids = currentList.map(r => r.id);
-      const { error } = await supabase
+      const { data: ords, error: fetchErr } = await supabase
         .from('orders')
-        .update({ document_stage: 'handed' })
+        .select('id, status')
         .in('id', ids);
-      if (error) throw error;
+      if (fetchErr) throw fetchErr;
+      const cancelledIds = (ords || []).filter(o => o.status === 'cancelled').map(o => o.id);
+      const activeIds = ids.filter(id => !cancelledIds.includes(id));
+
+      if (cancelledIds.length) {
+        const { error: delErr } = await supabase
+          .from('orders')
+          .update({ document_stage: null, invoice_number: null })
+          .in('id', cancelledIds);
+        if (delErr) throw delErr;
+      }
+      if (activeIds.length) {
+        const { error } = await supabase
+          .from('orders')
+          .update({ document_stage: null })
+          .in('id', activeIds);
+        if (error) throw error;
+      }
       toast({ title: 'تم التفريغ', description: `تم تفريغ ${ids.length} وثيقة من السجل` });
       await qc.invalidateQueries({ queryKey: ['document-tracking', branchId] });
     } catch (e: any) {
