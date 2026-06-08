@@ -146,6 +146,26 @@ const ManagerTreasury = () => {
     },
   });
 
+  // Authoritative source for "كاش فاتورة 1" — read invoice1_espace_cash directly
+  // from accounting_session_items. This guarantees `new_debts` (and any other
+  // unrelated item_type) can never leak into the Cash Invoice 1 card, even if
+  // upstream aggregation paths change.
+  const { data: sessionEspaceCashTotal } = useQuery({
+    queryKey: ['treasury-invoice1-espace-cash', activeBranch?.id],
+    queryFn: async () => {
+      let q = supabase
+        .from('accounting_session_items')
+        .select('actual_amount, item_type, accounting_sessions!inner(branch_id, status, is_treasury_posted)')
+        .eq('item_type', 'invoice1_espace_cash')
+        .eq('accounting_sessions.status', 'completed')
+        .eq('accounting_sessions.is_treasury_posted', true);
+      if (activeBranch?.id) q = q.eq('accounting_sessions.branch_id', activeBranch.id);
+      const { data, error } = await q;
+      if (error) return 0;
+      return (data || []).reduce((s: number, r: any) => s + Number(r.actual_amount || 0), 0);
+    },
+  });
+
   const [addOpen, setAddOpen] = useState(false);
   const [handoverOpen, setHandoverOpen] = useState(false);
   const [cashBalanceOpen, setCashBalanceOpen] = useState(false);
