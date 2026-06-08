@@ -352,13 +352,16 @@ const PrintOrdersDialog: React.FC<PrintOrdersDialogProps> = ({
                                           selectedWorkerFilter === 'unassigned' ? 'unassigned' :
                                           selectedWorkerFilter;
                     onDownload(filterWorkerId, printPerWorker, filteredOrders, groupCustomers, groupProducts, columnConfig);
-                    onOpenChange(false);
                   }}
-                  disabled={getDisplayOrdersCount() === 0}
+                  disabled={getDisplayOrdersCount() === 0 || isDownloading}
                   className="h-9 bg-emerald-600 hover:bg-emerald-700 text-white"
                 >
-                  <FileDown className="w-4 h-4 ms-2" />
-                  تحميل
+                  {isDownloading ? (
+                    <Loader2 className="w-4 h-4 ms-2 animate-spin" />
+                  ) : (
+                    <FileDown className="w-4 h-4 ms-2" />
+                  )}
+                  {isDownloading ? 'جارٍ التحميل...' : 'تحميل'}
                 </Button>
               )}
               {onPreview && (
