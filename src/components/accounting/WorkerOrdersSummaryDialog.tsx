@@ -204,6 +204,8 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
   const [isPrintLoading, setIsPrintLoading] = useState(false);
   const isPrintingRef = useRef(false);
   const printRef = useRef<HTMLDivElement>(null);
+  const printActionRef = useRef<'print' | 'drive'>('print');
+  const [isDriveLoading, setIsDriveLoading] = useState(false);
 
   // Print settings dialog state
   const [showPrintSettings, setShowPrintSettings] = useState(false);
