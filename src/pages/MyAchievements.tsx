@@ -1585,6 +1585,11 @@ const MyAchievements: React.FC = () => {
                             {visit.promoCount}
                           </span>
                         )}
+                        {visit.hasRemise && (
+                          <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-bold bg-red-600 text-white border border-red-700">
+                            Remise
+                          </span>
+                        )}
                       </div>
 
                       {!isWarehouseManager && hasAmount && (
