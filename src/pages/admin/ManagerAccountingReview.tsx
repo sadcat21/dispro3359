@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Calculator, User, Calendar, Banknote, TrendingUp, TrendingDown, AlertTriangle, Wallet, ChevronLeft, CheckCircle2, History, Clock, FileCheck, Printer } from 'lucide-react';
+import { Loader2, Calculator, User, Calendar, Banknote, TrendingUp, TrendingDown, AlertTriangle, Wallet, ChevronLeft, CheckCircle2, History, Clock, FileCheck, Printer, Undo2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,7 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useUnreviewedSessions, useManagerReviewSessions, useConfirmManagerReview } from '@/hooks/useManagerReview';
+import { useUnreviewedSessions, useManagerReviewSessions, useConfirmManagerReview, useUndoManagerReview } from '@/hooks/useManagerReview';
 import { useAllWorkersLiability } from '@/hooks/useWorkerLiability';
 import { toast } from 'sonner';
 import { boxesToBPAlways, dbBPToBoxes } from '@/utils/boxPieceInput';
@@ -118,6 +118,8 @@ const ManagerAccountingReview: React.FC = () => {
   });
 
   const confirmMutation = useConfirmManagerReview();
+  const undoMutation = useUndoManagerReview();
+  const [undoTargetId, setUndoTargetId] = useState<string | null>(null);
 
   // Filter pending by date range (uses completed_at)
   const filteredPendingSessions = useMemo(() => {
@@ -499,6 +501,20 @@ const ManagerAccountingReview: React.FC = () => {
                       >
                         <Printer className="w-3 h-3" /> طباعة A4
                       </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 px-2 gap-1 text-amber-700 border-amber-300 hover:bg-amber-50"
+                        disabled={undoMutation.isPending}
+                        onClick={(e) => { e.stopPropagation(); setUndoTargetId(review.id); }}
+                      >
+                        {undoMutation.isPending && undoTargetId === review.id ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <Undo2 className="w-3 h-3" />
+                        )}
+                        تراجع
+                      </Button>
                     </div>
                   </div>
                   {review.notes && (
@@ -530,6 +546,44 @@ const ManagerAccountingReview: React.FC = () => {
       </Tabs>
 
       {/* Confirm Dialog */}
+      <AlertDialog open={!!undoTargetId} onOpenChange={(o) => !o && setUndoTargetId(null)}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-amber-700">
+              <Undo2 className="w-5 h-5" />
+              التراجع عن المراجعة
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-sm">
+                <p>سيتم إلغاء ربط الجلسات بهذه المراجعة وحذف المبالغ التابعة لها من خزينة المدير، وستعود الجلسات إلى قائمة <strong>"معلّقة (0)"</strong>.</p>
+                <p className="text-xs text-muted-foreground">لا يمكن استرجاع هذه العملية تلقائيًا — ستحتاج إلى إعادة التأكيد لإدراج المبالغ مجددًا.</p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={undoMutation.isPending}>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={undoMutation.isPending}
+              onClick={async (e) => {
+                e.preventDefault();
+                if (!undoTargetId) return;
+                try {
+                  await undoMutation.mutateAsync(undoTargetId);
+                  toast.success('تم التراجع عن المراجعة وإعادة الجلسات إلى "معلّقة"');
+                  setUndoTargetId(null);
+                } catch (err: any) {
+                  console.error(err);
+                  toast.error(err?.message || 'فشل التراجع عن المراجعة');
+                }
+              }}
+              className="bg-amber-600 hover:bg-amber-700"
+            >
+              {undoMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'تأكيد التراجع'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent className="max-w-lg">
           <AlertDialogHeader>
