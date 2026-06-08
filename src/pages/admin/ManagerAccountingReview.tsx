@@ -546,6 +546,44 @@ const ManagerAccountingReview: React.FC = () => {
       </Tabs>
 
       {/* Confirm Dialog */}
+      <AlertDialog open={!!undoTargetId} onOpenChange={(o) => !o && setUndoTargetId(null)}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-amber-700">
+              <Undo2 className="w-5 h-5" />
+              التراجع عن المراجعة
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-sm">
+                <p>سيتم إلغاء ربط الجلسات بهذه المراجعة وحذف المبالغ التابعة لها من خزينة المدير، وستعود الجلسات إلى قائمة <strong>"معلّقة (0)"</strong>.</p>
+                <p className="text-xs text-muted-foreground">لا يمكن استرجاع هذه العملية تلقائيًا — ستحتاج إلى إعادة التأكيد لإدراج المبالغ مجددًا.</p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={undoMutation.isPending}>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={undoMutation.isPending}
+              onClick={async (e) => {
+                e.preventDefault();
+                if (!undoTargetId) return;
+                try {
+                  await undoMutation.mutateAsync(undoTargetId);
+                  toast.success('تم التراجع عن المراجعة وإعادة الجلسات إلى "معلّقة"');
+                  setUndoTargetId(null);
+                } catch (err: any) {
+                  console.error(err);
+                  toast.error(err?.message || 'فشل التراجع عن المراجعة');
+                }
+              }}
+              className="bg-amber-600 hover:bg-amber-700"
+            >
+              {undoMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'تأكيد التراجع'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent className="max-w-lg">
           <AlertDialogHeader>
