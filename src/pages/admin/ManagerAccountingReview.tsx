@@ -10,7 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useUnreviewedSessions, useManagerReviewSessions, useConfirmManagerReview } from '@/hooks/useManagerReview';
+import { useUnreviewedSessions, useManagerReviewSessions, useConfirmManagerReview, useUndoManagerReview } from '@/hooks/useManagerReview';
 import { useAllWorkersLiability } from '@/hooks/useWorkerLiability';
 import { toast } from 'sonner';
 import { boxesToBPAlways, dbBPToBoxes } from '@/utils/boxPieceInput';
