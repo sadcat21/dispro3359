@@ -262,9 +262,21 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FileStack className="w-5 h-5 text-purple-600" />
-            تتبع الوثائق
+          <DialogTitle className="flex items-center justify-between gap-2">
+            <span className="flex items-center gap-2">
+              <FileStack className="w-5 h-5 text-purple-600" />
+              تتبع الوثائق
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1 text-xs text-destructive border-destructive/40 hover:bg-destructive/10 me-6"
+              disabled={!currentList.length || clearing}
+              onClick={() => setConfirmClear(true)}
+            >
+              <Eraser className="w-3.5 h-3.5" />
+              تفريغ السجل
+            </Button>
           </DialogTitle>
         </DialogHeader>
 
