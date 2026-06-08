@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { flushSync } from 'react-dom';
 import CustomerSummary from '@/components/customers/CustomerSummary';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -133,26 +132,6 @@ const OrdersContent: React.FC = () => {
     },
     enabled: !!cutoffWorkerId,
   });
-
-  useEffect(() => {
-    if (!isPrintReady) return;
-
-    let timeoutId: number | null = null;
-    const rafId = requestAnimationFrame(() => {
-      timeoutId = window.setTimeout(() => {
-        window.print();
-        setIsPrintReady(false);
-        setPrintWorkerName(null);
-      }, 120);
-    });
-
-    return () => {
-      cancelAnimationFrame(rafId);
-      if (timeoutId !== null) {
-        window.clearTimeout(timeoutId);
-      }
-    };
-  }, [isPrintReady]);
 
   const contextWorkerCutoff = useMemo(() => {
     if (!contextWorkerLastSession) return null;
@@ -466,7 +445,7 @@ const OrdersContent: React.FC = () => {
           setPrintWorkerName(worker.full_name);
           setIsPrintReady(true);
 
-          await new Promise(resolve => requestAnimationFrame(resolve));
+          await new Promise(resolve => setTimeout(resolve, 500));
           window.print();
           await new Promise(resolve => setTimeout(resolve, 500));
         }
@@ -482,11 +461,15 @@ const OrdersContent: React.FC = () => {
           workerName = workers.find(w => w.id === filterWorkerId)?.full_name || null;
         }
 
-        flushSync(() => {
-          setFilteredOrdersForPrint(ordersForPrint);
-          setPrintWorkerName(workerName);
-          setIsPrintReady(true);
-        });
+        setFilteredOrdersForPrint(ordersForPrint);
+        setPrintWorkerName(workerName);
+        setIsPrintReady(true);
+
+        setTimeout(() => {
+          window.print();
+          setIsPrintReady(false);
+          setPrintWorkerName(null);
+        }, 500);
       }
     } catch (error: any) {
       toast.error(t('print.print_error'));
@@ -646,6 +629,7 @@ const OrdersContent: React.FC = () => {
               setTimeout(() => {
                 window.print();
                 setIsPrintReady(false);
+                setPrintWorkerName(null);
               }, 500);
             }}>
               <Printer className="w-4 h-4 ms-2" />

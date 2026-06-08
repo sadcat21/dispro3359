@@ -52,7 +52,7 @@ const waitForNextPaint = async () => {
 };
 
 const keepPrintPortalsAlive = (): HTMLElement[] => {
-  if (typeof document === 'undefined') return () => {};
+  if (typeof document === 'undefined') return [];
 
   cleanupNativePrintState();
 
@@ -77,7 +77,7 @@ const keepPrintPortalsAlive = (): HTMLElement[] => {
     clones.push(clone);
   }
 
-  if (clones.length === 0) return () => {};
+  if (clones.length === 0) return [];
 
   document.body.classList.add('native-print-active');
   document.documentElement.classList.add('native-print-active');
