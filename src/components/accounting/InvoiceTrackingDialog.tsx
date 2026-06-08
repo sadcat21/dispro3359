@@ -147,6 +147,30 @@ const InvoiceTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId }
     if (invoicePrompt) advance(invoicePrompt, v);
   };
 
+  const currentList = groups[tab];
+
+  const handleClearCurrent = async () => {
+    if (!currentList.length) { setConfirmClear(false); return; }
+    setClearing(true);
+    try {
+      const ids = currentList.map(r => r.id);
+      const { error } = await supabase
+        .from('orders')
+        .update({ invoice_stage: 'delivered' })
+        .in('id', ids);
+      if (error) throw error;
+      toast({ title: 'تم التفريغ', description: `تم تفريغ ${ids.length} فاتورة من السجل` });
+      await qc.invalidateQueries({ queryKey: ['invoice-tracking', branchId] });
+    } catch (e: any) {
+      toast({ title: 'خطأ', description: e?.message || 'تعذّر التفريغ', variant: 'destructive' });
+    } finally {
+      setClearing(false);
+      setConfirmClear(false);
+    }
+  };
+
+
+
   const renderList = (list: Row[], emptyText: string) => {
     if (isLoading) return <p className="text-center text-sm text-muted-foreground py-6">جاري التحميل...</p>;
     if (list.length === 0) return <p className="text-center text-sm text-muted-foreground py-6">{emptyText}</p>;
