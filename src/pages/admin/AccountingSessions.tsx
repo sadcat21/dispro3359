@@ -255,21 +255,21 @@ const AccountingSessions: React.FC = () => {
       {!pastOnly && (
         <>
           {/* Page Header */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                 <Calculator className="w-5 h-5 text-primary" />
               </div>
-              <div>
-                <h2 className="text-xl font-bold leading-tight">{t('accounting.title')}</h2>
+              <div className="min-w-0">
+                <h2 className="text-xl font-bold leading-tight truncate">{t('accounting.title')}</h2>
                 <p className="text-xs text-muted-foreground">{t('accounting.select_worker')}</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-1.5 text-xs border-blue-300 text-blue-700 hover:bg-blue-50"
+                className="gap-1.5 text-xs border-blue-300 text-blue-700 hover:bg-blue-50 w-full sm:w-auto"
                 onClick={() => setInvoice1Open(true)}
               >
                 <Receipt className="w-3.5 h-3.5" />
@@ -278,7 +278,7 @@ const AccountingSessions: React.FC = () => {
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-1.5 text-xs border-indigo-300 text-indigo-700 hover:bg-indigo-50"
+                className="gap-1.5 text-xs border-indigo-300 text-indigo-700 hover:bg-indigo-50 w-full sm:w-auto"
                 onClick={() => setInvoiceTrackingOpen(true)}
               >
                 <ClipboardList className="w-3.5 h-3.5" />
@@ -287,7 +287,7 @@ const AccountingSessions: React.FC = () => {
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-1.5 text-xs border-purple-300 text-purple-700 hover:bg-purple-50"
+                className="gap-1.5 text-xs border-purple-300 text-purple-700 hover:bg-purple-50 w-full sm:w-auto"
                 onClick={() => setDocumentTrackingOpen(true)}
               >
                 <FileStack className="w-3.5 h-3.5" />
@@ -297,7 +297,7 @@ const AccountingSessions: React.FC = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="gap-1.5 text-xs border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                  className="gap-1.5 text-xs border-emerald-300 text-emerald-700 hover:bg-emerald-50 w-full sm:w-auto"
                   onClick={() => navigate('/manager-accounting-review')}
                 >
                   <ClipboardList className="w-3.5 h-3.5" />
