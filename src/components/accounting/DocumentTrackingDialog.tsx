@@ -175,11 +175,13 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
 
   const currentList = groups[tab];
 
+  const allRows = useMemo(() => [...groups.pending, ...groups.received, ...groups.ready], [groups]);
+
   const handleClearCurrent = async () => {
-    if (!currentList.length) { setConfirmClear(false); return; }
+    if (!allRows.length) { setConfirmClear(false); return; }
     setClearing(true);
     try {
-      const ids = currentList.map(r => r.id);
+      const ids = allRows.map(r => r.id);
       const { data: ords, error: fetchErr } = await supabase
         .from('orders')
         .select('id, status')
@@ -288,7 +290,7 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
               variant="outline"
               size="sm"
               className="gap-1 text-xs text-destructive border-destructive/40 hover:bg-destructive/10 me-6"
-              disabled={!currentList.length || clearing}
+              disabled={!allRows.length || clearing}
               onClick={() => setConfirmClear(true)}
             >
               <Eraser className="w-3.5 h-3.5" />
@@ -362,7 +364,7 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
           <AlertDialogHeader>
             <AlertDialogTitle>تفريغ السجل</AlertDialogTitle>
             <AlertDialogDescription>
-              سيتم نقل {currentList.length} وثيقة من هذه القائمة إلى الحالة "مُسلَّمة" وإزالتها من تتبع الوثائق. هل تريد المتابعة؟
+              سيتم تفريغ {allRows.length} وثيقة من جميع القوائم (غير مستلمة، مستلمة، جاهزة). هل تريد المتابعة؟
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

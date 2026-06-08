@@ -149,11 +149,13 @@ const InvoiceTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId }
 
   const currentList = groups[tab];
 
+  const allRows = useMemo(() => [...groups.unsealed, ...groups.sealed, ...groups.ready], [groups]);
+
   const handleClearCurrent = async () => {
-    if (!currentList.length) { setConfirmClear(false); return; }
+    if (!allRows.length) { setConfirmClear(false); return; }
     setClearing(true);
     try {
-      const ids = currentList.map(r => r.id);
+      const ids = allRows.map(r => r.id);
       // 1) Fetch order statuses to separate cancelled from active
       const { data: ords, error: fetchErr } = await supabase
         .from('orders')
@@ -249,7 +251,7 @@ const InvoiceTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId }
               variant="outline"
               size="sm"
               className="gap-1 text-xs text-destructive border-destructive/40 hover:bg-destructive/10 me-6"
-              disabled={!currentList.length || clearing}
+              disabled={!allRows.length || clearing}
               onClick={() => setConfirmClear(true)}
             >
               <Eraser className="w-3.5 h-3.5" />
@@ -321,7 +323,7 @@ const InvoiceTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId }
           <AlertDialogHeader>
             <AlertDialogTitle>تفريغ السجل</AlertDialogTitle>
             <AlertDialogDescription>
-              سيتم نقل {currentList.length} فاتورة من هذه القائمة إلى الحالة "مُسلَّمة" وإزالتها من تتبع الفواتير. هل تريد المتابعة؟
+              سيتم تفريغ {allRows.length} فاتورة من جميع القوائم (غير ممهورة، ممهورة، جاهزة). هل تريد المتابعة؟
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
