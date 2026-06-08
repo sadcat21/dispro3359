@@ -1147,7 +1147,7 @@ const ManagerTreasury = () => {
         <TreasuryCard
           icon={<Banknote className="w-5 h-5 text-green-500" />}
           label={t('treasury.cash_invoice1')}
-          total={(summary?.cash_invoice1 || 0) + (summary?.cash_invoice1_stamp || 0)}
+          total={(sessionEspaceCashTotal ?? (summary?.cash_invoice1 || 0)) + (summary?.cash_invoice1_stamp || 0)}
           handed={(summary?.cash_invoice1_handed || 0) + (summary?.cash_invoice1_stamp || 0)}
           colorClass="green-500"
           borderClass="border-green-500/30 bg-green-500/5"
