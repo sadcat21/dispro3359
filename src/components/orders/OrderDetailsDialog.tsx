@@ -328,6 +328,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
                   const n = normalizeSaleItem(item);
                   const productImage = item?.product?.image_url || item?.image_url || null;
                   const catalogUnitLabel = n.pricingUnit === 'kg' ? 'Kg' : n.pricingUnit === 'unit' ? 'pcs' : '';
+                  const isRemise = isRemiseOrderItem(item, item?.product);
                   return (
                     <div
                       key={item.id || idx}
