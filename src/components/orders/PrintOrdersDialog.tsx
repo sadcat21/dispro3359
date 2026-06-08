@@ -38,6 +38,7 @@ const PrintOrdersDialog: React.FC<PrintOrdersDialogProps> = ({
   onExportCSV,
   onPreview,
   onDownload,
+  isDownloading = false,
 }) => {
   const { t, language, dir } = useLanguage();
   const { columns: dbColumns, saveColumns } = usePrintColumnsConfig();
