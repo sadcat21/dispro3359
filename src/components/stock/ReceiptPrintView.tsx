@@ -1,11 +1,12 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
 import { dbBPDisplay, dbBPToBoxes, boxesToBP } from '@/utils/boxPieceInput';
 import { formatDate } from '@/utils/formatters';
 import { useCompanyInfo } from '@/hooks/useCompanyInfo';
-import { PrintHeader, buildPrintHeaderHTML } from '@/utils/printHeader';
+import { PrintHeader } from '@/utils/printHeader';
 
 interface ReceiptPrintItem {
   product_name: string;
@@ -54,179 +55,164 @@ const ReceiptPrintView: React.FC<Props> = ({
   open, onOpenChange, type, invoiceNumber, date, items, driverInfo, notes, branchName,
   palletCount, receiptExpenses, expensesDescription, expensesBreakdown, deliveryDetail,
 }) => {
-  const printRef = useRef<HTMLDivElement>(null);
   const { companyInfo } = useCompanyInfo();
+  const [portalEl, setPortalEl] = useState<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const div = document.createElement('div');
+    div.id = 'receipt-print-portal';
+    document.body.appendChild(div);
+    setPortalEl(div);
+    return () => {
+      if (div.parentNode) div.parentNode.removeChild(div);
+    };
+  }, []);
 
   const title = 'Bon de Transfert';
 
-  const hasComp = items.some(i => i.comp_qty > 0);
-  const hasCompOffers = items.some(i => i.comp_offers_qty > 0);
-  const colCount = 3 + (hasComp ? 1 : 0) + (hasCompOffers ? 1 : 0);
-
   const handlePrint = () => {
-    if (!printRef.current) return;
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
-    printWindow.document.write(`
-      <html dir="ltr">
-        <head>
-          <title>${title}</title>
-           <style>
-            body { font-family: Arial, sans-serif; padding: 20px; direction: ltr; color: #000; }
-            h1 { text-align: center; font-size: 22px; margin-bottom: 10px; color: #000; }
-            table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-            th, td { border: 1px solid #000; padding: 6px 10px; text-align: left; font-size: 13px; color: #000; }
-            th { font-weight: bold; }
-            .signature { display: flex; justify-content: space-between; margin-top: 40px; }
-            .signature div { text-align: center; width: 40%; }
-            .sig-line { border-top: 1px solid #000; margin-top: 50px; padding-top: 5px; }
-            @media print { body { padding: 10px; } }
-          </style>
-        </head>
-        <body>
-          ${buildPrintHeaderHTML(companyInfo, { dir: 'ltr' })}
-          ${printRef.current.innerHTML}
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
-    printWindow.print();
+    // Give React a tick to ensure portal DOM is current, then trigger native print
+    setTimeout(() => {
+      window.print();
+    }, 300);
   };
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" dir="ltr">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Printer className="w-5 h-5" />
-            {title}
-          </DialogTitle>
-        </DialogHeader>
+  const content = (
+    <div className="print-container" dir="ltr" style={{ padding: '20px', fontFamily: 'Arial, sans-serif', color: '#000', background: '#fff' }}>
+      <PrintHeader companyInfo={companyInfo} dir="ltr" />
+      <h1 style={{ textAlign: 'center', fontSize: '22px', marginBottom: '10px' }}>{title}</h1>
 
-        <div ref={printRef}>
-          <PrintHeader companyInfo={companyInfo} dir="ltr" />
-          <h1 style={{ textAlign: 'center', fontSize: '22px', marginBottom: '10px' }}>{title}</h1>
+      <div style={{ margin: '15px 0', fontSize: '13px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', margin: '4px 0' }}>
+          <span>Date: {formatDate(date, 'dd/MM/yyyy HH:mm', 'fr')}</span>
+          {invoiceNumber && <span>N° Facture: {invoiceNumber}</span>}
+        </div>
+        {branchName && <div style={{ margin: '4px 0' }}>Succursale: {branchName}</div>}
+      </div>
 
-          <div style={{ margin: '15px 0', fontSize: '13px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', margin: '4px 0' }}>
-              <span>Date: {formatDate(date, 'dd/MM/yyyy HH:mm', 'fr')}</span>
-              {invoiceNumber && <span>N° Facture: {invoiceNumber}</span>}
-            </div>
-            {branchName && (
-              <div style={{ margin: '4px 0' }}>Succursale: {branchName}</div>
+      {driverInfo && (driverInfo.driver_name || driverInfo.driver_phone || driverInfo.license_plate) && (
+        <div style={{ border: '1px solid #ccc', padding: '8px', borderRadius: '5px', margin: '10px 0' }}>
+          <div style={{ fontWeight: 'bold', fontSize: '13px', marginBottom: '5px' }}>Informations du chauffeur</div>
+          {driverInfo.driver_name && <div style={{ fontSize: '12px' }}>Nom: {driverInfo.driver_name}</div>}
+          {driverInfo.driver_phone && <div style={{ fontSize: '12px' }}>Téléphone: {driverInfo.driver_phone}</div>}
+          {driverInfo.license_plate && <div style={{ fontSize: '12px' }}>Immatriculation: {driverInfo.license_plate}</div>}
+        </div>
+      )}
+
+      <table style={{ width: '100%', borderCollapse: 'collapse', margin: '15px 0' }}>
+        <thead>
+          <tr>
+            <th style={{ border: '1px solid #000', padding: '6px 10px', textAlign: 'left', color: '#000' }}>#</th>
+            <th style={{ border: '1px solid #000', padding: '6px 10px', textAlign: 'left', color: '#000' }}>Produit</th>
+            <th style={{ border: '1px solid #000', padding: '6px 10px', textAlign: 'center', color: '#000' }}>Nouveau</th>
+            <th style={{ border: '1px solid #000', padding: '6px 10px', textAlign: 'center', color: '#000' }}>Comp. Dommage</th>
+            <th style={{ border: '1px solid #000', padding: '6px 10px', textAlign: 'center', color: '#000' }}>Comp. Offres</th>
+            <th style={{ border: '1px solid #000', padding: '6px 10px', textAlign: 'center', fontWeight: 'bold', color: '#000' }}>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((item, i) => {
+            const totalBoxes =
+              dbBPToBoxes(item.new_qty, item.pieces_per_box) +
+              dbBPToBoxes(item.comp_qty, item.pieces_per_box) +
+              dbBPToBoxes(item.comp_offers_qty, item.pieces_per_box);
+            return (
+              <tr key={i}>
+                <td style={{ border: '1px solid #000', padding: '6px 10px', color: '#000' }}>{i + 1}</td>
+                <td style={{ border: '1px solid #000', padding: '6px 10px', color: '#000' }}>{item.product_name}</td>
+                <td style={{ border: '1px solid #000', padding: '6px 10px', textAlign: 'center', color: '#000' }}>{item.new_qty > 0 ? dbBPDisplay(item.new_qty, item.pieces_per_box) : '-'}</td>
+                <td style={{ border: '1px solid #000', padding: '6px 10px', textAlign: 'center', color: '#000' }}>{item.comp_qty > 0 ? dbBPDisplay(item.comp_qty, item.pieces_per_box) : '-'}</td>
+                <td style={{ border: '1px solid #000', padding: '6px 10px', textAlign: 'center', color: '#000' }}>{item.comp_offers_qty > 0 ? dbBPDisplay(item.comp_offers_qty, item.pieces_per_box) : '-'}</td>
+                <td style={{ border: '1px solid #000', padding: '6px 10px', textAlign: 'center', fontWeight: 'bold', color: '#000' }}>{boxesToBP(totalBoxes, item.pieces_per_box)}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+
+      {(() => {
+        const lines = (expensesBreakdown && expensesBreakdown.length > 0)
+          ? expensesBreakdown
+          : (receiptExpenses && receiptExpenses > 0)
+            ? [{ description: expensesDescription || '-', amount: Number(receiptExpenses) || 0 }]
+            : [];
+        const showPallets = !!(palletCount && palletCount > 0);
+        if (lines.length === 0 && !showPallets) return null;
+        const totalExp = lines.reduce((s, l) => s + (Number(l.amount) || 0), 0);
+        return (
+          <div style={{ margin: '15px 0' }}>
+            {showPallets && (
+              <div style={{ fontSize: '12px', margin: '4px 0', color: '#000' }}>
+                Nombre de palettes: <strong>{palletCount}</strong>
+              </div>
+            )}
+            {lines.length > 0 && (
+              <>
+                <div style={{ fontSize: '13px', fontWeight: 'bold', margin: '8px 0 4px', color: '#000' }}>Frais de réception</div>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr>
+                      <th style={{ border: '1px solid #000', padding: '5px 8px', textAlign: 'left', color: '#000' }}>#</th>
+                      <th style={{ border: '1px solid #000', padding: '5px 8px', textAlign: 'left', color: '#000' }}>Description</th>
+                      <th style={{ border: '1px solid #000', padding: '5px 8px', textAlign: 'center', color: '#000' }}>Montant (DA)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lines.map((l, i) => (
+                      <tr key={i}>
+                        <td style={{ border: '1px solid #000', padding: '5px 8px', color: '#000' }}>{i + 1}</td>
+                        <td style={{ border: '1px solid #000', padding: '5px 8px', color: '#000' }}>{l.description || '-'}</td>
+                        <td style={{ border: '1px solid #000', padding: '5px 8px', textAlign: 'center', color: '#000' }}>{Number(l.amount || 0).toLocaleString()}</td>
+                      </tr>
+                    ))}
+                    <tr>
+                      <td colSpan={2} style={{ border: '1px solid #000', padding: '5px 8px', textAlign: 'right', fontWeight: 'bold', color: '#000' }}>Total</td>
+                      <td style={{ border: '1px solid #000', padding: '5px 8px', textAlign: 'center', fontWeight: 'bold', color: '#000' }}>{totalExp.toLocaleString()} DA</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </>
             )}
           </div>
+        );
+      })()}
 
-          {driverInfo && (driverInfo.driver_name || driverInfo.driver_phone || driverInfo.license_plate) && (
-            <div style={{ border: '1px solid #ccc', padding: '8px', borderRadius: '5px', margin: '10px 0' }}>
-              <div style={{ fontWeight: 'bold', fontSize: '13px', marginBottom: '5px' }}>Informations du chauffeur</div>
-              {driverInfo.driver_name && <div style={{ fontSize: '12px' }}>Nom: {driverInfo.driver_name}</div>}
-              {driverInfo.driver_phone && <div style={{ fontSize: '12px' }}>Téléphone: {driverInfo.driver_phone}</div>}
-              {driverInfo.license_plate && <div style={{ fontSize: '12px' }}>Immatriculation: {driverInfo.license_plate}</div>}
-            </div>
-          )}
+      {notes && <div style={{ fontSize: '12px', margin: '10px 0', color: '#000' }}>Remarques: {notes}</div>}
 
-          <table style={{ width: '100%', borderCollapse: 'collapse', margin: '15px 0' }}>
-            <thead>
-              <tr>
-                <th style={{ border: '1px solid #000', padding: '6px 10px', textAlign: 'left', color: '#000' }}>#</th>
-                <th style={{ border: '1px solid #000', padding: '6px 10px', textAlign: 'left', color: '#000' }}>Produit</th>
-                <th style={{ border: '1px solid #000', padding: '6px 10px', textAlign: 'center', color: '#000' }}>Nouveau</th>
-                <th style={{ border: '1px solid #000', padding: '6px 10px', textAlign: 'center', color: '#000' }}>Comp. Dommage</th>
-                <th style={{ border: '1px solid #000', padding: '6px 10px', textAlign: 'center', color: '#000' }}>Comp. Offres</th>
-                <th style={{ border: '1px solid #000', padding: '6px 10px', textAlign: 'center', fontWeight: 'bold', color: '#000' }}>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item, i) => {
-                const totalBoxes =
-                  dbBPToBoxes(item.new_qty, item.pieces_per_box) +
-                  dbBPToBoxes(item.comp_qty, item.pieces_per_box) +
-                  dbBPToBoxes(item.comp_offers_qty, item.pieces_per_box);
-                return (
-                  <tr key={i}>
-                    <td style={{ border: '1px solid #000', padding: '6px 10px', color: '#000' }}>{i + 1}</td>
-                    <td style={{ border: '1px solid #000', padding: '6px 10px', color: '#000' }}>{item.product_name}</td>
-                    <td style={{ border: '1px solid #000', padding: '6px 10px', textAlign: 'center', color: '#000' }}>{item.new_qty > 0 ? dbBPDisplay(item.new_qty, item.pieces_per_box) : '-'}</td>
-                    <td style={{ border: '1px solid #000', padding: '6px 10px', textAlign: 'center', color: '#000' }}>{item.comp_qty > 0 ? dbBPDisplay(item.comp_qty, item.pieces_per_box) : '-'}</td>
-                    <td style={{ border: '1px solid #000', padding: '6px 10px', textAlign: 'center', color: '#000' }}>{item.comp_offers_qty > 0 ? dbBPDisplay(item.comp_offers_qty, item.pieces_per_box) : '-'}</td>
-                    <td style={{ border: '1px solid #000', padding: '6px 10px', textAlign: 'center', fontWeight: 'bold', color: '#000' }}>{boxesToBP(totalBoxes, item.pieces_per_box)}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-
-          {(() => {
-            const lines = (expensesBreakdown && expensesBreakdown.length > 0)
-              ? expensesBreakdown
-              : (receiptExpenses && receiptExpenses > 0)
-                ? [{ description: expensesDescription || '-', amount: Number(receiptExpenses) || 0 }]
-                : [];
-            const showPallets = !!(palletCount && palletCount > 0);
-            if (lines.length === 0 && !showPallets) return null;
-            const totalExp = lines.reduce((s, l) => s + (Number(l.amount) || 0), 0);
-            return (
-              <div style={{ margin: '15px 0' }}>
-                {showPallets && (
-                  <div style={{ fontSize: '12px', margin: '4px 0', color: '#000' }}>
-                    Nombre de palettes: <strong>{palletCount}</strong>
-                  </div>
-                )}
-                {lines.length > 0 && (
-                  <>
-                    <div style={{ fontSize: '13px', fontWeight: 'bold', margin: '8px 0 4px', color: '#000' }}>
-                      Frais de réception
-                    </div>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                      <thead>
-                        <tr>
-                          <th style={{ border: '1px solid #000', padding: '5px 8px', textAlign: 'left', color: '#000' }}>#</th>
-                          <th style={{ border: '1px solid #000', padding: '5px 8px', textAlign: 'left', color: '#000' }}>Description</th>
-                          <th style={{ border: '1px solid #000', padding: '5px 8px', textAlign: 'center', color: '#000' }}>Montant (DA)</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {lines.map((l, i) => (
-                          <tr key={i}>
-                            <td style={{ border: '1px solid #000', padding: '5px 8px', color: '#000' }}>{i + 1}</td>
-                            <td style={{ border: '1px solid #000', padding: '5px 8px', color: '#000' }}>{l.description || '-'}</td>
-                            <td style={{ border: '1px solid #000', padding: '5px 8px', textAlign: 'center', color: '#000' }}>{Number(l.amount || 0).toLocaleString()}</td>
-                          </tr>
-                        ))}
-                        <tr>
-                          <td colSpan={2} style={{ border: '1px solid #000', padding: '5px 8px', textAlign: 'right', fontWeight: 'bold', color: '#000' }}>Total</td>
-                          <td style={{ border: '1px solid #000', padding: '5px 8px', textAlign: 'center', fontWeight: 'bold', color: '#000' }}>{totalExp.toLocaleString()} DA</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </>
-                )}
-              </div>
-            );
-          })()}
-
-          {notes && (
-            <div style={{ fontSize: '12px', margin: '10px 0', color: '#000' }}>
-              Remarques: {notes}
-            </div>
-          )}
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '40px' }}>
-            <div style={{ textAlign: 'center', width: '40%' }}>
-              <div style={{ borderTop: '1px solid #333', marginTop: '50px', paddingTop: '5px' }}>Signature du récepteur</div>
-            </div>
-            <div style={{ textAlign: 'center', width: '40%' }}>
-              <div style={{ borderTop: '1px solid #333', marginTop: '50px', paddingTop: '5px' }}>Signature du livreur</div>
-            </div>
-          </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '40px' }}>
+        <div style={{ textAlign: 'center', width: '40%' }}>
+          <div style={{ borderTop: '1px solid #333', marginTop: '50px', paddingTop: '5px' }}>Signature du récepteur</div>
         </div>
+        <div style={{ textAlign: 'center', width: '40%' }}>
+          <div style={{ borderTop: '1px solid #333', marginTop: '50px', paddingTop: '5px' }}>Signature du livreur</div>
+        </div>
+      </div>
+    </div>
+  );
 
-        <Button className="w-full" onClick={handlePrint}>
-          <Printer className="w-4 h-4 ml-2" /> Imprimer
-        </Button>
-      </DialogContent>
-    </Dialog>
+  return (
+    <>
+      {/* Portal-rendered content — visible only on print (via @media print rules in index.css) */}
+      {open && portalEl && createPortal(content, portalEl)}
+
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto no-print" dir="ltr">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Printer className="w-5 h-5" />
+              {title}
+            </DialogTitle>
+          </DialogHeader>
+
+          {/* In-dialog preview (a copy of the same content, hidden on print via .no-print) */}
+          <div className="no-print">{content}</div>
+
+          <Button className="w-full no-print" onClick={handlePrint}>
+            <Printer className="w-4 h-4 ml-2" /> Imprimer
+          </Button>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
