@@ -355,7 +355,7 @@ const EmptyTruckDialog: React.FC<EmptyTruckDialogProps> = ({ workerId, open, onO
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg !z-[100000]" overlayClassName="!z-[99999]">
+      <DialogContent className="max-w-lg !z-[100000]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <PackageX className="w-5 h-5 text-destructive" />
