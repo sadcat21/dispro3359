@@ -61,6 +61,8 @@ const InvoiceTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId }
   const [busyId, setBusyId] = useState<string | null>(null);
   const [invoicePrompt, setInvoicePrompt] = useState<Row | null>(null);
   const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [confirmClear, setConfirmClear] = useState(false);
+  const [clearing, setClearing] = useState(false);
 
   const openInvoicePrompt = (row: Row) => {
     setInvoiceNumber('');
