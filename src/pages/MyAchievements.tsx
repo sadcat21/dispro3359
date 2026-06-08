@@ -766,7 +766,7 @@ const MyAchievements: React.FC = () => {
       const debtCollectionAmountMap = new Map<string, number>();
       const orderProductsMap = new Map<string, Set<string>>();
       const orderPromoCountMap = new Map<string, number>();
-      if (orderIds.length) {
+      const orderRemiseSet = new Set<string>();
         const orders = ordersResult.data;
         const orderItems = orderItemsResult.data;
         const debts = debtsResult.data;
