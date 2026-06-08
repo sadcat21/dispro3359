@@ -251,7 +251,7 @@ const InvoiceTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId }
               variant="outline"
               size="sm"
               className="gap-1 text-xs text-destructive border-destructive/40 hover:bg-destructive/10 me-6"
-              disabled={!currentList.length || clearing}
+              disabled={!allRows.length || clearing}
               onClick={() => setConfirmClear(true)}
             >
               <Eraser className="w-3.5 h-3.5" />
