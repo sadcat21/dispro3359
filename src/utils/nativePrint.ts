@@ -1,10 +1,4 @@
-import { Capacitor, registerPlugin } from '@capacitor/core';
-
-type NativePrintPlugin = {
-  printCurrentPage(options?: { jobName?: string }): Promise<{ jobId?: string }>;
-};
-
-const NativePrint = registerPlugin<NativePrintPlugin>('NativePrint');
+import { Capacitor } from '@capacitor/core';
 
 let nativePrintInstalled = false;
 
@@ -15,18 +9,16 @@ const PRINT_PORTAL_IDS = [
   'loadsheet-print-portal',
   'print-portal-promo-details',
   'session-print-portal',
+  'receipt-print-portal',
 ];
 
 const KEEPALIVE_ATTRIBUTE = 'data-native-print-keepalive';
 const PRINTABLE_ROOT_SELECTOR = '.print-container, .print-handover';
-const PREPARING_ATTRIBUTE = 'data-native-print-preparing';
-
 const cleanupNativePrintState = () => {
   if (typeof document === 'undefined') return;
 
   document.body.classList.remove('native-print-active');
   document.documentElement.classList.remove('native-print-active');
-  document.body.removeAttribute(PREPARING_ATTRIBUTE);
 
   for (const staleClone of document.querySelectorAll<HTMLElement>(`[${KEEPALIVE_ATTRIBUTE}]`)) {
     staleClone.remove();
@@ -60,41 +52,16 @@ const waitForNextPaint = async () => {
   });
 };
 
-const waitForPrintableLayout = async () => {
-  if (typeof window === 'undefined' || typeof document === 'undefined') return;
-
-  await waitForNextPaint();
-
-  const printableRoots = Array.from(document.querySelectorAll<HTMLElement>(`[${KEEPALIVE_ATTRIBUTE}] ${PRINTABLE_ROOT_SELECTOR}`));
-  for (const node of printableRoots) {
-    void node.offsetHeight;
-    void node.getBoundingClientRect();
-  }
-
-  await new Promise<void>((resolve) => window.setTimeout(resolve, 120));
-  await waitForNextPaint();
-};
-
-/**
- * On native Android the print dialog opens asynchronously, but most callers
- * unmount the React print component immediately after calling window.print().
- * That removes the print portal before Android's WebView snapshots the page,
- * producing a blank print preview. To fix it we deep-clone the current portal
- * nodes into detached keep-alive copies that survive React unmount, and
- * remove them after the print job has had time to render.
- */
-const keepPrintPortalsAlive = (): (() => void) => {
-  if (typeof document === 'undefined') return () => {};
+const keepPrintPortalsAlive = (): HTMLElement[] => {
+  if (typeof document === 'undefined') return [];
 
   cleanupNativePrintState();
-  document.body.setAttribute(PREPARING_ATTRIBUTE, 'true');
 
   const clones: HTMLElement[] = [];
   for (const id of PRINT_PORTAL_IDS) {
     const el = document.getElementById(id);
-    if (!el) continue;
+    if (!el || !el.querySelector(PRINTABLE_ROOT_SELECTOR)) continue;
     const clone = el.cloneNode(true) as HTMLElement;
-    // Strip the id from the clone so it can coexist briefly with the live node
     clone.removeAttribute('id');
     clone.setAttribute(KEEPALIVE_ATTRIBUTE, id);
     clone.style.setProperty('display', 'block', 'important');
@@ -111,33 +78,24 @@ const keepPrintPortalsAlive = (): (() => void) => {
     clones.push(clone);
   }
 
-  if (clones.length === 0) return () => {};
+  if (clones.length === 0) return [];
 
   document.body.classList.add('native-print-active');
   document.documentElement.classList.add('native-print-active');
-  document.body.removeAttribute(PREPARING_ATTRIBUTE);
 
-  let cleaned = false;
-  return () => {
-    if (cleaned) return;
-    cleaned = true;
-    cleanupNativePrintState();
-  };
+  return clones;
 };
 
-const findPrintableElement = (): HTMLElement | null => {
+const findPrintableElement = (roots: HTMLElement[]): HTMLElement | null => {
   if (typeof document === 'undefined') return null;
-  // Prefer visible portal with content
-  for (const id of PRINT_PORTAL_IDS) {
-    const el = document.getElementById(id);
-    if (el && el.querySelector(PRINTABLE_ROOT_SELECTOR)) {
-      const inner = el.querySelector<HTMLElement>(PRINTABLE_ROOT_SELECTOR);
-      if (inner) return inner;
-    }
+  for (const root of roots) {
+    const target = root.matches(PRINTABLE_ROOT_SELECTOR)
+      ? root
+      : root.querySelector<HTMLElement>(PRINTABLE_ROOT_SELECTOR);
+    if (target) return target;
   }
-  // Fallback: any printable root in DOM
-  const any = document.querySelector<HTMLElement>(PRINTABLE_ROOT_SELECTOR);
-  return any;
+
+  return document.querySelector<HTMLElement>(PRINTABLE_ROOT_SELECTOR);
 };
 
 export const installNativePrintBridge = () => {
@@ -152,40 +110,29 @@ export const installNativePrintBridge = () => {
       return;
     }
 
+    const keepAliveRoots = keepPrintPortalsAlive();
+
     void (async () => {
       try {
-        // Make printable content visible so html2canvas can capture it
-        document.body.classList.add('native-print-active');
-        document.documentElement.classList.add('native-print-active');
         await waitForNextPaint();
 
-        const target = findPrintableElement();
+        const target = findPrintableElement(keepAliveRoots);
         if (!target) {
-          document.body.classList.remove('native-print-active');
-          document.documentElement.classList.remove('native-print-active');
-          console.warn('[NativePrint] No printable element found, falling back to native print');
-          const cleanup = keepPrintPortalsAlive();
-          await waitForPrintableLayout();
-          try {
-            await NativePrint.printCurrentPage({ jobName: document.title || 'Laser Food' });
-          } catch (e) {
-            console.error('[NativePrint] native print failed', e);
-          }
-          window.setTimeout(cleanup, 30000);
+          browserPrint();
           return;
         }
 
         forcePrintableVisibility(target);
-        await waitForPrintableLayout();
+        await waitForNextPaint();
 
         const { generatePDF } = await import('./generatePDF');
-        const filename = (document.title || 'document').replace(/[\\/:*?"<>|]+/g, '_') + '.pdf';
+        const filename = `${(document.title || 'print').replace(/[\\/:*?"<>|]+/g, '_')}.pdf`;
         await generatePDF(target, filename);
       } catch (error) {
         console.error('[NativePrint] PDF preview failed:', error);
+        browserPrint();
       } finally {
-        document.body.classList.remove('native-print-active');
-        document.documentElement.classList.remove('native-print-active');
+        cleanupNativePrintState();
       }
     })();
   };
