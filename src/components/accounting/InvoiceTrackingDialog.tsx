@@ -323,7 +323,7 @@ const InvoiceTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId }
           <AlertDialogHeader>
             <AlertDialogTitle>تفريغ السجل</AlertDialogTitle>
             <AlertDialogDescription>
-              سيتم نقل {currentList.length} فاتورة من هذه القائمة إلى الحالة "مُسلَّمة" وإزالتها من تتبع الفواتير. هل تريد المتابعة؟
+              سيتم تفريغ {allRows.length} فاتورة من جميع القوائم (غير ممهورة، ممهورة، جاهزة). هل تريد المتابعة؟
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
