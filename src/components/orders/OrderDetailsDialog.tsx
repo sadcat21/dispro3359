@@ -305,9 +305,9 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ open, onOpenCha
               )}
               {!hideFinancialDetails && (
                 <div className="flex flex-col items-end gap-0.5 text-xs">
-                  <span className="text-emerald-600 font-bold">مدفوع: <span dir="ltr">{formatAmountWithMaxFraction(paidAmount)} DA</span></span>
+                  <span className="text-emerald-600 font-bold">مدفوع: <span dir="ltr">{Math.round(paidAmount).toLocaleString()} DA</span></span>
                   {remainingAmount > 0 && (
-                    <span className="text-destructive font-bold">متبقي: <span dir="ltr">{formatAmountWithMaxFraction(remainingAmount)} DA</span></span>
+                    <span className="text-destructive font-bold">متبقي: <span dir="ltr">{Math.round(remainingAmount).toLocaleString()} DA</span></span>
                   )}
                 </div>
               )}
