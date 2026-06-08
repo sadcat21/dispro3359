@@ -574,6 +574,65 @@ const OrdersContent: React.FC = () => {
         products={products}
         onPrint={handlePrint}
         onExportCSV={handleExportCSV}
+        onDownload={async (filterWorkerId, printPerWorker, filteredOrders, groupCustomers, groupProducts, columnConfig) => {
+          if (!filteredOrders || filteredOrders.length === 0) {
+            toast.error(t('print.no_orders'));
+            return;
+          }
+          try {
+            if (columnConfig) setPrintColumnConfig(columnConfig);
+            const orderIds = filteredOrders.map(o => o.id);
+            const { data: items } = await supabase
+              .from('order_items')
+              .select('*, product:products(*)')
+              .in('order_id', orderIds);
+            const itemsMap = new Map<string, any[]>();
+            items?.forEach((item: any) => {
+              const existing = itemsMap.get(item.order_id) || [];
+              existing.push(item);
+              itemsMap.set(item.order_id, existing);
+            });
+
+            let ordersForPrint = filteredOrders;
+            let itemsMapForPrint = itemsMap;
+            if (groupCustomers) {
+              const merged = mergeOrdersByCustomer(filteredOrders, itemsMap, groupProducts);
+              ordersForPrint = merged.mergedOrders;
+              itemsMapForPrint = merged.mergedItemsMap;
+            }
+            setAllOrderItems(itemsMapForPrint);
+
+            let workerName: string | null = null;
+            if (filterWorkerId === 'unassigned') workerName = tp('print.orders_without_worker');
+            else if (filterWorkerId) workerName = workers.find(w => w.id === filterWorkerId)?.full_name || null;
+
+            setFilteredOrdersForPrint(ordersForPrint);
+            setPrintWorkerName(workerName);
+            setIsPrintReady(true);
+
+            // Wait for the print view to mount
+            await new Promise(resolve => setTimeout(resolve, 600));
+
+            const portal = document.getElementById('print-portal');
+            const target = portal?.querySelector<HTMLElement>('.print-container, .print-handover');
+            if (!target) {
+              toast.error(t('print.print_error'));
+              setIsPrintReady(false);
+              return;
+            }
+
+            const { generatePDF } = await import('@/utils/generatePDF');
+            const safeName = (workerName || tp('print.order_list') || 'orders').replace(/[\\/:*?"<>|]+/g, '_');
+            await generatePDF(target, `${safeName}.pdf`, 'save');
+            toast.success(t('print.print_success') || 'تم التحميل');
+          } catch (err) {
+            console.error(err);
+            toast.error(t('print.print_error'));
+          } finally {
+            setIsPrintReady(false);
+            setPrintWorkerName(null);
+          }
+        }}
         onPreview={async (filteredOrders, columnConfig) => {
           // Fetch items for preview
           const orderIds = filteredOrders.map(o => o.id);
