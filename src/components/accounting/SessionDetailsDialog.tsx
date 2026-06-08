@@ -560,6 +560,22 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
             )}
 
             <CollapsibleSection
+              icon={<Tag className="w-4 h-4 text-red-600" />}
+              title="Remise"
+              sectionKey="remise"
+              activeKey={activeSection}
+              onToggle={toggleSection}
+              onEmptyChange={handleEmptyChange}
+            >
+              <RemiseSummary
+                workerId={session.worker_id}
+                periodStart={session.period_start}
+                periodEnd={session.period_end}
+              />
+            </CollapsibleSection>
+
+
+            <CollapsibleSection
               icon={<Package className="w-4 h-4 text-primary" />}
               title={t('accounting.truck_stock') || t('create_session.product_tracking')}
               sectionKey="stock"
