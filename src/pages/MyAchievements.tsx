@@ -76,14 +76,40 @@ const getAchievementVisitDedupKey = (visit: any) => {
 };
 
 const dedupeAchievementVisits = <T extends Record<string, any>>(items: T[]): T[] => {
-  const seen = new Set<string>();
-
-  return items.filter((item) => {
-    const key = getAchievementVisitDedupKey(item);
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
+  // Re-label legacy 'order' rows as 'direct_sale' so the achievements UI shows
+  // the Direct Sale row (the actual sale) instead of the Order row.
+  const normalized = items.map((item) => {
+    if ((item as any).operation_type === 'order') {
+      return { ...(item as any), operation_type: 'direct_sale' } as T;
+    }
+    return item;
   });
+
+  // Prefer direct_sale > delivery > order when multiple rows share an entity.
+  const priority: Record<string, number> = { direct_sale: 3, delivery: 2, order: 1 };
+  const byKey = new Map<string, T>();
+  const passthrough: T[] = [];
+
+  for (const item of normalized) {
+    const key = getAchievementVisitDedupKey(item);
+    const entityId = (item as any).operation_id || (item as any).entity_id || (item as any).reference_id || (item as any).order_id;
+    if (!entityId) {
+      if (!byKey.has(key)) byKey.set(key, item);
+      continue;
+    }
+    // Group by entity only, regardless of operation_type, to pick a single row.
+    const entityKey = `entity::${entityId}`;
+    const existing = byKey.get(entityKey);
+    if (!existing) {
+      byKey.set(entityKey, item);
+    } else {
+      const a = priority[(existing as any).operation_type] || 0;
+      const b = priority[(item as any).operation_type] || 0;
+      if (b > a) byKey.set(entityKey, item);
+    }
+  }
+
+  return [...passthrough, ...byKey.values()];
 };
 
 const AchievementDetailContent: React.FC<{ visit: any; onClose: () => void }> = ({ visit, onClose }) => {
