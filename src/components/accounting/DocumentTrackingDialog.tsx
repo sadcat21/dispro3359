@@ -198,7 +198,7 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
       if (activeIds.length) {
         const { error } = await supabase
           .from('orders')
-          .update({ document_stage: null })
+          .update({ document_stage: 'handed' })
           .in('id', activeIds);
         if (error) throw error;
       }
