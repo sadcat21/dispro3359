@@ -369,7 +369,7 @@ body.native-print-active #receipt-print-portal {
   }
 
   /* Portal containers that hold printable content */
-  body > *:not(#print-portal):not(#gifts-print-portal):not(#loadsheet-print-portal):not(#print-portal-promo-details):not(#session-print-portal):not([data-native-print-keepalive]) {
+  body > *:not(#print-portal):not(#gifts-print-portal):not(#loadsheet-print-portal):not(#print-portal-promo-details):not(#session-print-portal):not(#receipt-print-portal):not([data-native-print-keepalive]) {
     display: none !important;
     visibility: hidden !important;
     height: 0 !important;
@@ -382,6 +382,7 @@ body.native-print-active #receipt-print-portal {
   #loadsheet-print-portal,
   #print-portal-promo-details,
   #session-print-portal,
+  #receipt-print-portal,
   body > [data-native-print-keepalive] {
     display: block !important;
     visibility: visible !important;
@@ -396,7 +397,8 @@ body.native-print-active #receipt-print-portal {
   body.native-print-active #gifts-print-portal,
   body.native-print-active #loadsheet-print-portal,
   body.native-print-active #print-portal-promo-details,
-  body.native-print-active #session-print-portal {
+  body.native-print-active #session-print-portal,
+  body.native-print-active #receipt-print-portal {
     display: none !important;
   }
 
