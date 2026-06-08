@@ -343,7 +343,8 @@ body.native-print-active #print-portal,
 body.native-print-active #gifts-print-portal,
 body.native-print-active #loadsheet-print-portal,
 body.native-print-active #print-portal-promo-details,
-body.native-print-active #session-print-portal {
+body.native-print-active #session-print-portal,
+body.native-print-active #receipt-print-portal {
   display: none !important;
   visibility: hidden !important;
 }
