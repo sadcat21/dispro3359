@@ -155,6 +155,7 @@ const MyDeliveries: React.FC = () => {
   // Print state
   const [showPrintDialog, setShowPrintDialog] = useState(false);
   const [isPrintReady, setIsPrintReady] = useState(false);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [allOrderItems, setAllOrderItems] = useState<Record<string, any[]>>({});
   const [filteredOrdersForPrint, setFilteredOrdersForPrint] = useState<OrderWithDetails[]>([]);
   const [printWorkerName, setPrintWorkerName] = useState<string | null>(null);
@@ -1272,11 +1273,14 @@ const MyDeliveries: React.FC = () => {
         products={products}
         onPrint={handlePrint}
         onExportCSV={handleExportCSV}
+        isDownloading={isDownloadingPdf}
         onDownload={async (filterWorkerId, _printPerWorker, filteredOrders, _groupCustomers, _groupProducts, columnConfig) => {
           if (!filteredOrders || filteredOrders.length === 0) {
             toast.error(t('print.no_orders'));
             return;
           }
+          if (isDownloadingPdf) return;
+          setIsDownloadingPdf(true);
           try {
             if (columnConfig) setPrintColumnConfig(columnConfig);
             const orderIds = filteredOrders.map(o => o.id);
@@ -1310,14 +1314,19 @@ const MyDeliveries: React.FC = () => {
             }
 
             const { generatePDF } = await import('@/utils/generatePDF');
-            const safeName = (workerName || t('deliveries.delivery_list') || 'deliveries').replace(/[\\/:*?"<>|]+/g, '_');
-            await generatePDF(target, `${safeName}.pdf`, 'save');
-            toast.success(t('print.print_success') || 'تم التحميل');
+            const baseName = workerName || t('deliveries.delivery_list') || 'deliveries';
+            const now = new Date();
+            const pad = (n: number) => String(n).padStart(2, '0');
+            const stamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+            const safeName = `${baseName}_${stamp}`.replace(/[\\/:*?"<>|]+/g, '_');
+            await generatePDF(target, `${safeName}.pdf`, 'preview');
+            setShowPrintDialog(false);
           } catch (err) {
             console.error(err);
             toast.error(t('print.print_error'));
           } finally {
             setIsPrintReady(false);
+            setIsDownloadingPdf(false);
           }
         }}
         onPreview={async (filteredOrders, columnConfig) => {

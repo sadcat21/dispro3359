@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Printer, Users, UserCheck, Calendar, Download, Layers, Package, Settings2, Filter, Eye, FileDown } from 'lucide-react';
+import { Printer, Users, UserCheck, Calendar, Download, Layers, Package, Settings2, Filter, Eye, FileDown, Loader2 } from 'lucide-react';
 import { Worker, OrderWithDetails, Product } from '@/types/database';
 import { format } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
@@ -25,6 +25,7 @@ interface PrintOrdersDialogProps {
   onExportCSV: (filteredOrders: OrderWithDetails[]) => void;
   onPreview?: (filteredOrders: OrderWithDetails[], columnConfig: PrintColumnConfig[]) => void;
   onDownload?: (filterWorkerId: string | null, printPerWorker: boolean, filteredOrders: OrderWithDetails[], groupCustomers: boolean, groupProducts: boolean, columnConfig: PrintColumnConfig[]) => void;
+  isDownloading?: boolean;
 }
 
 const PrintOrdersDialog: React.FC<PrintOrdersDialogProps> = ({
@@ -37,6 +38,7 @@ const PrintOrdersDialog: React.FC<PrintOrdersDialogProps> = ({
   onExportCSV,
   onPreview,
   onDownload,
+  isDownloading = false,
 }) => {
   const { t, language, dir } = useLanguage();
   const { columns: dbColumns, saveColumns } = usePrintColumnsConfig();
@@ -350,13 +352,16 @@ const PrintOrdersDialog: React.FC<PrintOrdersDialogProps> = ({
                                           selectedWorkerFilter === 'unassigned' ? 'unassigned' :
                                           selectedWorkerFilter;
                     onDownload(filterWorkerId, printPerWorker, filteredOrders, groupCustomers, groupProducts, columnConfig);
-                    onOpenChange(false);
                   }}
-                  disabled={getDisplayOrdersCount() === 0}
+                  disabled={getDisplayOrdersCount() === 0 || isDownloading}
                   className="h-9 bg-emerald-600 hover:bg-emerald-700 text-white"
                 >
-                  <FileDown className="w-4 h-4 ms-2" />
-                  تحميل
+                  {isDownloading ? (
+                    <Loader2 className="w-4 h-4 ms-2 animate-spin" />
+                  ) : (
+                    <FileDown className="w-4 h-4 ms-2" />
+                  )}
+                  {isDownloading ? 'جارٍ التحميل...' : 'تحميل'}
                 </Button>
               )}
               {onPreview && (
