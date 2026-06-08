@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Printer, Users, UserCheck, Calendar, Download, Layers, Package, Settings2, Filter, Eye } from 'lucide-react';
+import { Printer, Users, UserCheck, Calendar, Download, Layers, Package, Settings2, Filter, Eye, FileDown } from 'lucide-react';
 import { Worker, OrderWithDetails, Product } from '@/types/database';
 import { format } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
