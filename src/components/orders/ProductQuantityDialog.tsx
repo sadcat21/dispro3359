@@ -597,16 +597,16 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
                 >
                   D
                 </Button>
-                {canCustomizePrices && (
+                {canCustomizePrices && itemPaymentType === 'without_invoice' && (
                   <Button
                     type="button"
                     variant={hasCustomUnitPrice ? 'default' : 'outline'}
-                    size="icon"
-                    className="h-9 w-9 shrink-0"
+                    size="sm"
+                    className={`flex-1 h-9 text-xs font-bold ${hasCustomUnitPrice ? 'bg-red-600 hover:bg-red-700 text-white ring-2 ring-red-400' : 'border-red-300 text-red-700 hover:bg-red-50'}`}
                     onClick={() => setCustomPriceOpen(true)}
                     title={safeT('orders.custom_unit_price', 'تخصيص سعر الوحدة')}
                   >
-                    <Settings2 className="w-4 h-4" />
+                    Remise
                   </Button>
                 )}
               </div>
