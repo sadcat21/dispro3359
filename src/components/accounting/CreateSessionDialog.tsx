@@ -20,7 +20,7 @@ import ProductStockSummary from './ProductStockSummary';
 import SalesDetailsSummary from './SalesDetailsSummary';
 import PromoTrackingSummary from './PromoTrackingSummary';
 import PricingGroupsSummary from './PricingGroupsSummary';
-import RemiseSummary from './RemiseSummary';
+
 import StockDiscrepancySection from './StockDiscrepancySection';
 import DebtCollectionsSummary from './DebtCollectionsSummary';
 import DocumentCollectionsSummary from './DocumentCollectionsSummary';
@@ -996,9 +996,6 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 )}
                 <StepSection step={10} title={t('session_details.pricing_groups') || 'قوائم الأسعار'} color="blue" badge="D">
                   <PricingGroupsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} />
-                </StepSection>
-                <StepSection step={10} title="Remise" color="red" badge="E">
-                  <RemiseSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} />
                 </StepSection>
                 {!viewByProduct && calc && calc.promoTracking.length > 0 && (
                   <StepSection step={10} title={t('create_session.promo_tracking')} color="purple" badge="C">
