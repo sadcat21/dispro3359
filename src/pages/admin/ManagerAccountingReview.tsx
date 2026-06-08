@@ -830,8 +830,8 @@ export type ProductMatrix = {
   rows: Record<string, Record<string, number>>;
   workers: { id: string; name: string }[];
   workerRows: Record<string, Record<string, number>>;
-  workerMethodAmounts: Record<string, { invoice1: number; super_gros: number; gros: number; retail: number }>;
-  workerMethodProductQty: Record<string, { invoice1: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>; super_gros: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>; gros: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>; retail: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }> }>;
+  workerMethodAmounts: Record<string, { invoice1: number; super_gros: number; gros: number; retail: number; remise: number }>;
+  workerMethodProductQty: Record<string, { invoice1: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>; super_gros: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>; gros: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>; retail: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>; remise: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }> }>;
   workerOfferedQty: Record<string, Record<string, number>>;
   workerProductAmount: Record<string, Record<string, number>>;
 };
@@ -859,10 +859,10 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
     if (wid) workerMap.set(wid, wname);
   });
   const rows: Record<string, Record<string, number>> = {
-    sold: {}, offered: {}, invoice1: {}, super_gros: {}, gros: {}, retail: {}, amount: {},
+    sold: {}, offered: {}, invoice1: {}, super_gros: {}, gros: {}, retail: {}, remise: {}, amount: {},
   };
   const workerRows: Record<string, Record<string, number>> = {};
-  const workerMethodAmounts: Record<string, { invoice1: number; super_gros: number; gros: number; retail: number }> = {};
+  const workerMethodAmounts: Record<string, { invoice1: number; super_gros: number; gros: number; retail: number; remise: number }> = {};
   const bump = (row: string, pid: string, n: number) => {
     if (!n) return;
     rows[row][pid] = (rows[row][pid] || 0) + n;
@@ -872,15 +872,15 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
     if (!workerRows[wid]) workerRows[wid] = {};
     workerRows[wid][pid] = (workerRows[wid][pid] || 0) + n;
   };
-  const bumpWorkerMethod = (wid: string, method: 'invoice1' | 'super_gros' | 'gros' | 'retail', n: number) => {
+  const bumpWorkerMethod = (wid: string, method: 'invoice1' | 'super_gros' | 'gros' | 'retail' | 'remise', n: number) => {
     if (!n) return;
-    if (!workerMethodAmounts[wid]) workerMethodAmounts[wid] = { invoice1: 0, super_gros: 0, gros: 0, retail: 0 };
+    if (!workerMethodAmounts[wid]) workerMethodAmounts[wid] = { invoice1: 0, super_gros: 0, gros: 0, retail: 0, remise: 0 };
     workerMethodAmounts[wid][method] += n;
   };
-  const workerMethodProductQty: Record<string, { invoice1: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>; super_gros: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>; gros: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>; retail: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }> }> = {};
-  const bumpWMP = (wid: string, method: 'invoice1' | 'super_gros' | 'gros' | 'retail', pid: string, n: number, amt: number, isPaid: boolean) => {
+  const workerMethodProductQty: Record<string, { invoice1: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>; super_gros: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>; gros: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>; retail: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>; remise: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }> }> = {};
+  const bumpWMP = (wid: string, method: 'invoice1' | 'super_gros' | 'gros' | 'retail' | 'remise', pid: string, n: number, amt: number, isPaid: boolean) => {
     if (!n) return;
-    if (!workerMethodProductQty[wid]) workerMethodProductQty[wid] = { invoice1: {}, super_gros: {}, gros: {}, retail: {} };
+    if (!workerMethodProductQty[wid]) workerMethodProductQty[wid] = { invoice1: {}, super_gros: {}, gros: {}, retail: {}, remise: {} };
     const bucket = workerMethodProductQty[wid][method][pid] || { paid: 0, debt: 0, paidAmt: 0, debtAmt: 0 };
     if (isPaid) { bucket.paid += n; bucket.paidAmt += amt; } else { bucket.debt += n; bucket.debtAmt += amt; }
     workerMethodProductQty[wid][method][pid] = bucket;
@@ -964,6 +964,7 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       bumpWorkerOffered(o.assigned_worker_id, it.product_id, gift);
       bumpWorkerAmount(o.assigned_worker_id, it.product_id, lineAmount);
       // Resolve effective method: prefer explicit subtype, otherwise infer from unit price vs catalog
+      const explicitSub = (it.price_subtype || '').toString().toLowerCase();
       const resolvedSubtype = isInvoice1
         ? 'invoice'
         : inferPricingSubtype({
@@ -974,7 +975,21 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
             pricingUnit: it.pricing_unit,
             piecesPerBox: p.pieces_per_box,
           });
-      if (resolvedSubtype === 'invoice') {
+      // Detect Remise: explicit subtype OR effective box unit price below catalog retail price
+      const boxUnitPrice = (() => {
+        const up = Number(it.unit_price || 0);
+        if (!up) return 0;
+        if (itemPU === 'unit' || itemPU === 'piece') return up * ppb;
+        if (itemPU === 'kg') return up * Math.max(1, Number(p.weight_per_box || 1));
+        return up;
+      })();
+      const retailRef = Number(p.price_retail || 0);
+      const isRemise = !isInvoice1 && (explicitSub === 'remise' || (retailRef > 0 && boxUnitPrice > 0 && boxUnitPrice < retailRef * 0.95));
+      if (isRemise) {
+        bump('remise', it.product_id, qty);
+        bumpWorkerMethod(o.assigned_worker_id, 'remise', lineAmount);
+        bumpWMP(o.assigned_worker_id, 'remise', it.product_id, qty, lineAmount, isPaid);
+      } else if (resolvedSubtype === 'invoice') {
         bump('invoice1', it.product_id, qty);
         bumpWorkerMethod(o.assigned_worker_id, 'invoice1', lineAmount);
         bumpWMP(o.assigned_worker_id, 'invoice1', it.product_id, qty, lineAmount, isPaid);
@@ -1199,11 +1214,12 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
 
     ${(() => {
       if (!productMatrix || !productMatrix.workers?.length || !productMatrix.products.length) return '';
-      const methods: Array<['invoice1' | 'super_gros' | 'gros' | 'retail', string]> = [
+      const methods: Array<['invoice1' | 'super_gros' | 'gros' | 'retail' | 'remise', string]> = [
         ['invoice1', 'Facture 1'],
         ['super_gros', 'Super Gros'],
         ['gros', 'Gros'],
         ['retail', 'Détail'],
+        ['remise', 'Remise'],
       ];
       const products = productMatrix.products;
       // Columns: Produit | (Méthode Payé | Méthode Crédit) x4 | PROMO | TOTAL
@@ -1227,7 +1243,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         getCell: (k: string, pid: string) => { paid: number; debt: number; paidAmt: number; debtAmt: number },
         getOffered: (pid: string) => number,
       ) => {
-        const totals: Record<string, { paidAmt: number; debtAmt: number }> = { invoice1: { paidAmt: 0, debtAmt: 0 }, super_gros: { paidAmt: 0, debtAmt: 0 }, gros: { paidAmt: 0, debtAmt: 0 }, retail: { paidAmt: 0, debtAmt: 0 } };
+        const totals: Record<string, { paidAmt: number; debtAmt: number }> = { invoice1: { paidAmt: 0, debtAmt: 0 }, super_gros: { paidAmt: 0, debtAmt: 0 }, gros: { paidAmt: 0, debtAmt: 0 }, retail: { paidAmt: 0, debtAmt: 0 }, remise: { paidAmt: 0, debtAmt: 0 } };
         let totOffered = 0;
         let grandQty = 0;
         const rowsHtml = products.map(p => {
@@ -1265,7 +1281,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
 
       // Per-worker blocks
       const blocks = productMatrix.workers.map(w => {
-        const mQty = productMatrix.workerMethodProductQty?.[w.id] || { invoice1: {}, super_gros: {}, gros: {}, retail: {} } as any;
+        const mQty = productMatrix.workerMethodProductQty?.[w.id] || { invoice1: {}, super_gros: {}, gros: {}, retail: {}, remise: {} } as any;
         const offered = productMatrix.workerOfferedQty?.[w.id] || {};
         const wAmt = productMatrix.workerProductAmount?.[w.id] || {};
         const workerTotalAmount = products.reduce((a, p) => a + Number(wAmt[p.id] || 0), 0);
@@ -1278,10 +1294,10 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
       }).join('');
 
       // Aggregate totals across all workers
-      const aggMQty: Record<string, Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>> = { invoice1: {}, super_gros: {}, gros: {}, retail: {} };
+      const aggMQty: Record<string, Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>> = { invoice1: {}, super_gros: {}, gros: {}, retail: {}, remise: {} };
       const aggOffered: Record<string, number> = {};
       productMatrix.workers.forEach(w => {
-        const mQty = productMatrix.workerMethodProductQty?.[w.id] || { invoice1: {}, super_gros: {}, gros: {}, retail: {} } as any;
+        const mQty = productMatrix.workerMethodProductQty?.[w.id] || { invoice1: {}, super_gros: {}, gros: {}, retail: {}, remise: {} } as any;
         const off = productMatrix.workerOfferedQty?.[w.id] || {};
         methods.forEach(([k]) => {
           products.forEach(p => {
