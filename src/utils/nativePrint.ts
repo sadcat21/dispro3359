@@ -125,6 +125,21 @@ const keepPrintPortalsAlive = (): (() => void) => {
   };
 };
 
+const findPrintableElement = (): HTMLElement | null => {
+  if (typeof document === 'undefined') return null;
+  // Prefer visible portal with content
+  for (const id of PRINT_PORTAL_IDS) {
+    const el = document.getElementById(id);
+    if (el && el.querySelector(PRINTABLE_ROOT_SELECTOR)) {
+      const inner = el.querySelector<HTMLElement>(PRINTABLE_ROOT_SELECTOR);
+      if (inner) return inner;
+    }
+  }
+  // Fallback: any printable root in DOM
+  const any = document.querySelector<HTMLElement>(PRINTABLE_ROOT_SELECTOR);
+  return any;
+};
+
 export const installNativePrintBridge = () => {
   if (nativePrintInstalled || typeof window === 'undefined') return;
   nativePrintInstalled = true;
@@ -137,25 +152,41 @@ export const installNativePrintBridge = () => {
       return;
     }
 
-    const cleanup = keepPrintPortalsAlive();
-
     void (async () => {
       try {
-        // Let the cloned portals paint before Android's WebView creates the
-        // print document adapter; otherwise the adapter may snapshot an empty page.
-        await waitForPrintableLayout();
-        await NativePrint.printCurrentPage({ jobName: document.title || 'Laser Food' });
-      } catch (error) {
-        console.error('[NativePrint] Failed to open Android print dialog:', error);
-        cleanup();
-        browserPrint();
-        return;
-      }
+        // Make printable content visible so html2canvas can capture it
+        document.body.classList.add('native-print-active');
+        document.documentElement.classList.add('native-print-active');
+        await waitForNextPaint();
 
-      // Give Android's print framework enough time to render the WebView to
-      // PDF before we drop the keep-alive snapshot. The print dialog itself
-      // is shown by the OS; rendering happens shortly after.
-      window.setTimeout(cleanup, 30000);
+        const target = findPrintableElement();
+        if (!target) {
+          document.body.classList.remove('native-print-active');
+          document.documentElement.classList.remove('native-print-active');
+          console.warn('[NativePrint] No printable element found, falling back to native print');
+          const cleanup = keepPrintPortalsAlive();
+          await waitForPrintableLayout();
+          try {
+            await NativePrint.printCurrentPage({ jobName: document.title || 'Laser Food' });
+          } catch (e) {
+            console.error('[NativePrint] native print failed', e);
+          }
+          window.setTimeout(cleanup, 30000);
+          return;
+        }
+
+        forcePrintableVisibility(target);
+        await waitForPrintableLayout();
+
+        const { generatePDF } = await import('./generatePDF');
+        const filename = (document.title || 'document').replace(/[\\/:*?"<>|]+/g, '_') + '.pdf';
+        await generatePDF(target, filename);
+      } catch (error) {
+        console.error('[NativePrint] PDF preview failed:', error);
+      } finally {
+        document.body.classList.remove('native-print-active');
+        document.documentElement.classList.remove('native-print-active');
+      }
     })();
   };
 };
