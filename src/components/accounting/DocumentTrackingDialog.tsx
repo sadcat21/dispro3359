@@ -191,7 +191,7 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
       if (cancelledIds.length) {
         const { error: delErr } = await supabase
           .from('orders')
-          .update({ document_stage: null, invoice_number: null })
+          .update({ document_stage: 'cancelled' as any, invoice_number: null })
           .in('id', cancelledIds);
         if (delErr) throw delErr;
       }
