@@ -863,20 +863,32 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
           </TabsContent>
         </Tabs>
 
-        <div className="shrink-0 border-t bg-background/95 p-3">
+        <div className="shrink-0 border-t bg-background/95 p-3 grid grid-cols-[1fr_auto] gap-2">
           <Button
             variant="destructive"
             size="lg"
             className="w-full gap-2 font-bold shadow-lg"
-            onClick={handlePrintClick}
-            disabled={isPrintLoading || currentData.length === 0}
+            onClick={() => handlePrintClick('print')}
+            disabled={isPrintLoading || isDriveLoading || currentData.length === 0}
           >
-            {isPrintLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Printer className="w-5 h-5" />}
+            {isPrintLoading && printActionRef.current === 'print' ? <Loader2 className="w-5 h-5 animate-spin" /> : <Printer className="w-5 h-5" />}
             {t('orders_summary.print')}
+          </Button>
+          <Button
+            size="lg"
+            className="gap-2 font-bold shadow-lg bg-blue-600 hover:bg-blue-700 text-white"
+            onClick={() => handlePrintClick('drive')}
+            disabled={isPrintLoading || isDriveLoading || currentData.length === 0}
+            title="تصدير إلى Google Drive"
+          >
+            {(isDriveLoading || (isPrintLoading && printActionRef.current === 'drive')) ? <Loader2 className="w-5 h-5 animate-spin" /> : <Cloud className="w-5 h-5" />}
+            Drive
           </Button>
         </div>
       </DialogContent>
     </Dialog>
+
+
 
     {/* Print Settings Dialog */}
     <Dialog open={showPrintSettings} onOpenChange={setShowPrintSettings}>
