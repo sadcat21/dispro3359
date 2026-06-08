@@ -24,6 +24,7 @@ interface PrintOrdersDialogProps {
   onPrint: (filterWorkerId: string | null, printPerWorker: boolean, filteredOrders: OrderWithDetails[], groupCustomers: boolean, groupProducts: boolean, columnConfig: PrintColumnConfig[]) => void;
   onExportCSV: (filteredOrders: OrderWithDetails[]) => void;
   onPreview?: (filteredOrders: OrderWithDetails[], columnConfig: PrintColumnConfig[]) => void;
+  onDownload?: (filterWorkerId: string | null, printPerWorker: boolean, filteredOrders: OrderWithDetails[], groupCustomers: boolean, groupProducts: boolean, columnConfig: PrintColumnConfig[]) => void;
 }
 
 const PrintOrdersDialog: React.FC<PrintOrdersDialogProps> = ({
