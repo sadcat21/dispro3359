@@ -171,6 +171,7 @@ const ManagerTreasury = () => {
   const [addOpen, setAddOpen] = useState(false);
   const [handoverOpen, setHandoverOpen] = useState(false);
   const [cashBalanceOpen, setCashBalanceOpen] = useState(false);
+  const [cashBreakdownOpen, setCashBreakdownOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('handovers');
   const [showCardDetails, setShowCardDetails] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
