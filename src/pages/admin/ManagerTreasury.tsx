@@ -1091,7 +1091,7 @@ const ManagerTreasury = () => {
         const overallRemaining = physicalRemaining + nonCashPending;
         return (
           <>
-            <Card className="border-2 border-primary/40 bg-gradient-to-br from-primary/10 to-primary/5 cursor-pointer hover:shadow-md transition-shadow" onClick={() => setCashBalanceOpen(true)}>
+            <Card className="border-2 border-primary/40 bg-gradient-to-br from-primary/10 to-primary/5">
               <CardContent className="p-4 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <Wallet className="w-6 h-6 text-primary" />
@@ -1100,6 +1100,13 @@ const ManagerTreasury = () => {
                 <MoneyValue value={physicalRemaining} currency={cur} className="text-2xl font-extrabold text-primary" />
               </CardContent>
             </Card>
+            <Button
+              type="button"
+              onClick={() => setCashBalanceOpen(true)}
+              className="w-full bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-bold shadow-md hover:shadow-lg"
+            >
+              ⚖️ نافذة الميزانية
+            </Button>
             <Dialog open={cashBalanceOpen} onOpenChange={setCashBalanceOpen}>
               <DialogContent dir={dir} className="max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
