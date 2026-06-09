@@ -413,7 +413,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
     queryFn: async () => {
       const buildOrdersQuery = () => supabase
         .from('orders')
-        .select('id, status, payment_type, created_at, updated_at, customer_id, customer:customers(default_price_subtype)')
+        .select('id, status, payment_type, payment_status, partial_amount, total_amount, created_at, updated_at, customer_id, customer:customers(default_price_subtype)')
         .in('status', ['delivered', 'completed', 'confirmed'])
         .or(`assigned_worker_id.eq.${workerId!},created_by.eq.${workerId!}`);
 
@@ -612,12 +612,31 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
 
       const priceTracking = Object.values(priceMap).filter(r => r.quantity > 0).sort((a, b) => b.totalValue - a.totalValue);
 
+      // Authoritative ledger totals from orders+order_items (matches the order
+      // count shown above). fetchSessionCalculations restricts to orders with
+      // an approved delivery stock_movement which silently drops orders flipped
+      // to delivered without producing a movement — causing "Total Sales" to
+      // not match the order list. We expose the true ledger sums so the UI can
+      // override the session calc.
+      const ledgerTotalSales = orders.reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
+      const ledgerTotalPaid = orders.reduce((sum, o) => {
+        const t = Number(o.total_amount || 0);
+        const ps = String(o.payment_status || '').toLowerCase();
+        if (ps === 'debt') return sum;
+        if (ps === 'partial') return sum + Number(o.partial_amount || 0);
+        return sum + t;
+      }, 0);
+      const ledgerNewDebts = Math.max(0, ledgerTotalSales - ledgerTotalPaid);
+
       return {
         items: Object.values(agg).sort((a, b) => b.quantity - a.quantity),
         orderCount: orders.length,
         firstOrderTime,
         lastOrderTime,
         priceTracking,
+        ledgerTotalSales,
+        ledgerTotalPaid,
+        ledgerNewDebts,
       };
     },
     enabled: open && !!workerId,

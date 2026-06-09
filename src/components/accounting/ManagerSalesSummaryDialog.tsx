@@ -574,6 +574,27 @@ const fetchWorkerSalesSummary = async (
   const updatedTimes = orders.map((o) => new Date(o.updated_at).getTime());
   const calc = buildCalcFromOrders(orders, items || []);
 
+  // Defensive guarantee: totalSales must equal the sum of every fetched
+  // order's total_amount (orders+order_items is the single source of truth,
+  // per project memory). Recompute here so the value can never silently
+  // diverge from the order ledger downstream.
+  const itemsByOrderId = new Map<string, any[]>();
+  for (const it of items || []) {
+    const arr = itemsByOrderId.get(it.order_id) || [];
+    arr.push(it);
+    itemsByOrderId.set(it.order_id, arr);
+  }
+  const directTotalSales = orders.reduce(
+    (sum, order) => sum + calcOrderTotal(order, itemsByOrderId.get(order.id) || []),
+    0,
+  );
+  calc.totalSales = directTotalSales;
+  const directTotalPaid = orders.reduce((sum, order) => {
+    const t = calcOrderTotal(order, itemsByOrderId.get(order.id) || []);
+    return sum + getOrderPaidAmount(order, t);
+  }, 0);
+  calc.totalPaid = directTotalPaid;
+
   return {
     items: Object.values(agg).sort((a, b) => b.totalAmount - a.totalAmount),
     orderCount: orders.length,
