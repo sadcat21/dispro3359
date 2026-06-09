@@ -308,7 +308,12 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
     currency: 'DA',
   }), [language]);
 
-  // Initialize items from orderItems
+  // Reset init key when dialog closes so next open re-initializes
+  useEffect(() => {
+    if (!open) itemsInitializationKeyRef.current = null;
+  }, [open]);
+
+  // Initialize items from orderItems (only once per open/order, NOT on refetch)
   useEffect(() => {
     if (open && orderItems.length > 0) {
       const itemsKey = `${order.id}::${orderItems.length}`;
