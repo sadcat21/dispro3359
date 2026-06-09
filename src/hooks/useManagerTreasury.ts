@@ -78,6 +78,7 @@ export interface TreasurySummary {
   uncollectedDebts: number;
   debtCashCollected: number;
   debtCashHanded: number;
+  totalCashHanded: number;
   totalExpenses: number;
   totalGiftsValue: number;
   workerHeldAmount: number;
