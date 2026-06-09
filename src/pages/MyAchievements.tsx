@@ -581,8 +581,10 @@ const MyAchievements: React.FC = () => {
   const { data, isLoading, isFetching } = useQuery({
     queryKey: ['my-achievements-page', targetWorkerId, dateFrom, dateTo, today, selectedSessionRanges.map(r => `${r.start}_${r.end}`).join('|')],
     placeholderData: (prev) => prev,
-    staleTime: 30_000,
-    refetchOnWindowFocus: false,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnMount: 'always',
+    refetchOnReconnect: true,
     queryFn: async () => {
       if (!targetWorkerId) return { visits: [], counts: {} };
       const isTodayOnly = dateFrom === today && dateTo === today;
@@ -603,7 +605,7 @@ const MyAchievements: React.FC = () => {
         upperBound = new Date().toISOString();
       }
 
-      const [{ data: visits }, { data: directDebtCollections }, { data: directOrders }] = await Promise.all([
+      const [{ data: visits }, { data: directDebtCollections }, { data: deliveredOrders }] = await Promise.all([
         supabase
           .from('visit_tracking')
           .select('id, worker_id, customer_id, operation_type, operation_id, notes, created_at, branch_id')
@@ -626,19 +628,36 @@ const MyAchievements: React.FC = () => {
           .lte('created_at', upperBound)
           .neq('status', 'rejected')
           .order('created_at', { ascending: false }),
-        // Fallback: include orders directly assigned to this worker even when
-        // visit_tracking row is missing (e.g. GPS/permissions blocked insert).
         supabase
           .from('orders')
-          .select('id, customer_id, branch_id, created_at, status, created_by, assigned_worker_id')
-          .eq('assigned_worker_id', targetWorkerId)
+          .select('id, customer_id, branch_id, created_at, updated_at, status, created_by, assigned_worker_id')
+          .or(`assigned_worker_id.eq.${targetWorkerId},created_by.eq.${targetWorkerId}`)
           .eq('status', 'delivered')
-          .gte('created_at', lowerBound)
-          .lte('created_at', upperBound)
-          .order('created_at', { ascending: false }),
+          .gte('updated_at', lowerBound)
+          .lte('updated_at', upperBound)
+          .order('updated_at', { ascending: false }),
       ]);
 
-      const visitList = visits || [];
+      const deliveredOrderMap = new Map<string, any>((deliveredOrders || []).map((order: any) => [order.id, order]));
+      let deliveredVisits: any[] = [];
+      if (deliveredOrderMap.size > 0) {
+        const { data: extraDeliveredVisits } = await supabase
+          .from('visit_tracking')
+          .select('id, worker_id, customer_id, operation_type, operation_id, notes, created_at, branch_id')
+          .eq('worker_id', targetWorkerId)
+          .in('operation_id', [...deliveredOrderMap.keys()]);
+
+        deliveredVisits = (extraDeliveredVisits || []).map((visit: any) => ({
+          ...visit,
+          created_at: deliveredOrderMap.get(visit.operation_id)?.updated_at || visit.created_at,
+        }));
+      }
+
+      const visitList = dedupeAchievementVisits([
+        ...(visits || []),
+        ...deliveredVisits,
+      ]).sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
       const visitDebtCollectionIds = new Set(
         visitList
           .filter((v: any) => v.operation_type === 'debt_collection')
@@ -665,13 +684,10 @@ const MyAchievements: React.FC = () => {
             created_at: collection.created_at,
             branch_id: activeBranch?.id || null,
           }))),
-        // Synthesize visit entries for assigned orders that never produced a
-        // visit_tracking row (e.g. GPS denied), so achievements count matches
-        // the real order count.
-        // If the order was created by another worker (e.g. a sales rep) and
-        // assigned/passed to this worker, classify it as a delivery — not a
-        // direct sale.
-        ...((directOrders || [])
+        // Synthesize visit entries for delivered orders that never produced a
+        // visit_tracking row, and timestamp them with the delivery moment
+        // (`updated_at`) so today's actual accomplishments appear correctly.
+        ...((deliveredOrders || [])
           .filter((o: any) => o.id && !trackedOrderIds.has(o.id))
           .map((o: any) => {
             const isDelivery = o.created_by && o.created_by !== targetWorkerId;
@@ -682,7 +698,7 @@ const MyAchievements: React.FC = () => {
               operation_type: (isDelivery ? 'delivery' : 'direct_sale') as OperationType,
               operation_id: o.id,
               notes: null,
-              created_at: o.created_at,
+              created_at: o.updated_at || o.created_at,
               branch_id: o.branch_id || activeBranch?.id || null,
             };
           })),
