@@ -108,56 +108,55 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
     ? new Date(priorCutoff).toISOString()
     : periodStartTz;
 
-  // 1. Fetch delivered orders — single source of truth: approved delivery
-  //    stock_movements. This aligns the session totals (الكاش المسلم للمدير)
-  //    with the Sales Details view. Orders flipped to 'delivered' without a
-  //    matching approved delivery movement (deferred-offer confirms, manual
-  //    state restores) must be excluded to avoid inflating the cash figure.
-  const { data: stockMovements, error: stockMovementsError } = await supabase
-    .from('stock_movements')
-    .select('order_id')
-    .eq('worker_id', workerId)
-    .eq('movement_type', 'delivery')
-    .eq('status', 'approved')
-    .gt('created_at', effectiveStartTz)
-    .lte('created_at', periodEndTz);
+  // 1. Fetch delivered orders directly from the orders ledger.
+  //    This is the sales source of truth for session totals: relying on
+  //    delivery stock_movements silently drops legitimate delivered orders when
+  //    the movement row is missing, which is exactly what caused the mismatch
+  //    between "New Session" and the sales summary dialog.
+  const buildOrdersQuery = () => supabase
+    .from('orders')
+    .select('id, total_amount, payment_status, payment_type, invoice_payment_method, partial_amount, customer_id, document_verification, created_at, updated_at, notes, customer:customers(name, store_name, phone, address, sector:sectors(name)), order_items(quantity, unit_price, total_price, gift_quantity, gift_pieces, gift_offer_id, product_id, pieces_per_box, product:products(name, image_url, price_gros, price_super_gros, price_retail, price_invoice, pricing_unit, weight_per_box, pieces_per_box))')
+    .eq('status', 'delivered')
+    .or(`assigned_worker_id.eq.${workerId},created_by.eq.${workerId}`);
 
-  ensureNoError(stockMovementsError, 'stock movements');
+  const [createdOrdersRes, updatedOrdersRes] = await Promise.all([
+    buildOrdersQuery()
+      .gt('created_at', effectiveStartTz)
+      .lte('created_at', periodEndTz),
+    buildOrdersQuery()
+      .gt('updated_at', effectiveStartTz)
+      .lte('updated_at', periodEndTz),
+  ]);
 
-  const deliveryOrderIds = Array.from(new Set(
-    (stockMovements || []).map((m: any) => m.order_id).filter(Boolean)
-  ));
+  ensureNoError(createdOrdersRes.error, 'created orders');
+  ensureNoError(updatedOrdersRes.error, 'updated orders');
 
-  let orders: any[] = [];
-  if (deliveryOrderIds.length > 0) {
-    const { data: ordersData, error: ordersError } = await supabase
-      .from('orders')
-      .select('id, total_amount, payment_status, payment_type, invoice_payment_method, partial_amount, customer_id, document_verification, customer:customers(name, store_name, phone, address, sector:sectors(name)), updated_at, notes, order_items(quantity, unit_price, total_price, gift_quantity, gift_pieces, gift_offer_id, product_id, pieces_per_box, product:products(name, image_url, price_gros, price_super_gros, price_retail, price_invoice, pricing_unit, weight_per_box, pieces_per_box))')
-      .in('id', deliveryOrderIds)
-      .eq('assigned_worker_id', workerId)
-      .eq('status', 'delivered');
-    ensureNoError(ordersError, 'orders');
-    orders = ordersData || [];
+  const ordersById = new Map<string, any>();
+  [...(createdOrdersRes.data || []), ...(updatedOrdersRes.data || [])].forEach((order: any) => {
+    if (order?.id) ordersById.set(order.id, order);
+  });
 
+  const orders = Array.from(ordersById.values());
+  const sessionOrderIds = orders.map((order: any) => order.id).filter(Boolean);
+
+  if (orders.length > 0) {
     // Override gifts from authoritative sales_tracking ledger
-    {
-      const flat: any[] = [];
-      for (const o of orders as any[]) {
-        for (const it of o.order_items || []) flat.push(Object.assign(it, { order_id: o.id }));
-      }
-      const { mergeGiftsFromSalesTracking } = await import('@/utils/salesTrackingMerge');
-      await mergeGiftsFromSalesTracking(flat);
+    const flat: any[] = [];
+    for (const o of orders as any[]) {
+      for (const it of o.order_items || []) flat.push(Object.assign(it, { order_id: o.id }));
     }
+    const { mergeGiftsFromSalesTracking } = await import('@/utils/salesTrackingMerge');
+    await mergeGiftsFromSalesTracking(flat);
   }
 
   let debtsByOrderId: Record<string, { id?: string; total_amount: number; paid_amount: number; remaining_amount: number | null; status?: string | null }> = {};
   const tempDebtIds = new Set<string>();
-  if (deliveryOrderIds.length > 0) {
+  if (sessionOrderIds.length > 0) {
     const { data: debtsData, error: debtsError } = await supabase
       .from('customer_debts')
       .select('id, order_id, total_amount, paid_amount, remaining_amount, status')
       .eq('worker_id', workerId)
-      .in('order_id', deliveryOrderIds);
+      .in('order_id', sessionOrderIds);
     ensureNoError(debtsError, 'order debts');
     for (const debt of debtsData || []) {
       if (!debt.order_id) continue;
