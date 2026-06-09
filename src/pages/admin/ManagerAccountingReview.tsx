@@ -628,7 +628,9 @@ const ManagerAccountingReview: React.FC = () => {
                   {review.notes && (
                     <p className="text-xs text-muted-foreground mt-2 bg-muted/30 rounded p-1.5">{review.notes}</p>
                   )}
+                  </div>
                 </CardContent>
+
               </Card>
             ))
           )}
