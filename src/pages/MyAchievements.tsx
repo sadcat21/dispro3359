@@ -748,7 +748,7 @@ const MyAchievements: React.FC = () => {
           : Promise.resolve({ data: [] as any[] }),
         // 2. Orders
         orderIds.length
-          ? supabase.from('orders').select('id, total_amount, payment_type, invoice_payment_method, status, created_by, assigned_worker_id, document_verification, payment_status, payment_method_resolved').in('id', orderIds)
+          ? supabase.from('orders').select('id, total_amount, payment_type, invoice_payment_method, status, created_by, assigned_worker_id, document_verification, payment_status, payment_method_resolved, notes').in('id', orderIds)
           : Promise.resolve({ data: [] as any[] }),
         // 3. Order items (price_subtype + product/gift info for filtering & promo badge)
         orderIds.length
@@ -798,7 +798,9 @@ const MyAchievements: React.FC = () => {
         documentVerification: any;
         paymentStatus: string | null;
         paymentMethodResolved: string | null;
+        notes: string | null;
       }>();
+
       const debtCollectionStoreMap = new Map<string, string>();
       const debtCollectionAmountMap = new Map<string, number>();
       const orderProductsMap = new Map<string, Set<string>>();
@@ -844,6 +846,8 @@ const MyAchievements: React.FC = () => {
             documentVerification: o.document_verification ?? null,
             paymentStatus: o.payment_status || null,
             paymentMethodResolved: o.payment_method_resolved || null,
+            notes: o.notes || null,
+
           });
         });
 
@@ -930,6 +934,11 @@ const MyAchievements: React.FC = () => {
         if (['direct_sale', 'delivery', 'order'].includes(visit.operation_type) && visit.operation_id) {
           const orderMeta = orderMetaMap.get(visit.operation_id);
           if (orderMeta && !orderMeta.hasItems) return false;
+          // Hide assigned remainder orders ("طلبية فارق") from the sales list
+          if (orderMeta && orderMeta.status === 'assigned' && String(orderMeta.notes || '').trim().startsWith('طلبية فارق')) {
+            return false;
+          }
+
           // Hide pending delivery requests ONLY when the worker is viewing
           // their own achievements (so a driver doesn't see tomorrow's
           // assigned orders mixed with today's completed work). Managers /
