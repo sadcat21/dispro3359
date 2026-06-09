@@ -1252,17 +1252,28 @@ const ManagerTreasury = () => {
           showDetails={showCardDetails}
           badgeText={transferBadge}
         />
-        <TreasuryCard
-          icon={<Coins className="w-5 h-5 text-rose-500" />}
-          label="تحصيلات الديون"
-          total={summary?.debtCashCollected || 0}
-          handed={0}
-          colorClass="rose-500"
-          borderClass="border-rose-500/30 bg-rose-500/5"
-          onClick={() => setCollectedDebtsOpen(true)}
-          currency={cur}
-          showDetails={false}
-        />
+        <div className="space-y-1">
+          <TreasuryCard
+            icon={<Coins className="w-5 h-5 text-rose-500" />}
+            label="تحصيلات الديون"
+            total={summary?.debtCashCollected || 0}
+            handed={0}
+            colorClass="rose-500"
+            borderClass="border-rose-500/30 bg-rose-500/5"
+            onClick={() => setCollectedDebtsOpen(true)}
+            currency={cur}
+            showDetails={false}
+          />
+          {(() => {
+            const handedDebt = (handovers || []).reduce((s: number, h: any) => s + Number(h.debt_cash_amount || 0), 0);
+            if (handedDebt <= 0) return null;
+            return (
+              <p className="text-[10px] text-center text-rose-700/80">
+                المُسلَّم من الديون: <MoneyValue value={handedDebt} currency={cur} />
+              </p>
+            );
+          })()}
+        </div>
         <TreasuryCard
           icon={<Wallet className="w-5 h-5 text-amber-600" />}
           label="المصاريف"
