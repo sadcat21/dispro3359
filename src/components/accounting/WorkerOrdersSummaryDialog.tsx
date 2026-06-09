@@ -677,7 +677,7 @@ const WorkerOrdersSummaryDialog: React.FC<Props> = ({ open, onOpenChange, worker
     setExpandedProduct(null);
   };
 
-  const printTitle = `${isDeliveryMode ? 'Groupage des livraisons' : activeTab === 'created' ? 'Commandes' : 'Assignées'} - ${workerPrintInfo?.printName || workerName || ''} - ${format(new Date(selectedDate), 'dd/MM/yyyy')}`;
+  const printTitle = `${isDeliveryMode || activeTab === 'assigned' ? 'Groupage des livraisons' : 'Commandes'} - ${workerPrintInfo?.printName || workerName || ''} - ${format(new Date(selectedDate), 'dd/MM/yyyy')}`;
 
   return (
     <>
