@@ -98,6 +98,19 @@ const findPrintableElement = (roots: HTMLElement[]): HTMLElement | null => {
   return document.querySelector<HTMLElement>(PRINTABLE_ROOT_SELECTOR);
 };
 
+const isMobileEnv = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  try {
+    if (Capacitor.isNativePlatform()) return true;
+  } catch {
+    // Capacitor unavailable in this context
+  }
+  const ua = (navigator.userAgent || '').toLowerCase();
+  if (/android|iphone|ipad|ipod|mobile/.test(ua)) return true;
+  if (typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 768px)').matches) return true;
+  return false;
+};
+
 export const installNativePrintBridge = () => {
   if (nativePrintInstalled || typeof window === 'undefined') return;
   nativePrintInstalled = true;
@@ -105,7 +118,7 @@ export const installNativePrintBridge = () => {
   const browserPrint = window.print.bind(window);
 
   window.print = () => {
-    if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'android') {
+    if (!isMobileEnv()) {
       browserPrint();
       return;
     }
