@@ -1111,23 +1111,29 @@ const ManagerTreasury = () => {
                   </DialogTitle>
                 </DialogHeader>
                 {(() => {
-                  const rows: { label: string; value: number; sign: 1 | -1; color?: string }[] = [
-                    { label: 'كاش فاتورة 1', value: summary?.cash_invoice1 || 0, sign: 1, color: 'text-emerald-600' },
-                    { label: 'كاش فاتورة 2', value: summary?.cash_invoice2 || 0, sign: 1, color: 'text-emerald-600' },
-                    { label: 'Versement Cash (إيصال نقدي)', value: summary?.receipt_cash || 0, sign: 1, color: 'text-emerald-600' },
-                    { label: 'تحصيلات الديون (الصافي بعد التسليم)', value: summary?.debtCashCollected || 0, sign: 1, color: 'text-emerald-600' },
-                    { label: 'المصاريف', value: summary?.totalExpenses || 0, sign: -1, color: 'text-rose-600' },
-                    { label: 'صرف العملة', value: summary?.coinExchangeOut || 0, sign: -1, color: 'text-rose-600' },
-                    { label: 'تسليمات كاش فاتورة 1', value: summary?.cash_invoice1_handed || 0, sign: -1, color: 'text-rose-600' },
-                    { label: 'تسليمات كاش فاتورة 2', value: summary?.cash_invoice2_handed || 0, sign: -1, color: 'text-rose-600' },
-                    { label: 'تسليمات Versement Cash', value: summary?.receipt_cash_handed || 0, sign: -1, color: 'text-rose-600' },
+                  const inv1Net = Math.max(0, (summary?.cash_invoice1 || 0) - (summary?.cash_invoice1_handed || 0));
+                  const inv2Net = Math.max(0, (summary?.cash_invoice2 || 0) - (summary?.cash_invoice2_handed || 0));
+                  const vcashNet = Math.max(0, (summary?.receipt_cash || 0) - (summary?.receipt_cash_handed || 0));
+                  const debtNet = summary?.debtCashCollected || 0; // already net
+                  const expenses = summary?.totalExpenses || 0;
+                  const coinOut = summary?.coinExchangeOut || 0;
+                  const rows: { label: string; value: number; sign: 1 | -1 }[] = [
+                    { label: 'كاش فاتورة 1 (المتبقي)', value: inv1Net, sign: 1 },
+                    { label: 'كاش فاتورة 2 (المتبقي)', value: inv2Net, sign: 1 },
+                    { label: 'Versement Cash (المتبقي)', value: vcashNet, sign: 1 },
+                    { label: 'تحصيلات الديون (المتبقي)', value: debtNet, sign: 1 },
+                    { label: 'المصاريف', value: expenses, sign: -1 },
+                    { label: 'صرف العملة', value: coinOut, sign: -1 },
                   ];
                   return (
                     <div className="space-y-1.5 text-sm">
+                      <p className="text-[11px] text-muted-foreground text-center mb-1">
+                        الأرصدة الحالية (بعد خصم التسليمات)
+                      </p>
                       {rows.map((r, i) => (
                         <div key={i} className="flex items-center justify-between rounded-md border bg-muted/30 px-3 py-2">
                           <span className="text-muted-foreground">{r.label}</span>
-                          <span className={`font-semibold ${r.color || ''}`}>
+                          <span className={`font-semibold ${r.sign === 1 ? 'text-emerald-600' : 'text-rose-600'}`}>
                             {r.sign === 1 ? '+' : '−'} <MoneyValue value={r.value} currency={cur} />
                           </span>
                         </div>
@@ -1137,7 +1143,7 @@ const ManagerTreasury = () => {
                         <MoneyValue value={physicalRemaining} currency={cur} className="text-lg font-extrabold text-primary" />
                       </div>
                       <p className="mt-2 text-[11px] text-muted-foreground text-center">
-                        المعادلة: (فاتورة1 + فاتورة2 + Versement Cash + تحصيلات الديون الصافية) − (المصاريف + صرف العملة + تسليمات الكاش)
+                        المعادلة: (فاتورة1 + فاتورة2 + Versement Cash + تحصيلات الديون) − (المصاريف + صرف العملة)
                       </p>
                     </div>
                   );
