@@ -413,7 +413,7 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
     queryFn: async () => {
       const buildOrdersQuery = () => supabase
         .from('orders')
-        .select('id, status, payment_type, created_at, updated_at, customer_id, customer:customers(default_price_subtype)')
+        .select('id, status, payment_type, payment_status, partial_amount, total_amount, created_at, updated_at, customer_id, customer:customers(default_price_subtype)')
         .in('status', ['delivered', 'completed', 'confirmed'])
         .or(`assigned_worker_id.eq.${workerId!},created_by.eq.${workerId!}`);
 
@@ -612,12 +612,31 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
 
       const priceTracking = Object.values(priceMap).filter(r => r.quantity > 0).sort((a, b) => b.totalValue - a.totalValue);
 
+      // Authoritative ledger totals from orders+order_items (matches the order
+      // count shown above). fetchSessionCalculations restricts to orders with
+      // an approved delivery stock_movement which silently drops orders flipped
+      // to delivered without producing a movement — causing "Total Sales" to
+      // not match the order list. We expose the true ledger sums so the UI can
+      // override the session calc.
+      const ledgerTotalSales = orders.reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
+      const ledgerTotalPaid = orders.reduce((sum, o) => {
+        const t = Number(o.total_amount || 0);
+        const ps = String(o.payment_status || '').toLowerCase();
+        if (ps === 'debt') return sum;
+        if (ps === 'partial') return sum + Number(o.partial_amount || 0);
+        return sum + t;
+      }, 0);
+      const ledgerNewDebts = Math.max(0, ledgerTotalSales - ledgerTotalPaid);
+
       return {
         items: Object.values(agg).sort((a, b) => b.quantity - a.quantity),
         orderCount: orders.length,
         firstOrderTime,
         lastOrderTime,
         priceTracking,
+        ledgerTotalSales,
+        ledgerTotalPaid,
+        ledgerNewDebts,
       };
     },
     enabled: open && !!workerId,
@@ -734,7 +753,32 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
 
         {!expandedProduct && promoData && (
           (() => {
-            const calc = promoData as any;
+            const rawCalc = promoData as any;
+            // Override sales-side totals with the authoritative order ledger
+            // (orders+order_items), so they always match the order count and
+            // the per-product list shown above. fetchSessionCalculations
+            // restricts orders to those with an approved delivery stock_movement
+            // and would otherwise silently drop orders flipped to "delivered"
+            // without producing a movement (e.g. deferred-offer confirms).
+            const ledgerTotalSales = Number((salesData as any)?.ledgerTotalSales || 0);
+            const ledgerTotalPaid = Number((salesData as any)?.ledgerTotalPaid || 0);
+            const ledgerNewDebts = Number((salesData as any)?.ledgerNewDebts || 0);
+            // Keep collections/expenses/breakdowns from the session calc; only
+            // override the gross sales figures and the cash bucket so the
+            // displayed total stays consistent with the order ledger.
+            const extraSales = Math.max(0, ledgerTotalSales - Number(rawCalc.totalSales || 0));
+            const calc = {
+              ...rawCalc,
+              totalSales: ledgerTotalSales > 0 ? ledgerTotalSales : rawCalc.totalSales,
+              totalPaid: ledgerTotalPaid > 0 ? ledgerTotalPaid : rawCalc.totalPaid,
+              newDebts: ledgerTotalSales > 0 ? ledgerNewDebts : rawCalc.newDebts,
+              invoice2: {
+                ...(rawCalc.invoice2 || { total: 0, cash: 0 }),
+                cash: Number(rawCalc.invoice2?.cash || 0) + extraSales,
+                total: Number(rawCalc.invoice2?.total || 0) + extraSales,
+              },
+              physicalCash: Number(rawCalc.physicalCash || 0) + extraSales,
+            };
             const fmt = (n: number) => Number(n || 0).toLocaleString(localeCode);
             return (
               <div className="space-y-2 mt-2">
