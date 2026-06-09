@@ -363,13 +363,21 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
         const { paid, gift } = deliveredSaleBreakdown(it, ppb);
         sinceConsumed += paid + gift;
       }
-      // التعريض السالب (خصم إضافي) منذ آخر شحنة — الموجب مُتجاهَل دائماً
+      // التعريض السالب (خصم إضافي) منذ آخر شحنة — الموجب مُتجاهَل دائماً.
+      // يُحسَب فقط إذا وُجدت حركة delivery/direct_sale أصلية لنفس (طلب، منتج)،
+      // وإلا فإن التعديل يمثّل البيع الأصلي وقد حُسب ضمن soldData (تجنّب الخصم المزدوج).
+      const deliveredOrderProductKeys = new Set<string>(
+        (soldData as any[])
+          .filter((x: any) => Number(x.delivered_quantity || 0) > 0)
+          .map((x: any) => `${x.order_id}|${x.product_id}`)
+      );
       for (const m of modificationData as any[]) {
         if (String(m.product_id) !== pid) continue;
         const ts = m.created_at ? new Date(m.created_at).getTime() : 0;
         if (ts < lastAt) continue;
         const signed = Number(m.signed_quantity ?? 0);
         if (signed >= 0) continue;
+        if (!m.order_id || !deliveredOrderProductKeys.has(`${m.order_id}|${m.product_id}`)) continue;
         sinceConsumed += dbBPToBoxes(Math.abs(signed), ppb);
       }
 
@@ -421,11 +429,21 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
       // الخصم من الشاحنة: المباع + الهدية المؤكدة فقط. الهدية المعلَّقة تبقى في الشاحنة حتى التأكيد.
       if (saleQty > 0 || giftQty > 0) movements.push({ id: `sale-${it.order_id}-${when}`, type: 'sale', label: 'بيع', quantity: saleQty, giftQty, when, paymentType: it.order_payment_type, customerStoreName: it.customer_store_name, customerName: it.customer_name, saleChannel: it.sale_channel || 'delivery', priceSubtype: it.price_subtype || null, totalPaid: Number(it.total_price || 0), delta: -totalDelta, orderId: it.order_id || null });
     }
+    // مفاتيح (طلب|منتج) التي لديها حركة delivery/direct_sale أصلية — تُستعمل
+    // لتمييز التعديلات السالبة الفعلية عن البيع الأصلي المُسجَّل كـ modification.
+    const deliveredOrderKeys = new Set<string>(
+      (soldData as any[])
+        .filter((x: any) => Number(x.delivered_quantity || 0) > 0)
+        .map((x: any) => `${x.order_id}|${x.product_id}`)
+    );
     for (const m of (modificationData as any[]).filter((x: any) => x.product_id === pid)) {
       const isCancelled = m.order?.status === 'cancelled';
       const signed = Number(m.signed_quantity ?? 0);
       const qtyBoxes = dbBPToBoxes(Math.abs(signed), ppb);
-      const deltaBoxes = signed < 0 ? -qtyBoxes : 0;
+      const hasOriginalDelivery = !!m.order_id && deliveredOrderKeys.has(`${m.order_id}|${pid}`);
+      // التعديل السالب يخصم فعلياً فقط عندما يوجد توصيل أصلي لنفس الطلب/المنتج.
+      // وإلا فهو يمثّل البيع الأصلي وقد حُسب ضمن سجل البيع (تجنّب الخصم المزدوج).
+      const deltaBoxes = signed < 0 && hasOriginalDelivery ? -qtyBoxes : 0;
       const cust: any = m.order?.customer;
       movements.push({
         id: `mod-${m.id}`,
@@ -435,12 +453,13 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
         when: m.created_at,
         note: signed > 0
           ? [m.notes, 'هذا الإرجاع لا يُضاف إلى الباقي في الشاحنة.'].filter(Boolean).join(' — ')
-          : (m.notes || null),
+          : (signed < 0 && !hasOriginalDelivery
+              ? [m.notes, 'تعديل مُسجَّل للبيع الأصلي — لا يُخصم مجدداً من الشاحنة.'].filter(Boolean).join(' — ')
+              : (m.notes || null)),
         paymentType: m.order?.payment_type || null,
         customerStoreName: cust?.store_name || null,
         customerName: cust?.name || null,
         orderStatus: m.order?.status || null,
-        // التعديل الموجب يُعرض كسجل فقط ولا يزيد رصيد الشاحنة، بينما التعديل السالب يخصم فعلياً.
         delta: deltaBoxes,
         orderId: m.order_id || null,
       });
