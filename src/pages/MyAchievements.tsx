@@ -920,12 +920,13 @@ const MyAchievements: React.FC = () => {
       return ranges.some(r => t >= r.s && t <= r.e);
     }));
   }, [rawVisits, selectedSessionRanges]);
+  // Always derive counts from the deduped `visits` so chip totals match
+  // the rendered list and the "الكل" badge (no inflated per-type counts).
   const counts = useMemo(() => {
-    if (selectedSessionRanges.length === 0) return data?.counts || {};
     const c: Record<string, number> = {};
     for (const v of visits) c[v.operation_type] = (c[v.operation_type] || 0) + 1;
     return c;
-  }, [visits, selectedSessionRanges, data?.counts]);
+  }, [visits]);
   const isDebtNewAchievement = (visit: any) =>
     !!visit.isDebtSale || !!visit.debtStatus;
 
