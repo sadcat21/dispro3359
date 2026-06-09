@@ -48,14 +48,33 @@ export const useManagerReviewSessions = () => {
         'debt_collections_cash',
       ]);
 
-      const byReview = new Map<string, { totalCash: number; sessionsCount: number; earliest: string | null; latest: string | null }>();
+      const DOC_TYPES = new Set([
+        'invoice1_check', 'invoice1_receipt', 'invoice1_transfer',
+        'debt_collections_check', 'debt_collections_receipt', 'debt_collections_transfer',
+      ]);
+
+      type Agg = {
+        totalCash: number; sessionsCount: number; earliest: string | null; latest: string | null;
+        totalSales: number; newDebts: number; debtCollections: number; expenses: number;
+        cashPayments: number; docPayments: number;
+      };
+      const byReview = new Map<string, Agg>();
       for (const s of (sessions || []) as any[]) {
         const key = s.review_session_id as string;
-        const agg = byReview.get(key) || { totalCash: 0, sessionsCount: 0, earliest: null, latest: null };
+        const agg: Agg = byReview.get(key) || {
+          totalCash: 0, sessionsCount: 0, earliest: null, latest: null,
+          totalSales: 0, newDebts: 0, debtCollections: 0, expenses: 0,
+          cashPayments: 0, docPayments: 0,
+        };
         agg.sessionsCount += 1;
         for (const it of (s.items || [])) {
-          if (CASH_TYPES.has(it.item_type)) agg.totalCash += Number(it.actual_amount || 0);
-          else if (it.item_type === 'expenses') agg.totalCash -= Number(it.actual_amount || 0);
+          const amt = Number(it.actual_amount || 0);
+          if (CASH_TYPES.has(it.item_type)) { agg.totalCash += amt; agg.cashPayments += amt; }
+          else if (DOC_TYPES.has(it.item_type)) agg.docPayments += amt;
+          if (it.item_type === 'expenses') { agg.totalCash -= amt; agg.expenses += amt; }
+          else if (it.item_type === 'total_sales') agg.totalSales += amt;
+          else if (it.item_type === 'new_debts') agg.newDebts += amt;
+          else if (it.item_type === 'debt_collections_total') agg.debtCollections += amt;
         }
         const start = s.period_start || s.created_at;
         const end = s.period_end || s.completed_at || s.created_at;
@@ -64,13 +83,22 @@ export const useManagerReviewSessions = () => {
         byReview.set(key, agg);
       }
 
-      return reviews.map((r) => ({
-        ...r,
-        total_cash: byReview.get(r.id)?.totalCash || 0,
-        sessions_count: byReview.get(r.id)?.sessionsCount || 0,
-        period_earliest: byReview.get(r.id)?.earliest || null,
-        period_latest: byReview.get(r.id)?.latest || null,
-      })) as (ManagerReviewSession & { total_cash: number; sessions_count: number; period_earliest: string | null; period_latest: string | null })[];
+      return reviews.map((r) => {
+        const a = byReview.get(r.id);
+        return {
+          ...r,
+          total_cash: a?.totalCash || 0,
+          sessions_count: a?.sessionsCount || 0,
+          period_earliest: a?.earliest || null,
+          period_latest: a?.latest || null,
+          total_sales: a?.totalSales || 0,
+          new_debts: a?.newDebts || 0,
+          debt_collections: a?.debtCollections || 0,
+          expenses: a?.expenses || 0,
+          cash_payments: a?.cashPayments || 0,
+          doc_payments: a?.docPayments || 0,
+        };
+      }) as any[];
     },
     enabled: !!workerId,
   });
