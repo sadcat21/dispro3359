@@ -324,6 +324,9 @@ const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
         data-pdf-orientation={isDeliveryGroupage ? 'landscape' : 'portrait'}
         style={{ display: isVisible ? 'block' : 'none', position: 'relative' }}
       >
+        {isDeliveryGroupage && (
+          <style media="print">{`@page { size: A4 landscape; margin: 10mm 10mm 12mm 10mm; }`}</style>
+        )}
         {/* Watermark */}
         <div style={{
           position: usePortal ? 'fixed' : 'absolute',
