@@ -748,7 +748,7 @@ const MyAchievements: React.FC = () => {
           : Promise.resolve({ data: [] as any[] }),
         // 2. Orders
         orderIds.length
-          ? supabase.from('orders').select('id, total_amount, payment_type, invoice_payment_method, status, created_by, assigned_worker_id, document_verification, payment_status, payment_method_resolved').in('id', orderIds)
+          ? supabase.from('orders').select('id, total_amount, payment_type, invoice_payment_method, status, created_by, assigned_worker_id, document_verification, payment_status, payment_method_resolved, notes').in('id', orderIds)
           : Promise.resolve({ data: [] as any[] }),
         // 3. Order items (price_subtype + product/gift info for filtering & promo badge)
         orderIds.length
