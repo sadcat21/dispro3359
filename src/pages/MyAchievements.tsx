@@ -934,6 +934,11 @@ const MyAchievements: React.FC = () => {
         if (['direct_sale', 'delivery', 'order'].includes(visit.operation_type) && visit.operation_id) {
           const orderMeta = orderMetaMap.get(visit.operation_id);
           if (orderMeta && !orderMeta.hasItems) return false;
+          // Hide assigned remainder orders ("طلبية فارق") from the sales list
+          if (orderMeta && orderMeta.status === 'assigned' && String(orderMeta.notes || '').trim().startsWith('طلبية فارق')) {
+            return false;
+          }
+
           // Hide pending delivery requests ONLY when the worker is viewing
           // their own achievements (so a driver doesn't see tomorrow's
           // assigned orders mixed with today's completed work). Managers /
