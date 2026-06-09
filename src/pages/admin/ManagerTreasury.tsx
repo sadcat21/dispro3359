@@ -1079,15 +1079,14 @@ const ManagerTreasury = () => {
           - (summary?.totalExpenses || 0);
         const nonCash = (summary?.check || 0) + (summary?.bank_receipt || 0) + (summary?.bank_transfer || 0);
         const nonCashHanded = (summary?.check_handed || 0) + (summary?.receipt_handed || 0) + (summary?.transfer_handed || 0);
-        // Note: summary.debtCashCollected is already NET (gross - debt_cash_amount handed),
-        // so we MUST NOT subtract handover.debt_cash_amount again here — that would double-count.
         const cashHanded =
           (summary?.cash_invoice1_handed || 0) +
           (summary?.receipt_cash_handed || 0) +
           (summary?.cash_invoice2_handed || 0);
-        // Align "رصيد الكاش" with "الموجود فعلياً (بعد التسليم والمصاريف)" inside the budget dialog:
-        // clamp at 0 so over-handover doesn't display a misleading negative balance.
-        const physicalRemaining = Math.max(0, cashAvailableBeforeHandover - cashHanded);
+        // رصيد الكاش = إجمالي النقد في حسابات المدير بعد المراجعة − إجمالي التسليمات النقدية
+        const reviewedTotalCash = reviewHistory.reduce((s: number, r: any) => s + Number(r.total_cash || 0), 0);
+        const totalCashHandedAll = summary?.totalCashHanded || 0;
+        const physicalRemaining = Math.max(0, reviewedTotalCash - totalCashHandedAll);
         const nonCashPending = Math.max(0, nonCash - nonCashHanded);
         const overallRemaining = physicalRemaining + nonCashPending;
         return (
