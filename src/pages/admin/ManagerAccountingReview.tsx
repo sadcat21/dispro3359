@@ -495,101 +495,105 @@ const ManagerAccountingReview: React.FC = () => {
                 className="cursor-pointer hover:border-primary/50 transition-colors"
                 onClick={() => { navigate(`/manager-accounting-review/${review.id}`); }}
               >
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between gap-2">
+                <CardContent className="p-0 overflow-hidden">
+                  {/* Header bar */}
+                  <div className="flex items-center justify-between gap-2 px-3 py-2 bg-gradient-to-l from-emerald-50 to-transparent border-b">
                     <div className="flex items-center gap-2 min-w-0">
                       <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
                         <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                       </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="text-sm font-bold">مراجعة #{reviewHistory.length - reviewHistory.indexOf(review)}</p>
-                          <Badge variant="outline" className="text-[10px]">
-                            {review.sessions_count || 0} جلسة
-                          </Badge>
-                        </div>
-                        <p className="text-[10px] text-muted-foreground mt-0.5">
-                          تاريخ الإيداع: {review.completed_at ? format(new Date(review.completed_at), 'yyyy-MM-dd HH:mm') : format(new Date(review.created_at), 'yyyy-MM-dd HH:mm')}
-                        </p>
-                        {(review.period_earliest || review.period_latest) && (
-                          <p className="text-[10px] text-muted-foreground">
-                            فترة الجلسات: {review.period_earliest ? format(new Date(review.period_earliest), 'yyyy-MM-dd') : '—'}
-                            {' → '}
-                            {review.period_latest ? format(new Date(review.period_latest), 'yyyy-MM-dd') : '—'}
-                          </p>
-                        )}
-                      </div>
+                      <p className="text-sm font-bold whitespace-nowrap">مراجعة #{reviewHistory.length - reviewHistory.indexOf(review)}</p>
+                      <Badge variant="outline" className="text-[10px] h-5">{review.sessions_count || 0} جلسة</Badge>
+                      <Badge variant="secondary" className="text-[10px] h-5 bg-emerald-100 text-emerald-700 border-emerald-200">مكتملة</Badge>
                     </div>
-                    <div className="flex flex-col items-end gap-1.5 shrink-0">
-                      <Badge variant="secondary" className="text-[10px] bg-emerald-100 text-emerald-700">
-                        مكتملة
-                      </Badge>
-                      <div className="rounded-xl border-2 border-emerald-500 ring-2 ring-emerald-300/60 bg-emerald-50 px-2.5 py-1 shadow-sm text-center">
-                        <p className="text-sm font-extrabold text-emerald-700 whitespace-nowrap leading-tight">
-                          {Number(review.total_cash || 0).toLocaleString('fr-FR')} دج
-                        </p>
-                        <p className="text-[9px] text-emerald-700/70 leading-tight">إجمالي النقد</p>
-                      </div>
-                      <div className="flex items-center gap-1 mt-0.5">
-                        <Button
-                          size="icon"
-                          variant="outline"
-                          className="h-7 w-7"
-                          title="طباعة A4"
-                          aria-label="طباعة A4"
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            try {
-                              const { data: sess, error } = await supabase
-                                .from('accounting_sessions')
-                                .select(`*, worker:workers!accounting_sessions_worker_id_fkey(id, full_name, username), items:accounting_session_items(*)`)
-                                .eq('review_session_id', review.id)
-                                .order('completed_at', { ascending: false });
-                              if (error) throw error;
-                              const sessions = sess || [];
-                              if (sessions.length === 0) { toast.error('لا توجد جلسات للطباعة'); return; }
-                              const totals = calcTotals(sessions);
-                              const productMatrix = await fetchProductMatrix(sessions);
-                              const qrUrl = `${window.location.origin}/manager-accounting-review/${review.id}`;
-                              let qrDataUrl: string | undefined;
-                              try { qrDataUrl = await QRCode.toDataURL(qrUrl, { width: 300, margin: 1 }); } catch {}
-                              const iframe = document.createElement('iframe');
-                              iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;opacity:0';
-                              document.body.appendChild(iframe);
-                              const w = iframe.contentWindow; const d = iframe.contentDocument || w?.document;
-                              if (!w || !d) { iframe.remove(); return; }
-                              d.open();
-                              d.write(buildManagerReviewPrintHtml({ totals, sessions, branchName: activeBranch?.name || '', qrDataUrl, qrUrl, accountantName: user?.full_name || user?.fullName || user?.username || '', productMatrix }));
-                              d.close();
-                              const remove = () => { if (iframe.parentNode) iframe.parentNode.removeChild(iframe); };
-                              w.onafterprint = remove;
-                              setTimeout(() => { w.focus(); w.print(); setTimeout(remove, 3000); }, 400);
-                            } catch (err) {
-                              console.error(err);
-                              toast.error('فشلت الطباعة');
-                            }
-                          }}
-                        >
-                          <Printer className="w-3.5 h-3.5" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="outline"
-                          className="h-7 w-7 text-amber-700 border-amber-300 hover:bg-amber-50"
-                          disabled={undoMutation.isPending}
-                          title="تراجع"
-                          aria-label="تراجع"
-                          onClick={(e) => { e.stopPropagation(); setUndoTargetId(review.id); }}
-                        >
-                          {undoMutation.isPending && undoTargetId === review.id ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          ) : (
-                            <Undo2 className="w-3.5 h-3.5" />
-                          )}
-                        </Button>
-                      </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                        title="طباعة A4"
+                        aria-label="طباعة A4"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          try {
+                            const { data: sess, error } = await supabase
+                              .from('accounting_sessions')
+                              .select(`*, worker:workers!accounting_sessions_worker_id_fkey(id, full_name, username), items:accounting_session_items(*)`)
+                              .eq('review_session_id', review.id)
+                              .order('completed_at', { ascending: false });
+                            if (error) throw error;
+                            const sessions = sess || [];
+                            if (sessions.length === 0) { toast.error('لا توجد جلسات للطباعة'); return; }
+                            const totals = calcTotals(sessions);
+                            const productMatrix = await fetchProductMatrix(sessions);
+                            const qrUrl = `${window.location.origin}/manager-accounting-review/${review.id}`;
+                            let qrDataUrl: string | undefined;
+                            try { qrDataUrl = await QRCode.toDataURL(qrUrl, { width: 300, margin: 1 }); } catch {}
+                            const iframe = document.createElement('iframe');
+                            iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;opacity:0';
+                            document.body.appendChild(iframe);
+                            const w = iframe.contentWindow; const d = iframe.contentDocument || w?.document;
+                            if (!w || !d) { iframe.remove(); return; }
+                            d.open();
+                            d.write(buildManagerReviewPrintHtml({ totals, sessions, branchName: activeBranch?.name || '', qrDataUrl, qrUrl, accountantName: user?.full_name || user?.fullName || user?.username || '', productMatrix }));
+                            d.close();
+                            const remove = () => { if (iframe.parentNode) iframe.parentNode.removeChild(iframe); };
+                            w.onafterprint = remove;
+                            setTimeout(() => { w.focus(); w.print(); setTimeout(remove, 3000); }, 400);
+                          } catch (err) {
+                            console.error(err);
+                            toast.error('فشلت الطباعة');
+                          }
+                        }}
+                      >
+                        <Printer className="w-3.5 h-3.5" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 text-amber-700 hover:bg-amber-50"
+                        disabled={undoMutation.isPending}
+                        title="تراجع"
+                        aria-label="تراجع"
+                        onClick={(e) => { e.stopPropagation(); setUndoTargetId(review.id); }}
+                      >
+                        {undoMutation.isPending && undoTargetId === review.id ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Undo2 className="w-3.5 h-3.5" />
+                        )}
+                      </Button>
                     </div>
                   </div>
+
+                  <div className="p-3">
+                    {/* Total cash + dates */}
+                    <div className="flex items-stretch gap-2">
+                      <div className="flex-1 min-w-0 rounded-lg bg-muted/30 border px-2.5 py-1.5 space-y-1">
+                        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                          <Calendar className="w-3 h-3 shrink-0" />
+                          <span className="font-semibold">تاريخ الإيداع:</span>
+                          <span className="font-mono">{format(new Date(review.completed_at || review.created_at), 'yyyy-MM-dd HH:mm')}</span>
+                        </div>
+                        {(review.period_earliest || review.period_latest) && (
+                          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                            <Clock className="w-3 h-3 shrink-0" />
+                            <span className="font-semibold">فترة الجلسات:</span>
+                            <span className="font-mono">{review.period_earliest ? format(new Date(review.period_earliest), 'yyyy-MM-dd') : '—'}</span>
+                            <span>←</span>
+                            <span className="font-mono">{review.period_latest ? format(new Date(review.period_latest), 'yyyy-MM-dd') : '—'}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="rounded-xl border-2 border-emerald-500 ring-2 ring-emerald-300/60 bg-gradient-to-br from-emerald-50 to-emerald-100/50 px-3 py-1.5 shadow-sm text-center shrink-0 flex flex-col justify-center">
+                        <p className="text-[9px] font-semibold text-emerald-700/70 leading-tight">إجمالي النقد</p>
+                        <p className="text-base font-extrabold text-emerald-700 whitespace-nowrap leading-tight">
+                          {Number(review.total_cash || 0).toLocaleString('fr-FR')}
+                        </p>
+                        <p className="text-[9px] font-bold text-emerald-600 leading-tight">دج</p>
+                      </div>
+                    </div>
+
                   {/* Metrics grid */}
                   {(() => {
                     const fmt = (n: number) => Number(n || 0).toLocaleString('fr-FR');
