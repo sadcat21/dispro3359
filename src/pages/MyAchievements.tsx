@@ -846,6 +846,8 @@ const MyAchievements: React.FC = () => {
             documentVerification: o.document_verification ?? null,
             paymentStatus: o.payment_status || null,
             paymentMethodResolved: o.payment_method_resolved || null,
+            notes: o.notes || null,
+
           });
         });
 
