@@ -269,6 +269,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
   const [editingInitialGiftOfferId, setEditingInitialGiftOfferId] = useState<string | undefined>(undefined);
 
   const paymentInitializationKeyRef = useRef<string | null>(null);
+  const itemsInitializationKeyRef = useRef<string | null>(null);
   const initPaid = (() => {
     const ps = String(order.payment_status || '').toLowerCase();
     if (ps === 'partial' && order.partial_amount != null) return Number(order.partial_amount);
@@ -307,10 +308,19 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
     currency: 'DA',
   }), [language]);
 
-  // Initialize items from orderItems
+  // Reset init key when dialog closes so next open re-initializes
+  useEffect(() => {
+    if (!open) itemsInitializationKeyRef.current = null;
+  }, [open]);
+
+  // Initialize items from orderItems (only once per open/order, NOT on refetch)
   useEffect(() => {
     if (open && orderItems.length > 0) {
-      setItems(orderItems.map(item => {
+      const itemsKey = `${order.id}::${orderItems.length}`;
+      const alreadyInitialized = itemsInitializationKeyRef.current === itemsKey;
+      if (!alreadyInitialized) {
+        itemsInitializationKeyRef.current = itemsKey;
+        setItems(orderItems.map(item => {
         const piecesPerBox = Number((item as any).pieces_per_box || item.product?.pieces_per_box || 1);
         const pricingUnit = (item as any).pricing_unit || item.product?.pricing_unit || 'box';
         const weightPerBox = Number((item as any).weight_per_box || item.product?.weight_per_box || 1);
@@ -349,6 +359,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
           is_unit_sale: false,
         };
       }));
+      }
       setAssignedWorkerId(order.assigned_worker_id || '');
       setDeliveryDate(order.delivery_date ? new Date(order.delivery_date) : undefined);
 
