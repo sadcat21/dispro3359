@@ -608,13 +608,13 @@ const ManagerAccountingReview: React.FC = () => {
                             <p className="text-[9px] leading-tight opacity-80">{m.label}</p>
                             <p className="text-[11px] font-bold leading-tight mt-0.5">{fmt(m.value)}</p>
                             {m.arrow === 'right' && (
-                              <ArrowUpRight className="absolute top-1/2 -right-2 -translate-y-1/2 w-4 h-4 text-blue-600 bg-white rounded-full p-0.5 shadow ring-1 ring-blue-200 rotate-45 z-20" />
+                              <ArrowLeft className="absolute top-1/2 -start-2 -translate-y-1/2 w-4 h-4 text-blue-600 bg-white rounded-full p-0.5 shadow ring-1 ring-blue-200 rtl:-scale-x-100 z-20" />
                             )}
                             {m.arrow === 'up' && (
-                              <ArrowUpRight className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 text-blue-600 bg-white rounded-full p-0.5 shadow ring-1 ring-blue-200 -rotate-45 z-20" />
+                              <ArrowUp className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 text-blue-600 bg-white rounded-full p-0.5 shadow ring-1 ring-blue-200 z-20" />
                             )}
                             {m.arrow === 'up-right' && (
-                              <ArrowUpRight className="absolute -top-2 -right-2 w-4 h-4 text-blue-600 bg-white rounded-full p-0.5 shadow ring-1 ring-blue-200 z-20" />
+                              <ArrowUpLeft className="absolute -top-2 -start-2 w-4 h-4 text-blue-600 bg-white rounded-full p-0.5 shadow ring-1 ring-blue-200 rtl:-scale-x-100 z-20" />
                             )}
                           </div>
                         ))}
