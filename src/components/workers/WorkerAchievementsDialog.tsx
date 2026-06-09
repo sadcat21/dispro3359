@@ -354,15 +354,25 @@ const WorkerAchievementsDialog: React.FC<WorkerAchievementsDialogProps> = ({
         };
       });
 
-      // Dedupe: same operation_type + operation_id should appear only once
+      // Dedupe: for order-like types, collapse by operation_id alone so an order
+      // with both an 'order' and 'delivery' visit row appears only once.
+      // For other types, keep operation_type+operation_id key.
+      const orderLikeSet = new Set(['order', 'direct_sale', 'delivery']);
       const seen = new Set<string>();
       const dedupedVisits = enrichedVisits.filter((v: any) => {
         if (!v.operation_id) return true;
-        const key = `${v.operation_type}::${v.operation_id}`;
+        const key = orderLikeSet.has(v.operation_type)
+          ? `order-like::${v.operation_id}`
+          : `${v.operation_type}::${v.operation_id}`;
         if (seen.has(key)) return false;
         seen.add(key);
+        // Normalize the operation_type to 'delivery' when this order was delivered today
+        if (orderLikeSet.has(v.operation_type) && deliveredById.has(v.operation_id)) {
+          v.operation_type = 'delivery';
+        }
         return true;
       });
+
 
       const counts: Record<string, number> = {};
       for (const v of dedupedVisits) {
