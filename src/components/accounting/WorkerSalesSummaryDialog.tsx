@@ -622,10 +622,12 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
       const ledgerTotalPaid = orders.reduce((sum, o) => {
         const t = Number(o.total_amount || 0);
         const ps = String(o.payment_status || '').toLowerCase();
-        if (ps === 'debt') return sum;
-        if (ps === 'partial') return sum + Number(o.partial_amount || 0);
+        // Full-debt statuses contribute 0 to paid.
+        if (['debt', 'pending', 'credit', 'payment_pending', 'no_payment'].includes(ps)) return sum;
+        if (['partial', 'payment_partial'].includes(ps)) return sum + Number(o.partial_amount || 0);
         return sum + t;
       }, 0);
+
       const ledgerNewDebts = Math.max(0, ledgerTotalSales - ledgerTotalPaid);
 
       return {
