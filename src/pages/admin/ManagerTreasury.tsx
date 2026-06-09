@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTreasurySummary, useManagerTreasury, useManagerHandovers, useCreateHandover, useAddTreasuryEntry, orderAccountingTime, parseAccountingTime } from '@/hooks/useManagerTreasury';
+import { useManagerReviewSessions } from '@/hooks/useManagerReview';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import PaymentMethodDetailsDialog from '@/components/treasury/PaymentMethodDetailsDialog';
 import StampDetailsDialog from '@/components/treasury/StampDetailsDialog';
@@ -103,6 +104,7 @@ const ManagerTreasury = () => {
   const isSettingsHidden = useIsElementHidden('button', 'treasury_settings');
   const { data: entries } = useManagerTreasury(dateRange);
   const { data: handovers } = useManagerHandovers(dateRange);
+  const { data: reviewHistory = [] } = useManagerReviewSessions();
   const createHandover = useCreateHandover();
   const addEntry = useAddTreasuryEntry();
 
@@ -773,6 +775,34 @@ const ManagerTreasury = () => {
             <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
           </Button>
         </div>
+
+        {/* BI Card: Total cash in manager treasury after review */}
+        {reviewHistory.length > 0 && (() => {
+          const totalCash = reviewHistory.reduce((s: number, r: any) => s + Number(r.total_cash || 0), 0);
+          const sessionsCount = reviewHistory.reduce((s: number, r: any) => s + Number(r.sessions_count || 0), 0);
+          return (
+            <div className="relative overflow-hidden rounded-2xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 via-white to-sky-50 dark:from-emerald-950/40 dark:via-background dark:to-sky-950/30 dark:border-emerald-800 p-4 shadow-md">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-200/30 dark:bg-emerald-700/20 rounded-full -translate-y-16 translate-x-16 blur-2xl" />
+              <div className="relative flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-sky-500 flex items-center justify-center shadow-lg">
+                    <Wallet className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">إجمالي النقد في حسابات المدير بعد المراجعة</p>
+                    <p className="text-[10px] text-muted-foreground">{reviewHistory.length} مراجعة · {sessionsCount} جلسة</p>
+                  </div>
+                </div>
+                <div className="text-end">
+                  <p className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-300 leading-tight">
+                    {Number(totalCash).toLocaleString('fr-FR')}
+                  </p>
+                  <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">دج</p>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
         <div className="fixed bottom-16 left-0 right-0 z-40 px-3 pointer-events-none">
           <div className="mx-auto max-w-md flex items-center justify-center gap-1.5 rounded-full bg-background/95 backdrop-blur border shadow-lg p-1.5 pointer-events-auto" dir={dir}>
             <Button
