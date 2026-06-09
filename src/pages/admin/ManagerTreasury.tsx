@@ -171,6 +171,7 @@ const ManagerTreasury = () => {
   const [addOpen, setAddOpen] = useState(false);
   const [handoverOpen, setHandoverOpen] = useState(false);
   const [cashBalanceOpen, setCashBalanceOpen] = useState(false);
+  const [cashBreakdownOpen, setCashBreakdownOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('handovers');
   const [showCardDetails, setShowCardDetails] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
@@ -1089,7 +1090,10 @@ const ManagerTreasury = () => {
         const overallRemaining = physicalRemaining + nonCashPending;
         return (
           <>
-            <Card className="border-2 border-primary/40 bg-gradient-to-br from-primary/10 to-primary/5">
+            <Card
+              className="border-2 border-primary/40 bg-gradient-to-br from-primary/10 to-primary/5 cursor-pointer hover:shadow-md transition"
+              onClick={() => setCashBreakdownOpen(true)}
+            >
               <CardContent className="p-4 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <Wallet className="w-6 h-6 text-primary" />
@@ -1098,6 +1102,48 @@ const ManagerTreasury = () => {
                 <MoneyValue value={physicalRemaining} currency={cur} className="text-2xl font-extrabold text-primary" />
               </CardContent>
             </Card>
+            <Dialog open={cashBreakdownOpen} onOpenChange={setCashBreakdownOpen}>
+              <DialogContent dir={dir} className="max-w-md max-h-[85vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Wallet className="w-5 h-5 text-primary" />
+                    تحليل رصيد الكاش
+                  </DialogTitle>
+                </DialogHeader>
+                {(() => {
+                  const rows: { label: string; value: number; sign: 1 | -1; color?: string }[] = [
+                    { label: 'كاش فاتورة 1', value: summary?.cash_invoice1 || 0, sign: 1, color: 'text-emerald-600' },
+                    { label: 'كاش فاتورة 2', value: summary?.cash_invoice2 || 0, sign: 1, color: 'text-emerald-600' },
+                    { label: 'Versement Cash (إيصال نقدي)', value: summary?.receipt_cash || 0, sign: 1, color: 'text-emerald-600' },
+                    { label: 'تحصيلات الديون (الصافي بعد التسليم)', value: summary?.debtCashCollected || 0, sign: 1, color: 'text-emerald-600' },
+                    { label: 'المصاريف', value: summary?.totalExpenses || 0, sign: -1, color: 'text-rose-600' },
+                    { label: 'صرف العملة', value: summary?.coinExchangeOut || 0, sign: -1, color: 'text-rose-600' },
+                    { label: 'تسليمات كاش فاتورة 1', value: summary?.cash_invoice1_handed || 0, sign: -1, color: 'text-rose-600' },
+                    { label: 'تسليمات كاش فاتورة 2', value: summary?.cash_invoice2_handed || 0, sign: -1, color: 'text-rose-600' },
+                    { label: 'تسليمات Versement Cash', value: summary?.receipt_cash_handed || 0, sign: -1, color: 'text-rose-600' },
+                  ];
+                  return (
+                    <div className="space-y-1.5 text-sm">
+                      {rows.map((r, i) => (
+                        <div key={i} className="flex items-center justify-between rounded-md border bg-muted/30 px-3 py-2">
+                          <span className="text-muted-foreground">{r.label}</span>
+                          <span className={`font-semibold ${r.color || ''}`}>
+                            {r.sign === 1 ? '+' : '−'} <MoneyValue value={r.value} currency={cur} />
+                          </span>
+                        </div>
+                      ))}
+                      <div className="mt-3 flex items-center justify-between rounded-lg border-2 border-primary/40 bg-primary/5 px-3 py-2.5">
+                        <span className="text-sm font-bold text-primary">رصيد الكاش</span>
+                        <MoneyValue value={physicalRemaining} currency={cur} className="text-lg font-extrabold text-primary" />
+                      </div>
+                      <p className="mt-2 text-[11px] text-muted-foreground text-center">
+                        المعادلة: (فاتورة1 + فاتورة2 + Versement Cash + تحصيلات الديون الصافية) − (المصاريف + صرف العملة + تسليمات الكاش)
+                      </p>
+                    </div>
+                  );
+                })()}
+              </DialogContent>
+            </Dialog>
             <Button
               type="button"
               onClick={() => setCashBalanceOpen(true)}
