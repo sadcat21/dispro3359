@@ -332,7 +332,7 @@ body.native-print-active > [data-native-print-keepalive] .print-handover {
   overflow: visible !important;
   color: #000 !important;
   background: white !important;
-  min-height: 100vh !important;
+  min-height: 0 !important;
   transform: translateZ(0) !important;
   -webkit-transform: translateZ(0) !important;
   contain: none !important;
