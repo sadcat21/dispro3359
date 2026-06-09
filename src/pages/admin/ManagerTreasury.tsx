@@ -104,6 +104,7 @@ const ManagerTreasury = () => {
   const isSettingsHidden = useIsElementHidden('button', 'treasury_settings');
   const { data: entries } = useManagerTreasury(dateRange);
   const { data: handovers } = useManagerHandovers(dateRange);
+  const { data: reviewHistory = [] } = useManagerReviewSessions();
   const createHandover = useCreateHandover();
   const addEntry = useAddTreasuryEntry();
 
