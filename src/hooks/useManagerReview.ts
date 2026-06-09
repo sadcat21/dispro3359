@@ -69,7 +69,10 @@ export const useManagerReviewSessions = () => {
         agg.sessionsCount += 1;
         for (const it of (s.items || [])) {
           const amt = Number(it.actual_amount || 0);
-          if (CASH_TYPES.has(it.item_type)) { agg.totalCash += amt; agg.cashPayments += amt; }
+          if (CASH_TYPES.has(it.item_type)) {
+            agg.totalCash += amt;
+            if (it.item_type !== 'debt_collections_cash') agg.cashPayments += amt;
+          }
           else if (DOC_TYPES.has(it.item_type)) agg.docPayments += amt;
           if (it.item_type === 'expenses') { agg.totalCash -= amt; agg.expenses += amt; }
           else if (it.item_type === 'total_sales') agg.totalSales += amt;
