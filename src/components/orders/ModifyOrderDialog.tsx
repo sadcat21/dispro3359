@@ -2482,6 +2482,94 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
             {/* Payment confirmation is now handled in a separate dialog
                 (PostDelivery / Receipt / Split) opened when saving/resuming. */}
 
+            {/* Payment amount adjustment for delivered orders */}
+            {isSold && (
+              <div className="border rounded-lg p-3 space-y-3 bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
+                <label className="text-xs font-bold text-amber-800 dark:text-amber-300 flex items-center gap-1">
+                  <Banknote className="w-3.5 h-3.5" />
+                  {dialogText.adjustPaymentTitle}
+                </label>
+                <p className="text-[10px] text-amber-700 dark:text-amber-400">
+                  {dialogText.adjustPaymentDescription}
+                </p>
+                <div className="grid grid-cols-3 gap-2">
+                  <Button
+                    type="button"
+                    variant={quickPaymentMode === 'full' ? 'default' : 'outline'}
+                    className="h-12 px-2 text-[11px] sm:text-xs whitespace-normal leading-tight"
+                    onClick={() => handleQuickPaymentMode('full')}
+                  >
+                    <Banknote className="w-4 h-4" />
+                    <span>{t('debts.full_payment')}</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={quickPaymentMode === 'partial' ? 'secondary' : 'outline'}
+                    className="h-12 px-2 text-[11px] sm:text-xs whitespace-normal leading-tight"
+                    onClick={() => handleQuickPaymentMode('partial')}
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    <span>{t('debts.partial_payment')}</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={quickPaymentMode === 'debt' ? 'destructive' : 'outline'}
+                    className="h-12 px-2 text-[11px] sm:text-xs whitespace-normal leading-tight"
+                    onClick={() => handleQuickPaymentMode('debt')}
+                  >
+                    <AlertTriangle className="w-4 h-4" />
+                    <span>{dialogText.fullDebt}</span>
+                  </Button>
+                </div>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-muted-foreground">{t('orders.paid_amount')}</label>
+                    <Input
+                      type="number"
+                      value={adjustPaidAmount}
+                      onChange={(e) => {
+                        const val = Math.max(0, Math.min(Number(e.target.value) || 0, resolvedOrderTotal));
+                        setAdjustPaidAmount(val);
+                        setAdjustRemainingAmount(Math.max(0, resolvedOrderTotal - val));
+                      }}
+                      className="h-10 text-base"
+                      min={0}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-muted-foreground">{dialogText.remainingDebtLabel}</label>
+                    <Input
+                      type="number"
+                      value={adjustRemainingAmount}
+                      onChange={(e) => {
+                        const val = Math.max(0, Math.min(Number(e.target.value) || 0, resolvedOrderTotal));
+                        setAdjustRemainingAmount(val);
+                        setAdjustPaidAmount(Math.max(0, resolvedOrderTotal - val));
+                      }}
+                      className="h-10 text-base"
+                      min={0}
+                    />
+                  </div>
+                </div>
+                {paymentAmountChanged && (
+                  <div className="bg-amber-100 dark:bg-amber-900/30 rounded-md p-2 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-bold">{dialogText.willUpdate}</p>
+                      <ul className="list-disc list-inside text-[10px] mt-0.5 space-y-0.5">
+                        <li>{dialogText.paidAmount}: {originalPaidAmount.toLocaleString()} {'->'} {adjustPaidAmount.toLocaleString()} {dialogText.currency}</li>
+                        <li>{dialogText.remainingAmount}: {originalRemainingAmount.toLocaleString()} {'->'} {adjustRemainingAmount.toLocaleString()} {dialogText.currency}</li>
+                        {adjustRemainingAmount > originalRemainingAmount && <li className="text-red-700">{dialogText.createDebt} {(adjustRemainingAmount - originalRemainingAmount).toLocaleString()} {dialogText.currency}</li>}
+                        {adjustRemainingAmount < originalRemainingAmount && <li className="text-green-700">{dialogText.settleDebt} {(originalRemainingAmount - adjustRemainingAmount).toLocaleString()} {dialogText.currency}</li>}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+
+
 
             {items.map((item, index) => {
               const changed = item.new_quantity !== item.original_quantity || item.unit_price !== item.original_unit_price;
