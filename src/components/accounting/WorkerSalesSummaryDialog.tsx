@@ -753,7 +753,32 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
 
         {!expandedProduct && promoData && (
           (() => {
-            const calc = promoData as any;
+            const rawCalc = promoData as any;
+            // Override sales-side totals with the authoritative order ledger
+            // (orders+order_items), so they always match the order count and
+            // the per-product list shown above. fetchSessionCalculations
+            // restricts orders to those with an approved delivery stock_movement
+            // and would otherwise silently drop orders flipped to "delivered"
+            // without producing a movement (e.g. deferred-offer confirms).
+            const ledgerTotalSales = Number((salesData as any)?.ledgerTotalSales || 0);
+            const ledgerTotalPaid = Number((salesData as any)?.ledgerTotalPaid || 0);
+            const ledgerNewDebts = Number((salesData as any)?.ledgerNewDebts || 0);
+            // Keep collections/expenses/breakdowns from the session calc; only
+            // override the gross sales figures and the cash bucket so the
+            // displayed total stays consistent with the order ledger.
+            const extraSales = Math.max(0, ledgerTotalSales - Number(rawCalc.totalSales || 0));
+            const calc = {
+              ...rawCalc,
+              totalSales: ledgerTotalSales > 0 ? ledgerTotalSales : rawCalc.totalSales,
+              totalPaid: ledgerTotalPaid > 0 ? ledgerTotalPaid : rawCalc.totalPaid,
+              newDebts: ledgerTotalSales > 0 ? ledgerNewDebts : rawCalc.newDebts,
+              invoice2: {
+                ...(rawCalc.invoice2 || { total: 0, cash: 0 }),
+                cash: Number(rawCalc.invoice2?.cash || 0) + extraSales,
+                total: Number(rawCalc.invoice2?.total || 0) + extraSales,
+              },
+              physicalCash: Number(rawCalc.physicalCash || 0) + extraSales,
+            };
             const fmt = (n: number) => Number(n || 0).toLocaleString(localeCode);
             return (
               <div className="space-y-2 mt-2">
