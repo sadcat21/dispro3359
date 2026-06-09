@@ -798,7 +798,9 @@ const MyAchievements: React.FC = () => {
         documentVerification: any;
         paymentStatus: string | null;
         paymentMethodResolved: string | null;
+        notes: string | null;
       }>();
+
       const debtCollectionStoreMap = new Map<string, string>();
       const debtCollectionAmountMap = new Map<string, number>();
       const orderProductsMap = new Map<string, Set<string>>();
