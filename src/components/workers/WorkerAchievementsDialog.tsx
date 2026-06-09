@@ -383,6 +383,10 @@ const WorkerAchievementsDialog: React.FC<WorkerAchievementsDialogProps> = ({
     },
     enabled: open && !!workerId,
     refetchInterval: 30000, // Real-time polling every 30s
+    refetchOnWindowFocus: true,
+    refetchOnMount: 'always',
+    refetchOnReconnect: true,
+    staleTime: 0,
   });
 
   const counts = data?.counts || {};
