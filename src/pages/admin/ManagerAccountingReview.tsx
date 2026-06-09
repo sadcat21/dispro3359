@@ -545,6 +545,28 @@ const ManagerAccountingReview: React.FC = () => {
                       </Button>
                     </div>
                   </div>
+                  {/* Metrics grid */}
+                  {(() => {
+                    const fmt = (n: number) => Number(n || 0).toLocaleString('fr-FR');
+                    const metrics = [
+                      { label: 'إجمالي المبيعات', value: review.total_sales, cls: 'text-blue-700 bg-blue-50 border-blue-200' },
+                      { label: 'ديون جديدة', value: review.new_debts, cls: 'text-rose-700 bg-rose-50 border-rose-200' },
+                      { label: 'تحصيلات الديون', value: review.debt_collections, cls: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
+                      { label: 'المصاريف', value: review.expenses, cls: 'text-amber-700 bg-amber-50 border-amber-200' },
+                      { label: 'مدفوعات نقدية', value: review.cash_payments, cls: 'text-teal-700 bg-teal-50 border-teal-200' },
+                      { label: 'مدفوعات وثائق', value: review.doc_payments, cls: 'text-violet-700 bg-violet-50 border-violet-200' },
+                    ];
+                    return (
+                      <div className="mt-3 grid grid-cols-3 gap-1.5">
+                        {metrics.map((m, i) => (
+                          <div key={i} className={`rounded-md border px-1.5 py-1 text-center ${m.cls}`}>
+                            <p className="text-[9px] leading-tight opacity-80">{m.label}</p>
+                            <p className="text-[11px] font-bold leading-tight mt-0.5">{fmt(m.value)}</p>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
                   {review.notes && (
                     <p className="text-xs text-muted-foreground mt-2 bg-muted/30 rounded p-1.5">{review.notes}</p>
                   )}
