@@ -31,6 +31,25 @@ import PendingOffersTab from '@/components/offers/PendingOffersTab';
 import { isRemiseOrderItem } from '@/utils/remise';
 import { resolveReceiptBucket } from '@/utils/treasuryDocumentClassification';
 
+const parseLocalDateString = (dateStr: string) => {
+  const match = String(dateStr || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return new Date(dateStr);
+  const [, year, month, day] = match;
+  return new Date(Number(year), Number(month) - 1, Number(day), 0, 0, 0, 0);
+};
+
+const startOfLocalDayIso = (dateStr: string) => {
+  const date = parseLocalDateString(dateStr);
+  date.setHours(0, 0, 0, 0);
+  return date.toISOString();
+};
+
+const endOfLocalDayIso = (dateStr: string) => {
+  const date = parseLocalDateString(dateStr);
+  date.setHours(23, 59, 59, 999);
+  return date.toISOString();
+};
+
 const OPERATION_ICONS: Record<string, React.ReactNode> = {
   order: <ShoppingCart className="w-4 h-4 text-blue-600" />,
   direct_sale: <Package className="w-4 h-4 text-emerald-600" />,
