@@ -31,6 +31,25 @@ import PendingOffersTab from '@/components/offers/PendingOffersTab';
 import { isRemiseOrderItem } from '@/utils/remise';
 import { resolveReceiptBucket } from '@/utils/treasuryDocumentClassification';
 
+const parseLocalDateString = (dateStr: string) => {
+  const match = String(dateStr || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return new Date(dateStr);
+  const [, year, month, day] = match;
+  return new Date(Number(year), Number(month) - 1, Number(day), 0, 0, 0, 0);
+};
+
+const startOfLocalDayIso = (dateStr: string) => {
+  const date = parseLocalDateString(dateStr);
+  date.setHours(0, 0, 0, 0);
+  return date.toISOString();
+};
+
+const endOfLocalDayIso = (dateStr: string) => {
+  const date = parseLocalDateString(dateStr);
+  date.setHours(23, 59, 59, 999);
+  return date.toISOString();
+};
+
 const OPERATION_ICONS: Record<string, React.ReactNode> = {
   order: <ShoppingCart className="w-4 h-4 text-blue-600" />,
   direct_sale: <Package className="w-4 h-4 text-emerald-600" />,
@@ -429,8 +448,10 @@ const MyAchievements: React.FC = () => {
   const [pendingOffersCustomerCount, setPendingOffersCustomerCount] = useState(0);
 
   const normalizeRange = (from: string, to: string) => {
-    const start = new Date(`${from || today}T00:00:00`);
-    const end = new Date(`${(to || from || today)}T23:59:59`);
+    const start = parseLocalDateString(from || today);
+    const end = parseLocalDateString(to || from || today);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
     if (start > end) return { start: end, end: start };
     return { start, end };
   };
@@ -588,8 +609,8 @@ const MyAchievements: React.FC = () => {
     queryFn: async () => {
       if (!targetWorkerId) return { visits: [], counts: {} };
       const isTodayOnly = dateFrom === today && dateTo === today;
-      let lowerBound = new Date(`${dateFrom}T00:00:00`).toISOString();
-      let upperBound = new Date(`${dateTo}T23:59:59`).toISOString();
+      let lowerBound = startOfLocalDayIso(dateFrom);
+      let upperBound = endOfLocalDayIso(dateTo);
 
       if (selectedSessionRanges.length > 0) {
         // احترام فلتر ترتيب أوقات الجلسات: وسّع النافذة لتشمل جميع الجلسات المحددة
@@ -746,8 +767,8 @@ const MyAchievements: React.FC = () => {
           .select('period_start, period_end, completed_at')
           .eq('worker_id', targetWorkerId)
           .eq('status', 'completed')
-          .gte('period_end', `${dateFrom}T00:00:00`)
-          .lte('period_start', `${dateTo}T23:59:59`),
+          .gte('period_end', startOfLocalDayIso(dateFrom))
+          .lte('period_start', endOfLocalDayIso(dateTo)),
       ]);
 
       // Process customers
@@ -1311,7 +1332,7 @@ const MyAchievements: React.FC = () => {
             type="button"
             aria-label="اليوم السابق"
             onClick={() => {
-              const prev = new Date(`${periodFrom}T00:00:00`);
+              const prev = parseLocalDateString(periodFrom);
               prev.setDate(prev.getDate() - 1);
               const newDate = format(prev, 'yyyy-MM-dd');
               setPeriodFrom(newDate);
@@ -1336,8 +1357,8 @@ const MyAchievements: React.FC = () => {
               {periodFrom === today && periodTo === today
                 ? 'اليوم'
                 : periodFrom === periodTo
-                  ? format(new Date(`${periodFrom}T00:00:00`), 'MM/dd')
-                  : `${format(new Date(`${periodFrom}T00:00:00`), 'MM/dd')} - ${format(new Date(`${periodTo}T00:00:00`), 'MM/dd')}`
+                  ? format(parseLocalDateString(periodFrom), 'MM/dd')
+                  : `${format(parseLocalDateString(periodFrom), 'MM/dd')} - ${format(parseLocalDateString(periodTo), 'MM/dd')}`
               }
             </span>
           </button>
@@ -1345,7 +1366,7 @@ const MyAchievements: React.FC = () => {
             type="button"
             aria-label="اليوم التالي"
             onClick={() => {
-              const next = new Date(`${periodTo}T00:00:00`);
+              const next = parseLocalDateString(periodTo);
               next.setDate(next.getDate() + 1);
               const newDate = format(next, 'yyyy-MM-dd');
               setPeriodFrom(newDate);
