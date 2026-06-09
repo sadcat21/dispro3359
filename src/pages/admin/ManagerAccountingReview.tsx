@@ -3,7 +3,7 @@ import QRCode from 'qrcode';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Calculator, User, Calendar, Banknote, TrendingUp, TrendingDown, AlertTriangle, Wallet, ChevronLeft, CheckCircle2, History, Clock, FileCheck, Printer, Undo2 } from 'lucide-react';
+import { Loader2, Calculator, User, Calendar, Banknote, TrendingUp, TrendingDown, AlertTriangle, Wallet, ChevronLeft, CheckCircle2, History, Clock, FileCheck, Printer, Undo2, ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/contexts/AuthContext';
@@ -316,17 +316,17 @@ const ManagerAccountingReview: React.FC = () => {
           cash: sum('cash_payments'),
           docs: sum('doc_payments'),
         };
-        const cards = [
+        const cards: Array<{ label: string; value: number; cls: string; arrow?: 'right' | 'up' | 'up-right' }> = [
           { label: 'إجمالي المبيعات', value: totals.sales, cls: 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800' },
-          { label: 'ديون جديدة', value: totals.newDebts, cls: 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800' },
+          { label: 'ديون جديدة', value: totals.newDebts, cls: 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800', arrow: 'right' },
           { label: 'تحصيلات الديون', value: totals.debtCol, cls: 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' },
-          { label: 'مدفوعات وثائق', value: totals.docs, cls: 'bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-800' },
-          { label: 'مدفوعات نقدية', value: totals.cash, cls: 'bg-teal-50 dark:bg-teal-950/30 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800' },
+          { label: 'مدفوعات وثائق', value: totals.docs, cls: 'bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-800', arrow: 'up' },
+          { label: 'مدفوعات نقدية', value: totals.cash, cls: 'bg-teal-50 dark:bg-teal-950/30 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800', arrow: 'up-right' },
           { label: 'المصاريف', value: totals.expenses, cls: 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800' },
         ];
         return (
-          <div className="relative overflow-hidden rounded-2xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 via-white to-sky-50 dark:from-emerald-950/40 dark:via-background dark:to-sky-950/30 dark:border-emerald-800 p-4 shadow-md space-y-3">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-200/30 dark:bg-emerald-700/20 rounded-full -translate-y-16 translate-x-16 blur-2xl" />
+          <div className="relative rounded-2xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 via-white to-sky-50 dark:from-emerald-950/40 dark:via-background dark:to-sky-950/30 dark:border-emerald-800 p-4 shadow-md space-y-3 overflow-visible">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-200/30 dark:bg-emerald-700/20 rounded-full -translate-y-16 translate-x-16 blur-2xl pointer-events-none" />
             <div className="relative flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-sky-500 flex items-center justify-center shadow-lg">
@@ -346,9 +346,18 @@ const ManagerAccountingReview: React.FC = () => {
             </div>
             <div className="relative grid grid-cols-3 gap-2">
               {cards.map((c) => (
-                <div key={c.label} className={`rounded-lg border px-2 py-1.5 text-center ${c.cls}`}>
+                <div key={c.label} className={`relative rounded-lg border px-2 py-1.5 text-center ${c.cls}`}>
                   <p className="text-[10px] opacity-80">{c.label}</p>
                   <p className="text-xs font-bold">{Number(c.value).toLocaleString('fr-FR')}</p>
+                  {c.arrow === 'right' && (
+                    <ArrowUpRight className="absolute top-1/2 -right-2.5 -translate-y-1/2 w-5 h-5 text-blue-600 bg-white rounded-full p-0.5 shadow-md ring-1 ring-blue-200 rotate-45 z-20" />
+                  )}
+                  {c.arrow === 'up' && (
+                    <ArrowUpRight className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-5 h-5 text-blue-600 bg-white rounded-full p-0.5 shadow-md ring-1 ring-blue-200 -rotate-45 z-20" />
+                  )}
+                  {c.arrow === 'up-right' && (
+                    <ArrowUpRight className="absolute -top-2.5 -right-2.5 w-5 h-5 text-blue-600 bg-white rounded-full p-0.5 shadow-md ring-1 ring-blue-200 z-20" />
+                  )}
                 </div>
               ))}
             </div>
@@ -584,20 +593,29 @@ const ManagerAccountingReview: React.FC = () => {
                   {/* Metrics grid */}
                   {(() => {
                     const fmt = (n: number) => Number(n || 0).toLocaleString('fr-FR');
-                    const metrics = [
+                    const metrics: Array<{ label: string; value: number; cls: string; arrow?: 'right' | 'up' | 'up-right' }> = [
                       { label: 'إجمالي المبيعات', value: review.total_sales, cls: 'text-blue-700 bg-blue-50 border-blue-200' },
-                      { label: 'ديون جديدة', value: review.new_debts, cls: 'text-rose-700 bg-rose-50 border-rose-200' },
+                      { label: 'ديون جديدة', value: review.new_debts, cls: 'text-rose-700 bg-rose-50 border-rose-200', arrow: 'right' },
                       { label: 'تحصيلات الديون', value: review.debt_collections, cls: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
-                      { label: 'مدفوعات وثائق', value: review.doc_payments, cls: 'text-violet-700 bg-violet-50 border-violet-200' },
-                      { label: 'مدفوعات نقدية', value: review.cash_payments, cls: 'text-teal-700 bg-teal-50 border-teal-200' },
+                      { label: 'مدفوعات وثائق', value: review.doc_payments, cls: 'text-violet-700 bg-violet-50 border-violet-200', arrow: 'up' },
+                      { label: 'مدفوعات نقدية', value: review.cash_payments, cls: 'text-teal-700 bg-teal-50 border-teal-200', arrow: 'up-right' },
                       { label: 'المصاريف', value: review.expenses, cls: 'text-amber-700 bg-amber-50 border-amber-200' },
                     ];
                     return (
-                      <div className="mt-3 grid grid-cols-3 gap-1.5">
+                      <div className="mt-3 grid grid-cols-3 gap-1.5 overflow-visible">
                         {metrics.map((m, i) => (
-                          <div key={i} className={`rounded-md border px-1.5 py-1 text-center ${m.cls}`}>
+                          <div key={i} className={`relative rounded-md border px-1.5 py-1 text-center ${m.cls}`}>
                             <p className="text-[9px] leading-tight opacity-80">{m.label}</p>
                             <p className="text-[11px] font-bold leading-tight mt-0.5">{fmt(m.value)}</p>
+                            {m.arrow === 'right' && (
+                              <ArrowUpRight className="absolute top-1/2 -right-2 -translate-y-1/2 w-4 h-4 text-blue-600 bg-white rounded-full p-0.5 shadow ring-1 ring-blue-200 rotate-45 z-20" />
+                            )}
+                            {m.arrow === 'up' && (
+                              <ArrowUpRight className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 text-blue-600 bg-white rounded-full p-0.5 shadow ring-1 ring-blue-200 -rotate-45 z-20" />
+                            )}
+                            {m.arrow === 'up-right' && (
+                              <ArrowUpRight className="absolute -top-2 -right-2 w-4 h-4 text-blue-600 bg-white rounded-full p-0.5 shadow ring-1 ring-blue-200 z-20" />
+                            )}
                           </div>
                         ))}
                       </div>
