@@ -1238,6 +1238,28 @@ const ManagerTreasury = () => {
           currency={cur}
           showDetails={false}
         />
+        <TreasuryCard
+          icon={<ArrowUpRight className="w-5 h-5 text-sky-600" />}
+          label="التسليمات للمدير"
+          total={summary?.handedOver || 0}
+          handed={0}
+          colorClass="sky-600"
+          borderClass="border-sky-500/30 bg-sky-500/5"
+          onClick={() => setHandoversListOpen(true)}
+          currency={cur}
+          showDetails={false}
+        />
+        <TreasuryCard
+          icon={<Coins className="w-5 h-5 text-yellow-600" />}
+          label="صرف العملة"
+          total={summary?.coinExchangeOut || 0}
+          handed={0}
+          colorClass="yellow-600"
+          borderClass="border-yellow-500/30 bg-yellow-500/5"
+          onClick={() => setCoinExchangeOpen(true)}
+          currency={cur}
+          showDetails={false}
+        />
       </div>
 
 
