@@ -69,7 +69,6 @@ const keepPrintPortalsAlive = (): HTMLElement[] => {
     clone.style.setProperty('position', 'relative', 'important');
     clone.style.setProperty('width', '100%', 'important');
     clone.style.setProperty('height', 'auto', 'important');
-    clone.style.setProperty('min-height', '100vh', 'important');
     clone.style.setProperty('overflow', 'visible', 'important');
     clone.style.setProperty('opacity', '1', 'important');
     clone.style.setProperty('contain', 'none', 'important');
