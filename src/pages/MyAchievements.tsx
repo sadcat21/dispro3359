@@ -893,13 +893,15 @@ const MyAchievements: React.FC = () => {
         if (['direct_sale', 'delivery', 'order'].includes(visit.operation_type) && visit.operation_id) {
           const orderMeta = orderMetaMap.get(visit.operation_id);
           if (orderMeta && !orderMeta.hasItems) return false;
-          // Hide delivery/sale requests until they are completed. Orders that
-          // are still pending/assigned/scheduled (e.g. assigned to a driver
-          // for tomorrow) must not appear in today's achievements regardless
-          // of which operation_type row was recorded (delivery, order, or
-          // direct_sale auto-fallback).
-          const st = orderMeta?.status;
-          if (st && st !== 'delivered' && st !== 'cancelled') return false;
+          // Hide pending delivery requests ONLY when the worker is viewing
+          // their own achievements (so a driver doesn't see tomorrow's
+          // assigned orders mixed with today's completed work). Managers /
+          // admins inspecting another worker still see everything.
+          const isOwnView = targetWorkerId === workerId;
+          if (isOwnView) {
+            const st = orderMeta?.status;
+            if (st && st !== 'delivered' && st !== 'cancelled') return false;
+          }
         }
         if (visit.operation_type !== 'direct_sale' || !visit.operation_id) return true;
         const note = String(visit.notes || '').trim().toLowerCase();
