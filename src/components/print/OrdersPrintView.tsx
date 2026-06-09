@@ -68,10 +68,14 @@ const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
     const { activeBranch } = useAuth();
     
     const displayTitle = title || tp('print.order_list');
+    const isDeliveryGroupage = displayTitle.toLocaleLowerCase().includes('groupage des livraisons');
 
     // Column visibility helper
     const isColVisible = (id: string): boolean => {
       if (!columnConfig || columnConfig.length === 0) {
+        if (isDeliveryGroupage) {
+          return ['number', 'customer', 'store_name', 'phone', 'sector', 'zone', 'payment_info', 'products', 'total_amount'].includes(id);
+        }
         return id !== 'order_id' && id !== 'qr' && id !== 'sector' && id !== 'zone';
       }
       const col = columnConfig.find(c => c.id === id);
@@ -215,7 +219,9 @@ const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
       const criteria: string[] = [];
       if (dateRange) criteria.push(`${tp('print.header.period')}: ${dateRange}`);
       // Add uniform values to header
-      Object.entries(uniformValues).forEach(([colId, value]) => {
+      Object.entries(uniformValues)
+        .filter(([colId]) => !(isDeliveryGroupage && colId === 'delivery_worker'))
+        .forEach(([colId, value]) => {
         const labelMap: Record<string, string> = {
           delivery_worker: tp('print.header.delivery_worker'),
           sector: tp('print.header.sector') || 'Secteur',
@@ -313,10 +319,14 @@ const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
     const content = (
       <div 
         ref={ref} 
-        className="print-container print-page" 
+        className={`print-container print-page${isDeliveryGroupage ? ' print-landscape groupage-deliveries-print' : ''}`}
         dir={printDir} 
+        data-pdf-orientation={isDeliveryGroupage ? 'landscape' : 'portrait'}
         style={{ display: isVisible ? 'block' : 'none', position: 'relative' }}
       >
+        {isDeliveryGroupage && (
+          <style media="print">{`@page { size: A4 landscape; margin: 10mm 10mm 12mm 10mm; }`}</style>
+        )}
         {/* Watermark */}
         <div style={{
           position: usePortal ? 'fixed' : 'absolute',
@@ -335,7 +345,9 @@ const OrdersPrintView = forwardRef<HTMLDivElement, OrdersPrintViewProps>(
             {(() => {
               const items: { label: string; value: string }[] = [];
               if (dateRange) items.push({ label: tp('print.header.period') || 'Période', value: dateRange });
-              Object.entries(uniformValues).forEach(([colId, value]) => {
+              Object.entries(uniformValues)
+                .filter(([colId]) => !(isDeliveryGroupage && colId === 'delivery_worker'))
+                .forEach(([colId, value]) => {
                 const labelMap: Record<string, string> = {
                   delivery_worker: tp('print.header.delivery_worker') || 'Livreur',
                   sector: tp('print.header.sector') || 'Secteur',
