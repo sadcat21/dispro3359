@@ -291,12 +291,12 @@ const WorkerAchievementsDialog: React.FC<WorkerAchievementsDialogProps> = ({
         .map(v => v.operation_id)
         .filter(Boolean))] as string[];
       
-      let orderMap = new Map<string, { payment_type: string; total_amount: number; invoice_payment_method: string | null; isCancelled: boolean; hasItems: boolean; created_by: string | null; assigned_worker_id: string | null; status: string | null }>();
+      let orderMap = new Map<string, { payment_type: string; total_amount: number; invoice_payment_method: string | null; isCancelled: boolean; hasItems: boolean; created_by: string | null; assigned_worker_id: string | null; status: string | null; notes: string | null }>();
       if (orderEntityIds.length > 0) {
         const [{ data: orders }, { data: orderItems }] = await Promise.all([
           supabase
             .from('orders')
-            .select('id, payment_type, total_amount, invoice_payment_method, status, created_by, assigned_worker_id')
+            .select('id, payment_type, total_amount, invoice_payment_method, status, created_by, assigned_worker_id, notes')
             .in('id', orderEntityIds),
           supabase
             .from('order_items')
@@ -318,9 +318,11 @@ const WorkerAchievementsDialog: React.FC<WorkerAchievementsDialogProps> = ({
             created_by: o.created_by || null,
             assigned_worker_id: o.assigned_worker_id || null,
             status: o.status || null,
+            notes: (o as any).notes || null,
           });
         }
       }
+
 
       const sanitizedVisits = (visits || []).filter((v: any) => {
         if (['direct_sale', 'delivery', 'order'].includes(v.operation_type) && v.operation_id) {
