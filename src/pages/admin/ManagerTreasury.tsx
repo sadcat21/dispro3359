@@ -1083,10 +1083,8 @@ const ManagerTreasury = () => {
           (summary?.cash_invoice1_handed || 0) +
           (summary?.receipt_cash_handed || 0) +
           (summary?.cash_invoice2_handed || 0);
-        // رصيد الكاش = إجمالي النقد في حسابات المدير بعد المراجعة − إجمالي التسليمات النقدية
-        const reviewedTotalCash = reviewHistory.reduce((s: number, r: any) => s + Number(r.total_cash || 0), 0);
-        const totalCashHandedAll = summary?.totalCashHanded || 0;
-        const physicalRemaining = Math.max(0, reviewedTotalCash - totalCashHandedAll);
+        // رصيد الكاش = (كاش متاح من فاتورة1+فاتورة2+receipt_cash+تحصيلات الديون الصافية − مصاريف − صرف عملة) − تسليمات الكاش
+        const physicalRemaining = Math.max(0, cashAvailableBeforeHandover - cashHanded);
         const nonCashPending = Math.max(0, nonCash - nonCashHanded);
         const overallRemaining = physicalRemaining + nonCashPending;
         return (
