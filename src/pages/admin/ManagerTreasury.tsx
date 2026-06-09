@@ -21,7 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Banknote, CreditCard, Receipt, ArrowUpRight, FilePlus, Send, Coins, TrendingUp, AlertCircle, CheckCircle, AlertTriangle, Info, RefreshCw, Printer, Eye, Pencil, Trash2, Settings, Download, Image, Table2, Wallet } from 'lucide-react';
+import { Banknote, CreditCard, Receipt, ArrowUpRight, ArrowUpLeft, ArrowLeft, ArrowUp, FilePlus, Send, Coins, TrendingUp, AlertCircle, CheckCircle, AlertTriangle, Info, RefreshCw, Printer, Eye, Pencil, Trash2, Settings, Download, Image, Table2, Wallet } from 'lucide-react';
 import { generatePDF } from '@/utils/generatePDF';
 import { generateImage } from '@/utils/generateImage';
 import { toast } from 'sonner';
