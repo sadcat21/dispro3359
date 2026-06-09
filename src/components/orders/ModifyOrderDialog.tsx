@@ -354,6 +354,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
           is_unit_sale: false,
         };
       }));
+      }
       setAssignedWorkerId(order.assigned_worker_id || '');
       setDeliveryDate(order.delivery_date ? new Date(order.delivery_date) : undefined);
 
