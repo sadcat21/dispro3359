@@ -602,7 +602,7 @@ const ManagerAccountingReview: React.FC = () => {
                       { label: 'المصاريف', value: review.expenses, cls: 'text-amber-700 bg-amber-50 border-amber-200' },
                     ];
                     return (
-                      <div className="mt-3 grid grid-cols-3 gap-1.5 overflow-visible">
+                      <div dir="rtl" className="mt-3 grid grid-cols-3 gap-1.5 overflow-visible">
                         {metrics.map((m, i) => (
                           <div key={i} className={`relative rounded-md border px-1.5 py-1 text-center ${m.cls}`}>
                             <p className="text-[9px] leading-tight opacity-80">{m.label}</p>
