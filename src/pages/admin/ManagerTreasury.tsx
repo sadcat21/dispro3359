@@ -21,7 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Banknote, CreditCard, Receipt, ArrowUpRight, FilePlus, Send, Coins, TrendingUp, AlertCircle, CheckCircle, AlertTriangle, Info, RefreshCw, Printer, Eye, Pencil, Trash2, Settings, Download, Image, Table2, Wallet } from 'lucide-react';
+import { Banknote, CreditCard, Receipt, ArrowUpRight, ArrowUpLeft, ArrowLeft, ArrowUp, FilePlus, Send, Coins, TrendingUp, AlertCircle, CheckCircle, AlertTriangle, Info, RefreshCw, Printer, Eye, Pencil, Trash2, Settings, Download, Image, Table2, Wallet } from 'lucide-react';
 import { generatePDF } from '@/utils/generatePDF';
 import { generateImage } from '@/utils/generateImage';
 import { toast } from 'sonner';
@@ -816,13 +816,13 @@ const ManagerTreasury = () => {
                     <p className="text-[10px] opacity-80">{c.label}</p>
                     <p className="text-xs font-bold">{Number(c.value).toLocaleString('fr-FR')}</p>
                     {c.arrow === 'right' && (
-                      <ArrowUpRight className="absolute top-1/2 -right-2.5 -translate-y-1/2 w-4 h-4 text-blue-600 bg-white rounded-full p-0.5 shadow rotate-45 z-10" />
+                      <ArrowLeft className="absolute top-1/2 -start-2.5 -translate-y-1/2 w-5 h-5 text-blue-600 bg-white rounded-full p-0.5 shadow-md ring-1 ring-blue-200 rtl:-scale-x-100 z-20" />
                     )}
                     {c.arrow === 'up' && (
-                      <ArrowUpRight className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-4 h-4 text-blue-600 bg-white rounded-full p-0.5 shadow -rotate-45 z-10" />
+                      <ArrowUp className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-5 h-5 text-blue-600 bg-white rounded-full p-0.5 shadow-md ring-1 ring-blue-200 z-20" />
                     )}
                     {c.arrow === 'up-right' && (
-                      <ArrowUpRight className="absolute -top-2.5 -right-2.5 w-4 h-4 text-blue-600 bg-white rounded-full p-0.5 shadow z-10" />
+                      <ArrowUpLeft className="absolute -top-2.5 -start-2.5 w-5 h-5 text-blue-600 bg-white rounded-full p-0.5 shadow-md ring-1 ring-blue-200 rtl:-scale-x-100 z-20" />
                     )}
                   </div>
                 ))}
