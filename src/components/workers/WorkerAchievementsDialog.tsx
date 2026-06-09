@@ -328,7 +328,12 @@ const WorkerAchievementsDialog: React.FC<WorkerAchievementsDialogProps> = ({
         if (['direct_sale', 'delivery', 'order'].includes(v.operation_type) && v.operation_id) {
           const orderInfo = orderMap.get(v.operation_id);
           if (orderInfo && !orderInfo.hasItems) return false;
+          // Hide assigned remainder orders ("طلبية فارق") from sales list
+          if (orderInfo && orderInfo.status === 'assigned' && String(orderInfo.notes || '').trim().startsWith('طلبية فارق')) {
+            return false;
+          }
         }
+
         if (v.operation_type !== 'direct_sale' || !v.operation_id) return true;
         const note = String(v.notes || '').trim().toLowerCase();
         const isFallbackVisit = note === 'auto: server fallback' || note === 'auto: backfill';
