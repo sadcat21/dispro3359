@@ -363,13 +363,21 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
         const { paid, gift } = deliveredSaleBreakdown(it, ppb);
         sinceConsumed += paid + gift;
       }
-      // التعريض السالب (خصم إضافي) منذ آخر شحنة — الموجب مُتجاهَل دائماً
+      // التعريض السالب (خصم إضافي) منذ آخر شحنة — الموجب مُتجاهَل دائماً.
+      // يُحسَب فقط إذا وُجدت حركة delivery/direct_sale أصلية لنفس (طلب، منتج)،
+      // وإلا فإن التعديل يمثّل البيع الأصلي وقد حُسب ضمن soldData (تجنّب الخصم المزدوج).
+      const deliveredOrderProductKeys = new Set<string>(
+        (soldData as any[])
+          .filter((x: any) => Number(x.delivered_quantity || 0) > 0)
+          .map((x: any) => `${x.order_id}|${x.product_id}`)
+      );
       for (const m of modificationData as any[]) {
         if (String(m.product_id) !== pid) continue;
         const ts = m.created_at ? new Date(m.created_at).getTime() : 0;
         if (ts < lastAt) continue;
         const signed = Number(m.signed_quantity ?? 0);
         if (signed >= 0) continue;
+        if (!m.order_id || !deliveredOrderProductKeys.has(`${m.order_id}|${m.product_id}`)) continue;
         sinceConsumed += dbBPToBoxes(Math.abs(signed), ppb);
       }
 
