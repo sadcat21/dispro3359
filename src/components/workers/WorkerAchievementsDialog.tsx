@@ -246,6 +246,7 @@ const WorkerAchievementsDialog: React.FC<WorkerAchievementsDialogProps> = ({
       );
 
       let visitsByDelivery: any[] = [];
+      const coveredOrderIds = new Set<string>();
       if (deliveredById.size > 0) {
         const ids = [...deliveredById.keys()];
         const { data: extraVisits } = await supabase
@@ -253,17 +254,46 @@ const WorkerAchievementsDialog: React.FC<WorkerAchievementsDialogProps> = ({
           .select('*')
           .eq('worker_id', workerId)
           .in('operation_id', ids);
-        // Override created_at with delivery time so sorting/display reflect today's delivery
-        visitsByDelivery = (extraVisits || []).map((v: any) => ({
-          ...v,
-          created_at: deliveredById.get(v.operation_id) || v.created_at,
-        }));
+        visitsByDelivery = (extraVisits || []).map((v: any) => {
+          coveredOrderIds.add(v.operation_id);
+          return {
+            ...v,
+            created_at: deliveredById.get(v.operation_id) || v.created_at,
+          };
+        });
+      }
+
+      // Synthesize rows for delivered orders that have NO visit_tracking entry,
+      // so they still appear in the achievements list.
+      if (deliveredById.size > 0) {
+        const missingIds = [...deliveredById.keys()].filter((id) => !coveredOrderIds.has(id));
+        if (missingIds.length > 0) {
+          const { data: missingOrders } = await supabase
+            .from('orders')
+            .select('id, customer_id, branch_id, updated_at')
+            .in('id', missingIds);
+          for (const o of (missingOrders || []) as any[]) {
+            visitsByDelivery.push({
+              id: `synth-${o.id}`,
+              worker_id: workerId,
+              customer_id: o.customer_id || null,
+              branch_id: o.branch_id || null,
+              operation_type: 'delivery',
+              operation_id: o.id,
+              latitude: null,
+              longitude: null,
+              accuracy: null,
+              address: null,
+              notes: 'auto: synthesized from delivered order',
+              created_at: deliveredById.get(o.id) || o.updated_at,
+            });
+          }
+        }
       }
 
       const combinedMap = new Map<string, any>();
       for (const v of (visitsByCreated || [])) combinedMap.set(v.id, v);
       for (const v of visitsByDelivery) {
-        // Prefer the delivery-time version (overrides created_at)
         combinedMap.set(v.id, v);
       }
       const visits = [...combinedMap.values()].sort(
