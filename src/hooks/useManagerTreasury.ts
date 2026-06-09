@@ -78,6 +78,7 @@ export interface TreasurySummary {
   uncollectedDebts: number;
   debtCashCollected: number;
   debtCashHanded: number;
+  totalCashHanded: number;
   totalExpenses: number;
   totalGiftsValue: number;
   workerHeldAmount: number;
@@ -485,6 +486,7 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
         totalSales, totalDebts, collectedDebts, uncollectedDebts,
         debtCashCollected: effectiveDebtCashCollected,
         debtCashHanded,
+        totalCashHanded: (handovers || []).reduce((s: number, h: any) => s + Number(h.cash_invoice1 || 0) + Number(h.cash_invoice2 || 0) + Number(h.debt_cash_amount || 0), 0),
         totalExpenses: effectiveTotalExpenses,
         totalGiftsValue,
         workerHeldAmount, orderUnpaidAmount,
