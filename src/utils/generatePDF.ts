@@ -203,9 +203,12 @@ export async function generatePDF(
     }
   }
 
-  const A4_W = 210, A4_H = 297, M = 10;
+  const orientation = element.dataset.pdfOrientation === 'landscape' ? 'landscape' : 'portrait';
+  const A4_W = orientation === 'landscape' ? 297 : 210;
+  const A4_H = orientation === 'landscape' ? 210 : 297;
+  const M = 10;
   const CW = A4_W - M * 2;
-  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pdf = new jsPDF({ orientation, unit: 'mm', format: 'a4' });
   const scale = CW / canvas.width;
   const totalH = canvas.height * scale;
   const pageH = A4_H - M * 2;
