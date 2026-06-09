@@ -102,7 +102,8 @@ const CollectedDebtsDialog = ({ open, onOpenChange, range }: Props) => {
           )
         `)
         .order('collected_at', { ascending: false });
-      if (perManager) pQ = pQ.eq('worker_id', perManager);
+      // Note: do NOT filter by worker_id — debt_payments.worker_id is the collector
+      // (worker under the manager), not the manager themselves.
       if (range?.from) pQ = pQ.gte('collected_at', `${range.from}T00:00:00`);
       if (range?.to) pQ = pQ.lte('collected_at', `${range.to}T23:59:59`);
       const { data: payments, error: payErr } = await pQ;
