@@ -311,7 +311,11 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
   // Initialize items from orderItems
   useEffect(() => {
     if (open && orderItems.length > 0) {
-      setItems(orderItems.map(item => {
+      const itemsKey = `${order.id}::${orderItems.length}`;
+      const alreadyInitialized = itemsInitializationKeyRef.current === itemsKey;
+      if (!alreadyInitialized) {
+        itemsInitializationKeyRef.current = itemsKey;
+        setItems(orderItems.map(item => {
         const piecesPerBox = Number((item as any).pieces_per_box || item.product?.pieces_per_box || 1);
         const pricingUnit = (item as any).pricing_unit || item.product?.pricing_unit || 'box';
         const weightPerBox = Number((item as any).weight_per_box || item.product?.weight_per_box || 1);
