@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import QRCode from 'qrcode';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -510,64 +511,74 @@ const ManagerAccountingReview: React.FC = () => {
                         )}
                       </div>
                     </div>
-                    <div className="flex flex-col items-end gap-1 shrink-0">
+                    <div className="flex flex-col items-end gap-1.5 shrink-0">
                       <Badge variant="secondary" className="text-[10px] bg-emerald-100 text-emerald-700">
                         مكتملة
                       </Badge>
-                      <p className="text-sm font-bold text-emerald-700 whitespace-nowrap">
-                        {Number(review.total_cash || 0).toLocaleString('fr-FR')} دج
-                      </p>
-                      <p className="text-[9px] text-muted-foreground">إجمالي النقد</p>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-7 px-2 gap-1 mt-1"
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          try {
-                            const { data: sess, error } = await supabase
-                              .from('accounting_sessions')
-                              .select(`*, worker:workers!accounting_sessions_worker_id_fkey(id, full_name, username), items:accounting_session_items(*)`)
-                              .eq('review_session_id', review.id)
-                              .order('completed_at', { ascending: false });
-                            if (error) throw error;
-                            const sessions = sess || [];
-                            if (sessions.length === 0) { toast.error('لا توجد جلسات للطباعة'); return; }
-                            const totals = calcTotals(sessions);
-                            const productMatrix = await fetchProductMatrix(sessions);
-                            const iframe = document.createElement('iframe');
-                            iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;opacity:0';
-                            document.body.appendChild(iframe);
-                            const w = iframe.contentWindow; const d = iframe.contentDocument || w?.document;
-                            if (!w || !d) { iframe.remove(); return; }
-                            d.open();
-                            d.write(buildManagerReviewPrintHtml({ totals, sessions, branchName: activeBranch?.name || '', accountantName: user?.full_name || user?.fullName || user?.username || '', productMatrix }));
-                            d.close();
-                            const remove = () => { if (iframe.parentNode) iframe.parentNode.removeChild(iframe); };
-                            w.onafterprint = remove;
-                            setTimeout(() => { w.focus(); w.print(); setTimeout(remove, 3000); }, 400);
-                          } catch (err) {
-                            console.error(err);
-                            toast.error('فشلت الطباعة');
-                          }
-                        }}
-                      >
-                        <Printer className="w-3 h-3" /> طباعة A4
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-7 px-2 gap-1 text-amber-700 border-amber-300 hover:bg-amber-50"
-                        disabled={undoMutation.isPending}
-                        onClick={(e) => { e.stopPropagation(); setUndoTargetId(review.id); }}
-                      >
-                        {undoMutation.isPending && undoTargetId === review.id ? (
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                        ) : (
-                          <Undo2 className="w-3 h-3" />
-                        )}
-                        تراجع
-                      </Button>
+                      <div className="rounded-xl border-2 border-emerald-500 ring-2 ring-emerald-300/60 bg-emerald-50 px-2.5 py-1 shadow-sm text-center">
+                        <p className="text-sm font-extrabold text-emerald-700 whitespace-nowrap leading-tight">
+                          {Number(review.total_cash || 0).toLocaleString('fr-FR')} دج
+                        </p>
+                        <p className="text-[9px] text-emerald-700/70 leading-tight">إجمالي النقد</p>
+                      </div>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          className="h-7 w-7"
+                          title="طباعة A4"
+                          aria-label="طباعة A4"
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                              const { data: sess, error } = await supabase
+                                .from('accounting_sessions')
+                                .select(`*, worker:workers!accounting_sessions_worker_id_fkey(id, full_name, username), items:accounting_session_items(*)`)
+                                .eq('review_session_id', review.id)
+                                .order('completed_at', { ascending: false });
+                              if (error) throw error;
+                              const sessions = sess || [];
+                              if (sessions.length === 0) { toast.error('لا توجد جلسات للطباعة'); return; }
+                              const totals = calcTotals(sessions);
+                              const productMatrix = await fetchProductMatrix(sessions);
+                              const qrUrl = `${window.location.origin}/manager-accounting-review/${review.id}`;
+                              let qrDataUrl: string | undefined;
+                              try { qrDataUrl = await QRCode.toDataURL(qrUrl, { width: 300, margin: 1 }); } catch {}
+                              const iframe = document.createElement('iframe');
+                              iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;opacity:0';
+                              document.body.appendChild(iframe);
+                              const w = iframe.contentWindow; const d = iframe.contentDocument || w?.document;
+                              if (!w || !d) { iframe.remove(); return; }
+                              d.open();
+                              d.write(buildManagerReviewPrintHtml({ totals, sessions, branchName: activeBranch?.name || '', qrDataUrl, qrUrl, accountantName: user?.full_name || user?.fullName || user?.username || '', productMatrix }));
+                              d.close();
+                              const remove = () => { if (iframe.parentNode) iframe.parentNode.removeChild(iframe); };
+                              w.onafterprint = remove;
+                              setTimeout(() => { w.focus(); w.print(); setTimeout(remove, 3000); }, 400);
+                            } catch (err) {
+                              console.error(err);
+                              toast.error('فشلت الطباعة');
+                            }
+                          }}
+                        >
+                          <Printer className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          className="h-7 w-7 text-amber-700 border-amber-300 hover:bg-amber-50"
+                          disabled={undoMutation.isPending}
+                          title="تراجع"
+                          aria-label="تراجع"
+                          onClick={(e) => { e.stopPropagation(); setUndoTargetId(review.id); }}
+                        >
+                          {undoMutation.isPending && undoTargetId === review.id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Undo2 className="w-3.5 h-3.5" />
+                          )}
+                        </Button>
+                      </div>
                     </div>
                   </div>
                   {/* Metrics grid */}
