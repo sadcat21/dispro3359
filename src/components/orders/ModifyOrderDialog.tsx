@@ -269,6 +269,7 @@ const ModifyOrderDialog: React.FC<ModifyOrderDialogProps> = ({
   const [editingInitialGiftOfferId, setEditingInitialGiftOfferId] = useState<string | undefined>(undefined);
 
   const paymentInitializationKeyRef = useRef<string | null>(null);
+  const itemsInitializationKeyRef = useRef<string | null>(null);
   const initPaid = (() => {
     const ps = String(order.payment_status || '').toLowerCase();
     if (ps === 'partial' && order.partial_amount != null) return Number(order.partial_amount);
