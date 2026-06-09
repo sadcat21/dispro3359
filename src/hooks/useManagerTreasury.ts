@@ -77,6 +77,7 @@ export interface TreasurySummary {
   collectedDebts: number;
   uncollectedDebts: number;
   debtCashCollected: number;
+  debtCashHanded: number;
   totalExpenses: number;
   totalGiftsValue: number;
   workerHeldAmount: number;
@@ -483,6 +484,7 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
         total: 0, handedOver: 0, remaining: 0,
         totalSales, totalDebts, collectedDebts, uncollectedDebts,
         debtCashCollected: effectiveDebtCashCollected,
+        debtCashHanded,
         totalExpenses: effectiveTotalExpenses,
         totalGiftsValue,
         workerHeldAmount, orderUnpaidAmount,
@@ -634,6 +636,7 @@ export const useTreasurySummary = (range?: TreasuryDateRange) => {
         const sessionDebtCash = sessionItemTotals['debt_collections_cash']?.amount || 0;
         const debtCashHandedLocal = (handovers || []).reduce((s: number, h: any) => s + Number(h.debt_cash_amount || 0), 0);
         summary.debtCashCollected = Math.max(sessionDebtCash - debtCashHandedLocal, 0);
+        summary.debtCashHanded = debtCashHandedLocal;
       }
 
 

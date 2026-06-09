@@ -1241,7 +1241,7 @@ const ManagerTreasury = () => {
         <TreasuryCard
           icon={<ArrowUpRight className="w-5 h-5 text-sky-600" />}
           label="التسليمات النقدية للمدير"
-          total={(summary?.cash_invoice1_handed || 0) + (summary?.cash_invoice2_handed || 0)}
+          total={(summary?.cash_invoice1_handed || 0) + (summary?.cash_invoice2_handed || 0) + (summary?.debtCashHanded || 0)}
           handed={0}
           colorClass="sky-600"
           borderClass="border-sky-500/30 bg-sky-500/5"
