@@ -220,13 +220,57 @@ const WorkerAchievementsDialog: React.FC<WorkerAchievementsDialogProps> = ({
     queryFn: async () => {
       if (!workerId) return { visits: [], counts: {} };
 
-      const { data: visits } = await supabase
+      const fromIso = dateFrom + 'T00:00:00';
+      const toIso = dateTo + 'T23:59:59';
+
+      const { data: visitsByCreated } = await supabase
         .from('visit_tracking')
         .select('*')
         .eq('worker_id', workerId)
-        .gte('created_at', dateFrom + 'T00:00:00')
-        .lte('created_at', dateTo + 'T23:59:59')
+        .gte('created_at', fromIso)
+        .lte('created_at', toIso)
         .order('created_at', { ascending: false });
+
+      // Also include visits linked to orders DELIVERED within the date range
+      // (delivery visit_tracking row may have been created earlier, when the order was assigned)
+      const { data: deliveredOrders } = await supabase
+        .from('orders')
+        .select('id, updated_at')
+        .or(`assigned_worker_id.eq.${workerId},created_by.eq.${workerId}`)
+        .eq('status', 'delivered')
+        .gte('updated_at', fromIso)
+        .lte('updated_at', toIso);
+
+      const deliveredById = new Map<string, string>(
+        (deliveredOrders || []).map((o: any) => [o.id, o.updated_at])
+      );
+
+      let visitsByDelivery: any[] = [];
+      if (deliveredById.size > 0) {
+        const ids = [...deliveredById.keys()];
+        const { data: extraVisits } = await supabase
+          .from('visit_tracking')
+          .select('*')
+          .eq('worker_id', workerId)
+          .in('operation_id', ids);
+        // Override created_at with delivery time so sorting/display reflect today's delivery
+        visitsByDelivery = (extraVisits || []).map((v: any) => ({
+          ...v,
+          created_at: deliveredById.get(v.operation_id) || v.created_at,
+        }));
+      }
+
+      const combinedMap = new Map<string, any>();
+      for (const v of (visitsByCreated || [])) combinedMap.set(v.id, v);
+      for (const v of visitsByDelivery) {
+        // Prefer the delivery-time version (overrides created_at)
+        combinedMap.set(v.id, v);
+      }
+      const visits = [...combinedMap.values()].sort(
+        (a, b) => (b.created_at || '').localeCompare(a.created_at || '')
+      );
+
+
 
       const customerIds = [...new Set((visits || []).filter(v => v.customer_id).map(v => v.customer_id!))];
       let customerMap = new Map<string, { name: string; phone: string; store_name: string }>();
