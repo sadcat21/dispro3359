@@ -350,13 +350,13 @@ const ManagerAccountingReview: React.FC = () => {
                   <p className="text-[10px] opacity-80">{c.label}</p>
                   <p className="text-xs font-bold">{Number(c.value).toLocaleString('fr-FR')}</p>
                   {c.arrow === 'right' && (
-                    <ArrowLeft className="absolute top-1/2 -start-2.5 -translate-y-1/2 w-5 h-5 text-blue-600 bg-white rounded-full p-0.5 shadow-md ring-1 ring-blue-200 rtl:-scale-x-100 z-20" />
+                    <ArrowLeft className="absolute top-1/2 -start-2.5 -translate-y-1/2 w-5 h-5 text-red-600 bg-white rounded-full p-0.5 shadow-md ring-1 ring-red-300 rtl:-scale-x-100 z-20" />
                   )}
                   {c.arrow === 'up' && (
-                    <ArrowUp className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-5 h-5 text-blue-600 bg-white rounded-full p-0.5 shadow-md ring-1 ring-blue-200 z-20" />
+                    <ArrowUp className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-5 h-5 text-red-600 bg-white rounded-full p-0.5 shadow-md ring-1 ring-red-300 z-20" />
                   )}
                   {c.arrow === 'up-right' && (
-                    <ArrowUpLeft className="absolute -top-2.5 -start-2.5 w-5 h-5 text-blue-600 bg-white rounded-full p-0.5 shadow-md ring-1 ring-blue-200 rtl:-scale-x-100 z-20" />
+                    <ArrowUpLeft className="absolute -top-2.5 -start-2.5 w-5 h-5 text-red-600 bg-white rounded-full p-0.5 shadow-md ring-1 ring-red-300 rtl:-scale-x-100 z-20" />
                   )}
                 </div>
               ))}
@@ -608,13 +608,13 @@ const ManagerAccountingReview: React.FC = () => {
                             <p className="text-[9px] leading-tight opacity-80">{m.label}</p>
                             <p className="text-[11px] font-bold leading-tight mt-0.5">{fmt(m.value)}</p>
                             {m.arrow === 'right' && (
-                              <ArrowLeft className="absolute top-1/2 -start-2 -translate-y-1/2 w-4 h-4 text-blue-600 bg-white rounded-full p-0.5 shadow ring-1 ring-blue-200 rtl:-scale-x-100 z-20" />
+                              <ArrowLeft className="absolute top-1/2 -start-2 -translate-y-1/2 w-4 h-4 text-red-600 bg-white rounded-full p-0.5 shadow ring-1 ring-red-300 rtl:-scale-x-100 z-20" />
                             )}
                             {m.arrow === 'up' && (
-                              <ArrowUp className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 text-blue-600 bg-white rounded-full p-0.5 shadow ring-1 ring-blue-200 z-20" />
+                              <ArrowUp className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 text-red-600 bg-white rounded-full p-0.5 shadow ring-1 ring-red-300 z-20" />
                             )}
                             {m.arrow === 'up-right' && (
-                              <ArrowUpLeft className="absolute -top-2 -start-2 w-4 h-4 text-blue-600 bg-white rounded-full p-0.5 shadow ring-1 ring-blue-200 rtl:-scale-x-100 z-20" />
+                              <ArrowUpLeft className="absolute -top-2 -start-2 w-4 h-4 text-red-600 bg-white rounded-full p-0.5 shadow ring-1 ring-red-300 rtl:-scale-x-100 z-20" />
                             )}
                           </div>
                         ))}
