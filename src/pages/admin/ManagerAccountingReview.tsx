@@ -593,20 +593,29 @@ const ManagerAccountingReview: React.FC = () => {
                   {/* Metrics grid */}
                   {(() => {
                     const fmt = (n: number) => Number(n || 0).toLocaleString('fr-FR');
-                    const metrics = [
+                    const metrics: Array<{ label: string; value: number; cls: string; arrow?: 'right' | 'up' | 'up-right' }> = [
                       { label: 'إجمالي المبيعات', value: review.total_sales, cls: 'text-blue-700 bg-blue-50 border-blue-200' },
-                      { label: 'ديون جديدة', value: review.new_debts, cls: 'text-rose-700 bg-rose-50 border-rose-200' },
+                      { label: 'ديون جديدة', value: review.new_debts, cls: 'text-rose-700 bg-rose-50 border-rose-200', arrow: 'right' },
                       { label: 'تحصيلات الديون', value: review.debt_collections, cls: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
-                      { label: 'مدفوعات وثائق', value: review.doc_payments, cls: 'text-violet-700 bg-violet-50 border-violet-200' },
-                      { label: 'مدفوعات نقدية', value: review.cash_payments, cls: 'text-teal-700 bg-teal-50 border-teal-200' },
+                      { label: 'مدفوعات وثائق', value: review.doc_payments, cls: 'text-violet-700 bg-violet-50 border-violet-200', arrow: 'up' },
+                      { label: 'مدفوعات نقدية', value: review.cash_payments, cls: 'text-teal-700 bg-teal-50 border-teal-200', arrow: 'up-right' },
                       { label: 'المصاريف', value: review.expenses, cls: 'text-amber-700 bg-amber-50 border-amber-200' },
                     ];
                     return (
-                      <div className="mt-3 grid grid-cols-3 gap-1.5">
+                      <div className="mt-3 grid grid-cols-3 gap-1.5 overflow-visible">
                         {metrics.map((m, i) => (
-                          <div key={i} className={`rounded-md border px-1.5 py-1 text-center ${m.cls}`}>
+                          <div key={i} className={`relative rounded-md border px-1.5 py-1 text-center ${m.cls}`}>
                             <p className="text-[9px] leading-tight opacity-80">{m.label}</p>
                             <p className="text-[11px] font-bold leading-tight mt-0.5">{fmt(m.value)}</p>
+                            {m.arrow === 'right' && (
+                              <ArrowUpRight className="absolute top-1/2 -right-2 -translate-y-1/2 w-4 h-4 text-blue-600 bg-white rounded-full p-0.5 shadow ring-1 ring-blue-200 rotate-45 z-20" />
+                            )}
+                            {m.arrow === 'up' && (
+                              <ArrowUpRight className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 text-blue-600 bg-white rounded-full p-0.5 shadow ring-1 ring-blue-200 -rotate-45 z-20" />
+                            )}
+                            {m.arrow === 'up-right' && (
+                              <ArrowUpRight className="absolute -top-2 -right-2 w-4 h-4 text-blue-600 bg-white rounded-full p-0.5 shadow ring-1 ring-blue-200 z-20" />
+                            )}
                           </div>
                         ))}
                       </div>
