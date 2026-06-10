@@ -406,6 +406,12 @@ const ManagerAccountingReview: React.FC = () => {
         title="تجميع المنتجات المباعة"
       />
 
+      <SessionInvoiceMethodsDialog
+        open={!!rowInvoiceSessions}
+        onOpenChange={(o) => { if (!o) setRowInvoiceSessions(null); }}
+        sessions={rowInvoiceSessions || []}
+      />
+
 
       {/* Tabs */}
       <Tabs value={selectedReview ? 'detail' : activeTab} onValueChange={(v) => { if (v !== 'detail') { setSelectedReview(null); setActiveTab(v); } }}>
