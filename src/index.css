@@ -410,6 +410,10 @@ body.native-print-active #receipt-print-portal {
     display: block !important;
     visibility: visible !important;
     position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
     width: 100% !important;
     height: auto !important;
     overflow: visible !important;
