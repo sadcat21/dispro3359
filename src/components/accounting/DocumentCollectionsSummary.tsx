@@ -345,6 +345,74 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
 
       const pendingOrderIds = new Set(result.map((r) => r.orderId));
 
+      // 1b) Debt payments tied to an original document order.
+      // Some cheque/receipt/transfer collections are recorded through debt_payments
+      // (because the debt is being settled) without a document_collections row.
+      // They must still appear as document cards in the accounting session.
+      const { data: debtDocPayments } = await supabase
+        .from('debt_payments')
+        .select(`
+          id,
+          amount,
+          payment_method,
+          collected_at,
+          created_at,
+          debt:customer_debts!debt_payments_debt_id_fkey(
+            id,
+            order_id,
+            total_amount,
+            order:orders!customer_debts_order_id_fkey(
+              id,
+              total_amount,
+              invoice_payment_method,
+              document_status,
+              document_manager_decision,
+              document_verification,
+              payment_status,
+              payment_method_resolved,
+              customer:customers!orders_customer_id_fkey(
+                name,
+                store_name,
+                owner_first_name_ar,
+                owner_last_name_ar,
+                owner_first_name_fr,
+                owner_last_name_fr
+              )
+            )
+          )
+        `)
+        .eq('worker_id', workerId)
+        .gte('collected_at', startTz)
+        .lte('collected_at', endTz)
+        .in('payment_method', ['check', 'receipt', 'transfer']);
+
+      for (const p of (debtDocPayments || [])) {
+        const debt = (p as any).debt;
+        const order = debt?.order as any;
+        if (!order?.id) continue;
+        if (pendingOrderIds.has(order.id)) continue;
+
+        const docType = String(order.invoice_payment_method || p.payment_method || '').toLowerCase();
+        if (!['check', 'receipt', 'versement', 'transfer', 'virement'].includes(docType)) continue;
+
+        const dv: any = order.document_verification || {};
+        result.push({
+          orderId: order.id,
+          customerName: order.customer?.name || 'غير معروف',
+          storeName: order.customer?.store_name || null,
+          ownerName: buildOwner(order.customer),
+          documentType: docType,
+          orderTotal: Number(order.total_amount || p.amount || debt?.total_amount || 0),
+          paymentStatus: order.payment_status || null,
+          source: 'pending_collection',
+          documentStatus: order.document_status,
+          managerDecision: order.document_manager_decision || null,
+          bucket: resolveBucket(dv, order),
+          verification: parseVerification(order.document_verification, docType),
+        });
+        pendingOrderIds.add(order.id);
+      }
+
       // Mirror useSessionCalculations: include orders whose created_at OR
       // updated_at falls within the period. Filtering by updated_at alone
       // silently drops delivered orders that contribute to session totals
