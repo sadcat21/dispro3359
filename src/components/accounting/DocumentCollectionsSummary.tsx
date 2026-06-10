@@ -191,27 +191,33 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
 
   useEffect(() => {
     if (docDialog) {
+      const draft = findDraft(docDialog.orderId, 'document');
+      const p = (draft?.payload || {}) as any;
       const v = docDialog.verification || {};
       const t = docDialog.documentType;
       if (t === 'check') {
-        setDocNumber(v.checkNumber || '');
-        setDocDate(v.checkDate || '');
+        setDocNumber(p.doc_number || v.checkNumber || '');
+        setDocDate(p.doc_date || v.checkDate || '');
       } else {
-        setDocNumber(v.receiptNumber || v.transferReference || '');
-        setDocDate('');
+        setDocNumber(p.doc_number || v.receiptNumber || v.transferReference || '');
+        setDocDate(p.doc_date || '');
       }
-      // Fetch existing invoice number / issue date for this order so manager can edit it
-      (async () => {
-        const { data } = await supabase
-          .from('orders')
-          .select('invoice_number, invoice_sent_at')
-          .eq('id', docDialog.orderId)
-          .maybeSingle();
-        setDocInvoiceNumber((data as any)?.invoice_number || '');
-        setDocInvoiceDate((data as any)?.invoice_sent_at ? String((data as any).invoice_sent_at).substring(0, 10) : new Date().toISOString().substring(0, 10));
-      })();
+      if (p.invoice_number || p.invoice_date) {
+        setDocInvoiceNumber(p.invoice_number || '');
+        setDocInvoiceDate(p.invoice_date || new Date().toISOString().substring(0, 10));
+      } else {
+        (async () => {
+          const { data } = await supabase
+            .from('orders')
+            .select('invoice_number, invoice_sent_at')
+            .eq('id', docDialog.orderId)
+            .maybeSingle();
+          setDocInvoiceNumber((data as any)?.invoice_number || '');
+          setDocInvoiceDate((data as any)?.invoice_sent_at ? String((data as any).invoice_sent_at).substring(0, 10) : new Date().toISOString().substring(0, 10));
+        })();
+      }
     }
-  }, [docDialog]);
+  }, [docDialog, existingDrafts]);
 
   const docNumberLabel = (t: string) =>
     t === 'check' ? 'رقم الشيك' : (t === 'transfer' || t === 'virement') ? 'رقم الوصل' : 'رقم الوصل';
