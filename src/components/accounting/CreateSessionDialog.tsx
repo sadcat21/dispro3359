@@ -50,6 +50,20 @@ interface CreateSessionDialogProps {
 
 const fmt = (n: number) => n.toLocaleString();
 
+const VerifyButton: React.FC<{ verified: boolean; onClick: () => void; label?: string }> = ({ verified, onClick, label = 'تحقق من التفاصيل' }) => (
+  <div className="mt-2 flex justify-end">
+    <Button
+      type="button"
+      size="sm"
+      variant={verified ? 'outline' : 'default'}
+      onClick={onClick}
+      className={verified ? 'h-8 text-[11px] bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100' : 'h-8 text-[11px] bg-emerald-600 hover:bg-emerald-700 text-white'}
+    >
+      {verified ? '✓ تم التحقق — إلغاء' : `✓ ${label}`}
+    </Button>
+  </div>
+);
+
 const flattenChildren = (children: React.ReactNode): React.ReactNode[] => {
   const out: React.ReactNode[] = [];
   React.Children.forEach(children, (child) => {
