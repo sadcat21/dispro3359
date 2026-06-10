@@ -52,6 +52,8 @@ interface CollectedDoc {
   documentStatus: string | null;
   managerDecision: 'received' | 'not_received' | null;
   bucket: 'cash' | 'doc' | null;
+  invoiceNumber: string | null;
+  deliveryDate: string | null;
   verification: {
     checkNumber?: string;
     checkDate?: string;
