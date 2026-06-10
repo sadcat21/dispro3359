@@ -227,8 +227,13 @@ const ManagerReviewProductsDialog: React.FC<Props> = ({ open, onOpenChange, revi
                           <Package className="w-10 h-10 text-muted-foreground/40" />
                         )}
                         <Badge className="absolute top-1.5 start-1.5 bg-blue-600 text-white border-0 text-[11px] px-2 py-0.5 shadow-md">
-                          {p.boxes.toLocaleString('fr-FR')}
+                          {boxesToBPAlways(p.boxes, p.piecesPerBox)}
                         </Badge>
+                        {p.giftBoxes > 0 && (
+                          <Badge className="absolute top-1.5 end-1.5 bg-pink-600 text-white border-0 text-[11px] px-2 py-0.5 shadow-md">
+                            🎁 {boxesToBPAlways(p.giftBoxes, p.piecesPerBox)}
+                          </Badge>
+                        )}
                       </div>
                       <div className="p-2 space-y-0.5">
                         <p className="text-xs font-bold leading-tight line-clamp-2 min-h-[2rem]">{p.name}</p>
