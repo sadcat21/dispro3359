@@ -131,7 +131,7 @@ const SessionChecksTransfersDialog: React.FC<Props> = ({ open, onOpenChange, met
                     </div>
                     <div className="flex items-center gap-1">
                       <Calendar className="w-3 h-3 text-slate-400" />
-                      <span className="text-muted-foreground">{dueLabel}:</span>
+                      <span className="text-muted-foreground">{meta.dueLabel}:</span>
                       <span className="font-medium">{fmtDate(dueDate)}</span>
                     </div>
                     {/* Row 2: Invoice — number | date */}
