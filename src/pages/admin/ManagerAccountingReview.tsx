@@ -665,7 +665,7 @@ const ManagerAccountingReview: React.FC = () => {
                     const net = Number(review.net_cash_handed || 0);
                     const coin = Number(review.coin_amount || 0);
                     return (
-                      <div dir="rtl" className="mt-1.5 grid grid-cols-3 gap-1.5">
+                      <div dir="rtl" className="mt-1.5 grid grid-cols-3 gap-1.5" onClick={(e) => e.stopPropagation()}>
                         <div className="rounded-md border px-1.5 py-1 text-center bg-emerald-50 border-emerald-300 text-emerald-800">
                           <p className="text-[9px] leading-tight opacity-80">صافي النقد المسلم للمدير</p>
                           <p className="text-[11px] font-bold leading-tight mt-0.5">{fmt(net)}</p>
