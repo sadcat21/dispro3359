@@ -34,6 +34,7 @@ import SessionDetailsDialog from '@/components/accounting/SessionDetailsDialog';
 import SessionChecksTransfersDialog from '@/components/accounting/SessionChecksTransfersDialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, Receipt } from 'lucide-react';
+import ManagerReviewProductsDialog from '@/components/accounting/ManagerReviewProductsDialog';
 
 export const fmt = (n: number) => n.toLocaleString();
 
