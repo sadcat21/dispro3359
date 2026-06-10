@@ -31,6 +31,7 @@ import { Textarea } from '@/components/ui/textarea';
 import ExpensesDetailsSummary from '@/components/accounting/ExpensesDetailsSummary';
 import companyLogo from '@/assets/logo.png';
 import SessionDetailsDialog from '@/components/accounting/SessionDetailsDialog';
+import SessionChecksTransfersDialog from '@/components/accounting/SessionChecksTransfersDialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, Receipt } from 'lucide-react';
 
@@ -755,6 +756,41 @@ export const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ to
   const totalReceipts = totals.invoice1Receipt + totals.debtCollectionsReceipt;
   const totalTransfers = totals.invoice1Transfer + totals.debtCollectionsTransfer;
 
+  const [openMethod, setOpenMethod] = useState<'check' | 'transfer' | null>(null);
+
+  const windows = useMemo(() => (sessions || [])
+    .map((s: any) => ({
+      worker_id: s.worker?.id ?? s.worker_id,
+      start: s.period_start ? new Date(s.period_start).getTime() : 0,
+      end: s.period_end ? new Date(s.period_end).getTime() : Date.now(),
+    }))
+    .filter((w) => !!w.worker_id), [sessions]);
+  const workerIds = useMemo(() => Array.from(new Set(windows.map((w) => w.worker_id))), [windows]);
+
+  const { data: methodCounts } = useQuery({
+    queryKey: ['summary-method-counts', workerIds, windows.map((w) => `${w.start}-${w.end}`)],
+    enabled: workerIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('id, created_at, assigned_worker_id, invoice_payment_method')
+        .eq('status', 'delivered')
+        .eq('payment_type', 'with_invoice')
+        .in('invoice_payment_method', ['check', 'transfer'])
+        .in('assigned_worker_id', workerIds);
+      if (error) throw error;
+      let check = 0, transfer = 0;
+      for (const o of data || []) {
+        const t = new Date(o.created_at).getTime();
+        const inWin = windows.some((w) => w.worker_id === o.assigned_worker_id && t >= w.start && t <= w.end);
+        if (!inWin) continue;
+        if (o.invoice_payment_method === 'check') check++;
+        else if (o.invoice_payment_method === 'transfer') transfer++;
+      }
+      return { check, transfer };
+    },
+  });
+
   return (
     <Card className="border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-white">
       <CardContent className="p-4 space-y-4">
@@ -780,11 +816,24 @@ export const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ to
         <div className="space-y-2">
           <p className="text-xs font-semibold text-muted-foreground">📄 الشيكات والتحويلات</p>
           <div className="grid grid-cols-3 gap-2">
-            <SummaryRow label="شيكات" value={totalChecks} color="blue" />
+            <SummaryRow
+              label="شيكات"
+              value={totalChecks}
+              color="blue"
+              count={methodCounts?.check}
+              onClick={() => setOpenMethod('check')}
+            />
             <SummaryRow label="وصولات بنكية" value={totalReceipts} color="purple" />
-            <SummaryRow label="تحويلات" value={totalTransfers} color="cyan" />
+            <SummaryRow
+              label="تحويلات"
+              value={totalTransfers}
+              color="cyan"
+              count={methodCounts?.transfer}
+              onClick={() => setOpenMethod('transfer')}
+            />
           </div>
         </div>
+
 
         {/* قسم الديون — مستقل */}
         <div className="space-y-2 border-t pt-3">
@@ -824,9 +873,16 @@ export const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ to
           </p>
         </div>
       </CardContent>
+      <SessionChecksTransfersDialog
+        open={openMethod !== null}
+        onOpenChange={(v) => { if (!v) setOpenMethod(null); }}
+        method={openMethod ?? 'check'}
+        sessions={sessions}
+      />
     </Card>
   );
 };
+
 
 // Worker Breakdown Component
 export const WorkerBreakdown: React.FC<{
@@ -942,16 +998,27 @@ export const WorkerBreakdown: React.FC<{
   );
 };
 
-const SummaryRow: React.FC<{ label: string; value: number; color?: string }> = ({ label, value, color }) => {
+const SummaryRow: React.FC<{ label: string; value: number; color?: string; count?: number; onClick?: () => void }> = ({ label, value, color, count, onClick }) => {
   const bg = color === 'red' ? 'bg-red-50' : color === 'green' ? 'bg-green-50' : color === 'blue' ? 'bg-blue-50' : color === 'purple' ? 'bg-purple-50' : color === 'cyan' ? 'bg-cyan-50' : color === 'orange' ? 'bg-orange-50' : color === 'slate' ? 'bg-slate-50' : 'bg-muted/30';
   const text = color === 'red' ? 'text-red-700' : color === 'green' ? 'text-green-700' : color === 'blue' ? 'text-blue-700' : color === 'purple' ? 'text-purple-700' : color === 'cyan' ? 'text-cyan-700' : color === 'orange' ? 'text-orange-700' : color === 'slate' ? 'text-slate-700' : '';
+  const clickable = !!onClick;
   return (
-    <div className={`${bg} rounded-lg p-2 text-center`}>
+    <div
+      className={`${bg} rounded-lg p-2 text-center relative ${clickable ? 'cursor-pointer hover:ring-2 hover:ring-offset-1 hover:ring-current/40 transition' : ''}`}
+      onClick={onClick}
+      role={clickable ? 'button' : undefined}
+    >
+      {typeof count === 'number' && count > 0 && (
+        <span className={`absolute top-1 ${document?.dir === 'rtl' ? 'left-1' : 'right-1'} text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-white border ${text}`}>
+          {count}
+        </span>
+      )}
       <p className="text-[9px] text-muted-foreground truncate">{label}</p>
       <p className={`text-xs font-bold ${text}`}>{fmt(value)}</p>
     </div>
   );
 };
+
 
 const MiniBox: React.FC<{ label: string; value: number; color?: string; showSign?: boolean }> = ({ label, value, color, showSign }) => {
   const bg = color === 'green' ? 'bg-green-50' : color === 'red' ? 'bg-red-50' : color === 'orange' ? 'bg-orange-50' : color === 'blue' ? 'bg-blue-50' : 'bg-muted/30';
