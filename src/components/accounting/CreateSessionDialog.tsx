@@ -364,8 +364,9 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
   }).length;
   const hasOutstandingCollections = hasUndecidedDocuments || pendingStampedCount > 0;
   const [isUnfreezing, setIsUnfreezing] = useState(false);
-  const [verifications, setVerifications] = useState<{ pendingOrders: boolean; debtCollections: boolean; newDebts: boolean }>({ pendingOrders: false, debtCollections: false, newDebts: false });
+  const [verifications, setVerifications] = useState<{ pendingOrders: boolean; debtCollections: boolean; newDebts: boolean; documents: boolean }>({ pendingOrders: false, debtCollections: false, newDebts: false, documents: false });
   const toggleVerify = (k: keyof typeof verifications) => setVerifications((v) => ({ ...v, [k]: !v[k] }));
+  const hasDocumentsData = (docItems.docIds.length + docItems.stampIds.length) > 0;
 
   // Auto-verified when block has no data
   const { data: pendingOrdersCount = 0 } = useQuery({
@@ -828,8 +829,11 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
 
                 {/* ━━━ Step 3: Document Collections ━━━ */}
                 {selectedWorkerId && periodStart && periodEnd && (
-                  <StepSection step={3} title={t('create_session.collected_documents')} color="blue">
+                  <StepSection step={3} title={t('create_session.collected_documents')} color="blue" verified={verifications.documents || !hasDocumentsData} requiresVerification={hasDocumentsData}>
                     <DocumentCollectionsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} receivedDocs={receivedDocs} onReceivedDocsChange={setReceivedDocs} onItemsChange={setDocItems} />
+                    {hasDocumentsData && (
+                      <VerifyButton verified={verifications.documents} onClick={() => toggleVerify('documents')} label="تحقق من المستندات المحصلة" />
+                    )}
                   </StepSection>
                 )}
 
@@ -1138,7 +1142,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             <Button
               className="flex-1 rounded-xl h-11 text-base font-bold"
               onClick={handleShowConfirmation}
-              disabled={isSubmitting || createSession.isPending || updateSession.isPending || !selectedWorkerId || !calc || hasOutstandingCollections || (!verifications.newDebts && ((calc?.newDebts || 0) > 0 || (calc?.debtCollections?.total || 0) > 0)) || (!verifications.debtCollections && (calc?.debtCollections?.total || 0) > 0) || (!verifications.pendingOrders && pendingOrdersCount > 0)}
+              disabled={isSubmitting || createSession.isPending || updateSession.isPending || !selectedWorkerId || !calc || hasOutstandingCollections || (!verifications.newDebts && ((calc?.newDebts || 0) > 0 || (calc?.debtCollections?.total || 0) > 0)) || (!verifications.debtCollections && (calc?.debtCollections?.total || 0) > 0) || (!verifications.pendingOrders && pendingOrdersCount > 0) || (!verifications.documents && hasDocumentsData)}
             >
               {isEditMode ? 'حفظ التعديلات' : t('accounting.save_session')}
             </Button>
