@@ -38,7 +38,7 @@ export const useManagerReviewSessions = () => {
       const ids = reviews.map((r) => r.id);
       const { data: sessions } = await supabase
         .from('accounting_sessions')
-        .select('id, review_session_id, completed_at, created_at, period_start, period_end, items:accounting_session_items(item_type, actual_amount)')
+        .select('id, review_session_id, completed_at, created_at, period_start, period_end, items:accounting_session_items(item_type, actual_amount, expected_amount)')
         .in('review_session_id', ids);
 
       const CASH_TYPES = new Set([
@@ -57,6 +57,7 @@ export const useManagerReviewSessions = () => {
         totalCash: number; sessionsCount: number; earliest: string | null; latest: string | null;
         totalSales: number; newDebts: number; debtCollections: number; expenses: number;
         cashPayments: number; docPayments: number;
+        surplus: number; deficit: number; coinAmount: number;
       };
       const byReview = new Map<string, Agg>();
       for (const s of (sessions || []) as any[]) {
@@ -65,8 +66,10 @@ export const useManagerReviewSessions = () => {
           totalCash: 0, sessionsCount: 0, earliest: null, latest: null,
           totalSales: 0, newDebts: 0, debtCollections: 0, expenses: 0,
           cashPayments: 0, docPayments: 0,
+          surplus: 0, deficit: 0, coinAmount: 0,
         };
         agg.sessionsCount += 1;
+        let physExp = 0, physAct = 0;
         for (const it of (s.items || [])) {
           const amt = Number(it.actual_amount || 0);
           if (CASH_TYPES.has(it.item_type)) {
@@ -78,7 +81,15 @@ export const useManagerReviewSessions = () => {
           else if (it.item_type === 'total_sales') agg.totalSales += amt;
           else if (it.item_type === 'new_debts') agg.newDebts += amt;
           else if (it.item_type === 'debt_collections_total') agg.debtCollections += amt;
+          else if (it.item_type === 'coin_amount') agg.coinAmount += amt;
+          else if (it.item_type === 'physical_cash') {
+            physExp += Number(it.expected_amount || 0);
+            physAct += amt;
+          }
         }
+        const diff = physAct - physExp;
+        if (diff >= 0) agg.surplus += diff;
+        else agg.deficit += Math.abs(diff);
         const start = s.period_start || s.created_at;
         const end = s.period_end || s.completed_at || s.created_at;
         if (start && (!agg.earliest || start < agg.earliest)) agg.earliest = start;
@@ -88,9 +99,12 @@ export const useManagerReviewSessions = () => {
 
       return reviews.map((r) => {
         const a = byReview.get(r.id);
+        const totalCash = a?.totalCash || 0;
+        const surplus = a?.surplus || 0;
+        const deficit = a?.deficit || 0;
         return {
           ...r,
-          total_cash: a?.totalCash || 0,
+          total_cash: totalCash,
           sessions_count: a?.sessionsCount || 0,
           period_earliest: a?.earliest || null,
           period_latest: a?.latest || null,
@@ -100,6 +114,10 @@ export const useManagerReviewSessions = () => {
           expenses: a?.expenses || 0,
           cash_payments: a?.cashPayments || 0,
           doc_payments: a?.docPayments || 0,
+          surplus,
+          deficit,
+          coin_amount: a?.coinAmount || 0,
+          net_cash_handed: totalCash + surplus - deficit,
         };
       }) as any[];
     },
