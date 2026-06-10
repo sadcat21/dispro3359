@@ -31,6 +31,7 @@ import { Textarea } from '@/components/ui/textarea';
 import ExpensesDetailsSummary from '@/components/accounting/ExpensesDetailsSummary';
 import companyLogo from '@/assets/logo.png';
 import SessionDetailsDialog from '@/components/accounting/SessionDetailsDialog';
+import SessionChecksTransfersDialog from '@/components/accounting/SessionChecksTransfersDialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, Receipt } from 'lucide-react';
 
