@@ -36,6 +36,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Info, ChevronDown } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useWorkerAccountingProfile, ACCOUNTING_PROFILE_LABELS_AR } from '@/utils/workerAccountingProfile';
+import { Badge } from '@/components/ui/badge';
+
 
 interface CreateSessionDialogProps {
   open: boolean;
