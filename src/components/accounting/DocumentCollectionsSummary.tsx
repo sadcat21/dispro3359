@@ -458,7 +458,16 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
       } else if (doc.managerDecision === 'not_received') {
         next[key] = false;
         changed = true;
-      } else if (doc.documentStatus === 'received' || doc.documentStatus === 'verified') {
+      } else if (
+        doc.documentStatus === 'received' ||
+        doc.documentStatus === 'verified' ||
+        doc.documentStatus === 'collected' ||
+        doc.source === 'pending_collection'
+      ) {
+        // A row coming from document_collections with action='collected'
+        // (source='pending_collection') means the worker physically handed
+        // the document over — default it to "received" so the manager only
+        // needs to flip the toggle to reject it.
         next[key] = true;
         changed = true;
       }
@@ -523,7 +532,11 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
     const draftDecision = receivedDocs ? receivedDocs[docKey] : undefined;
     // Draft (when present) overrides the persisted document_status so toggling
     // recolors the row immediately inside the edit session dialog.
-    const persistedReceived = doc.documentStatus === 'received' || doc.documentStatus === 'verified';
+    const persistedReceived =
+      doc.documentStatus === 'received' ||
+      doc.documentStatus === 'verified' ||
+      doc.documentStatus === 'collected' ||
+      doc.source === 'pending_collection';
     const receivedState: boolean | undefined =
       draftDecision !== undefined ? draftDecision : (persistedReceived ? true : undefined);
     const borderCls =
