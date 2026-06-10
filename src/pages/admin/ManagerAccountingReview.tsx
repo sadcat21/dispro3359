@@ -142,6 +142,25 @@ const ManagerAccountingReview: React.FC = () => {
     enabled: !!rowInvoiceReviewId,
   });
 
+  const { data: rowMetricSessions = [] } = useQuery({
+    queryKey: ['row-metric-detail-sessions', rowMetricState?.reviewId],
+    queryFn: async () => {
+      if (!rowMetricState?.reviewId) return [];
+      const { data, error } = await supabase
+        .from('accounting_sessions')
+        .select(`
+          *,
+          worker:workers!accounting_sessions_worker_id_fkey(id, full_name, username),
+          items:accounting_session_items(*)
+        `)
+        .eq('review_session_id', rowMetricState.reviewId)
+        .order('completed_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!rowMetricState?.reviewId,
+  });
+
   const confirmMutation = useConfirmManagerReview();
   const undoMutation = useUndoManagerReview();
   const [undoTargetId, setUndoTargetId] = useState<string | null>(null);
