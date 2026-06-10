@@ -223,17 +223,20 @@ const PendingRequestsSummary: React.FC<Props> = ({ workerId, periodStart, period
                     <p className="text-[11px] text-muted-foreground text-center py-2">لا توجد منتجات.</p>
                   ) : (
                     items.map((it) => (
-                      <Card key={it.id} className="overflow-hidden">
+                      <Card key={it.id} className="overflow-hidden bg-card border-border shadow-sm">
                         <CardContent className="p-2.5 flex items-center gap-2.5">
-                          <div className="shrink-0">
+                          <div className="shrink-0 flex flex-col items-start gap-0.5">
                             <p className="text-xs font-bold text-destructive whitespace-nowrap">
                               DA {fmt(Number(it.total_price || 0))}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground whitespace-nowrap">
+                              السعر: <span className="text-blue-600 font-bold">{fmt(Number(it.unit_price || 0))}</span>
                             </p>
                           </div>
                           <div className="flex-1 min-w-0 text-end space-y-0.5">
                             <p className="text-xs font-semibold leading-tight">{it.product?.name || '—'}</p>
-                            <p className="text-[10px] text-muted-foreground">
-                              الكمية المباعة: {fmt(Number(it.quantity || 0))} • السعر: {fmt(Number(it.unit_price || 0))}
+                            <p className="text-[11px] text-muted-foreground">
+                              الكمية المتفق عليها: <span className="text-blue-600 font-bold text-xs">{fmt(Number(it.quantity || 0))}</span>
                             </p>
                             {Number(it.gift_quantity || 0) > 0 && (
                               <p className="text-[10px] text-destructive font-semibold">
