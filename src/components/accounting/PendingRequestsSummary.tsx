@@ -33,7 +33,7 @@ interface OrderItemRow {
   gift_quantity: number | null;
   unit_price: number | null;
   total_price: number | null;
-  product: { name?: string | null } | null;
+  product: { name?: string | null; image_url?: string | null } | null;
 }
 
 const toTz = (v: string, isEnd: boolean) => {
