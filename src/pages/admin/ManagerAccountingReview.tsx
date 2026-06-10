@@ -120,6 +120,25 @@ const ManagerAccountingReview: React.FC = () => {
     },
     enabled: !!selectedReview,
   });
+  const [rowInvoiceReviewId, setRowInvoiceReviewId] = useState<string | null>(null);
+  const { data: rowInvoiceDetailSessions = [] } = useQuery({
+    queryKey: ['row-invoice-detail-sessions', rowInvoiceReviewId],
+    queryFn: async () => {
+      if (!rowInvoiceReviewId) return [];
+      const { data, error } = await supabase
+        .from('accounting_sessions')
+        .select(`
+          *,
+          worker:workers!accounting_sessions_worker_id_fkey(id, full_name, username),
+          items:accounting_session_items(*)
+        `)
+        .eq('review_session_id', rowInvoiceReviewId)
+        .order('completed_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!rowInvoiceReviewId,
+  });
 
   const confirmMutation = useConfirmManagerReview();
   const undoMutation = useUndoManagerReview();
@@ -405,6 +424,12 @@ const ManagerAccountingReview: React.FC = () => {
         title="تجميع المنتجات المباعة"
       />
 
+      <SessionInvoiceMethodsDialog
+        open={!!rowInvoiceReviewId}
+        onOpenChange={(o) => { if (!o) setRowInvoiceReviewId(null); }}
+        sessions={rowInvoiceDetailSessions}
+      />
+
 
       {/* Tabs */}
       <Tabs value={selectedReview ? 'detail' : activeTab} onValueChange={(v) => { if (v !== 'detail') { setSelectedReview(null); setActiveTab(v); } }}>
@@ -642,8 +667,8 @@ const ManagerAccountingReview: React.FC = () => {
                       { label: 'إجمالي المبيعات', value: review.total_sales, cls: 'text-blue-700 bg-blue-50 border-blue-200', onClick: () => setRowProductsReviewId(review.id) },
                       { label: 'ديون جديدة', value: review.new_debts, cls: 'text-rose-700 bg-rose-50 border-rose-200', arrow: 'right' },
                       { label: 'تحصيلات الديون', value: review.debt_collections, cls: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
-                      { label: 'مدفوعات وثائق', value: review.doc_payments, cls: 'text-violet-700 bg-violet-50 border-violet-200', arrow: 'up' },
-                      { label: 'مدفوعات نقدية', value: review.cash_payments, cls: 'text-teal-700 bg-teal-50 border-teal-200', arrow: 'up-right' },
+                      { label: 'مدفوعات وثائق', value: review.doc_payments, cls: 'text-violet-700 bg-violet-50 border-violet-200', arrow: 'up', onClick: () => setRowInvoiceReviewId(review.id) },
+                      { label: 'مدفوعات نقدية', value: review.cash_payments, cls: 'text-teal-700 bg-teal-50 border-teal-200', arrow: 'up-right', onClick: () => setRowInvoiceReviewId(review.id) },
                       { label: 'المصاريف', value: review.expenses, cls: 'text-amber-700 bg-amber-50 border-amber-200' },
                     ];
                     return (
