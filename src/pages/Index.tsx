@@ -11,7 +11,12 @@ const BranchManagerHome = lazy(() => import('./BranchManagerHome'));
 const AssistantManagerHome = lazy(() => import('./AssistantManagerHome'));
 
 const Index: React.FC = () => {
-  const { role, activeRole } = useAuth();
+  const { role, activeRole, isLoading } = useAuth();
+
+  if (isLoading) {
+    return null;
+  }
+
 
   // Assistant General Manager has its own executive dashboard with a distinct theme
   if (isCompanyManagerRole(activeRole?.custom_role_code) || isCompanyManagerRole(role)) {
