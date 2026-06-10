@@ -446,8 +446,8 @@ const ManagerAccountingReview: React.FC = () => {
       />
 
       <SessionInvoiceMethodsDialog
-        open={!!rowInvoiceReviewId}
-        onOpenChange={(o) => { if (!o) setRowInvoiceReviewId(null); }}
+        open={!!rowInvoiceReviewIds && rowInvoiceReviewIds.length > 0}
+        onOpenChange={(o) => { if (!o) setRowInvoiceReviewIds(null); }}
         sessions={rowInvoiceDetailSessions}
       />
 
