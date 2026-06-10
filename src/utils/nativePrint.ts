@@ -110,34 +110,23 @@ export const installNativePrintBridge = () => {
   const browserPrint = window.print.bind(window);
 
   window.print = () => {
-    if (!isMobileEnv()) {
-      browserPrint();
-      return;
-    }
-
+    // Ensure portal printable content is visible, then trigger the browser's
+    // native print dialog directly (no PDF preview overlay).
     const keepAliveRoots = keepPrintPortalsAlive();
 
     void (async () => {
       try {
         await waitForNextPaint();
-
         const target = findPrintableElement(keepAliveRoots);
-        if (!target) {
-          browserPrint();
-          return;
-        }
-
-        forcePrintableVisibility(target);
+        if (target) forcePrintableVisibility(target);
         await waitForNextPaint();
-
-        const { generatePDF } = await import('./generatePDF');
-        const filename = `${(document.title || 'print').replace(/[\\/:*?"<>|]+/g, '_')}.pdf`;
-        await generatePDF(target, filename);
+        browserPrint();
       } catch (error) {
-        console.error('[NativePrint] PDF preview failed:', error);
+        console.error('[NativePrint] direct print failed:', error);
         browserPrint();
       } finally {
-        cleanupNativePrintState();
+        // Delay cleanup so the print dialog can capture the DOM first.
+        setTimeout(cleanupNativePrintState, 1000);
       }
     })();
   };
