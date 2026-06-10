@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { User, Coins } from 'lucide-react';
 import DebtCollectionsSummary from './DebtCollectionsSummary';
 import ExpensesDetailsSummary from './ExpensesDetailsSummary';
+import NewDebtsSummary from './NewDebtsSummary';
 
 export type RowMetric = 'new_debts' | 'debt_collections' | 'expenses' | 'coin_amount';
 
