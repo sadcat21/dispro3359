@@ -323,8 +323,8 @@ const ManagerAccountingReview: React.FC = () => {
           deficit: sum('deficit'),
           coin: sum('coin_amount'),
         };
-        const cards: Array<{ label: string; value: number; cls: string; arrow?: 'right' | 'up' | 'up-right'; custom?: React.ReactNode }> = [
-          { label: 'إجمالي المبيعات', value: totals.sales, cls: 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800' },
+        const cards: Array<{ label: string; value: number; cls: string; arrow?: 'right' | 'up' | 'up-right'; custom?: React.ReactNode; onClick?: () => void }> = [
+          { label: 'إجمالي المبيعات', value: totals.sales, cls: 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800', onClick: () => setShowProductsDialog(true) },
           { label: 'ديون جديدة', value: totals.newDebts, cls: 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800', arrow: 'right' },
           { label: 'تحصيلات الديون', value: totals.debtCol, cls: 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' },
           { label: 'مدفوعات وثائق', value: totals.docs, cls: 'bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-800', arrow: 'up' },
