@@ -212,36 +212,44 @@ const ManagerReviewProductsDialog: React.FC<Props> = ({ open, onOpenChange, revi
               ) : !data || data.length === 0 ? (
                 <div className="text-center py-16 text-muted-foreground text-sm">لا توجد مبيعات</div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                <div className="grid grid-cols-3 gap-2">
                   {data.map((p) => (
-                    <button
-                      type="button"
+                    <div
                       key={p.productId}
                       onClick={() => setSelectedProduct(p)}
-                      className="relative rounded-xl border bg-card overflow-hidden shadow-sm hover:shadow-md hover:ring-2 hover:ring-blue-400 transition text-start"
+                      className="flex flex-col rounded-2xl overflow-hidden shadow-lg border-2 border-border hover:border-primary/50 cursor-pointer active:scale-[0.97] transition-all"
                     >
-                      <div className="aspect-square bg-muted/30 flex items-center justify-center overflow-hidden relative">
+                      <div className="px-2 py-1.5 border-b text-center bg-muted border-border">
+                        <span className="font-bold text-xs leading-tight block truncate text-foreground">
+                          {p.name}
+                        </span>
+                      </div>
+                      <div className="w-full aspect-square bg-muted overflow-hidden">
                         {p.imageUrl ? (
                           <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
                         ) : (
-                          <Package className="w-10 h-10 text-muted-foreground/40" />
-                        )}
-                        <Badge className="absolute top-1.5 start-1.5 bg-blue-600 text-white border-0 text-[11px] px-2 py-0.5 shadow-md">
-                          {boxesToBPAlways(p.boxes, p.piecesPerBox)}
-                        </Badge>
-                        {p.giftBoxes > 0 && (
-                          <Badge className="absolute top-1.5 end-1.5 bg-pink-600 text-white border-0 text-[11px] px-2 py-0.5 shadow-md">
-                            🎁 {boxesToBPAlways(p.giftBoxes, p.piecesPerBox)}
-                          </Badge>
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Package className="w-10 h-10 text-primary/30" />
+                          </div>
                         )}
                       </div>
-                      <div className="p-2 space-y-0.5">
-                        <p className="text-xs font-bold leading-tight line-clamp-2 min-h-[2rem]">{p.name}</p>
-                        <p className="text-[10px] text-muted-foreground">
+                      <div className="px-1.5 py-1.5 bg-card flex flex-col gap-1">
+                        <div className="flex items-center gap-1">
+                          <div className="flex-1 flex items-center justify-center gap-1 rounded-md bg-primary/10 text-primary py-1 text-xs font-bold">
+                            <Package className="w-3 h-3" />
+                            {boxesToBPAlways(p.boxes, p.piecesPerBox)}
+                          </div>
+                          {p.giftBoxes > 0 && (
+                            <div className="flex items-center justify-center gap-0.5 rounded-md bg-secondary py-1 px-1.5 text-[10px] font-semibold text-secondary-foreground">
+                              🎁 {boxesToBPAlways(p.giftBoxes, p.piecesPerBox)}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-center rounded-md bg-muted py-1 text-[10px] font-semibold text-muted-foreground">
                           {Number(p.totalAmount).toLocaleString('fr-FR')} دج
-                        </p>
+                        </div>
                       </div>
-                    </button>
+                    </div>
                   ))}
                 </div>
               )}
