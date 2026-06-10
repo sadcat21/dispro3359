@@ -51,17 +51,23 @@ interface CreateSessionDialogProps {
 const fmt = (n: number) => n.toLocaleString();
 
 const VerifyButton: React.FC<{ verified: boolean; onClick: () => void; label?: string }> = ({ verified, onClick, label = 'تحقق من التفاصيل' }) => (
-  <div className="mt-2 flex justify-end">
-    <Button
-      type="button"
-      size="sm"
-      variant={verified ? 'outline' : 'default'}
-      onClick={onClick}
-      className={verified ? 'h-8 text-[11px] bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100' : 'h-8 text-[11px] bg-emerald-600 hover:bg-emerald-700 text-white'}
+  <label
+    className={`mt-2 flex items-center justify-end gap-2 cursor-pointer select-none rounded-lg border px-3 py-2 transition-colors ${
+      verified ? 'bg-emerald-50 border-emerald-300' : 'bg-background border-border hover:bg-muted/40'
+    }`}
+  >
+    <span className={`text-[11px] font-semibold ${verified ? 'text-emerald-700' : 'text-muted-foreground'}`}>
+      {verified ? 'تم التحقق' : label}
+    </span>
+    <span
+      onClick={(e) => { e.preventDefault(); onClick(); }}
+      className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
+        verified ? 'bg-emerald-600 border-emerald-600 text-white' : 'bg-background border-muted-foreground/40'
+      }`}
     >
-      {verified ? '✓ تم التحقق — إلغاء' : `✓ ${label}`}
-    </Button>
-  </div>
+      {verified && <span className="text-[12px] leading-none">✓</span>}
+    </span>
+  </label>
 );
 
 const flattenChildren = (children: React.ReactNode): React.ReactNode[] => {
