@@ -149,8 +149,16 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
   useEffect(() => {
     if (open) {
       if (editSession) {
-        const ps = editSession.period_start.includes('T') ? editSession.period_start.slice(0, 16) : editSession.period_start + 'T00:00';
-        const pe = editSession.period_end.includes('T') ? editSession.period_end.slice(0, 16) : editSession.period_end + 'T23:59';
+        // Convert UTC timestamps from DB to Algeria local datetime-local strings,
+        // so downstream queries (which append +01:00) produce the correct UTC window.
+        const toAlgeriaLocal = (raw: string): string => {
+          const d = new Date(raw);
+          if (Number.isNaN(d.getTime())) return raw.slice(0, 16);
+          const algeriaMs = d.getTime() + (60 + d.getTimezoneOffset()) * 60000;
+          return format(new Date(algeriaMs), "yyyy-MM-dd'T'HH:mm");
+        };
+        const ps = toAlgeriaLocal(editSession.period_start);
+        const pe = toAlgeriaLocal(editSession.period_end);
         setPeriodStart(ps);
         setPeriodEnd(pe);
         setSessionNotes(editSession.notes || '');
