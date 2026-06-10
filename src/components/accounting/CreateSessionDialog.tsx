@@ -1002,6 +1002,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                       <PaymentRow label={t('accounting.invoice2')} value={calc.newDebtsByInvoice?.invoice2 || 0} />
                     </div>
                   </div>
+                  <VerifyButton verified={verifications.newDebts} onClick={() => toggleVerify('newDebts')} label="تحقق من تفاصيل الديون" />
                   {/* Debt Collections */}
                   <div className="rounded-lg border p-3 space-y-1.5">
                     <div className="flex items-center justify-between">
