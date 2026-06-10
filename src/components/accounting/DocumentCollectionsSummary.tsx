@@ -392,10 +392,14 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
         if (!order?.id) continue;
         if (pendingOrderIds.has(order.id)) continue;
 
-        const docType = String(order.invoice_payment_method || p.payment_method || '').toLowerCase();
+        // For debt settlements, the physical document type comes from the payment
+        // actually collected now (debt_payments.payment_method), not necessarily
+        // from the original sale order's invoice_payment_method.
+        const docType = String(p.payment_method || order.invoice_payment_method || '').toLowerCase();
         if (!['check', 'receipt', 'versement', 'transfer', 'virement'].includes(docType)) continue;
 
         const dv: any = order.document_verification || {};
+        const docOrder = { ...order, invoice_payment_method: docType };
         result.push({
           orderId: order.id,
           customerName: order.customer?.name || 'غير معروف',
@@ -407,7 +411,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           source: 'pending_collection',
           documentStatus: order.document_status,
           managerDecision: order.document_manager_decision || null,
-          bucket: resolveBucket(dv, order),
+          bucket: resolveBucket(dv, docOrder),
           verification: parseVerification(order.document_verification, docType),
         });
         pendingOrderIds.add(order.id);
