@@ -817,7 +817,14 @@ export const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ to
 
         <div className="space-y-2">
           <p className="text-xs font-semibold text-muted-foreground">📄 الشيكات والتحويلات</p>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <SummaryRow
+              label="فواتير"
+              value={methodCounts?.invoiceTotal ?? 0}
+              color="green"
+              count={methodCounts?.invoice}
+              onClick={() => setOpenMethod('invoice')}
+            />
             <SummaryRow
               label="شيكات"
               value={totalChecks}
@@ -835,6 +842,7 @@ export const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ to
             />
           </div>
         </div>
+
 
 
         {/* قسم الديون — مستقل */}
