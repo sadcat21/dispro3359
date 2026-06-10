@@ -1010,21 +1010,25 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             {/* ━━━ Step 9: Stock & Sales Tracking ━━━ */}
             {selectedWorkerId && periodStart && periodEnd && (
               <>
-                <StepSection step={10} title={t('accounting.truck_stock') || t('create_session.product_tracking')} color="primary" badge="A">
-                  <div className="space-y-3">
-                    <WorkerTruckStockList workerId={selectedWorkerId} />
-                    <ProductStockSummary workerId={selectedWorkerId} branchId={activeBranch?.id} periodStart={periodStart} periodEnd={periodEnd} viewByProduct={viewByProduct} promoTracking={viewByProduct ? calc?.promoTracking : undefined} />
-                  </div>
-                </StepSection>
+                {!isFinancialOnly && (
+                  <StepSection step={10} title={t('accounting.truck_stock') || t('create_session.product_tracking')} color="primary" badge="A">
+                    <div className="space-y-3">
+                      <WorkerTruckStockList workerId={selectedWorkerId} />
+                      <ProductStockSummary workerId={selectedWorkerId} branchId={activeBranch?.id} periodStart={periodStart} periodEnd={periodEnd} viewByProduct={viewByProduct} promoTracking={viewByProduct ? calc?.promoTracking : undefined} />
+                    </div>
+                  </StepSection>
+                )}
                 {!viewByProduct && (
                   <StepSection step={10} title={t('accounting.sales_details')} color="primary" badge="B">
                     <SalesDetailsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} />
                   </StepSection>
                 )}
-                <StepSection step={10} title={t('session_details.pricing_groups') || 'قوائم الأسعار'} color="blue" badge="D">
-                  <PricingGroupsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} />
-                </StepSection>
-                {!viewByProduct && calc && calc.promoTracking.length > 0 && (
+                {!isFinancialOnly && (
+                  <StepSection step={10} title={t('session_details.pricing_groups') || 'قوائم الأسعار'} color="blue" badge="D">
+                    <PricingGroupsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} />
+                  </StepSection>
+                )}
+                {!isFinancialOnly && !viewByProduct && calc && calc.promoTracking.length > 0 && (
                   <StepSection step={10} title={t('create_session.promo_tracking')} color="purple" badge="C">
                     <PromoTrackingSummary items={calc.promoTracking} periodStart={periodStart} periodEnd={periodEnd} />
                   </StepSection>
@@ -1047,13 +1051,14 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 </StepSection>
 
                 {/* ━━━ Step 13: Stock Discrepancies ━━━ */}
-                {pendingDiscrepancies.length > 0 && (
+                {!isFinancialOnly && pendingDiscrepancies.length > 0 && (
                   <StepSection step={13} title={t('create_session.stock_discrepancies')} color="red">
                     <StockDiscrepancySection discrepancies={pendingDiscrepancies} />
                   </StepSection>
                 )}
               </>
             )}
+
 
             {/* Notes */}
             <div className="space-y-2">
