@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { User, Coins } from 'lucide-react';
 import DebtCollectionsSummary from './DebtCollectionsSummary';
 import ExpensesDetailsSummary from './ExpensesDetailsSummary';
+import NewDebtsSummary from './NewDebtsSummary';
 
 export type RowMetric = 'new_debts' | 'debt_collections' | 'expenses' | 'coin_amount';
 
@@ -57,12 +58,13 @@ const RowMetricDetailsDialog: React.FC<Props> = ({ open, onOpenChange, sessions,
       );
     }
     if (metric === 'new_debts') {
-      const amount = getItem(s, 'new_debts');
       return (
-        <div className="text-sm bg-rose-50 border border-rose-200 rounded-lg p-3 flex items-center justify-between">
-          <span className="text-rose-700 font-medium">ديون جديدة مسجّلة</span>
-          <span className="font-bold text-rose-800">{fmt(amount)} دج</span>
-        </div>
+        <NewDebtsSummary
+          workerId={workerId}
+          periodStart={s.period_start}
+          periodEnd={s.period_end}
+          completedAt={s.completed_at}
+        />
       );
     }
     if (metric === 'coin_amount') {
@@ -81,7 +83,7 @@ const RowMetricDetailsDialog: React.FC<Props> = ({ open, onOpenChange, sessions,
 
   // Filter sessions that actually have a value for this metric (for new_debts / coin_amount)
   const visibleSessions = sessions.filter((s) => {
-    if (metric === 'new_debts') return getItem(s, 'new_debts') > 0;
+    if (metric === 'new_debts') return true;
     if (metric === 'coin_amount') return getItem(s, 'coin_amount') > 0;
     return true;
   });
