@@ -756,7 +756,7 @@ export const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ to
   const totalReceipts = totals.invoice1Receipt + totals.debtCollectionsReceipt;
   const totalTransfers = totals.invoice1Transfer + totals.debtCollectionsTransfer;
 
-  const [openMethod, setOpenMethod] = useState<'check' | 'transfer' | null>(null);
+  const [openMethod, setOpenMethod] = useState<'check' | 'transfer' | 'invoice' | null>(null);
 
   const windows = useMemo(() => (sessions || [])
     .map((s: any) => ({
@@ -773,23 +773,25 @@ export const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ to
     queryFn: async () => {
       const { data, error } = await supabase
         .from('orders')
-        .select('id, created_at, assigned_worker_id, invoice_payment_method')
+        .select('id, total_amount, created_at, assigned_worker_id, invoice_payment_method')
         .eq('status', 'delivered')
         .eq('payment_type', 'with_invoice')
-        .in('invoice_payment_method', ['check', 'transfer'])
         .in('assigned_worker_id', workerIds);
       if (error) throw error;
-      let check = 0, transfer = 0;
+      let check = 0, transfer = 0, invoice = 0, invoiceTotal = 0;
       for (const o of data || []) {
         const t = new Date(o.created_at).getTime();
         const inWin = windows.some((w) => w.worker_id === o.assigned_worker_id && t >= w.start && t <= w.end);
         if (!inWin) continue;
+        invoice++;
+        invoiceTotal += Number(o.total_amount || 0);
         if (o.invoice_payment_method === 'check') check++;
         else if (o.invoice_payment_method === 'transfer') transfer++;
       }
-      return { check, transfer };
+      return { check, transfer, invoice, invoiceTotal };
     },
   });
+
 
   return (
     <Card className="border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-white">
