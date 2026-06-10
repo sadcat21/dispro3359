@@ -1565,8 +1565,9 @@ const ManagerTreasury = () => {
                   ) : (
                     <div className="grid grid-cols-2 gap-2">
                       {handovers.map(h => {
-                        const totalCash = Number(h.cash_invoice1 ?? 0) + Number(h.cash_invoice2 ?? 0);
-                        const totalChecks = Number(h.checks_amount ?? 0) + Number(h.receipts_amount ?? 0) + Number(h.transfers_amount ?? 0);
+                        const versementCash = parseCashConsolidationNote(h.notes).receiptCash;
+                        const totalCash = Number(h.cash_invoice1 ?? 0) + Number(h.cash_invoice2 ?? 0) + Number(h.debt_cash_amount ?? 0) + Number(versementCash || 0);
+                        const totalChecks = Number(h.checks_amount ?? 0) + Number(h.receipts_amount ?? 0) + Number(h.transfers_amount ?? 0) - Number(versementCash || 0);
                         return (
                           <Card key={h.id} className={`${selectedHandoverIds.includes(h.id) ? 'ring-2 ring-primary' : ''} overflow-hidden`}>
                             <CardContent className="p-2.5 space-y-2">
