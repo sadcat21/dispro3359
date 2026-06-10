@@ -98,17 +98,10 @@ const findPrintableElement = (roots: HTMLElement[]): HTMLElement | null => {
 };
 
 const isMobileEnv = (): boolean => {
-  if (typeof window === 'undefined') return false;
-  try {
-    if (Capacitor.isNativePlatform()) return true;
-  } catch {
-    // Capacitor unavailable in this context
-  }
-  const ua = (navigator.userAgent || '').toLowerCase();
-  if (/android|iphone|ipad|ipod|mobile/.test(ua)) return true;
-  if (typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 768px)').matches) return true;
-  return false;
+  // Force the new PDF preview system on all platforms (mobile + desktop).
+  return true;
 };
+
 
 export const installNativePrintBridge = () => {
   if (nativePrintInstalled || typeof window === 'undefined') return;
