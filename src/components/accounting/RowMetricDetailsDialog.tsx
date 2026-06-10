@@ -83,7 +83,7 @@ const RowMetricDetailsDialog: React.FC<Props> = ({ open, onOpenChange, sessions,
 
   // Filter sessions that actually have a value for this metric (for new_debts / coin_amount)
   const visibleSessions = sessions.filter((s) => {
-    if (metric === 'new_debts') return getItem(s, 'new_debts') > 0;
+    if (metric === 'new_debts') return true;
     if (metric === 'coin_amount') return getItem(s, 'coin_amount') > 0;
     return true;
   });
