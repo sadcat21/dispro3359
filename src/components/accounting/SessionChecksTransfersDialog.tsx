@@ -108,12 +108,19 @@ const SessionChecksTransfersDialog: React.FC<Props> = ({ open, onOpenChange, met
                       {fmt(Number(o.total_amount || 0))} د.ج
                     </Badge>
                   </div>
-                  <div className="grid grid-cols-2 gap-1.5 text-[11px] text-slate-600 pt-1 border-t">
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11px] text-slate-600 pt-1 border-t">
+                    {/* Row 1: Check — number | date */}
+                    <div className="flex items-center gap-1">
+                      <Hash className="w-3 h-3 text-slate-400" />
+                      <span className="text-muted-foreground">رقم الشيك:</span>
+                      <span className="font-medium">{(o as any).check_number || '—'}</span>
+                    </div>
                     <div className="flex items-center gap-1">
                       <Calendar className="w-3 h-3 text-slate-400" />
                       <span className="text-muted-foreground">{dueLabel}:</span>
                       <span className="font-medium">{fmtDate(dueDate)}</span>
                     </div>
+                    {/* Row 2: Invoice — number | date */}
                     <div className="flex items-center gap-1">
                       <Hash className="w-3 h-3 text-slate-400" />
                       <span className="text-muted-foreground">رقم الفاتورة:</span>
@@ -125,6 +132,7 @@ const SessionChecksTransfersDialog: React.FC<Props> = ({ open, onOpenChange, met
                       <span className="font-medium">{fmtDate(o.invoice_received_at || o.created_at)}</span>
                     </div>
                   </div>
+
                 </div>
               );
             })}
