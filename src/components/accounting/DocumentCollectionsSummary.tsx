@@ -345,16 +345,29 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
 
       const pendingOrderIds = new Set(result.map((r) => r.orderId));
 
-      const { data: deliveryOrders } = await supabase
+      // Mirror useSessionCalculations: include orders whose created_at OR
+      // updated_at falls within the period. Filtering by updated_at alone
+      // silently drops delivered orders that contribute to session totals
+      // but had their updated_at slip just outside the window.
+      const baseSelect = `id, total_amount, invoice_payment_method, document_status, document_manager_decision, document_verification, payment_status, payment_method_resolved, updated_at, created_at, customer:customers!orders_customer_id_fkey(name, store_name, owner_first_name_ar, owner_last_name_ar, owner_first_name_fr, owner_last_name_fr)`;
+      const buildDeliveryOrdersQuery = () => supabase
         .from('orders')
-        .select(`id, total_amount, invoice_payment_method, document_status, document_manager_decision, document_verification, payment_status, payment_method_resolved, updated_at, customer:customers!orders_customer_id_fkey(name, store_name, owner_first_name_ar, owner_last_name_ar, owner_first_name_fr, owner_last_name_fr)`)
+        .select(baseSelect)
         .eq('assigned_worker_id', workerId)
         .eq('status', 'delivered')
-        .in('invoice_payment_method', ['check', 'receipt', 'transfer', 'versement', 'virement'])
-        .gte('updated_at', startTz)
-        .lte('updated_at', endTz);
+        .in('invoice_payment_method', ['check', 'receipt', 'transfer', 'versement', 'virement']);
 
-      for (const o of (deliveryOrders || [])) {
+      const [createdRes, updatedRes] = await Promise.all([
+        buildDeliveryOrdersQuery().gte('created_at', startTz).lte('created_at', endTz),
+        buildDeliveryOrdersQuery().gte('updated_at', startTz).lte('updated_at', endTz),
+      ]);
+
+      const deliveryOrdersMap = new Map<string, any>();
+      for (const o of [...(createdRes.data || []), ...(updatedRes.data || [])]) {
+        if (o?.id) deliveryOrdersMap.set(o.id, o);
+      }
+
+      for (const o of deliveryOrdersMap.values()) {
         if (pendingOrderIds.has(o.id)) continue;
         if (!isCollectedDuringDelivery(o)) continue;
 
