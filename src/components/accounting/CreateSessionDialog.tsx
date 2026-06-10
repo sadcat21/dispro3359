@@ -651,9 +651,11 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <Label className="text-xs font-semibold">{t('accounting.period_end')}</Label>
-                    <Button type="button" variant="ghost" size="sm" className="h-5 px-1.5 text-[10px] text-primary hover:text-primary/80 gap-1" onClick={() => setPeriodEnd(nowLocal())}>
-                      <RefreshCw className="w-3 h-3" />
-                    </Button>
+                    {!isEditMode && (
+                      <Button type="button" variant="ghost" size="sm" className="h-5 px-1.5 text-[10px] text-primary hover:text-primary/80 gap-1" onClick={() => setPeriodEnd(nowLocal())}>
+                        <RefreshCw className="w-3 h-3" />
+                      </Button>
+                    )}
                   </div>
                   <Input type="datetime-local" value={periodEnd} readOnly disabled className="text-xs rounded-lg bg-muted/40 cursor-not-allowed font-bold" />
                 </div>
