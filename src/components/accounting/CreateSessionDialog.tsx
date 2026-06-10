@@ -36,6 +36,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Info, ChevronDown } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useWorkerAccountingProfile, ACCOUNTING_PROFILE_LABELS_AR } from '@/utils/workerAccountingProfile';
+import { Badge } from '@/components/ui/badge';
+
 
 interface CreateSessionDialogProps {
   open: boolean;
@@ -146,6 +149,10 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
 
   const isEditMode = !!editSession;
   const selectedWorkerId = editSession?.worker_id || preselectedWorkerId || '';
+  const { data: profileData } = useWorkerAccountingProfile(selectedWorkerId || null);
+  const accountingProfile = profileData?.profile || 'full_with_stock';
+  const isFinancialOnly = accountingProfile === 'financial_only';
+
 
   useEffect(() => {
     if (open) {
@@ -446,9 +453,15 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
       handleSubmit();
       return;
     }
+    if (isFinancialOnly) {
+      // الفئة "محاسبة مالية فقط": لا يوجد تفريغ شاحنة — احفظ مباشرة
+      handleSubmit();
+      return;
+    }
     setShowConfirmation(false);
     setShowUnloadDialog(true);
   };
+
 
   const handleSubmit = async (unloadNotes?: string) => {
     if (!selectedWorkerId || !calc || isSubmitting) { toast.error(t('create_session.select_worker')); return; }
@@ -623,8 +636,19 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                     </span>
                   )}
                 </div>
-                {workerName && <span className="text-xs font-normal text-muted-foreground">{workerName}</span>}
+                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                  {workerName && <span className="text-xs font-normal text-muted-foreground">{workerName}</span>}
+                  {selectedWorkerId && (
+                    <Badge
+                      variant={isFinancialOnly ? 'secondary' : 'default'}
+                      className={`text-[10px] h-5 px-2 ${isFinancialOnly ? 'bg-sky-100 text-sky-700 hover:bg-sky-100 border-sky-200' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-emerald-200'}`}
+                    >
+                      {ACCOUNTING_PROFILE_LABELS_AR[accountingProfile]}
+                    </Badge>
+                  )}
+                </div>
               </div>
+
             </DialogTitle>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5">
@@ -986,21 +1010,25 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             {/* ━━━ Step 9: Stock & Sales Tracking ━━━ */}
             {selectedWorkerId && periodStart && periodEnd && (
               <>
-                <StepSection step={10} title={t('accounting.truck_stock') || t('create_session.product_tracking')} color="primary" badge="A">
-                  <div className="space-y-3">
-                    <WorkerTruckStockList workerId={selectedWorkerId} />
-                    <ProductStockSummary workerId={selectedWorkerId} branchId={activeBranch?.id} periodStart={periodStart} periodEnd={periodEnd} viewByProduct={viewByProduct} promoTracking={viewByProduct ? calc?.promoTracking : undefined} />
-                  </div>
-                </StepSection>
+                {!isFinancialOnly && (
+                  <StepSection step={10} title={t('accounting.truck_stock') || t('create_session.product_tracking')} color="primary" badge="A">
+                    <div className="space-y-3">
+                      <WorkerTruckStockList workerId={selectedWorkerId} />
+                      <ProductStockSummary workerId={selectedWorkerId} branchId={activeBranch?.id} periodStart={periodStart} periodEnd={periodEnd} viewByProduct={viewByProduct} promoTracking={viewByProduct ? calc?.promoTracking : undefined} />
+                    </div>
+                  </StepSection>
+                )}
                 {!viewByProduct && (
                   <StepSection step={10} title={t('accounting.sales_details')} color="primary" badge="B">
                     <SalesDetailsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} />
                   </StepSection>
                 )}
-                <StepSection step={10} title={t('session_details.pricing_groups') || 'قوائم الأسعار'} color="blue" badge="D">
-                  <PricingGroupsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} />
-                </StepSection>
-                {!viewByProduct && calc && calc.promoTracking.length > 0 && (
+                {!isFinancialOnly && (
+                  <StepSection step={10} title={t('session_details.pricing_groups') || 'قوائم الأسعار'} color="blue" badge="D">
+                    <PricingGroupsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} />
+                  </StepSection>
+                )}
+                {!isFinancialOnly && !viewByProduct && calc && calc.promoTracking.length > 0 && (
                   <StepSection step={10} title={t('create_session.promo_tracking')} color="purple" badge="C">
                     <PromoTrackingSummary items={calc.promoTracking} periodStart={periodStart} periodEnd={periodEnd} />
                   </StepSection>
@@ -1023,13 +1051,14 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 </StepSection>
 
                 {/* ━━━ Step 13: Stock Discrepancies ━━━ */}
-                {pendingDiscrepancies.length > 0 && (
+                {!isFinancialOnly && pendingDiscrepancies.length > 0 && (
                   <StepSection step={13} title={t('create_session.stock_discrepancies')} color="red">
                     <StockDiscrepancySection discrepancies={pendingDiscrepancies} />
                   </StepSection>
                 )}
               </>
             )}
+
 
             {/* Notes */}
             <div className="space-y-2">
@@ -1043,7 +1072,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
 
         {/* Sticky footer with action buttons */}
         <div className="border-t bg-background p-3 space-y-2 shrink-0">
-          {!isEditMode && !isFrozen && selectedWorkerId && (
+          {!isEditMode && !isFrozen && !isFinancialOnly && selectedWorkerId && (
             <Alert>
               <Info className="w-4 h-4" />
               <AlertDescription className="text-xs">
@@ -1052,7 +1081,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             </Alert>
           )}
           <div className="flex gap-2">
-            {selectedWorkerId && (
+            {selectedWorkerId && !isFinancialOnly && (
               <Button
                 variant="outline"
                 className={`rounded-xl h-11 text-base font-bold text-white ${isFrozen ? 'bg-green-600 hover:bg-green-700 border-green-600' : 'bg-red-600 hover:bg-red-700 border-red-600'}`}
@@ -1063,6 +1092,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 {isFrozen ? t('create_session.unfreeze') : t('create_session.freeze')}
               </Button>
             )}
+
             <Button
               className="flex-1 rounded-xl h-11 text-base font-bold"
               onClick={handleShowConfirmation}
@@ -1123,7 +1153,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
               disabled={isSubmitting || createSession.isPending || updateSession.isPending}
             >
               {(isSubmitting || createSession.isPending || updateSession.isPending) && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
-              {isEditMode ? t('create_session.confirm_save') : t('create_session.continue_to_unload')}
+              {isEditMode || isFinancialOnly ? t('create_session.confirm_save') : t('create_session.continue_to_unload')}
             </Button>
           </div>
         </DialogContent>
