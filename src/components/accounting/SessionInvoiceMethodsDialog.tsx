@@ -138,22 +138,26 @@ const SessionInvoiceMethodsDialog: React.FC<Props> = ({ open, onOpenChange, sess
               const g = grouped[key];
               const c = colorMap[color];
               return (
-                <Button
+                <button
                   key={key}
                   type="button"
-                  onClick={() => setSelected(key)}
-                  className={`h-auto py-3 px-3 justify-between ${c.btn} ${g.count === 0 ? 'opacity-50' : ''}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setSelected(key);
+                  }}
+                  className={`w-full flex items-center justify-between gap-2 rounded-md py-3 px-3 text-sm font-medium cursor-pointer ${c.btn} ${g.count === 0 ? 'opacity-60' : ''}`}
                 >
-                  <span className="flex items-center gap-2">
+                  <span className="flex items-center gap-2 pointer-events-none">
                     <Icon className="w-4 h-4" />
                     <span className="font-bold">{label}</span>
                   </span>
-                  <span className="flex items-center gap-2">
+                  <span className="flex items-center gap-2 pointer-events-none">
                     <span className="text-xs opacity-90">{g.count} عملية</span>
                     <span className="text-sm font-bold">{fmt(g.amount)} د.ج</span>
                     <ChevronRight className="w-4 h-4" />
                   </span>
-                </Button>
+                </button>
               );
             })}
           </div>
