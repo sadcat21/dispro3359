@@ -412,17 +412,26 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
       const startTz = toTz2(periodStart, false);
       const endTz = toTz2(periodEnd, true);
 
-      const { data } = await supabase
+      const baseSelect = `id, total_amount, invoice_payment_method, invoice_received_at, invoice_number, invoice_sent_at, updated_at, created_at, payment_type, payment_status, payment_method_resolved, document_status, invoice_manager_decision, document_verification, customer:customers!orders_customer_id_fkey(name, store_name, phone, owner_first_name_ar, owner_last_name_ar, owner_first_name_fr, owner_last_name_fr)`;
+      const buildStampedInvoicesQuery = () => supabase
         .from('orders')
-        .select(`id, total_amount, invoice_payment_method, invoice_received_at, invoice_number, invoice_sent_at, updated_at, created_at, payment_type, payment_status, payment_method_resolved, document_status, invoice_manager_decision, document_verification, customer:customers!orders_customer_id_fkey(name, store_name, phone, owner_first_name_ar, owner_last_name_ar, owner_first_name_fr, owner_last_name_fr)`)
+        .select(baseSelect)
         .eq('assigned_worker_id', workerId)
         .eq('status', 'delivered')
         .eq('payment_type', 'with_invoice')
-        .in('invoice_payment_method', ['check', 'cash', 'receipt', 'versement', 'transfer', 'virement'])
-        .gte('created_at', startTz)
-        .lte('created_at', endTz);
+        .in('invoice_payment_method', ['check', 'cash', 'receipt', 'versement', 'transfer', 'virement']);
 
-      return (data || []).map((o: any): StampedInvoice => {
+      const [createdRes, updatedRes] = await Promise.all([
+        buildStampedInvoicesQuery().gte('created_at', startTz).lte('created_at', endTz),
+        buildStampedInvoicesQuery().gte('updated_at', startTz).lte('updated_at', endTz),
+      ]);
+
+      const stampedInvoicesMap = new Map<string, any>();
+      for (const o of [...(createdRes.data || []), ...(updatedRes.data || [])]) {
+        if (o?.id) stampedInvoicesMap.set(o.id, o);
+      }
+
+      return Array.from(stampedInvoicesMap.values()).map((o: any): StampedInvoice => {
         const v = o.document_verification && typeof o.document_verification === 'object' ? o.document_verification : {};
         const bucket: 'cash' | 'doc' | null =
           ['receipt', 'versement', 'transfer', 'virement'].includes(String(o.invoice_payment_method || '').toLowerCase())
