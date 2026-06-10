@@ -1017,6 +1017,11 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                   <ExceptionalActionsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} />
                 </StepSection>
 
+                {/* ━━━ Pending Customer Approval Requests ━━━ */}
+                <StepSection step={13} title="طلبات معلقة من العامل" color="amber">
+                  <PendingRequestsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} />
+                </StepSection>
+
                 {/* ━━━ Step 13: Stock Discrepancies ━━━ */}
                 {pendingDiscrepancies.length > 0 && (
                   <StepSection step={13} title={t('create_session.stock_discrepancies')} color="red">
