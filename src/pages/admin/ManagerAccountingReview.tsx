@@ -365,7 +365,7 @@ const ManagerAccountingReview: React.FC = () => {
               {cards.map((c) => (
                 <div key={c.label} className={`relative rounded-lg border px-2 py-1.5 text-center ${c.cls}`}>
                   <p className="text-[10px] opacity-80">{c.label}</p>
-                  <p className="text-xs font-bold">{Number(c.value).toLocaleString('fr-FR')}</p>
+                  {c.custom ? c.custom : (<p className="text-xs font-bold">{Number(c.value).toLocaleString('fr-FR')}</p>)}
                   {c.arrow === 'right' && (
                     <ArrowLeft className="absolute top-1/2 -start-2.5 -translate-y-1/2 w-5 h-5 text-red-600 bg-white rounded-full p-0.5 shadow-md ring-1 ring-red-300 rtl:-scale-x-100 z-20" />
                   )}
