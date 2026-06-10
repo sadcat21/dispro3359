@@ -90,7 +90,7 @@ const ManagerReviewProductsDialog: React.FC<Props> = ({ open, onOpenChange, revi
           .from('orders')
           .select('id')
           .eq('status', 'delivered')
-          .or(`assigned_worker_id.eq.${s.worker_id},created_by.eq.${s.worker_id}`)
+          .eq('assigned_worker_id', s.worker_id)
           .gte('updated_at', start)
           .lte('updated_at', end);
         for (const o of (orders || []) as any[]) orderIdSet.add(o.id);

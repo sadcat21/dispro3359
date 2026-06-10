@@ -415,7 +415,8 @@ const WorkerSalesSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
         .from('orders')
         .select('id, status, payment_type, payment_status, partial_amount, total_amount, created_at, updated_at, customer_id, customer:customers(default_price_subtype)')
         .in('status', ['delivered', 'completed', 'confirmed'])
-        .or(`assigned_worker_id.eq.${workerId!},created_by.eq.${workerId!}`);
+        // Accounting attribution: delivery worker only (cash responsibility).
+        .eq('assigned_worker_id', workerId!);
 
       const normalized = normalizePeriodRange(periodFrom, periodTo);
       // Clamp the start to the last completed accounting session so orders
