@@ -264,23 +264,29 @@ const ManagerReviewProductsDialog: React.FC<Props> = ({ open, onOpenChange, revi
                   <div className="flex-1 text-start">
                     <p className="font-bold leading-tight">{selectedProduct.name}</p>
                     <p className="text-[11px] text-muted-foreground font-normal">
-                      إجمالي: {selectedProduct.boxes.toLocaleString('fr-FR')} صندوق ·{' '}
+                      إجمالي: {boxesToBPAlways(selectedProduct.boxes, selectedProduct.piecesPerBox)} ·{' '}
                       {Number(selectedProduct.totalAmount).toLocaleString('fr-FR')} دج
                     </p>
                   </div>
                 </DialogTitle>
               </DialogHeader>
               <div className="p-4 space-y-2">
-                <p className="text-xs font-semibold text-muted-foreground">توزيع الكميات حسب نوع السعر</p>
+                <p className="text-xs font-semibold text-muted-foreground">توزيع الكميات حسب نوع السعر (ص.ق)</p>
                 <div className="grid grid-cols-2 gap-2">
                   {(Object.keys(BUCKET_LABELS) as Bucket[]).map((b) => (
                     <div key={b} className={`rounded-lg border px-3 py-2 ${BUCKET_COLORS[b]}`}>
                       <p className="text-[10px] opacity-80">{BUCKET_LABELS[b]}</p>
                       <p className="text-lg font-extrabold">
-                        {selectedProduct.buckets[b].toLocaleString('fr-FR')}
+                        {boxesToBPAlways(selectedProduct.buckets[b], selectedProduct.piecesPerBox)}
                       </p>
                     </div>
                   ))}
+                  <div className="rounded-lg border px-3 py-2 bg-pink-100 text-pink-800 border-pink-200 col-span-2">
+                    <p className="text-[10px] opacity-80">🎁 العروض (هدايا)</p>
+                    <p className="text-lg font-extrabold">
+                      {boxesToBPAlways(selectedProduct.giftBoxes, selectedProduct.piecesPerBox)}
+                    </p>
+                  </div>
                 </div>
               </div>
             </>
