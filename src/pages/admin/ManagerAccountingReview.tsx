@@ -1016,7 +1016,7 @@ export const WorkerBreakdown: React.FC<{
   );
 };
 
-const SummaryRow: React.FC<{ label: string; value: number; color?: string; count?: number; onClick?: () => void }> = ({ label, value, color, count, onClick }) => {
+const SummaryRow: React.FC<{ label: string; value: number; color?: string; count?: number; hideValue?: boolean; onClick?: () => void }> = ({ label, value, color, count, hideValue, onClick }) => {
   const bg = color === 'red' ? 'bg-red-50' : color === 'green' ? 'bg-green-50' : color === 'blue' ? 'bg-blue-50' : color === 'purple' ? 'bg-purple-50' : color === 'cyan' ? 'bg-cyan-50' : color === 'orange' ? 'bg-orange-50' : color === 'slate' ? 'bg-slate-50' : 'bg-muted/30';
   const text = color === 'red' ? 'text-red-700' : color === 'green' ? 'text-green-700' : color === 'blue' ? 'text-blue-700' : color === 'purple' ? 'text-purple-700' : color === 'cyan' ? 'text-cyan-700' : color === 'orange' ? 'text-orange-700' : color === 'slate' ? 'text-slate-700' : '';
   const clickable = !!onClick;
