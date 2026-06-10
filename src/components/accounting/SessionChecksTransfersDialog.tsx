@@ -3,14 +3,16 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { CreditCard, ArrowUpRight, FileText, Calendar, Hash, Store } from 'lucide-react';
+import { CreditCard, ArrowUpRight, FileText, Calendar, Hash, Store, Receipt } from 'lucide-react';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
+
+type Method = 'check' | 'transfer' | 'invoice';
 
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  method: 'check' | 'transfer';
+  method: Method;
   sessions: any[];
 }
 
@@ -40,7 +42,7 @@ const SessionChecksTransfersDialog: React.FC<Props> = ({ open, onOpenChange, met
     queryKey: ['session-checks-transfers', method, workerIds, windows.map((w) => `${w.start}-${w.end}`)],
     enabled: open && workerIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from('orders')
         .select(`
           id, total_amount, created_at, check_due_date, doc_due_date,
@@ -50,9 +52,12 @@ const SessionChecksTransfersDialog: React.FC<Props> = ({ open, onOpenChange, met
         `)
         .eq('status', 'delivered')
         .eq('payment_type', 'with_invoice')
-        .eq('invoice_payment_method', method)
         .in('assigned_worker_id', workerIds)
         .order('created_at', { ascending: false });
+      if (method === 'check' || method === 'transfer') {
+        q = q.eq('invoice_payment_method', method);
+      }
+      const { data, error } = await q;
       if (error) throw error;
       return (data || []).filter((o: any) => {
         const t = new Date(o.created_at).getTime();
@@ -62,27 +67,36 @@ const SessionChecksTransfersDialog: React.FC<Props> = ({ open, onOpenChange, met
   });
 
   const total = orders.reduce((s: number, o: any) => s + Number(o.total_amount || 0), 0);
-  const Icon = method === 'check' ? CreditCard : ArrowUpRight;
-  const label = method === 'check' ? 'Chèques' : 'Virements';
-  const dueLabel = method === 'check' ? 'تاريخ سحب الشيك' : 'تاريخ التحويل';
+  const meta = {
+    check:    { Icon: CreditCard,   label: 'Chèques',   color: 'blue',    dueLabel: 'تاريخ سحب الشيك' },
+    transfer: { Icon: ArrowUpRight, label: 'Virements', color: 'cyan',    dueLabel: 'تاريخ التحويل' },
+    invoice:  { Icon: Receipt,      label: 'الفواتير',  color: 'emerald', dueLabel: 'تاريخ الاستحقاق' },
+  }[method];
+  const Icon = meta.Icon;
+  const colorCls = {
+    blue:    { text: 'text-blue-700',    bg: 'bg-blue-50',    border: 'border-blue-200',    iconText: 'text-blue-600' },
+    cyan:    { text: 'text-cyan-700',    bg: 'bg-cyan-50',    border: 'border-cyan-200',    iconText: 'text-cyan-600' },
+    emerald: { text: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200', iconText: 'text-emerald-600' },
+  }[meta.color as 'blue' | 'cyan' | 'emerald'];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Icon className={`w-5 h-5 ${method === 'check' ? 'text-blue-600' : 'text-cyan-600'}`} />
-            {label}
+            <Icon className={`w-5 h-5 ${colorCls.iconText}`} />
+            {meta.label}
             <Badge variant="secondary" className="ms-auto">{orders.length} عملية</Badge>
           </DialogTitle>
         </DialogHeader>
 
-        <div className={`rounded-lg p-3 text-center border ${method === 'check' ? 'bg-blue-50 border-blue-200' : 'bg-cyan-50 border-cyan-200'}`}>
+        <div className={`rounded-lg p-3 text-center border ${colorCls.bg} ${colorCls.border}`}>
           <p className="text-[11px] text-muted-foreground">الإجمالي</p>
-          <p className={`text-lg font-bold ${method === 'check' ? 'text-blue-700' : 'text-cyan-700'}`}>
+          <p className={`text-lg font-bold ${colorCls.text}`}>
             {fmt(total)} د.ج
           </p>
         </div>
+
 
         {isLoading ? (
           <p className="text-center text-sm text-muted-foreground py-6">جارٍ التحميل...</p>
@@ -117,7 +131,7 @@ const SessionChecksTransfersDialog: React.FC<Props> = ({ open, onOpenChange, met
                     </div>
                     <div className="flex items-center gap-1">
                       <Calendar className="w-3 h-3 text-slate-400" />
-                      <span className="text-muted-foreground">{dueLabel}:</span>
+                      <span className="text-muted-foreground">{meta.dueLabel}:</span>
                       <span className="font-medium">{fmtDate(dueDate)}</span>
                     </div>
                     {/* Row 2: Invoice — number | date */}
