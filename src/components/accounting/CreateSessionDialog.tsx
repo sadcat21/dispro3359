@@ -453,9 +453,15 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
       handleSubmit();
       return;
     }
+    if (isFinancialOnly) {
+      // الفئة "محاسبة مالية فقط": لا يوجد تفريغ شاحنة — احفظ مباشرة
+      handleSubmit();
+      return;
+    }
     setShowConfirmation(false);
     setShowUnloadDialog(true);
   };
+
 
   const handleSubmit = async (unloadNotes?: string) => {
     if (!selectedWorkerId || !calc || isSubmitting) { toast.error(t('create_session.select_worker')); return; }
