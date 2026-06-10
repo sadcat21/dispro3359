@@ -1238,23 +1238,29 @@ const StepSection: React.FC<{
   hideHeader?: boolean;
   defaultOpen?: boolean;
   verified?: boolean;
+  requiresVerification?: boolean;
   children: React.ReactNode;
-}> = ({ step, title, color = 'primary', badge, important, forceOpen, hideHeader, defaultOpen, verified, children }) => {
+}> = ({ step, title, color = 'primary', badge, important, forceOpen, hideHeader, defaultOpen, verified, requiresVerification, children }) => {
   const colorClass = stepColors[color] || stepColors.primary;
   const [open, setOpen] = React.useState(!!defaultOpen);
   React.useEffect(() => { if (forceOpen) setOpen(true); }, [forceOpen]);
+  const needsVerify = !!requiresVerification && !verified;
 
   return (
-    <Collapsible open={open} onOpenChange={setOpen} className={hideHeader ? 'space-y-2.5' : `rounded-xl border-2 p-3.5 space-y-2.5 ${important ? 'border-primary bg-primary/5' : verified ? 'border-emerald-300 bg-emerald-50/40' : 'border-border'}`}>
+    <Collapsible open={open} onOpenChange={setOpen} className={hideHeader ? 'space-y-2.5' : `rounded-xl border-2 p-3.5 space-y-2.5 ${important ? 'border-primary bg-primary/5' : needsVerify ? 'border-destructive bg-destructive/5' : verified ? 'border-emerald-300 bg-emerald-50/40' : 'border-border'}`}>
       {!hideHeader && (
         <CollapsibleTrigger className="flex items-center gap-2.5 w-full text-right">
           <div className={`${badge ? 'w-auto px-1.5 min-w-[1.5rem]' : 'w-6'} h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${colorClass}`}>
             {badge ? `${step}-${badge}` : step}
           </div>
           <h3 className="font-bold text-sm flex-1 text-right flex items-center gap-2 justify-end">
-            {verified && (
+            {verified ? (
               <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 border border-emerald-300 rounded-full px-2 py-0.5">
                 ✓ تم التحقق
+              </span>
+            ) : requiresVerification && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-destructive bg-destructive/10 border border-destructive/30 rounded-full px-2 py-0.5 animate-pulse">
+                ⚠ يتطلب التحقق
               </span>
             )}
             <span>{title}</span>
