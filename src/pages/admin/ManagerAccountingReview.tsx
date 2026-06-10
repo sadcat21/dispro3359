@@ -980,6 +980,11 @@ export const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ to
         method={openMethod ?? 'check'}
         sessions={sessions}
       />
+      <SessionInvoiceMethodsDialog
+        open={openInvoiceMethods}
+        onOpenChange={setOpenInvoiceMethods}
+        sessions={sessions}
+      />
     </Card>
   );
 };
