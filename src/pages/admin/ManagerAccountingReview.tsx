@@ -837,31 +837,29 @@ export const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ to
         <div className="space-y-2">
           <p className="text-xs font-semibold text-muted-foreground">📄 الشيكات والتحويلات</p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <SummaryRow
+            <MethodSplitCard
               label="فواتير"
-              value={methodCounts?.invoiceTotal ?? 0}
-              color="red"
-              count={methodCounts?.invoice}
-              hideValue
+              delivered={methodCounts?.invoice.delivered}
+              pending={methodCounts?.invoice.pending}
+              hideAmount
               onClick={() => setOpenMethod('invoice')}
             />
-            <SummaryRow
+            <MethodSplitCard
               label="شيكات"
-              value={totalChecks}
-              color="red"
-              count={methodCounts?.check}
+              delivered={methodCounts?.check.delivered}
+              pending={methodCounts?.check.pending}
               onClick={() => setOpenMethod('check')}
             />
             <SummaryRow label="وصولات بنكية" value={totalReceipts} color="red" />
-            <SummaryRow
+            <MethodSplitCard
               label="تحويلات"
-              value={totalTransfers}
-              color="red"
-              count={methodCounts?.transfer}
+              delivered={methodCounts?.transfer.delivered}
+              pending={methodCounts?.transfer.pending}
               onClick={() => setOpenMethod('transfer')}
             />
           </div>
         </div>
+
 
 
 
