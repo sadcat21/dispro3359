@@ -611,14 +611,6 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                       <span className="text-emerald-600 font-semibold">{periodStart.replace('T', ' ')}</span>
                       <span className="text-muted-foreground">←</span>
                       <span className="font-bold text-foreground">{periodEnd.replace('T', ' ')}</span>
-                      <button
-                        type="button"
-                        onClick={() => setPeriodEnd(nowLocal())}
-                        className="text-primary hover:text-primary/80 p-0.5"
-                        title={t('common.refresh') || 'تحديث'}
-                      >
-                        <RefreshCw className="w-3.5 h-3.5" />
-                      </button>
                     </span>
                   )}
                 </div>
