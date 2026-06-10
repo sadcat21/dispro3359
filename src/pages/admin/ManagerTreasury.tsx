@@ -40,6 +40,9 @@ import { useTreasuryContacts } from '@/hooks/useTreasuryContacts';
 import { isTransferPaidByCash, resolveReceiptBucket } from '@/utils/treasuryDocumentClassification';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useIsElementHidden } from '@/hooks/useUIOverrides';
+import ManagerReviewProductsDialog from '@/components/accounting/ManagerReviewProductsDialog';
+import SessionInvoiceMethodsDialog from '@/components/accounting/SessionInvoiceMethodsDialog';
+import RowMetricDetailsDialog, { type RowMetric } from '@/components/accounting/RowMetricDetailsDialog';
 
 const TreasuryCard = ({ icon, label, total, handed, colorClass, borderClass, onClick, currency, showDetails, badgeText }: {
   icon: React.ReactNode; label: string; total: number; handed: number; colorClass: string; borderClass: string; onClick: () => void; currency: string; showDetails: boolean; badgeText?: { operations: number; clients: number };
@@ -107,6 +110,39 @@ const ManagerTreasury = () => {
   const { data: reviewHistory = [] } = useManagerReviewSessions();
   const createHandover = useCreateHandover();
   const addEntry = useAddTreasuryEntry();
+
+  // BI card interactive states (mirror ManagerAccountingReview)
+  const [showBIProductsDialog, setShowBIProductsDialog] = useState(false);
+  const [biRowInvoiceReviewIds, setBIRowInvoiceReviewIds] = useState<string[] | null>(null);
+  const [biRowMetricState, setBIRowMetricState] = useState<{ reviewIds: string[]; metric: RowMetric } | null>(null);
+  const { data: biRowInvoiceDetailSessions = [] } = useQuery({
+    queryKey: ['treasury-bi-row-invoice-detail-sessions', biRowInvoiceReviewIds],
+    queryFn: async () => {
+      if (!biRowInvoiceReviewIds || biRowInvoiceReviewIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from('accounting_sessions')
+        .select(`*, worker:workers!accounting_sessions_worker_id_fkey(id, full_name, username), items:accounting_session_items(*)`)
+        .in('review_session_id', biRowInvoiceReviewIds)
+        .order('completed_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!biRowInvoiceReviewIds && biRowInvoiceReviewIds.length > 0,
+  });
+  const { data: biRowMetricSessions = [] } = useQuery({
+    queryKey: ['treasury-bi-row-metric-detail-sessions', biRowMetricState?.reviewIds],
+    queryFn: async () => {
+      if (!biRowMetricState?.reviewIds || biRowMetricState.reviewIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from('accounting_sessions')
+        .select(`*, worker:workers!accounting_sessions_worker_id_fkey(id, full_name, username), items:accounting_session_items(*)`)
+        .in('review_session_id', biRowMetricState.reviewIds)
+        .order('completed_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!biRowMetricState?.reviewIds && biRowMetricState.reviewIds.length > 0,
+  });
 
   const cur = t('treasury.currency');
   const dateLocale = language === 'ar' ? ar : language === 'fr' ? fr : enUS;
