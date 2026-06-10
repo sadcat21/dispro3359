@@ -829,6 +829,7 @@ export const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ to
   const totalTransfers = totals.invoice1Transfer + totals.debtCollectionsTransfer;
 
   const [openMethod, setOpenMethod] = useState<'check' | 'transfer' | 'invoice' | null>(null);
+  const [openInvoiceMethods, setOpenInvoiceMethods] = useState(false);
 
   const windows = useMemo(() => (sessions || [])
     .map((s: any) => ({
