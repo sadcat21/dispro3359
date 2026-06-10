@@ -48,6 +48,8 @@ const SessionChecksTransfersDialog: React.FC<Props> = ({ open, onOpenChange, met
           id, total_amount, created_at, check_due_date, doc_due_date,
           invoice_number, invoice_received_at, assigned_worker_id,
           invoice_payment_method, status, payment_type,
+          document_status, document_stage, document_manager_decision,
+          invoice_manager_decision,
           customer:customers(name, store_name)
         `)
         .eq('status', 'delivered')
