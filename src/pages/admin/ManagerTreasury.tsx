@@ -1593,7 +1593,7 @@ const ManagerTreasury = () => {
                                   <p className="font-semibold text-emerald-700 dark:text-emerald-400 break-all">{totalCash.toLocaleString()}</p>
                                 </div>
                                 <div className="rounded bg-blue-50 dark:bg-blue-950/30 px-1.5 py-1">
-                                  <p className="text-[9px] text-muted-foreground">Chèques</p>
+                                  <p className="text-[9px] text-muted-foreground">إجمالي الوثائق</p>
                                   <p className="font-semibold text-blue-700 dark:text-blue-400 break-all">{totalChecks.toLocaleString()}</p>
                                 </div>
                               </div>
