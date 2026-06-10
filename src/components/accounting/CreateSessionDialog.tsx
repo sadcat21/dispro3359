@@ -1075,7 +1075,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 )}
 
                 {/* ━━━ Step 10: Debt Collections Detail ━━━ */}
-                <StepSection step={11} title={t('create_session.collected_debts_details')} color="orange" verified={verifications.debtCollections || (calc?.debtCollections?.total || 0) === 0}>
+                <StepSection step={11} title={t('create_session.collected_debts_details')} color="orange" verified={verifications.debtCollections || (calc?.debtCollections?.total || 0) === 0} requiresVerification={(calc?.debtCollections?.total || 0) > 0}>
                   <DebtCollectionsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} completedAt={null} />
                   <VerifyButton verified={verifications.debtCollections} onClick={() => toggleVerify('debtCollections')} label="تحقق من الديون المحصلة" />
                 </StepSection>
