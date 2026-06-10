@@ -95,8 +95,8 @@ const BottomNav: React.FC<BottomNavProps> = ({
           type="button"
           aria-label={centerLabel}
           onClick={onCenterClick}
-          className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-500 text-white transition-transform duration-200 hover:scale-105 active:scale-95"
-          style={{ boxShadow: '0 6px 16px rgba(34,197,94,0.35)' }}
+          className="flex h-11 w-11 items-center justify-center rounded-xl bg-yellow-400 text-white transition-transform duration-200 hover:scale-105 active:scale-95"
+          style={{ boxShadow: '0 6px 16px rgba(250,204,21,0.35)' }}
         >
           <CenterIcon size={22} strokeWidth={2.4} />
         </button>
@@ -133,12 +133,12 @@ const NavButton: React.FC<{
         isAchievements
           ? 'bg-green-500 hover:bg-green-600'
               : isHome
-                ? 'bg-green-500 hover:bg-green-600'
+                ? 'bg-yellow-400 hover:bg-yellow-500'
               : 'hover:bg-white/5',
       )}
       style={
         isAchievements ? { boxShadow: '0 6px 16px rgba(34,197,94,0.35)' }
-        : isHome ? { boxShadow: '0 6px 16px rgba(34,197,94,0.45)' }
+        : isHome ? { boxShadow: '0 6px 16px rgba(250,204,21,0.45)' }
 
 
 
