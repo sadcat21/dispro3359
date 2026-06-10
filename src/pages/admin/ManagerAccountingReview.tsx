@@ -998,16 +998,27 @@ export const WorkerBreakdown: React.FC<{
   );
 };
 
-const SummaryRow: React.FC<{ label: string; value: number; color?: string }> = ({ label, value, color }) => {
+const SummaryRow: React.FC<{ label: string; value: number; color?: string; count?: number; onClick?: () => void }> = ({ label, value, color, count, onClick }) => {
   const bg = color === 'red' ? 'bg-red-50' : color === 'green' ? 'bg-green-50' : color === 'blue' ? 'bg-blue-50' : color === 'purple' ? 'bg-purple-50' : color === 'cyan' ? 'bg-cyan-50' : color === 'orange' ? 'bg-orange-50' : color === 'slate' ? 'bg-slate-50' : 'bg-muted/30';
   const text = color === 'red' ? 'text-red-700' : color === 'green' ? 'text-green-700' : color === 'blue' ? 'text-blue-700' : color === 'purple' ? 'text-purple-700' : color === 'cyan' ? 'text-cyan-700' : color === 'orange' ? 'text-orange-700' : color === 'slate' ? 'text-slate-700' : '';
+  const clickable = !!onClick;
   return (
-    <div className={`${bg} rounded-lg p-2 text-center`}>
+    <div
+      className={`${bg} rounded-lg p-2 text-center relative ${clickable ? 'cursor-pointer hover:ring-2 hover:ring-offset-1 hover:ring-current/40 transition' : ''}`}
+      onClick={onClick}
+      role={clickable ? 'button' : undefined}
+    >
+      {typeof count === 'number' && count > 0 && (
+        <span className={`absolute top-1 ${document?.dir === 'rtl' ? 'left-1' : 'right-1'} text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-white border ${text}`}>
+          {count}
+        </span>
+      )}
       <p className="text-[9px] text-muted-foreground truncate">{label}</p>
       <p className={`text-xs font-bold ${text}`}>{fmt(value)}</p>
     </div>
   );
 };
+
 
 const MiniBox: React.FC<{ label: string; value: number; color?: string; showSign?: boolean }> = ({ label, value, color, showSign }) => {
   const bg = color === 'green' ? 'bg-green-50' : color === 'red' ? 'bg-red-50' : color === 'orange' ? 'bg-orange-50' : color === 'blue' ? 'bg-blue-50' : 'bg-muted/30';
