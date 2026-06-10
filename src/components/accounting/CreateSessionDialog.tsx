@@ -25,6 +25,7 @@ import StockDiscrepancySection from './StockDiscrepancySection';
 import DebtCollectionsSummary from './DebtCollectionsSummary';
 import DocumentCollectionsSummary from './DocumentCollectionsSummary';
 import ExceptionalActionsSummary from './ExceptionalActionsSummary';
+import PendingRequestsSummary from './PendingRequestsSummary';
 import WorkerHandoverSummary from './WorkerHandoverSummary';
 import ExpensesDetailsSummary from './ExpensesDetailsSummary';
 import { usePendingDiscrepancies } from '@/hooks/useStockDiscrepancies';
