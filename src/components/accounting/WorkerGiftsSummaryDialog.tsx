@@ -329,7 +329,7 @@ const WorkerGiftsSummaryDialog: React.FC<Props> = ({ open, onOpenChange, workerI
         .lte('updated_at', periodEndTz);
 
       if (effectiveWorkerId) {
-        ordersQuery = ordersQuery.or(`assigned_worker_id.eq.${effectiveWorkerId},created_by.eq.${effectiveWorkerId}`);
+        ordersQuery = ordersQuery.eq('assigned_worker_id', effectiveWorkerId);
       }
       if (activeBranch?.id) {
         ordersQuery = ordersQuery.eq('branch_id', activeBranch.id);

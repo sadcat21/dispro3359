@@ -117,7 +117,9 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
     .from('orders')
     .select('id, total_amount, payment_status, payment_type, invoice_payment_method, partial_amount, customer_id, document_verification, created_at, updated_at, notes, customer:customers(name, store_name, phone, address, sector:sectors(name)), order_items(quantity, unit_price, total_price, gift_quantity, gift_pieces, gift_offer_id, product_id, pieces_per_box, product:products(name, image_url, price_gros, price_super_gros, price_retail, price_invoice, pricing_unit, weight_per_box, pieces_per_box))')
     .eq('status', 'delivered')
-    .or(`assigned_worker_id.eq.${workerId},created_by.eq.${workerId}`);
+    // Accounting: attribute orders to the delivery worker only (assigned_worker_id).
+    // created_by is the sales rep who recorded the order and bears no cash responsibility.
+    .eq('assigned_worker_id', workerId);
 
   const [createdOrdersRes, updatedOrdersRes] = await Promise.all([
     buildOrdersQuery()
