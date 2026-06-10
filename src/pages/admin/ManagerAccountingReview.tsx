@@ -738,7 +738,11 @@ const ManagerAccountingReview: React.FC = () => {
                             <span className="text-red-700">-{fmt(deficit)}</span>
                           </p>
                         </div>
-                        <div className="rounded-md border px-1.5 py-1 text-center bg-yellow-50 border-yellow-300 text-yellow-800">
+                        <div
+                          className="rounded-md border px-1.5 py-1 text-center bg-yellow-50 border-yellow-300 text-yellow-800 cursor-pointer hover:ring-2 hover:ring-yellow-400 transition"
+                          onClick={(e) => { e.stopPropagation(); setRowMetricState({ reviewId: review.id, metric: 'coin_amount' }); }}
+                          role="button"
+                        >
                           <p className="text-[9px] leading-tight opacity-80">صرف العملة</p>
                           <p className="text-[11px] font-bold leading-tight mt-0.5">{fmt(coin)}</p>
                         </div>
