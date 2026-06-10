@@ -3,14 +3,16 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { CreditCard, ArrowUpRight, FileText, Calendar, Hash, Store } from 'lucide-react';
+import { CreditCard, ArrowUpRight, FileText, Calendar, Hash, Store, Receipt } from 'lucide-react';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
+
+type Method = 'check' | 'transfer' | 'invoice';
 
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  method: 'check' | 'transfer';
+  method: Method;
   sessions: any[];
 }
 
