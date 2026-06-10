@@ -33,6 +33,7 @@ import companyLogo from '@/assets/logo.png';
 import SessionDetailsDialog from '@/components/accounting/SessionDetailsDialog';
 import SessionChecksTransfersDialog from '@/components/accounting/SessionChecksTransfersDialog';
 import SessionInvoiceMethodsDialog from '@/components/accounting/SessionInvoiceMethodsDialog';
+import RowMetricDetailsDialog, { type RowMetric } from '@/components/accounting/RowMetricDetailsDialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, Receipt } from 'lucide-react';
 import ManagerReviewProductsDialog from '@/components/accounting/ManagerReviewProductsDialog';
@@ -121,6 +122,7 @@ const ManagerAccountingReview: React.FC = () => {
     enabled: !!selectedReview,
   });
   const [rowInvoiceReviewId, setRowInvoiceReviewId] = useState<string | null>(null);
+  const [rowMetricState, setRowMetricState] = useState<{ reviewId: string; metric: RowMetric } | null>(null);
   const { data: rowInvoiceDetailSessions = [] } = useQuery({
     queryKey: ['row-invoice-detail-sessions', rowInvoiceReviewId],
     queryFn: async () => {
@@ -138,6 +140,25 @@ const ManagerAccountingReview: React.FC = () => {
       return data || [];
     },
     enabled: !!rowInvoiceReviewId,
+  });
+
+  const { data: rowMetricSessions = [] } = useQuery({
+    queryKey: ['row-metric-detail-sessions', rowMetricState?.reviewId],
+    queryFn: async () => {
+      if (!rowMetricState?.reviewId) return [];
+      const { data, error } = await supabase
+        .from('accounting_sessions')
+        .select(`
+          *,
+          worker:workers!accounting_sessions_worker_id_fkey(id, full_name, username),
+          items:accounting_session_items(*)
+        `)
+        .eq('review_session_id', rowMetricState.reviewId)
+        .order('completed_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!rowMetricState?.reviewId,
   });
 
   const confirmMutation = useConfirmManagerReview();
@@ -430,6 +451,13 @@ const ManagerAccountingReview: React.FC = () => {
         sessions={rowInvoiceDetailSessions}
       />
 
+      <RowMetricDetailsDialog
+        open={!!rowMetricState}
+        onOpenChange={(o) => { if (!o) setRowMetricState(null); }}
+        sessions={rowMetricSessions}
+        metric={rowMetricState?.metric ?? null}
+      />
+
 
       {/* Tabs */}
       <Tabs value={selectedReview ? 'detail' : activeTab} onValueChange={(v) => { if (v !== 'detail') { setSelectedReview(null); setActiveTab(v); } }}>
@@ -665,11 +693,11 @@ const ManagerAccountingReview: React.FC = () => {
                     const fmt = (n: number) => Number(n || 0).toLocaleString('fr-FR');
                     const metrics: Array<{ label: string; value: number; cls: string; arrow?: 'right' | 'up' | 'up-right'; onClick?: () => void }> = [
                       { label: 'إجمالي المبيعات', value: review.total_sales, cls: 'text-blue-700 bg-blue-50 border-blue-200', onClick: () => setRowProductsReviewId(review.id) },
-                      { label: 'ديون جديدة', value: review.new_debts, cls: 'text-rose-700 bg-rose-50 border-rose-200', arrow: 'right' },
-                      { label: 'تحصيلات الديون', value: review.debt_collections, cls: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
+                      { label: 'ديون جديدة', value: review.new_debts, cls: 'text-rose-700 bg-rose-50 border-rose-200', arrow: 'right', onClick: () => setRowMetricState({ reviewId: review.id, metric: 'new_debts' }) },
+                      { label: 'تحصيلات الديون', value: review.debt_collections, cls: 'text-emerald-700 bg-emerald-50 border-emerald-200', onClick: () => setRowMetricState({ reviewId: review.id, metric: 'debt_collections' }) },
                       { label: 'مدفوعات وثائق', value: review.doc_payments, cls: 'text-violet-700 bg-violet-50 border-violet-200', arrow: 'up', onClick: () => setRowInvoiceReviewId(review.id) },
                       { label: 'مدفوعات نقدية', value: review.cash_payments, cls: 'text-teal-700 bg-teal-50 border-teal-200', arrow: 'up-right', onClick: () => setRowInvoiceReviewId(review.id) },
-                      { label: 'المصاريف', value: review.expenses, cls: 'text-amber-700 bg-amber-50 border-amber-200' },
+                      { label: 'المصاريف', value: review.expenses, cls: 'text-amber-700 bg-amber-50 border-amber-200', onClick: () => setRowMetricState({ reviewId: review.id, metric: 'expenses' }) },
                     ];
                     return (
                       <div dir="rtl" className="mt-3 grid grid-cols-3 gap-1.5 overflow-visible" onClick={(e) => e.stopPropagation()}>
@@ -717,7 +745,11 @@ const ManagerAccountingReview: React.FC = () => {
                             <span className="text-red-700">-{fmt(deficit)}</span>
                           </p>
                         </div>
-                        <div className="rounded-md border px-1.5 py-1 text-center bg-yellow-50 border-yellow-300 text-yellow-800">
+                        <div
+                          className="rounded-md border px-1.5 py-1 text-center bg-yellow-50 border-yellow-300 text-yellow-800 cursor-pointer hover:ring-2 hover:ring-yellow-400 transition"
+                          onClick={(e) => { e.stopPropagation(); setRowMetricState({ reviewId: review.id, metric: 'coin_amount' }); }}
+                          role="button"
+                        >
                           <p className="text-[9px] leading-tight opacity-80">صرف العملة</p>
                           <p className="text-[11px] font-bold leading-tight mt-0.5">{fmt(coin)}</p>
                         </div>
