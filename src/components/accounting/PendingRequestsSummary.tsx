@@ -177,7 +177,7 @@ const PendingRequestsSummary: React.FC<Props> = ({ workerId, periodStart, period
       </div>
 
       <Dialog open={!!openOrder} onOpenChange={(o) => !o && setOpenOrder(null)}>
-        <DialogContent className="max-w-md max-h-[90dvh] p-0 flex flex-col gap-0 overflow-hidden bg-muted/30" dir="rtl">
+        <DialogContent className="max-w-md max-h-[90dvh] p-0 flex flex-col gap-0 overflow-hidden bg-background" dir="rtl">
           <DialogHeader className="p-3 bg-destructive/10 border-b">
             <DialogTitle className="flex items-center justify-end gap-2 text-sm font-bold text-destructive">
               تفاصيل الطلبية
