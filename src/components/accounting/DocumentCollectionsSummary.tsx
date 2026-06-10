@@ -350,12 +350,15 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
       // silently drops delivered orders that contribute to session totals
       // but had their updated_at slip just outside the window.
       const baseSelect = `id, total_amount, invoice_payment_method, document_status, document_manager_decision, document_verification, payment_status, payment_method_resolved, updated_at, created_at, customer:customers!orders_customer_id_fkey(name, store_name, owner_first_name_ar, owner_last_name_ar, owner_first_name_fr, owner_last_name_fr)`;
+      // Include delivered orders, AND cancelled orders whose document was already
+      // received/verified — the worker remains accountable for the physical
+      // document even if the order itself was later cancelled.
       const buildDeliveryOrdersQuery = () => supabase
         .from('orders')
         .select(baseSelect)
         .eq('assigned_worker_id', workerId)
-        .eq('status', 'delivered')
-        .in('invoice_payment_method', ['check', 'receipt', 'transfer', 'versement', 'virement']);
+        .in('invoice_payment_method', ['check', 'receipt', 'transfer', 'versement', 'virement'])
+        .or('status.eq.delivered,and(status.eq.cancelled,document_status.in.(received,verified,collected))');
 
       const [createdRes, updatedRes] = await Promise.all([
         buildDeliveryOrdersQuery().gte('created_at', startTz).lte('created_at', endTz),
