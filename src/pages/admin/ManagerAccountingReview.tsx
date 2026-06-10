@@ -1026,6 +1026,33 @@ export const WorkerBreakdown: React.FC<{
   );
 };
 
+type Bucket = { count: number; amount: number };
+const MethodSplitCard: React.FC<{ label: string; delivered?: Bucket; pending?: Bucket; hideAmount?: boolean; onClick?: () => void }> = ({ label, delivered, pending, hideAmount, onClick }) => {
+  const d = delivered || { count: 0, amount: 0 };
+  const p = pending || { count: 0, amount: 0 };
+  return (
+    <div
+      className={`rounded-lg border bg-white overflow-hidden ${onClick ? 'cursor-pointer hover:ring-2 hover:ring-emerald-300/50 transition' : ''}`}
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+    >
+      <p className="text-[9px] text-muted-foreground text-center pt-1.5 px-1 truncate">{label}</p>
+      <div className="grid grid-cols-2 gap-px bg-slate-200 mt-1">
+        <div className="bg-green-50 p-1.5 text-center" title="مُسلَّمة لمساعد المسير">
+          <p className="text-[8px] text-green-700 font-medium">مُسلَّم</p>
+          <p className="text-[10px] font-bold text-green-700">{d.count}</p>
+          {!hideAmount && <p className="text-[9px] text-green-700">{fmt(d.amount)}</p>}
+        </div>
+        <div className="bg-red-50 p-1.5 text-center" title="غير مُسلَّمة لمساعد المسير">
+          <p className="text-[8px] text-red-700 font-medium">غير مُسلَّم</p>
+          <p className="text-[10px] font-bold text-red-700">{p.count}</p>
+          {!hideAmount && <p className="text-[9px] text-red-700">{fmt(p.amount)}</p>}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const SummaryRow: React.FC<{ label: string; value: number; color?: string; count?: number; hideValue?: boolean; onClick?: () => void }> = ({ label, value, color, count, hideValue, onClick }) => {
   const bg = color === 'red' ? 'bg-red-50' : color === 'green' ? 'bg-green-50' : color === 'blue' ? 'bg-blue-50' : color === 'purple' ? 'bg-purple-50' : color === 'cyan' ? 'bg-cyan-50' : color === 'orange' ? 'bg-orange-50' : color === 'slate' ? 'bg-slate-50' : 'bg-muted/30';
   const text = color === 'red' ? 'text-red-700' : color === 'green' ? 'text-green-700' : color === 'blue' ? 'text-blue-700' : color === 'purple' ? 'text-purple-700' : color === 'cyan' ? 'text-cyan-700' : color === 'orange' ? 'text-orange-700' : color === 'slate' ? 'text-slate-700' : '';
