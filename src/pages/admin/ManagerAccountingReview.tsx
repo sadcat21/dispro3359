@@ -122,6 +122,7 @@ const ManagerAccountingReview: React.FC = () => {
     enabled: !!selectedReview,
   });
   const [rowInvoiceReviewId, setRowInvoiceReviewId] = useState<string | null>(null);
+  const [rowMetricState, setRowMetricState] = useState<{ reviewId: string; metric: RowMetric } | null>(null);
   const { data: rowInvoiceDetailSessions = [] } = useQuery({
     queryKey: ['row-invoice-detail-sessions', rowInvoiceReviewId],
     queryFn: async () => {
