@@ -420,9 +420,9 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
         .from('orders')
         .select(baseSelect)
         .eq('assigned_worker_id', workerId)
-        .eq('status', 'delivered')
         .eq('payment_type', 'with_invoice')
-        .in('invoice_payment_method', ['check', 'cash', 'receipt', 'versement', 'transfer', 'virement']);
+        .in('invoice_payment_method', ['check', 'cash', 'receipt', 'versement', 'transfer', 'virement'])
+        .or('status.eq.delivered,and(status.eq.cancelled,document_status.in.(received,verified,collected))');
 
       const [createdRes, updatedRes] = await Promise.all([
         buildStampedInvoicesQuery().gte('created_at', startTz).lte('created_at', endTz),
