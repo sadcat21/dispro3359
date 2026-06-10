@@ -1138,10 +1138,11 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             <Button
               className="flex-1 rounded-xl h-11 text-base font-bold"
               onClick={handleShowConfirmation}
-              disabled={isSubmitting || createSession.isPending || updateSession.isPending || !selectedWorkerId || !calc || hasOutstandingCollections}
+              disabled={isSubmitting || createSession.isPending || updateSession.isPending || !selectedWorkerId || !calc || hasOutstandingCollections || (!verifications.newDebts && ((calc?.newDebts || 0) > 0 || (calc?.debtCollections?.total || 0) > 0)) || (!verifications.debtCollections && (calc?.debtCollections?.total || 0) > 0) || (!verifications.pendingOrders && pendingOrdersCount > 0)}
             >
               {isEditMode ? 'حفظ التعديلات' : t('accounting.save_session')}
             </Button>
+
           </div>
         </div>
       </DialogContent>
