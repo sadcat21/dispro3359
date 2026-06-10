@@ -120,6 +120,25 @@ const ManagerAccountingReview: React.FC = () => {
     },
     enabled: !!selectedReview,
   });
+  const [rowInvoiceReviewId, setRowInvoiceReviewId] = useState<string | null>(null);
+  const { data: rowInvoiceDetailSessions = [] } = useQuery({
+    queryKey: ['row-invoice-detail-sessions', rowInvoiceReviewId],
+    queryFn: async () => {
+      if (!rowInvoiceReviewId) return [];
+      const { data, error } = await supabase
+        .from('accounting_sessions')
+        .select(`
+          *,
+          worker:workers!accounting_sessions_worker_id_fkey(id, full_name, username),
+          items:accounting_session_items(*)
+        `)
+        .eq('review_session_id', rowInvoiceReviewId)
+        .order('completed_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!rowInvoiceReviewId,
+  });
 
   const confirmMutation = useConfirmManagerReview();
   const undoMutation = useUndoManagerReview();
@@ -140,7 +159,6 @@ const ManagerAccountingReview: React.FC = () => {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showProductsDialog, setShowProductsDialog] = useState(false);
   const [rowProductsReviewId, setRowProductsReviewId] = useState<string | null>(null);
-  const [rowInvoiceSessions, setRowInvoiceSessions] = useState<any[] | null>(null);
   useEffect(() => {
     setSelectedIds(new Set(filteredPendingSessions.map((s: any) => s.id)));
   }, [filteredPendingSessions]);
