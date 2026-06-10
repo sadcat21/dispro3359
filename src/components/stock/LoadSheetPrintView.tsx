@@ -230,10 +230,9 @@ const LoadSheetPrintView: React.FC<LoadSheetPrintViewProps> = ({
   };
 
   const handlePrint = () => {
-    setIsPrintReady(true);
+    // Give React a tick to ensure portal DOM is current, then trigger native print
     setTimeout(() => {
       window.print();
-      setTimeout(() => setIsPrintReady(false), 500);
     }, 300);
   };
 
