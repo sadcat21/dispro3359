@@ -38,6 +38,7 @@ import ConsolidationHistoryTab from '@/components/treasury/ConsolidationHistoryT
 import InvoiceRequestDialog from '@/components/treasury/InvoiceRequestDialog';
 import { useTreasuryContacts } from '@/hooks/useTreasuryContacts';
 import { isTransferPaidByCash, resolveReceiptBucket } from '@/utils/treasuryDocumentClassification';
+import { parseCashConsolidationNote } from '@/utils/treasuryCashConsolidation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useIsElementHidden } from '@/hooks/useUIOverrides';
 import ManagerReviewProductsDialog from '@/components/accounting/ManagerReviewProductsDialog';
