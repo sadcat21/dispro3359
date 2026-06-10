@@ -1018,7 +1018,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 </StepSection>
 
                 {/* ━━━ Pending Customer Approval Requests ━━━ */}
-                <StepSection step={13} title="طلبات معلقة من العامل" color="amber">
+                <StepSection step={13} title="تفاصيل الطلبيات الجديدة" color="amber">
                   <PendingRequestsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} />
                 </StepSection>
 
