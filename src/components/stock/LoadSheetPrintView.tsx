@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -246,9 +247,21 @@ const LoadSheetPrintView: React.FC<LoadSheetPrintViewProps> = ({
     ? [{ label: tp('print.surplus') || 'Surplus', productQuantities: surplusMap, style: 'highlight' as const }]
     : [];
 
+  // Dedicated portal for load sheet printing (matches @media print rules in index.css)
+  const [printPortalEl, setPrintPortalEl] = useState<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const div = document.createElement('div');
+    div.id = 'loadsheet-print-portal';
+    document.body.appendChild(div);
+    setPrintPortalEl(div);
+    return () => {
+      if (div.parentNode) div.parentNode.removeChild(div);
+    };
+  }, []);
+
   return (
     <>
-      {open && hasData && (
+      {open && hasData && printPortalEl && createPortal(
         <OrdersPrintView
           ref={printRef}
           orders={orders}
@@ -257,9 +270,11 @@ const LoadSheetPrintView: React.FC<LoadSheetPrintViewProps> = ({
           title={title}
           dateRange={printDate}
           isVisible
+          usePortal={false}
           extraRows={extraRows}
           columnConfig={columnConfig}
-        />
+        />,
+        printPortalEl
       )}
 
       <div className="print:hidden">
