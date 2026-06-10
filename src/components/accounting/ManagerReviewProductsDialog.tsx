@@ -55,11 +55,11 @@ const classify = (item: any, order: any): Bucket => {
   // Infer from unit price vs product catalog
   const p = item.product || {};
   const unit = Number(item.unit_price || 0);
-  const candidates: Array<[Bucket, number]> = [
+  const candidates: Array<[Bucket, number]> = ([
     ['retail', Number(p.price_retail || 0)],
     ['gros', Number(p.price_gros || 0)],
     ['super_gros', Number(p.price_super_gros || 0)],
-  ].filter(([, v]) => v > 0) as Array<[Bucket, number]>;
+  ] as Array<[Bucket, number]>).filter(([, v]) => v > 0);
   const tol = 0.75;
   const match = candidates.find(([, v]) => Math.abs(v - unit) <= tol);
   if (match) return match[0];
