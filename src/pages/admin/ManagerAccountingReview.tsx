@@ -33,6 +33,7 @@ import companyLogo from '@/assets/logo.png';
 import SessionDetailsDialog from '@/components/accounting/SessionDetailsDialog';
 import SessionChecksTransfersDialog from '@/components/accounting/SessionChecksTransfersDialog';
 import SessionInvoiceMethodsDialog from '@/components/accounting/SessionInvoiceMethodsDialog';
+import RowMetricDetailsDialog, { type RowMetric } from '@/components/accounting/RowMetricDetailsDialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, Receipt } from 'lucide-react';
 import ManagerReviewProductsDialog from '@/components/accounting/ManagerReviewProductsDialog';
