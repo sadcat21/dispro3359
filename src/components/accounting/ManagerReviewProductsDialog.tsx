@@ -40,6 +40,7 @@ interface ProductRow {
   piecesPerBox: number;
   boxes: number;
   totalAmount: number;
+  giftBoxes: number;
   buckets: Record<Bucket, number>;
 }
 
