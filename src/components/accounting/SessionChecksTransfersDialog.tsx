@@ -59,10 +59,39 @@ const SessionChecksTransfersDialog: React.FC<Props> = ({ open, onOpenChange, met
       }
       const { data, error } = await q;
       if (error) throw error;
-      return (data || []).filter((o: any) => {
+      const filtered = (data || []).filter((o: any) => {
         const t = new Date(o.created_at).getTime();
         return windows.some((w) => w.worker_id === o.assigned_worker_id && t >= w.start && t <= w.end);
       });
+      // Enrich with manager_decision_drafts (where the branch manager actually
+      // entered check / document / invoice details during the accounting session).
+      const ids = filtered.map((o: any) => o.id);
+      if (ids.length) {
+        const { data: drafts } = await (supabase as any)
+          .from('manager_decision_drafts')
+          .select('order_id, kind, payload')
+          .in('order_id', ids)
+          .in('kind', ['document', 'stamp_invoice']);
+        const byOrder = new Map<string, { doc?: any; inv?: any }>();
+        for (const d of (drafts || []) as any[]) {
+          const cur = byOrder.get(d.order_id) || {};
+          if (d.kind === 'document') cur.doc = d.payload || {};
+          else if (d.kind === 'stamp_invoice') cur.inv = d.payload || {};
+          byOrder.set(d.order_id, cur);
+        }
+        for (const o of filtered as any[]) {
+          const m = byOrder.get(o.id);
+          if (!m) continue;
+          const doc = m.doc || {};
+          const inv = m.inv || {};
+          if (!o.check_number && doc.doc_number) o.check_number = doc.doc_number;
+          if (!o.check_due_date && doc.doc_date) o.check_due_date = doc.doc_date;
+          if (!o.doc_due_date && doc.doc_date) o.doc_due_date = doc.doc_date;
+          if (!o.invoice_number) o.invoice_number = doc.invoice_number || inv.invoice_number || null;
+          if (!o.invoice_received_at) o.invoice_received_at = doc.invoice_date || inv.issue_date || null;
+        }
+      }
+      return filtered;
     },
   });
 
