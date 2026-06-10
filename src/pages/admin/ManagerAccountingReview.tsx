@@ -121,12 +121,12 @@ const ManagerAccountingReview: React.FC = () => {
     },
     enabled: !!selectedReview,
   });
-  const [rowInvoiceReviewId, setRowInvoiceReviewId] = useState<string | null>(null);
-  const [rowMetricState, setRowMetricState] = useState<{ reviewId: string; metric: RowMetric } | null>(null);
+  const [rowInvoiceReviewIds, setRowInvoiceReviewIds] = useState<string[] | null>(null);
+  const [rowMetricState, setRowMetricState] = useState<{ reviewIds: string[]; metric: RowMetric } | null>(null);
   const { data: rowInvoiceDetailSessions = [] } = useQuery({
-    queryKey: ['row-invoice-detail-sessions', rowInvoiceReviewId],
+    queryKey: ['row-invoice-detail-sessions', rowInvoiceReviewIds],
     queryFn: async () => {
-      if (!rowInvoiceReviewId) return [];
+      if (!rowInvoiceReviewIds || rowInvoiceReviewIds.length === 0) return [];
       const { data, error } = await supabase
         .from('accounting_sessions')
         .select(`
@@ -134,18 +134,18 @@ const ManagerAccountingReview: React.FC = () => {
           worker:workers!accounting_sessions_worker_id_fkey(id, full_name, username),
           items:accounting_session_items(*)
         `)
-        .eq('review_session_id', rowInvoiceReviewId)
+        .in('review_session_id', rowInvoiceReviewIds)
         .order('completed_at', { ascending: false });
       if (error) throw error;
       return data || [];
     },
-    enabled: !!rowInvoiceReviewId,
+    enabled: !!rowInvoiceReviewIds && rowInvoiceReviewIds.length > 0,
   });
 
   const { data: rowMetricSessions = [] } = useQuery({
-    queryKey: ['row-metric-detail-sessions', rowMetricState?.reviewId],
+    queryKey: ['row-metric-detail-sessions', rowMetricState?.reviewIds],
     queryFn: async () => {
-      if (!rowMetricState?.reviewId) return [];
+      if (!rowMetricState?.reviewIds || rowMetricState.reviewIds.length === 0) return [];
       const { data, error } = await supabase
         .from('accounting_sessions')
         .select(`
@@ -153,12 +153,12 @@ const ManagerAccountingReview: React.FC = () => {
           worker:workers!accounting_sessions_worker_id_fkey(id, full_name, username),
           items:accounting_session_items(*)
         `)
-        .eq('review_session_id', rowMetricState.reviewId)
+        .in('review_session_id', rowMetricState.reviewIds)
         .order('completed_at', { ascending: false });
       if (error) throw error;
       return data || [];
     },
-    enabled: !!rowMetricState?.reviewId,
+    enabled: !!rowMetricState?.reviewIds && rowMetricState.reviewIds.length > 0,
   });
 
   const confirmMutation = useConfirmManagerReview();
@@ -365,13 +365,14 @@ const ManagerAccountingReview: React.FC = () => {
           deficit: sum('deficit'),
           coin: sum('coin_amount'),
         };
+        const allReviewIds = (reviewHistory as any[]).map((r) => r.id);
         const cards: Array<{ label: string; value: number; cls: string; arrow?: 'right' | 'up' | 'up-right'; custom?: React.ReactNode; onClick?: () => void }> = [
           { label: 'إجمالي المبيعات', value: totals.sales, cls: 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800', onClick: () => setShowProductsDialog(true) },
-          { label: 'ديون جديدة', value: totals.newDebts, cls: 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800', arrow: 'right' },
-          { label: 'تحصيلات الديون', value: totals.debtCol, cls: 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' },
-          { label: 'مدفوعات وثائق', value: totals.docs, cls: 'bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-800', arrow: 'up' },
-          { label: 'مدفوعات نقدية', value: totals.cash, cls: 'bg-teal-50 dark:bg-teal-950/30 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800', arrow: 'up-right' },
-          { label: 'المصاريف', value: totals.expenses, cls: 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800' },
+          { label: 'ديون جديدة', value: totals.newDebts, cls: 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800', arrow: 'right', onClick: () => setRowMetricState({ reviewIds: allReviewIds, metric: 'new_debts' }) },
+          { label: 'تحصيلات الديون', value: totals.debtCol, cls: 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800', onClick: () => setRowMetricState({ reviewIds: allReviewIds, metric: 'debt_collections' }) },
+          { label: 'مدفوعات وثائق', value: totals.docs, cls: 'bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-800', arrow: 'up', onClick: () => setRowInvoiceReviewIds(allReviewIds) },
+          { label: 'مدفوعات نقدية', value: totals.cash, cls: 'bg-teal-50 dark:bg-teal-950/30 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800', arrow: 'up-right', onClick: () => setRowInvoiceReviewIds(allReviewIds) },
+          { label: 'المصاريف', value: totals.expenses, cls: 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800', onClick: () => setRowMetricState({ reviewIds: allReviewIds, metric: 'expenses' }) },
           { label: 'صافي النقد المسلم للمدير', value: totals.netHanded, cls: 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800' },
           {
             label: 'الفائض / العجز', value: 0, cls: 'bg-slate-50 dark:bg-slate-900/40 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700',
@@ -383,7 +384,7 @@ const ManagerAccountingReview: React.FC = () => {
               </p>
             ),
           },
-          { label: 'صرف العملة', value: totals.coin, cls: 'bg-yellow-50 dark:bg-yellow-950/30 text-yellow-800 dark:text-yellow-300 border-yellow-300 dark:border-yellow-800' },
+          { label: 'صرف العملة', value: totals.coin, cls: 'bg-yellow-50 dark:bg-yellow-950/30 text-yellow-800 dark:text-yellow-300 border-yellow-300 dark:border-yellow-800', onClick: () => setRowMetricState({ reviewIds: allReviewIds, metric: 'coin_amount' }) },
         ];
         return (
           <div className="relative rounded-2xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 via-white to-sky-50 dark:from-emerald-950/40 dark:via-background dark:to-sky-950/30 dark:border-emerald-800 p-4 shadow-md space-y-3 overflow-visible">
@@ -446,8 +447,8 @@ const ManagerAccountingReview: React.FC = () => {
       />
 
       <SessionInvoiceMethodsDialog
-        open={!!rowInvoiceReviewId}
-        onOpenChange={(o) => { if (!o) setRowInvoiceReviewId(null); }}
+        open={!!rowInvoiceReviewIds && rowInvoiceReviewIds.length > 0}
+        onOpenChange={(o) => { if (!o) setRowInvoiceReviewIds(null); }}
         sessions={rowInvoiceDetailSessions}
       />
 
@@ -693,11 +694,11 @@ const ManagerAccountingReview: React.FC = () => {
                     const fmt = (n: number) => Number(n || 0).toLocaleString('fr-FR');
                     const metrics: Array<{ label: string; value: number; cls: string; arrow?: 'right' | 'up' | 'up-right'; onClick?: () => void }> = [
                       { label: 'إجمالي المبيعات', value: review.total_sales, cls: 'text-blue-700 bg-blue-50 border-blue-200', onClick: () => setRowProductsReviewId(review.id) },
-                      { label: 'ديون جديدة', value: review.new_debts, cls: 'text-rose-700 bg-rose-50 border-rose-200', arrow: 'right', onClick: () => setRowMetricState({ reviewId: review.id, metric: 'new_debts' }) },
-                      { label: 'تحصيلات الديون', value: review.debt_collections, cls: 'text-emerald-700 bg-emerald-50 border-emerald-200', onClick: () => setRowMetricState({ reviewId: review.id, metric: 'debt_collections' }) },
-                      { label: 'مدفوعات وثائق', value: review.doc_payments, cls: 'text-violet-700 bg-violet-50 border-violet-200', arrow: 'up', onClick: () => setRowInvoiceReviewId(review.id) },
-                      { label: 'مدفوعات نقدية', value: review.cash_payments, cls: 'text-teal-700 bg-teal-50 border-teal-200', arrow: 'up-right', onClick: () => setRowInvoiceReviewId(review.id) },
-                      { label: 'المصاريف', value: review.expenses, cls: 'text-amber-700 bg-amber-50 border-amber-200', onClick: () => setRowMetricState({ reviewId: review.id, metric: 'expenses' }) },
+                      { label: 'ديون جديدة', value: review.new_debts, cls: 'text-rose-700 bg-rose-50 border-rose-200', arrow: 'right', onClick: () => setRowMetricState({ reviewIds: [review.id], metric: 'new_debts' }) },
+                      { label: 'تحصيلات الديون', value: review.debt_collections, cls: 'text-emerald-700 bg-emerald-50 border-emerald-200', onClick: () => setRowMetricState({ reviewIds: [review.id], metric: 'debt_collections' }) },
+                      { label: 'مدفوعات وثائق', value: review.doc_payments, cls: 'text-violet-700 bg-violet-50 border-violet-200', arrow: 'up', onClick: () => setRowInvoiceReviewIds([review.id]) },
+                      { label: 'مدفوعات نقدية', value: review.cash_payments, cls: 'text-teal-700 bg-teal-50 border-teal-200', arrow: 'up-right', onClick: () => setRowInvoiceReviewIds([review.id]) },
+                      { label: 'المصاريف', value: review.expenses, cls: 'text-amber-700 bg-amber-50 border-amber-200', onClick: () => setRowMetricState({ reviewIds: [review.id], metric: 'expenses' }) },
                     ];
                     return (
                       <div dir="rtl" className="mt-3 grid grid-cols-3 gap-1.5 overflow-visible" onClick={(e) => e.stopPropagation()}>
@@ -747,7 +748,7 @@ const ManagerAccountingReview: React.FC = () => {
                         </div>
                         <div
                           className="rounded-md border px-1.5 py-1 text-center bg-yellow-50 border-yellow-300 text-yellow-800 cursor-pointer hover:ring-2 hover:ring-yellow-400 transition"
-                          onClick={(e) => { e.stopPropagation(); setRowMetricState({ reviewId: review.id, metric: 'coin_amount' }); }}
+                          onClick={(e) => { e.stopPropagation(); setRowMetricState({ reviewIds: [review.id], metric: 'coin_amount' }); }}
                           role="button"
                         >
                           <p className="text-[9px] leading-tight opacity-80">صرف العملة</p>
