@@ -142,8 +142,7 @@ const SessionInvoiceMethodsDialog: React.FC<Props> = ({ open, onOpenChange, sess
                   key={key}
                   type="button"
                   onClick={() => setSelected(key)}
-                  disabled={g.count === 0}
-                  className={`h-auto py-3 px-3 justify-between ${c.btn} disabled:opacity-40`}
+                  className={`h-auto py-3 px-3 justify-between ${c.btn} ${g.count === 0 ? 'opacity-50' : ''}`}
                 >
                   <span className="flex items-center gap-2">
                     <Icon className="w-4 h-4" />
