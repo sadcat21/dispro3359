@@ -48,6 +48,8 @@ const SessionChecksTransfersDialog: React.FC<Props> = ({ open, onOpenChange, met
           id, total_amount, created_at, check_due_date, doc_due_date,
           invoice_number, invoice_received_at, assigned_worker_id,
           invoice_payment_method, status, payment_type,
+          document_status, document_stage, document_manager_decision,
+          invoice_manager_decision,
           customer:customers(name, store_name)
         `)
         .eq('status', 'delivered')
@@ -142,8 +144,19 @@ const SessionChecksTransfersDialog: React.FC<Props> = ({ open, onOpenChange, met
                 receipt: 'وصل بنكي',
               };
               const docType = o.invoice_payment_method ? (docTypeLabel[o.invoice_payment_method] || o.invoice_payment_method) : '—';
+              const decision = method === 'invoice' ? o.invoice_manager_decision : o.document_manager_decision;
+              const deposited = decision === 'received';
+              const statusLabel = deposited
+                ? (method === 'invoice' ? 'فاتورة مُسلَّمة' : method === 'check' ? 'شيك مُودَع' : method === 'transfer' ? 'تحويل مُستلَم' : 'مُسلَّم')
+                : (method === 'invoice' ? 'فاتورة غير مُسلَّمة' : method === 'check' ? 'شيك غير مُودَع' : method === 'transfer' ? 'تحويل غير مُستلَم' : 'غير مُسلَّم');
+              const amountCls = deposited
+                ? 'text-emerald-700 border-emerald-300 bg-emerald-50'
+                : 'text-red-700 border-red-300 bg-red-50';
+              const cardCls = deposited
+                ? 'border-emerald-200 bg-emerald-50/30'
+                : 'border-red-200 bg-red-50/30';
               return (
-                <div key={o.id} className="rounded-lg border bg-white p-3 space-y-1.5">
+                <div key={o.id} className={`rounded-lg border p-3 space-y-1.5 ${cardCls}`}>
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
                       <p className="font-semibold text-sm text-slate-900 flex items-center gap-1.5">
@@ -155,8 +168,11 @@ const SessionChecksTransfersDialog: React.FC<Props> = ({ open, onOpenChange, met
                       )}
                     </div>
                     <div className="flex flex-col items-end gap-1 shrink-0">
-                      <Badge variant="outline" className={`${method === 'check' ? 'text-blue-700 border-blue-200 bg-blue-50' : method === 'transfer' ? 'text-cyan-700 border-cyan-200 bg-cyan-50' : 'text-emerald-700 border-emerald-200 bg-emerald-50'}`}>
+                      <Badge variant="outline" className={amountCls}>
                         {fmt(Number(o.total_amount || 0))} د.ج
+                      </Badge>
+                      <Badge variant="outline" className={`text-[10px] ${deposited ? 'text-emerald-700 border-emerald-300 bg-emerald-50' : 'text-red-700 border-red-300 bg-red-50'}`}>
+                        {statusLabel}
                       </Badge>
                       {method === 'invoice' && (
                         <Badge variant="secondary" className="text-[10px]">نوع الوثيقة: {docType}</Badge>
