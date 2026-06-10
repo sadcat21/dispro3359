@@ -121,12 +121,12 @@ const ManagerAccountingReview: React.FC = () => {
     },
     enabled: !!selectedReview,
   });
-  const [rowInvoiceReviewId, setRowInvoiceReviewId] = useState<string | null>(null);
-  const [rowMetricState, setRowMetricState] = useState<{ reviewId: string; metric: RowMetric } | null>(null);
+  const [rowInvoiceReviewIds, setRowInvoiceReviewIds] = useState<string[] | null>(null);
+  const [rowMetricState, setRowMetricState] = useState<{ reviewIds: string[]; metric: RowMetric } | null>(null);
   const { data: rowInvoiceDetailSessions = [] } = useQuery({
-    queryKey: ['row-invoice-detail-sessions', rowInvoiceReviewId],
+    queryKey: ['row-invoice-detail-sessions', rowInvoiceReviewIds],
     queryFn: async () => {
-      if (!rowInvoiceReviewId) return [];
+      if (!rowInvoiceReviewIds || rowInvoiceReviewIds.length === 0) return [];
       const { data, error } = await supabase
         .from('accounting_sessions')
         .select(`
@@ -134,18 +134,18 @@ const ManagerAccountingReview: React.FC = () => {
           worker:workers!accounting_sessions_worker_id_fkey(id, full_name, username),
           items:accounting_session_items(*)
         `)
-        .eq('review_session_id', rowInvoiceReviewId)
+        .in('review_session_id', rowInvoiceReviewIds)
         .order('completed_at', { ascending: false });
       if (error) throw error;
       return data || [];
     },
-    enabled: !!rowInvoiceReviewId,
+    enabled: !!rowInvoiceReviewIds && rowInvoiceReviewIds.length > 0,
   });
 
   const { data: rowMetricSessions = [] } = useQuery({
-    queryKey: ['row-metric-detail-sessions', rowMetricState?.reviewId],
+    queryKey: ['row-metric-detail-sessions', rowMetricState?.reviewIds],
     queryFn: async () => {
-      if (!rowMetricState?.reviewId) return [];
+      if (!rowMetricState?.reviewIds || rowMetricState.reviewIds.length === 0) return [];
       const { data, error } = await supabase
         .from('accounting_sessions')
         .select(`
@@ -153,12 +153,12 @@ const ManagerAccountingReview: React.FC = () => {
           worker:workers!accounting_sessions_worker_id_fkey(id, full_name, username),
           items:accounting_session_items(*)
         `)
-        .eq('review_session_id', rowMetricState.reviewId)
+        .in('review_session_id', rowMetricState.reviewIds)
         .order('completed_at', { ascending: false });
       if (error) throw error;
       return data || [];
     },
-    enabled: !!rowMetricState?.reviewId,
+    enabled: !!rowMetricState?.reviewIds && rowMetricState.reviewIds.length > 0,
   });
 
   const confirmMutation = useConfirmManagerReview();
