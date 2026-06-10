@@ -238,10 +238,12 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
 
   useEffect(() => {
     if (stampDialog) {
-      setStampInvoiceNumber(stampDialog.invoiceNumber || '');
-      setStampIssueDate(stampDialog.issueDate || new Date().toISOString().substring(0, 10));
+      const draft = findDraft(stampDialog.orderId, 'stamp_invoice');
+      const p = (draft?.payload || {}) as any;
+      setStampInvoiceNumber(p.invoice_number || stampDialog.invoiceNumber || '');
+      setStampIssueDate(p.issue_date || stampDialog.issueDate || new Date().toISOString().substring(0, 10));
     }
-  }, [stampDialog]);
+  }, [stampDialog, existingDrafts]);
 
   const upsertDraft = async (
     orderId: string,
