@@ -1248,8 +1248,9 @@ const StepSection: React.FC<{
   defaultOpen?: boolean;
   verified?: boolean;
   requiresVerification?: boolean;
+  alwaysMount?: boolean;
   children: React.ReactNode;
-}> = ({ step, title, color = 'primary', badge, important, forceOpen, hideHeader, defaultOpen, verified, requiresVerification, children }) => {
+}> = ({ step, title, color = 'primary', badge, important, forceOpen, hideHeader, defaultOpen, verified, requiresVerification, alwaysMount, children }) => {
   const colorClass = stepColors[color] || stepColors.primary;
   const [open, setOpen] = React.useState(!!defaultOpen);
   React.useEffect(() => { if (forceOpen) setOpen(true); }, [forceOpen]);
@@ -1277,9 +1278,18 @@ const StepSection: React.FC<{
           <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`} />
         </CollapsibleTrigger>
       )}
-      <CollapsibleContent className="space-y-2.5 data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
-        {children}
-      </CollapsibleContent>
+      {alwaysMount ? (
+        <CollapsibleContent
+          forceMount
+          className={`space-y-2.5 data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up ${open ? '' : 'hidden'}`}
+        >
+          {children}
+        </CollapsibleContent>
+      ) : (
+        <CollapsibleContent className="space-y-2.5 data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
+          {children}
+        </CollapsibleContent>
+      )}
     </Collapsible>
   );
 };
