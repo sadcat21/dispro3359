@@ -365,7 +365,12 @@ const ManagerAccountingReview: React.FC = () => {
             </div>
             <div className="relative grid grid-cols-3 gap-2">
               {cards.map((c) => (
-                <div key={c.label} className={`relative rounded-lg border px-2 py-1.5 text-center ${c.cls}`}>
+                <div
+                  key={c.label}
+                  onClick={c.onClick}
+                  role={c.onClick ? 'button' : undefined}
+                  className={`relative rounded-lg border px-2 py-1.5 text-center ${c.cls} ${c.onClick ? 'cursor-pointer hover:ring-2 hover:ring-blue-400 transition' : ''}`}
+                >
                   <p className="text-[10px] opacity-80">{c.label}</p>
                   {c.custom ? c.custom : (<p className="text-xs font-bold">{Number(c.value).toLocaleString('fr-FR')}</p>)}
                   {c.arrow === 'right' && (
