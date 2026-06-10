@@ -1,53 +1,64 @@
-
 ## الهدف
-- لا تظهر فاتورة/وثيقة في صفحات «تتبع الفواتير» و«تتبع الوثائق» إلا بعد أن يتخذ مدير الفرع قرارًا صريحًا في جلسة محاسبة العامل.
-- داخل الجلسة: صف قابل للنقر يفتح نافذة تأكيد فيها زرّان: «تأكيد الاستلام» (أخضر) و«لم تُستلم» (أحمر).
-- القرار يُحدِّث صفحات التتبع تلقائيًا.
+إنشاء ملف PDF واحد (RTL، عربي) يعرض مخططًا انسيابيًا للإجراءات المتسلسلة بعد قرار مدير الفرع باستلام أو عدم استلام الوثائق/الفواتير خلال جلسة المحاسبة.
 
-## تغييرات قاعدة البيانات
-عمودان جديدان على `orders`:
+## المخرج
+- ملف واحد: `/mnt/documents/Document_Receipt_Flowchart.pdf` (A4 أفقي)
+- يُعرض في الواجهة عبر `<presentation-artifact>`
+- لن يتم تعديل أي ملف داخل المشروع
 
-| عمود | النوع | الافتراضي | معناه |
-|---|---|---|---|
-| `invoice_manager_decision` | text nullable | NULL | NULL = لم يقرر بعد، `received` = استلمها مختومة، `not_received` = لم تُستلم |
-| `document_manager_decision` | text nullable | NULL | NULL = لم يقرر بعد، `received` = استلم الوثيقة، `not_received` = لم تُستلم |
+## محتوى المخطط (فرعان رئيسيان)
 
-دالة RPC جديدة `set_manager_invoice_decision(p_order_id, p_decision, p_invoice_number, p_issue_date)`:
-- `received` → يستدعي منطق `confirm_order_invoice_receipt` (يضع invoice_stage='sealed' وinvoice_received_at و invoice_number) ويضع `invoice_manager_decision='received'`.
-- `not_received` → يضع `invoice_manager_decision='not_received'` ويُبقي invoice_stage على `unsealed`.
+```
+                ┌─────────────────────────────┐
+                │ بدء جلسة المحاسبة مع العامل │
+                └──────────────┬──────────────┘
+                               │
+                ┌──────────────▼──────────────┐
+                │ عرض الوثائق/الفواتير المعلقة│
+                │  (InvoiceTracking /          │
+                │   DocumentTracking)          │
+                └──────────────┬──────────────┘
+                               │
+                     ┌─────────▼─────────┐
+                     │ قرار مدير الفرع ؟ │
+                     └────┬─────────┬────┘
+                          │         │
+              «تم الاستلام»│         │«لم يُستلم»
+                          ▼         ▼
+        ┌─────────────────────┐   ┌─────────────────────┐
+        │ تحديث invoice_stage │   │ تسجيل عدم الاستلام  │
+        │ /document_status    │   │ + سبب (اختياري)     │
+        └──────────┬──────────┘   └──────────┬──────────┘
+                   │                          │
+        ┌──────────▼──────────┐   ┌──────────▼──────────┐
+        │ نقل المبلغ إلى      │   │ إبقاء الوثيقة في    │
+        │ "Document Payments" │   │ قائمة المعلقات      │
+        │ ضمن المراجعة        │   │ للجلسة القادمة      │
+        └──────────┬──────────┘   └──────────┬──────────┘
+                   │                          │
+        ┌──────────▼──────────┐   ┌──────────▼──────────┐
+        │ تأكيد الجلسة        │   │ إشعار العامل +      │
+        │ apply_manager_      │   │ متابعة في تتبع      │
+        │ decision_drafts     │   │ الوثائق/الفواتير    │
+        └──────────┬──────────┘   └──────────┬──────────┘
+                   │                          │
+                   └────────────┬─────────────┘
+                                ▼
+                ┌─────────────────────────────┐
+                │ تحديث Total Cash in Manager │
+                │ Accounts + سجل المراجعة     │
+                └─────────────────────────────┘
+```
 
-دالة RPC جديدة `set_manager_document_decision(p_order_id, p_decision)`:
-- `received` → `document_stage='received'`, `document_status='received'`, `document_manager_decision='received'`.
-- `not_received` → `document_manager_decision='not_received'`, `document_stage='pending'`.
+## التنفيذ التقني
+- Python + `reportlab` لرسم العقد والأسهم مباشرة (تجنبًا لمشاكل خطوط العربية في `graphviz`)
+- استخدام خط عربي يدعم RTL (مثل Amiri / Cairo) عبر `pdfmetrics.registerFont` مع `arabic_reshaper` و `python-bidi` لضمان عرض الحروف بشكل صحيح
+- ألوان دلالية: أخضر لمسار «تم الاستلام»، أحمر لمسار «لم يُستلم»، رمادي للخطوات المشتركة
+- صفحة واحدة، عنوان علوي + شعار نصي بسيط + المخطط
+- QA: تحويل الصفحة إلى صورة ومعاينتها للتأكد من عدم تداخل النصوص أو قص الحروف العربية
 
-تحديث RPC `confirm_order_invoice_receipt` ليضع أيضًا `invoice_stage='sealed'` و`invoice_manager_decision='received'`.
-
-## تغييرات الواجهة
-
-### 1) `src/components/accounting/DocumentCollectionsSummary.tsx`
-- بطاقات المستندات تصبح صفوفًا قابلة للنقر تفتح نافذة تأكيد جديدة (مماثلة لنافذة الفاتورة المختومة) فيها:
-  - تفاصيل العميل والمبلغ ونوع الوثيقة.
-  - زر «تأكيد الاستلام» (أخضر) ← يستدعي `set_manager_document_decision('received')`.
-  - زر «لم تُستلم» (أحمر) ← يستدعي `set_manager_document_decision('not_received')`.
-- نفس النافذة في قسم «الفواتير المختومة» تكتسب زر «لم تُستلم» الأحمر بجانب «تأكيد الاستلام» (يستدعي `set_manager_invoice_decision('not_received')`).
-- إزالة منطق `receivedDocs` المحلي لأن القرار صار يُحفظ في قاعدة البيانات.
-
-### 2) `src/components/accounting/InvoiceTrackingDialog.tsx` و `src/pages/InvoiceTracking.tsx`
-- إضافة فلتر `invoice_manager_decision = 'not_received'` لجلب «غير ممهورة»، و`'received'` لتبويبات «ممهورة» / «جاهزة».
-- إخفاء الطلبات حيث `invoice_manager_decision IS NULL`.
-
-### 3) `src/components/accounting/DocumentTrackingDialog.tsx` و `src/pages/DocumentTracking.tsx`
-- فلتر مماثل على `document_manager_decision`:
-  - تبويبة «غير مستلمة» تعرض الصفوف ذات القرار `not_received`.
-  - تبويبتا «مستلمة/جاهزة» تعرضان الصفوف ذات القرار `received`.
-
-## الملفات المتأثرة
-- `supabase/migrations/<new>.sql` (الأعمدة + الدوال)
-- `src/components/accounting/DocumentCollectionsSummary.tsx`
-- `src/components/accounting/InvoiceTrackingDialog.tsx`
-- `src/components/accounting/DocumentTrackingDialog.tsx`
-- `src/pages/InvoiceTracking.tsx`
-- `src/pages/DocumentTracking.tsx`
-
-## ملاحظة على البيانات الموجودة
-سأترك الأعمدة الجديدة NULL على الطلبات القديمة (لن تظهر في التتبع). إن كنت تريد إعادة إدراج الطلبات القديمة كـ«غير مستلمة/غير مممهورة» تلقائيًا بناءً على الحالة الحالية، أخبرني وسأضيف خطوة `UPDATE` في الترحيل.
+## التسليم
+سيتم إرفاق PDF عبر:
+```
+<presentation-artifact path="Document_Receipt_Flowchart.pdf" mime_type="application/pdf"></presentation-artifact>
+```
