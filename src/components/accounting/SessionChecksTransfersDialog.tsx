@@ -106,6 +106,13 @@ const SessionChecksTransfersDialog: React.FC<Props> = ({ open, onOpenChange, met
           <div className="space-y-2 mt-2">
             {orders.map((o: any) => {
               const dueDate = method === 'check' ? o.check_due_date : o.doc_due_date;
+              const docTypeLabel: Record<string, string> = {
+                check: 'شيك',
+                transfer: 'تحويل',
+                cash: 'نقدًا',
+                receipt: 'وصل بنكي',
+              };
+              const docType = o.invoice_payment_method ? (docTypeLabel[o.invoice_payment_method] || o.invoice_payment_method) : '—';
               return (
                 <div key={o.id} className="rounded-lg border bg-white p-3 space-y-1.5">
                   <div className="flex items-start justify-between gap-2">
@@ -118,9 +125,14 @@ const SessionChecksTransfersDialog: React.FC<Props> = ({ open, onOpenChange, met
                         <p className="text-[11px] text-muted-foreground ms-5">{o.customer.name}</p>
                       )}
                     </div>
-                    <Badge variant="outline" className={`shrink-0 ${method === 'check' ? 'text-blue-700 border-blue-200 bg-blue-50' : 'text-cyan-700 border-cyan-200 bg-cyan-50'}`}>
-                      {fmt(Number(o.total_amount || 0))} د.ج
-                    </Badge>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <Badge variant="outline" className={`${method === 'check' ? 'text-blue-700 border-blue-200 bg-blue-50' : method === 'transfer' ? 'text-cyan-700 border-cyan-200 bg-cyan-50' : 'text-emerald-700 border-emerald-200 bg-emerald-50'}`}>
+                        {fmt(Number(o.total_amount || 0))} د.ج
+                      </Badge>
+                      {method === 'invoice' && (
+                        <Badge variant="secondary" className="text-[10px]">نوع الوثيقة: {docType}</Badge>
+                      )}
+                    </div>
                   </div>
                   <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11px] text-slate-600 pt-1 border-t">
                     {/* Row 1: Check — number | date */}

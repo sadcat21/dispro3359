@@ -771,12 +771,19 @@ export const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ to
     queryKey: ['summary-method-counts', workerIds, windows.map((w) => `${w.start}-${w.end}`)],
     enabled: workerIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const minStart = windows.length ? new Date(Math.min(...windows.map((w) => w.start))).toISOString() : undefined;
+      const maxEnd = windows.length ? new Date(Math.max(...windows.map((w) => w.end))).toISOString() : undefined;
+      let q = supabase
         .from('orders')
         .select('id, total_amount, created_at, assigned_worker_id, invoice_payment_method')
         .eq('status', 'delivered')
         .eq('payment_type', 'with_invoice')
-        .in('assigned_worker_id', workerIds);
+        .in('assigned_worker_id', workerIds)
+        .order('created_at', { ascending: false })
+        .limit(5000);
+      if (minStart) q = q.gte('created_at', minStart);
+      if (maxEnd) q = q.lte('created_at', maxEnd);
+      const { data, error } = await q;
       if (error) throw error;
       let check = 0, transfer = 0, invoice = 0, invoiceTotal = 0;
       for (const o of data || []) {
@@ -821,22 +828,22 @@ export const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ to
             <SummaryRow
               label="فواتير"
               value={methodCounts?.invoiceTotal ?? 0}
-              color="green"
+              color="red"
               count={methodCounts?.invoice}
               onClick={() => setOpenMethod('invoice')}
             />
             <SummaryRow
               label="شيكات"
               value={totalChecks}
-              color="blue"
+              color="red"
               count={methodCounts?.check}
               onClick={() => setOpenMethod('check')}
             />
-            <SummaryRow label="وصولات بنكية" value={totalReceipts} color="purple" />
+            <SummaryRow label="وصولات بنكية" value={totalReceipts} color="red" />
             <SummaryRow
               label="تحويلات"
               value={totalTransfers}
-              color="cyan"
+              color="red"
               count={methodCounts?.transfer}
               onClick={() => setOpenMethod('transfer')}
             />
