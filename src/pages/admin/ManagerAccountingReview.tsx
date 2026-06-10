@@ -775,7 +775,7 @@ export const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ to
       const maxEnd = windows.length ? new Date(Math.max(...windows.map((w) => w.end))).toISOString() : undefined;
       let q = supabase
         .from('orders')
-        .select('id, total_amount, created_at, assigned_worker_id, invoice_payment_method')
+        .select('id, total_amount, created_at, assigned_worker_id, invoice_payment_method, document_manager_decision, invoice_manager_decision')
         .eq('status', 'delivered')
         .eq('payment_type', 'with_invoice')
         .in('assigned_worker_id', workerIds)
@@ -785,19 +785,31 @@ export const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ to
       if (maxEnd) q = q.lte('created_at', maxEnd);
       const { data, error } = await q;
       if (error) throw error;
-      let check = 0, transfer = 0, invoice = 0, invoiceTotal = 0;
+      const z = () => ({ count: 0, amount: 0 });
+      const acc = {
+        check:    { delivered: z(), pending: z() },
+        transfer: { delivered: z(), pending: z() },
+        invoice:  { delivered: z(), pending: z() },
+      };
       for (const o of data || []) {
         const t = new Date(o.created_at).getTime();
         const inWin = windows.some((w) => w.worker_id === o.assigned_worker_id && t >= w.start && t <= w.end);
         if (!inWin) continue;
-        invoice++;
-        invoiceTotal += Number(o.total_amount || 0);
-        if (o.invoice_payment_method === 'check') check++;
-        else if (o.invoice_payment_method === 'transfer') transfer++;
+        const amt = Number(o.total_amount || 0);
+        const invBucket = o.invoice_manager_decision === 'received' ? 'delivered' : 'pending';
+        acc.invoice[invBucket].count++;
+        acc.invoice[invBucket].amount += amt;
+        if (o.invoice_payment_method === 'check' || o.invoice_payment_method === 'transfer') {
+          const key = o.invoice_payment_method as 'check' | 'transfer';
+          const docBucket = o.document_manager_decision === 'received' ? 'delivered' : 'pending';
+          acc[key][docBucket].count++;
+          acc[key][docBucket].amount += amt;
+        }
       }
-      return { check, transfer, invoice, invoiceTotal };
+      return acc;
     },
   });
+
 
 
   return (
@@ -825,31 +837,29 @@ export const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ to
         <div className="space-y-2">
           <p className="text-xs font-semibold text-muted-foreground">📄 الشيكات والتحويلات</p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <SummaryRow
+            <MethodSplitCard
               label="فواتير"
-              value={methodCounts?.invoiceTotal ?? 0}
-              color="red"
-              count={methodCounts?.invoice}
-              hideValue
+              delivered={methodCounts?.invoice.delivered}
+              pending={methodCounts?.invoice.pending}
+              hideAmount
               onClick={() => setOpenMethod('invoice')}
             />
-            <SummaryRow
+            <MethodSplitCard
               label="شيكات"
-              value={totalChecks}
-              color="red"
-              count={methodCounts?.check}
+              delivered={methodCounts?.check.delivered}
+              pending={methodCounts?.check.pending}
               onClick={() => setOpenMethod('check')}
             />
             <SummaryRow label="وصولات بنكية" value={totalReceipts} color="red" />
-            <SummaryRow
+            <MethodSplitCard
               label="تحويلات"
-              value={totalTransfers}
-              color="red"
-              count={methodCounts?.transfer}
+              delivered={methodCounts?.transfer.delivered}
+              pending={methodCounts?.transfer.pending}
               onClick={() => setOpenMethod('transfer')}
             />
           </div>
         </div>
+
 
 
 
@@ -1013,6 +1023,33 @@ export const WorkerBreakdown: React.FC<{
       />
     )}
   </div>
+  );
+};
+
+type Bucket = { count: number; amount: number };
+const MethodSplitCard: React.FC<{ label: string; delivered?: Bucket; pending?: Bucket; hideAmount?: boolean; onClick?: () => void }> = ({ label, delivered, pending, hideAmount, onClick }) => {
+  const d = delivered || { count: 0, amount: 0 };
+  const p = pending || { count: 0, amount: 0 };
+  return (
+    <div
+      className={`rounded-lg border bg-white overflow-hidden ${onClick ? 'cursor-pointer hover:ring-2 hover:ring-emerald-300/50 transition' : ''}`}
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+    >
+      <p className="text-[9px] text-muted-foreground text-center pt-1.5 px-1 truncate">{label}</p>
+      <div className="grid grid-cols-2 gap-px bg-slate-200 mt-1">
+        <div className="bg-green-50 p-1.5 text-center" title="مُسلَّمة لمساعد المسير">
+          <p className="text-[8px] text-green-700 font-medium">مُسلَّم</p>
+          <p className="text-[10px] font-bold text-green-700">{d.count}</p>
+          {!hideAmount && <p className="text-[9px] text-green-700">{fmt(d.amount)}</p>}
+        </div>
+        <div className="bg-red-50 p-1.5 text-center" title="غير مُسلَّمة لمساعد المسير">
+          <p className="text-[8px] text-red-700 font-medium">غير مُسلَّم</p>
+          <p className="text-[10px] font-bold text-red-700">{p.count}</p>
+          {!hideAmount && <p className="text-[9px] text-red-700">{fmt(p.amount)}</p>}
+        </div>
+      </div>
+    </div>
   );
 };
 
