@@ -453,7 +453,7 @@ const SessionPrintView: React.FC<SessionPrintViewProps> = ({
   const matchedItems = items.filter(item => !discrepancyProductIds.has(item.product_id));
 
   const printContent = session && (
-    <div ref={printRef} className="print-container" style={{ display: 'none' }}>
+    <div ref={printRef} className="print-container" style={{ position: 'absolute', left: '-99999px', top: 0, opacity: 0, pointerEvents: 'none' }}>
       <div style={{ position: 'fixed', top: '45%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0, opacity: 0.15, pointerEvents: 'none' }}>
         <img src={logoImage} alt="" style={{ width: '280px', height: 'auto' }} />
       </div>
