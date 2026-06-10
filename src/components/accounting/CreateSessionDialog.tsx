@@ -169,9 +169,11 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
 
   const isEditMode = !!editSession;
   const selectedWorkerId = editSession?.worker_id || preselectedWorkerId || '';
-  const { data: profileData } = useWorkerAccountingProfile(selectedWorkerId || null);
+  const { data: profileData, isLoading: isProfileLoading } = useWorkerAccountingProfile(selectedWorkerId || null);
   const accountingProfile = profileData?.profile || 'full_with_stock';
-  const isFinancialOnly = accountingProfile === 'financial_only';
+  // لا نعتبر الموظف "مالي فقط" قبل اكتمال جلب أدواره، تفادياً لإخفاء بنود البضاعة
+  // بشكل خاطئ لعامل توصيل يملك أيضاً دوراً مالياً.
+  const isFinancialOnly = !isProfileLoading && accountingProfile === 'financial_only';
 
 
   useEffect(() => {
