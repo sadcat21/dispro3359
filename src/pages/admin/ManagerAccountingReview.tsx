@@ -830,6 +830,7 @@ export const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ to
               value={methodCounts?.invoiceTotal ?? 0}
               color="red"
               count={methodCounts?.invoice}
+              hideValue
               onClick={() => setOpenMethod('invoice')}
             />
             <SummaryRow
