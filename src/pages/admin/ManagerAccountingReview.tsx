@@ -915,7 +915,7 @@ export const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ to
               delivered={methodCounts?.invoice.delivered}
               pending={methodCounts?.invoice.pending}
               hideAmount
-              onClick={() => setOpenMethod('invoice')}
+              onClick={() => setOpenInvoiceMethods(true)}
             />
             <MethodSplitCard
               label="شيكات"
