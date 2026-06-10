@@ -102,7 +102,7 @@ const ManagerReviewProductsDialog: React.FC<Props> = ({ open, onOpenChange, revi
       const [{ data: items }, { data: orders }] = await Promise.all([
         supabase
           .from('order_items')
-          .select('order_id, product_id, quantity, total_price, unit_price, price_subtype, product:products(name, app_name, image_url, pieces_per_box, price_retail, price_gros, price_super_gros, price_invoice)')
+          .select('order_id, product_id, quantity, total_price, unit_price, price_subtype, gift_quantity, gift_pieces, gift_offer_id, product:products(name, app_name, image_url, pieces_per_box, price_retail, price_gros, price_super_gros, price_invoice)')
           .in('order_id', orderIds),
         supabase
           .from('orders')
@@ -110,29 +110,73 @@ const ManagerReviewProductsDialog: React.FC<Props> = ({ open, onOpenChange, revi
           .in('id', orderIds),
       ]);
 
+      // Resolve gift_product_id for offers used so gifts of a different product are attributed correctly
+      const offerIds = Array.from(new Set(((items || []) as any[]).map(i => i.gift_offer_id).filter(Boolean)));
+      const offerGiftMap = new Map<string, string | null>();
+      if (offerIds.length > 0) {
+        const { data: offers } = await supabase
+          .from('product_offers')
+          .select('id, gift_product_id')
+          .in('id', offerIds);
+        for (const o of (offers || []) as any[]) offerGiftMap.set(o.id, o.gift_product_id);
+      }
+
       const orderMap = new Map<string, any>();
       for (const o of (orders || []) as any[]) orderMap.set(o.id, o);
 
       const map = new Map<string, ProductRow>();
+      const ensureRow = (productId: string, p: any): ProductRow => {
+        const ppb = Math.max(1, Number(p?.pieces_per_box || 1));
+        const existing = map.get(productId);
+        if (existing) return existing;
+        const row: ProductRow = {
+          productId,
+          name: getProductDisplayName(p || {}),
+          imageUrl: p?.image_url || null,
+          piecesPerBox: ppb,
+          boxes: 0,
+          totalAmount: 0,
+          giftBoxes: 0,
+          buckets: { invoice: 0, retail: 0, gros: 0, super_gros: 0, custom: 0 },
+        };
+        map.set(productId, row);
+        return row;
+      };
+
+      // Fetch gift product metadata if needed
+      const giftOnlyProductIds = Array.from(new Set(
+        Array.from(offerGiftMap.values()).filter((id): id is string => !!id)
+      ));
+      const giftProductMeta = new Map<string, any>();
+      if (giftOnlyProductIds.length > 0) {
+        const { data: gps } = await supabase
+          .from('products')
+          .select('id, name, app_name, image_url, pieces_per_box')
+          .in('id', giftOnlyProductIds);
+        for (const gp of (gps || []) as any[]) giftProductMeta.set(gp.id, gp);
+      }
+
       for (const it of (items || []) as any[]) {
         if (!it.product_id) continue;
         const p = it.product || {};
         const ppb = Math.max(1, Number(p.pieces_per_box || 1));
-        const row = map.get(it.product_id) || {
-          productId: it.product_id,
-          name: getProductDisplayName(p),
-          imageUrl: p.image_url || null,
-          piecesPerBox: ppb,
-          boxes: 0,
-          totalAmount: 0,
-          buckets: { invoice: 0, retail: 0, gros: 0, super_gros: 0, custom: 0 },
-        };
+        const row = ensureRow(it.product_id, p);
         const qty = Number(it.quantity || 0);
         row.boxes += qty;
         row.totalAmount += Number(it.total_price || 0);
         const bucket = classify(it, orderMap.get(it.order_id));
         row.buckets[bucket] += qty;
-        map.set(it.product_id, row);
+
+        // Gifts: attribute to gift_product (from offer) if set, else same product
+        const giftBoxes = Number(it.gift_quantity || 0);
+        const giftPieces = Number(it.gift_pieces || 0);
+        if (giftBoxes > 0 || giftPieces > 0) {
+          const giftPid = (it.gift_offer_id && offerGiftMap.get(it.gift_offer_id)) || it.product_id;
+          const giftMeta = giftPid === it.product_id ? p : (giftProductMeta.get(giftPid) || p);
+          const gppb = Math.max(1, Number(giftMeta?.pieces_per_box || ppb));
+          const giftRow = ensureRow(giftPid, giftMeta);
+          giftRow.giftBoxes += giftBoxes + giftPieces / gppb;
+        }
       }
       return Array.from(map.values()).sort((a, b) => b.totalAmount - a.totalAmount);
     },
