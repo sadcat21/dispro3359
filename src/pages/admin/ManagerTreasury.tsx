@@ -1559,43 +1559,61 @@ const ManagerTreasury = () => {
                       )}
                     </div>
                   )}
-                  <div className="space-y-2">
-                    {(!handovers || handovers.length === 0) ? (
-                      <p className="text-center text-muted-foreground py-8">{t('treasury.no_handovers')}</p>
-                    ) : handovers.map(h => (
-                      <Card key={h.id} className={selectedHandoverIds.includes(h.id) ? 'ring-2 ring-primary' : ''}>
-                        <CardContent className="p-3 space-y-2">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="checkbox"
-                                className="w-4 h-4"
-                                checked={selectedHandoverIds.includes(h.id)}
-                                onChange={() => toggleHandoverSelected(h.id)}
-                              />
-                              <Send className="w-4 h-4 text-destructive" />
-                              <p className="font-bold">{Number(h.amount).toLocaleString()} {cur}</p>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setTimeout(() => setViewHandover(h.id), 200); }}><Eye className="w-3.5 h-3.5" /></Button>
-                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setTimeout(() => openEditHandover(h), 200); }}><Pencil className="w-3.5 h-3.5" /></Button>
-                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setTimeout(() => setPrintHandover(h.id), 200); }}><Printer className="w-3.5 h-3.5" /></Button>
-                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => { if (confirm(t('common.confirm_delete'))) deleteHandover(h.id); }}><Trash2 className="w-3.5 h-3.5" /></Button>
-                              <p className="text-xs text-muted-foreground">{format(new Date(h.created_at), 'dd/MM/yyyy', { locale: dateLocale })}</p>
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-1 text-xs">
-                            {Number(h.cash_invoice1 ?? 0) > 0 && <p>{t('treasury.cash_f1')}: {Number(h.cash_invoice1).toLocaleString()} {cur}</p>}
-                            {Number(h.cash_invoice2 ?? 0) > 0 && <p>{t('treasury.cash_f2')}: {Number(h.cash_invoice2).toLocaleString()} {cur}</p>}
-                            {Number(h.checks_amount ?? 0) > 0 && <p>{t('treasury.checks')}: {Number(h.checks_amount).toLocaleString()} {cur}</p>}
-                            {Number(h.receipts_amount ?? 0) > 0 && <p>{t('treasury.versement')}: {Number(h.receipts_amount).toLocaleString()} {cur}</p>}
-                            {Number(h.transfers_amount ?? 0) > 0 && <p>{t('treasury.virement')}: {Number(h.transfers_amount).toLocaleString()} {cur}</p>}
-                          </div>
-                          {h.notes && <p className="text-xs text-muted-foreground">{h.notes}</p>}
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                  {(!handovers || handovers.length === 0) ? (
+                    <p className="text-center text-muted-foreground py-8">{t('treasury.no_handovers')}</p>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-2">
+                      {handovers.map(h => {
+                        const totalCash = Number(h.cash_invoice1 ?? 0) + Number(h.cash_invoice2 ?? 0);
+                        const totalChecks = Number(h.checks_amount ?? 0) + Number(h.receipts_amount ?? 0) + Number(h.transfers_amount ?? 0);
+                        return (
+                          <Card key={h.id} className={`${selectedHandoverIds.includes(h.id) ? 'ring-2 ring-primary' : ''} overflow-hidden`}>
+                            <CardContent className="p-2.5 space-y-2">
+                              {/* Header: checkbox + date */}
+                              <div className="flex items-center justify-between">
+                                <input
+                                  type="checkbox"
+                                  className="w-4 h-4"
+                                  checked={selectedHandoverIds.includes(h.id)}
+                                  onChange={() => toggleHandoverSelected(h.id)}
+                                />
+                                <p className="text-[10px] text-muted-foreground">{format(new Date(h.created_at), 'dd/MM/yyyy', { locale: dateLocale })}</p>
+                              </div>
+
+                              {/* Grand total */}
+                              <div className="rounded-md bg-muted/50 px-2 py-1.5 text-center">
+                                <p className="text-[10px] text-muted-foreground">{t('common.total') || 'الإجمالي'}</p>
+                                <p className="font-bold text-sm leading-tight break-all">{Number(h.amount).toLocaleString()} {cur}</p>
+                              </div>
+
+                              {/* Cash + Checks breakdown */}
+                              <div className="grid grid-cols-2 gap-1 text-[11px]">
+                                <div className="rounded bg-emerald-50 dark:bg-emerald-950/30 px-1.5 py-1">
+                                  <p className="text-[9px] text-muted-foreground">كاش</p>
+                                  <p className="font-semibold text-emerald-700 dark:text-emerald-400 break-all">{totalCash.toLocaleString()}</p>
+                                </div>
+                                <div className="rounded bg-blue-50 dark:bg-blue-950/30 px-1.5 py-1">
+                                  <p className="text-[9px] text-muted-foreground">Chèques</p>
+                                  <p className="font-semibold text-blue-700 dark:text-blue-400 break-all">{totalChecks.toLocaleString()}</p>
+                                </div>
+                              </div>
+
+                              {/* Action buttons */}
+                              <div className="flex items-center justify-between border-t pt-1.5">
+                                <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => { if (confirm(t('common.confirm_delete'))) deleteHandover(h.id); }}><Trash2 className="w-3.5 h-3.5" /></Button>
+                                <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setTimeout(() => setPrintHandover(h.id), 200); }}><Printer className="w-3.5 h-3.5" /></Button>
+                                <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setTimeout(() => openEditHandover(h), 200); }}><Pencil className="w-3.5 h-3.5" /></Button>
+                                <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setTimeout(() => setViewHandover(h.id), 200); }}><Eye className="w-3.5 h-3.5" /></Button>
+                                <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => { setTimeout(() => setPrintHandover(h.id), 200); }}><Send className="w-3.5 h-3.5" /></Button>
+                              </div>
+
+                              {h.notes && <p className="text-[10px] text-muted-foreground line-clamp-2">{h.notes}</p>}
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  )}
                 </DialogContent>
               </Dialog>
 
