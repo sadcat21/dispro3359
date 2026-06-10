@@ -32,6 +32,7 @@ import ExpensesDetailsSummary from '@/components/accounting/ExpensesDetailsSumma
 import companyLogo from '@/assets/logo.png';
 import SessionDetailsDialog from '@/components/accounting/SessionDetailsDialog';
 import SessionChecksTransfersDialog from '@/components/accounting/SessionChecksTransfersDialog';
+import SessionInvoiceMethodsDialog from '@/components/accounting/SessionInvoiceMethodsDialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, Receipt } from 'lucide-react';
 import ManagerReviewProductsDialog from '@/components/accounting/ManagerReviewProductsDialog';
@@ -829,6 +830,7 @@ export const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ to
   const totalTransfers = totals.invoice1Transfer + totals.debtCollectionsTransfer;
 
   const [openMethod, setOpenMethod] = useState<'check' | 'transfer' | 'invoice' | null>(null);
+  const [openInvoiceMethods, setOpenInvoiceMethods] = useState(false);
 
   const windows = useMemo(() => (sessions || [])
     .map((s: any) => ({
@@ -914,7 +916,7 @@ export const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ to
               delivered={methodCounts?.invoice.delivered}
               pending={methodCounts?.invoice.pending}
               hideAmount
-              onClick={() => setOpenMethod('invoice')}
+              onClick={() => setOpenInvoiceMethods(true)}
             />
             <MethodSplitCard
               label="شيكات"
@@ -977,6 +979,11 @@ export const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ to
         open={openMethod !== null}
         onOpenChange={(v) => { if (!v) setOpenMethod(null); }}
         method={openMethod ?? 'check'}
+        sessions={sessions}
+      />
+      <SessionInvoiceMethodsDialog
+        open={openInvoiceMethods}
+        onOpenChange={setOpenInvoiceMethods}
         sessions={sessions}
       />
     </Card>
