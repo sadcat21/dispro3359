@@ -360,6 +360,23 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
   const [isUnfreezing, setIsUnfreezing] = useState(false);
   const [verifications, setVerifications] = useState<{ pendingOrders: boolean; debtCollections: boolean; newDebts: boolean }>({ pendingOrders: false, debtCollections: false, newDebts: false });
   const toggleVerify = (k: keyof typeof verifications) => setVerifications((v) => ({ ...v, [k]: !v[k] }));
+
+  // Auto-verified when block has no data
+  const { data: pendingOrdersCount = 0 } = useQuery({
+    queryKey: ['pending-orders-count', selectedWorkerId, periodStart, periodEnd],
+    queryFn: async () => {
+      const toIso = (v: string, end: boolean) => v.includes('T') ? new Date(v).toISOString() : new Date(`${v}T${end ? '23:59:59' : '00:00:00'}`).toISOString();
+      const { count } = await supabase
+        .from('orders')
+        .select('id', { count: 'exact', head: true })
+        .eq('created_by', selectedWorkerId!)
+        .not('status', 'in', '(delivered,cancelled)')
+        .gte('created_at', toIso(periodStart, false))
+        .lte('created_at', toIso(periodEnd, true));
+      return count || 0;
+    },
+    enabled: !!selectedWorkerId && !!periodStart && !!periodEnd,
+  });
   const queryClient = useQueryClient();
 
   // Worker freeze status (final review pending close)
