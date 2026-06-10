@@ -164,14 +164,17 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
       if (!user || !workerId) return [];
       const { data, error } = await (supabase as any)
         .from('manager_decision_drafts')
-        .select('order_id, kind, decision')
+        .select('order_id, kind, decision, payload')
         .eq('manager_id', user.id)
         .eq('worker_id', workerId);
       if (error) return [];
-      return (data || []) as Array<{ order_id: string; kind: string; decision: string }>;
+      return (data || []) as Array<{ order_id: string; kind: string; decision: string; payload: any }>;
     },
     enabled: !!workerId,
   });
+
+  const findDraft = (orderId: string, kind: 'document' | 'stamp_invoice') =>
+    (existingDrafts || []).find((d) => d.order_id === orderId && d.kind === kind);
 
   useEffect(() => {
     if (!existingDrafts || !onReceivedDocsChange) return;
