@@ -397,6 +397,14 @@ const ManagerAccountingReview: React.FC = () => {
         title="تجميع المنتجات المباعة - جميع المراجعات"
       />
 
+      <ManagerReviewProductsDialog
+        open={!!rowProductsReviewId}
+        onOpenChange={(o) => !o && setRowProductsReviewId(null)}
+        reviewIds={rowProductsReviewId ? [rowProductsReviewId] : []}
+        title="تجميع المنتجات المباعة"
+      />
+
+
       {/* Tabs */}
       <Tabs value={selectedReview ? 'detail' : activeTab} onValueChange={(v) => { if (v !== 'detail') { setSelectedReview(null); setActiveTab(v); } }}>
         <TabsList className="w-full grid grid-cols-2">
