@@ -1064,6 +1064,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 {/* ━━━ Pending Customer Approval Requests ━━━ */}
                 <StepSection step={13} title="تفاصيل الطلبيات الجديدة" color="amber">
                   <PendingRequestsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} />
+                  <VerifyButton verified={verifications.pendingOrders} onClick={() => toggleVerify('pendingOrders')} label="تحقق من الطلبيات الجديدة" />
                 </StepSection>
 
                 {/* ━━━ Step 13: Stock Discrepancies ━━━ */}
