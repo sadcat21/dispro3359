@@ -833,7 +833,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
 
                 {/* ━━━ Step 3: Document Collections ━━━ */}
                 {selectedWorkerId && periodStart && periodEnd && (
-                  <StepSection step={3} title={t('create_session.collected_documents')} color="blue" verified={verifications.documents || !hasDocumentsData} requiresVerification={hasDocumentsData}>
+                  <StepSection step={3} title={t('create_session.collected_documents')} color="blue" verified={verifications.documents || !hasDocumentsData} requiresVerification={hasDocumentsData} alwaysMount>
                     <DocumentCollectionsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} receivedDocs={receivedDocs} onReceivedDocsChange={setReceivedDocs} onItemsChange={setDocItems} />
                     {hasDocumentsData && (
                       <VerifyButton verified={verifications.documents} onClick={() => toggleVerify('documents')} label="تحقق من المستندات المحصلة" />
