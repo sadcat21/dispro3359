@@ -833,7 +833,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
 
                 {/* ━━━ Step 3: Document Collections ━━━ */}
                 {selectedWorkerId && periodStart && periodEnd && (
-                  <StepSection step={3} title={t('create_session.collected_documents')} color="blue" verified={verifications.documents || !hasDocumentsData} requiresVerification={hasDocumentsData}>
+                  <StepSection step={3} title={t('create_session.collected_documents')} color="blue" verified={verifications.documents || !hasDocumentsData} requiresVerification={hasDocumentsData} alwaysMount>
                     <DocumentCollectionsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} receivedDocs={receivedDocs} onReceivedDocsChange={setReceivedDocs} onItemsChange={setDocItems} />
                     {hasDocumentsData && (
                       <VerifyButton verified={verifications.documents} onClick={() => toggleVerify('documents')} label="تحقق من المستندات المحصلة" />
@@ -1248,8 +1248,9 @@ const StepSection: React.FC<{
   defaultOpen?: boolean;
   verified?: boolean;
   requiresVerification?: boolean;
+  alwaysMount?: boolean;
   children: React.ReactNode;
-}> = ({ step, title, color = 'primary', badge, important, forceOpen, hideHeader, defaultOpen, verified, requiresVerification, children }) => {
+}> = ({ step, title, color = 'primary', badge, important, forceOpen, hideHeader, defaultOpen, verified, requiresVerification, alwaysMount, children }) => {
   const colorClass = stepColors[color] || stepColors.primary;
   const [open, setOpen] = React.useState(!!defaultOpen);
   React.useEffect(() => { if (forceOpen) setOpen(true); }, [forceOpen]);
@@ -1277,9 +1278,18 @@ const StepSection: React.FC<{
           <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`} />
         </CollapsibleTrigger>
       )}
-      <CollapsibleContent className="space-y-2.5 data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
-        {children}
-      </CollapsibleContent>
+      {alwaysMount ? (
+        <CollapsibleContent
+          forceMount
+          className={`space-y-2.5 data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up ${open ? '' : 'hidden'}`}
+        >
+          {children}
+        </CollapsibleContent>
+      ) : (
+        <CollapsibleContent className="space-y-2.5 data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
+          {children}
+        </CollapsibleContent>
+      )}
     </Collapsible>
   );
 };
