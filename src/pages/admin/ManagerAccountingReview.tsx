@@ -1032,7 +1032,7 @@ const SummaryRow: React.FC<{ label: string; value: number; color?: string; count
         </span>
       )}
       <p className="text-[9px] text-muted-foreground truncate">{label}</p>
-      <p className={`text-xs font-bold ${text}`}>{fmt(value)}</p>
+      {!hideValue && <p className={`text-xs font-bold ${text}`}>{fmt(value)}</p>}
     </div>
   );
 };
