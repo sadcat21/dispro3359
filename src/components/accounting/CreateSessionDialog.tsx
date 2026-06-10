@@ -1001,7 +1001,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 </StepSection>
 
                 {/* ━━━ Step 4: Debt Details (mirrors payment_details layout) ━━━ */}
-                <StepSection step={6} title={t('create_session.debt_details')} color="orange" badge={`${fmt((calc.newDebts || 0) + (calc.debtCollections?.total || 0))} DA`} verified={verifications.newDebts || ((calc.newDebts || 0) === 0 && (calc.debtCollections?.total || 0) === 0)}>
+                <StepSection step={6} title={t('create_session.debt_details')} color="orange" badge={`${fmt((calc.newDebts || 0) + (calc.debtCollections?.total || 0))} DA`} verified={verifications.newDebts || ((calc.newDebts || 0) === 0 && (calc.debtCollections?.total || 0) === 0)} requiresVerification={(calc.newDebts || 0) > 0 || (calc.debtCollections?.total || 0) > 0}>
                   {/* New Debts */}
                   <div className="rounded-lg border p-3 space-y-1.5 mb-2">
                     <div className="flex items-center justify-between">
