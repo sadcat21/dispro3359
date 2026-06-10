@@ -828,22 +828,22 @@ export const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ to
             <SummaryRow
               label="فواتير"
               value={methodCounts?.invoiceTotal ?? 0}
-              color="green"
+              color="red"
               count={methodCounts?.invoice}
               onClick={() => setOpenMethod('invoice')}
             />
             <SummaryRow
               label="شيكات"
               value={totalChecks}
-              color="blue"
+              color="red"
               count={methodCounts?.check}
               onClick={() => setOpenMethod('check')}
             />
-            <SummaryRow label="وصولات بنكية" value={totalReceipts} color="purple" />
+            <SummaryRow label="وصولات بنكية" value={totalReceipts} color="red" />
             <SummaryRow
               label="تحويلات"
               value={totalTransfers}
-              color="cyan"
+              color="red"
               count={methodCounts?.transfer}
               onClick={() => setOpenMethod('transfer')}
             />
