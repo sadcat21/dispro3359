@@ -636,8 +636,19 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                     </span>
                   )}
                 </div>
-                {workerName && <span className="text-xs font-normal text-muted-foreground">{workerName}</span>}
+                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                  {workerName && <span className="text-xs font-normal text-muted-foreground">{workerName}</span>}
+                  {selectedWorkerId && (
+                    <Badge
+                      variant={isFinancialOnly ? 'secondary' : 'default'}
+                      className={`text-[10px] h-5 px-2 ${isFinancialOnly ? 'bg-sky-100 text-sky-700 hover:bg-sky-100 border-sky-200' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-emerald-200'}`}
+                    >
+                      {ACCOUNTING_PROFILE_LABELS_AR[accountingProfile]}
+                    </Badge>
+                  )}
+                </div>
               </div>
+
             </DialogTitle>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5">
