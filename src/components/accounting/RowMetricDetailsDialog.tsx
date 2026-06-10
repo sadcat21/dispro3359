@@ -58,12 +58,13 @@ const RowMetricDetailsDialog: React.FC<Props> = ({ open, onOpenChange, sessions,
       );
     }
     if (metric === 'new_debts') {
-      const amount = getItem(s, 'new_debts');
       return (
-        <div className="text-sm bg-rose-50 border border-rose-200 rounded-lg p-3 flex items-center justify-between">
-          <span className="text-rose-700 font-medium">ديون جديدة مسجّلة</span>
-          <span className="font-bold text-rose-800">{fmt(amount)} دج</span>
-        </div>
+        <NewDebtsSummary
+          workerId={workerId}
+          periodStart={s.period_start}
+          periodEnd={s.period_end}
+          completedAt={s.completed_at}
+        />
       );
     }
     if (metric === 'coin_amount') {
