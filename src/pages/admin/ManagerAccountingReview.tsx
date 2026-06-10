@@ -451,6 +451,13 @@ const ManagerAccountingReview: React.FC = () => {
         sessions={rowInvoiceDetailSessions}
       />
 
+      <RowMetricDetailsDialog
+        open={!!rowMetricState}
+        onOpenChange={(o) => { if (!o) setRowMetricState(null); }}
+        sessions={rowMetricSessions}
+        metric={rowMetricState?.metric ?? null}
+      />
+
 
       {/* Tabs */}
       <Tabs value={selectedReview ? 'detail' : activeTab} onValueChange={(v) => { if (v !== 'detail') { setSelectedReview(null); setActiveTab(v); } }}>
