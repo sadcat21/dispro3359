@@ -25,6 +25,7 @@ import StockDiscrepancySection from './StockDiscrepancySection';
 import DebtCollectionsSummary from './DebtCollectionsSummary';
 import DocumentCollectionsSummary from './DocumentCollectionsSummary';
 import ExceptionalActionsSummary from './ExceptionalActionsSummary';
+import PendingRequestsSummary from './PendingRequestsSummary';
 import WorkerHandoverSummary from './WorkerHandoverSummary';
 import ExpensesDetailsSummary from './ExpensesDetailsSummary';
 import { usePendingDiscrepancies } from '@/hooks/useStockDiscrepancies';
@@ -1014,6 +1015,11 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 {/* ━━━ Step 12: Exceptional Actions ━━━ */}
                 <StepSection step={12} title={t('create_session.exceptional_actions')} color="amber">
                   <ExceptionalActionsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} />
+                </StepSection>
+
+                {/* ━━━ Pending Customer Approval Requests ━━━ */}
+                <StepSection step={13} title="طلبات معلقة من العامل" color="amber">
+                  <PendingRequestsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} />
                 </StepSection>
 
                 {/* ━━━ Step 13: Stock Discrepancies ━━━ */}
