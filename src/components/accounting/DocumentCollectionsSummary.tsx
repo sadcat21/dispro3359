@@ -483,18 +483,6 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
       } else if (doc.managerDecision === 'not_received') {
         next[key] = false;
         changed = true;
-      } else if (
-        doc.documentStatus === 'received' ||
-        doc.documentStatus === 'verified' ||
-        doc.documentStatus === 'collected' ||
-        doc.source === 'pending_collection'
-      ) {
-        // A row coming from document_collections with action='collected'
-        // (source='pending_collection') means the worker physically handed
-        // the document over — default it to "received" so the manager only
-        // needs to flip the toggle to reject it.
-        next[key] = true;
-        changed = true;
       }
     }
 
@@ -555,15 +543,17 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
     const v = doc.verification;
     const docKey = `doc_${doc.orderId}`;
     const draftDecision = receivedDocs ? receivedDocs[docKey] : undefined;
-    // Draft (when present) overrides the persisted document_status so toggling
-    // recolors the row immediately inside the edit session dialog.
-    const persistedReceived =
-      doc.documentStatus === 'received' ||
-      doc.documentStatus === 'verified' ||
-      doc.documentStatus === 'collected' ||
-      doc.source === 'pending_collection';
+    const persistedDecision =
+      doc.managerDecision === 'received'
+        ? true
+        : doc.managerDecision === 'not_received'
+          ? false
+          : undefined;
+    // قرار المسؤول فقط هو الذي يلون البطاقة داخل جلسة المحاسبة.
+    // document_status / pending_collection يعبّران عن تحصيل العامل من الزبون
+    // وليس عن استلام المسؤول للمستند.
     const receivedState: boolean | undefined =
-      draftDecision !== undefined ? draftDecision : (persistedReceived ? true : undefined);
+      draftDecision !== undefined ? draftDecision : persistedDecision;
     const borderCls =
       receivedState === true
         ? 'border-2 border-emerald-500 bg-emerald-100/70 dark:bg-emerald-900/30 ring-2 ring-emerald-400/60 shadow-md shadow-emerald-500/20'

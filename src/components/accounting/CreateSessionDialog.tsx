@@ -297,6 +297,8 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
       setIsSubmitting(false);
       setShowConfirmation(false);
       setReceivedDocs({});
+      setDocItems({ docIds: [], stampIds: [], receivedStampIds: [] });
+      setVerifications({ pendingOrders: false, debtCollections: false, newDebts: false, documents: false });
     }
   }, [open, editSession, selectedWorkerId]);
 

@@ -234,9 +234,10 @@ export const useCreateDocCollection = () => {
           (s, c: any) => s + Number(c.amount || 0), 0
         );
 
-        // If amount was not provided (legacy / non-versement), treat as full
-        const isFullyCollected = (params.amount == null)
-          || (orderTotal > 0 && totalCollected >= orderTotal - 0.01);
+        // لا نعتبر التحصيل مكتملاً تلقائياً إذا لم يُمرَّر مبلغ فعلي.
+        // وإلا قد تظهر وثيقة "verified" رغم أن العامل سجّل فقط مسار/تحصيل مبدئي.
+        const isFullyCollected =
+          params.amount != null && orderTotal > 0 && totalCollected >= orderTotal - 0.01;
 
         if (isFullyCollected) {
           await supabase
