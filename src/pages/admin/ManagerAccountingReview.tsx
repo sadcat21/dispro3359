@@ -316,14 +316,30 @@ const ManagerAccountingReview: React.FC = () => {
           expenses: sum('expenses'),
           cash: sum('cash_payments'),
           docs: sum('doc_payments'),
+          netHanded: sum('net_cash_handed'),
+          surplus: sum('surplus'),
+          deficit: sum('deficit'),
+          coin: sum('coin_amount'),
         };
-        const cards: Array<{ label: string; value: number; cls: string; arrow?: 'right' | 'up' | 'up-right' }> = [
+        const cards: Array<{ label: string; value: number; cls: string; arrow?: 'right' | 'up' | 'up-right'; custom?: React.ReactNode }> = [
           { label: 'إجمالي المبيعات', value: totals.sales, cls: 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800' },
           { label: 'ديون جديدة', value: totals.newDebts, cls: 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800', arrow: 'right' },
           { label: 'تحصيلات الديون', value: totals.debtCol, cls: 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' },
           { label: 'مدفوعات وثائق', value: totals.docs, cls: 'bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-800', arrow: 'up' },
           { label: 'مدفوعات نقدية', value: totals.cash, cls: 'bg-teal-50 dark:bg-teal-950/30 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800', arrow: 'up-right' },
           { label: 'المصاريف', value: totals.expenses, cls: 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800' },
+          { label: 'صافي النقد المسلم للمدير', value: totals.netHanded, cls: 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800' },
+          {
+            label: 'الفائض / العجز', value: 0, cls: 'bg-slate-50 dark:bg-slate-900/40 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700',
+            custom: (
+              <p className="text-xs font-bold">
+                <span className="text-green-700">+{Number(totals.surplus).toLocaleString('fr-FR')}</span>
+                <span className="mx-1 text-muted-foreground">/</span>
+                <span className="text-red-700">-{Number(totals.deficit).toLocaleString('fr-FR')}</span>
+              </p>
+            ),
+          },
+          { label: 'صرف العملة', value: totals.coin, cls: 'bg-yellow-50 dark:bg-yellow-950/30 text-yellow-800 dark:text-yellow-300 border-yellow-300 dark:border-yellow-800' },
         ];
         return (
           <div className="relative rounded-2xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 via-white to-sky-50 dark:from-emerald-950/40 dark:via-background dark:to-sky-950/30 dark:border-emerald-800 p-4 shadow-md space-y-3 overflow-visible">
@@ -349,7 +365,7 @@ const ManagerAccountingReview: React.FC = () => {
               {cards.map((c) => (
                 <div key={c.label} className={`relative rounded-lg border px-2 py-1.5 text-center ${c.cls}`}>
                   <p className="text-[10px] opacity-80">{c.label}</p>
-                  <p className="text-xs font-bold">{Number(c.value).toLocaleString('fr-FR')}</p>
+                  {c.custom ? c.custom : (<p className="text-xs font-bold">{Number(c.value).toLocaleString('fr-FR')}</p>)}
                   {c.arrow === 'right' && (
                     <ArrowLeft className="absolute top-1/2 -start-2.5 -translate-y-1/2 w-5 h-5 text-red-600 bg-white rounded-full p-0.5 shadow-md ring-1 ring-red-300 rtl:-scale-x-100 z-20" />
                   )}
