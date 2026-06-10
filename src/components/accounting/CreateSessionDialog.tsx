@@ -344,6 +344,8 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
   }).length;
   const hasOutstandingCollections = hasUndecidedDocuments || pendingStampedCount > 0;
   const [isUnfreezing, setIsUnfreezing] = useState(false);
+  const [verifications, setVerifications] = useState<{ pendingOrders: boolean; debtCollections: boolean; newDebts: boolean }>({ pendingOrders: false, debtCollections: false, newDebts: false });
+  const toggleVerify = (k: keyof typeof verifications) => setVerifications((v) => ({ ...v, [k]: !v[k] }));
   const queryClient = useQueryClient();
 
   // Worker freeze status (final review pending close)
