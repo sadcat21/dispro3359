@@ -1072,7 +1072,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
 
         {/* Sticky footer with action buttons */}
         <div className="border-t bg-background p-3 space-y-2 shrink-0">
-          {!isEditMode && !isFrozen && selectedWorkerId && (
+          {!isEditMode && !isFrozen && !isFinancialOnly && selectedWorkerId && (
             <Alert>
               <Info className="w-4 h-4" />
               <AlertDescription className="text-xs">
@@ -1081,7 +1081,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             </Alert>
           )}
           <div className="flex gap-2">
-            {selectedWorkerId && (
+            {selectedWorkerId && !isFinancialOnly && (
               <Button
                 variant="outline"
                 className={`rounded-xl h-11 text-base font-bold text-white ${isFrozen ? 'bg-green-600 hover:bg-green-700 border-green-600' : 'bg-red-600 hover:bg-red-700 border-red-600'}`}
@@ -1092,6 +1092,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 {isFrozen ? t('create_session.unfreeze') : t('create_session.freeze')}
               </Button>
             )}
+
             <Button
               className="flex-1 rounded-xl h-11 text-base font-bold"
               onClick={handleShowConfirmation}
