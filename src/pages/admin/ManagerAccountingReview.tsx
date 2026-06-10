@@ -873,9 +873,16 @@ export const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ to
           </p>
         </div>
       </CardContent>
+      <SessionChecksTransfersDialog
+        open={openMethod !== null}
+        onOpenChange={(v) => { if (!v) setOpenMethod(null); }}
+        method={openMethod ?? 'check'}
+        sessions={sessions}
+      />
     </Card>
   );
 };
+
 
 // Worker Breakdown Component
 export const WorkerBreakdown: React.FC<{
