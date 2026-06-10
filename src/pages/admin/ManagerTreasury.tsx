@@ -818,17 +818,42 @@ const ManagerTreasury = () => {
           const totalCash = reviewHistory.reduce((s: number, r: any) => s + Number(r.total_cash || 0), 0);
           const sessionsCount = reviewHistory.reduce((s: number, r: any) => s + Number(r.sessions_count || 0), 0);
           const sum = (k: string) => reviewHistory.reduce((s: number, r: any) => s + Number(r[k] || 0), 0);
-          const cards: Array<{ label: string; value: number; cls: string; arrow?: 'right' | 'up' | 'up-right' }> = [
-            { label: 'إجمالي المبيعات', value: sum('total_sales'), cls: 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800' },
-            { label: 'ديون جديدة', value: sum('new_debts'), cls: 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800', arrow: 'right' },
-            { label: 'تحصيلات الديون', value: sum('debt_collections'), cls: 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' },
-            { label: 'مدفوعات وثائق', value: sum('doc_payments'), cls: 'bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-800', arrow: 'up' },
-            { label: 'مدفوعات نقدية', value: sum('cash_payments'), cls: 'bg-teal-50 dark:bg-teal-950/30 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800', arrow: 'up-right' },
-            { label: 'المصاريف', value: sum('expenses'), cls: 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800' },
+          const totals = {
+            sales: sum('total_sales'),
+            newDebts: sum('new_debts'),
+            debtCol: sum('debt_collections'),
+            docs: sum('doc_payments'),
+            cash: sum('cash_payments'),
+            expenses: sum('expenses'),
+            netHanded: sum('net_cash_handed'),
+            surplus: sum('surplus'),
+            deficit: sum('deficit'),
+            coin: sum('coin_amount'),
+          };
+          const allReviewIds = (reviewHistory as any[]).map((r) => r.id);
+          const cards: Array<{ label: string; value: number; cls: string; arrow?: 'right' | 'up' | 'up-right'; onClick?: () => void; custom?: React.ReactNode }> = [
+            { label: 'إجمالي المبيعات', value: totals.sales, cls: 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800', onClick: () => setShowBIProductsDialog(true) },
+            { label: 'ديون جديدة', value: totals.newDebts, cls: 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800', arrow: 'right', onClick: () => setBIRowMetricState({ reviewIds: allReviewIds, metric: 'new_debts' }) },
+            { label: 'تحصيلات الديون', value: totals.debtCol, cls: 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800', onClick: () => setBIRowMetricState({ reviewIds: allReviewIds, metric: 'debt_collections' }) },
+            { label: 'مدفوعات وثائق', value: totals.docs, cls: 'bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-800', arrow: 'up', onClick: () => setBIRowInvoiceReviewIds(allReviewIds) },
+            { label: 'مدفوعات نقدية', value: totals.cash, cls: 'bg-teal-50 dark:bg-teal-950/30 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800', arrow: 'up-right', onClick: () => setBIRowInvoiceReviewIds(allReviewIds) },
+            { label: 'المصاريف', value: totals.expenses, cls: 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800', onClick: () => setBIRowMetricState({ reviewIds: allReviewIds, metric: 'expenses' }) },
+            { label: 'صافي النقد المسلم للمدير', value: totals.netHanded, cls: 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800' },
+            {
+              label: 'الفائض / العجز', value: 0, cls: 'bg-slate-50 dark:bg-slate-900/40 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700',
+              custom: (
+                <p className="text-xs font-bold">
+                  <span className="text-green-700">+{Number(totals.surplus).toLocaleString('fr-FR')}</span>
+                  <span className="mx-1 text-muted-foreground">/</span>
+                  <span className="text-red-700">-{Number(totals.deficit).toLocaleString('fr-FR')}</span>
+                </p>
+              ),
+            },
+            { label: 'صرف العملة', value: totals.coin, cls: 'bg-yellow-50 dark:bg-yellow-950/30 text-yellow-800 dark:text-yellow-300 border-yellow-300 dark:border-yellow-800', onClick: () => setBIRowMetricState({ reviewIds: allReviewIds, metric: 'coin_amount' }) },
           ];
           return (
-            <div className="relative overflow-hidden rounded-2xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 via-white to-sky-50 dark:from-emerald-950/40 dark:via-background dark:to-sky-950/30 dark:border-emerald-800 p-4 shadow-md space-y-3">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-200/30 dark:bg-emerald-700/20 rounded-full -translate-y-16 translate-x-16 blur-2xl" />
+            <div className="relative rounded-2xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 via-white to-sky-50 dark:from-emerald-950/40 dark:via-background dark:to-sky-950/30 dark:border-emerald-800 p-4 shadow-md space-y-3 overflow-visible">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-200/30 dark:bg-emerald-700/20 rounded-full -translate-y-16 translate-x-16 blur-2xl pointer-events-none" />
               <div className="relative flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-sky-500 flex items-center justify-center shadow-lg">
@@ -848,9 +873,14 @@ const ManagerTreasury = () => {
               </div>
               <div className="relative grid grid-cols-3 gap-2">
                 {cards.map((c) => (
-                  <div key={c.label} className={`relative rounded-lg border px-2 py-1.5 text-center ${c.cls}`}>
+                  <div
+                    key={c.label}
+                    onClick={c.onClick}
+                    role={c.onClick ? 'button' : undefined}
+                    className={`relative rounded-lg border px-2 py-1.5 text-center ${c.cls} ${c.onClick ? 'cursor-pointer hover:ring-2 hover:ring-blue-400 transition' : ''}`}
+                  >
                     <p className="text-[10px] opacity-80">{c.label}</p>
-                    <p className="text-xs font-bold">{Number(c.value).toLocaleString('fr-FR')}</p>
+                    {c.custom ? c.custom : (<p className="text-xs font-bold">{Number(c.value).toLocaleString('fr-FR')}</p>)}
                     {c.arrow === 'right' && (
                       <ArrowLeft className="absolute top-1/2 -start-2.5 -translate-y-1/2 w-5 h-5 text-red-600 bg-white rounded-full p-0.5 shadow-md ring-1 ring-red-300 rtl:-scale-x-100 z-20" />
                     )}
@@ -866,6 +896,25 @@ const ManagerTreasury = () => {
             </div>
           );
         })()}
+
+        <ManagerReviewProductsDialog
+          open={showBIProductsDialog}
+          onOpenChange={setShowBIProductsDialog}
+          reviewIds={(reviewHistory as any[]).map((r) => r.id)}
+          title="تجميع المنتجات المباعة - جميع المراجعات"
+        />
+        <SessionInvoiceMethodsDialog
+          open={!!biRowInvoiceReviewIds && biRowInvoiceReviewIds.length > 0}
+          onOpenChange={(o) => { if (!o) setBIRowInvoiceReviewIds(null); }}
+          sessions={biRowInvoiceDetailSessions}
+        />
+        <RowMetricDetailsDialog
+          open={!!biRowMetricState}
+          onOpenChange={(o) => { if (!o) setBIRowMetricState(null); }}
+          sessions={biRowMetricSessions}
+          metric={biRowMetricState?.metric ?? null}
+        />
+
         <div className="fixed bottom-16 left-0 right-0 z-40 px-3 pointer-events-none">
           <div className="mx-auto max-w-md flex items-center justify-center gap-1.5 rounded-full bg-background/95 backdrop-blur border shadow-lg p-1.5 pointer-events-auto" dir={dir}>
             <Button
