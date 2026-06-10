@@ -248,7 +248,7 @@ const LoadSheetPrintView: React.FC<LoadSheetPrintViewProps> = ({
 
   return (
     <>
-      {isPrintReady && (
+      {open && hasData && (
         <OrdersPrintView
           ref={printRef}
           orders={orders}
