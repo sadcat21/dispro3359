@@ -34,6 +34,7 @@ import SessionDetailsDialog from '@/components/accounting/SessionDetailsDialog';
 import SessionChecksTransfersDialog from '@/components/accounting/SessionChecksTransfersDialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, Receipt } from 'lucide-react';
+import ManagerReviewProductsDialog from '@/components/accounting/ManagerReviewProductsDialog';
 
 export const fmt = (n: number) => n.toLocaleString();
 
@@ -136,6 +137,7 @@ const ManagerAccountingReview: React.FC = () => {
 
   // Session selection (default: all filtered selected)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showProductsDialog, setShowProductsDialog] = useState(false);
   useEffect(() => {
     setSelectedIds(new Set(filteredPendingSessions.map((s: any) => s.id)));
   }, [filteredPendingSessions]);
@@ -321,8 +323,8 @@ const ManagerAccountingReview: React.FC = () => {
           deficit: sum('deficit'),
           coin: sum('coin_amount'),
         };
-        const cards: Array<{ label: string; value: number; cls: string; arrow?: 'right' | 'up' | 'up-right'; custom?: React.ReactNode }> = [
-          { label: 'إجمالي المبيعات', value: totals.sales, cls: 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800' },
+        const cards: Array<{ label: string; value: number; cls: string; arrow?: 'right' | 'up' | 'up-right'; custom?: React.ReactNode; onClick?: () => void }> = [
+          { label: 'إجمالي المبيعات', value: totals.sales, cls: 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800', onClick: () => setShowProductsDialog(true) },
           { label: 'ديون جديدة', value: totals.newDebts, cls: 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800', arrow: 'right' },
           { label: 'تحصيلات الديون', value: totals.debtCol, cls: 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' },
           { label: 'مدفوعات وثائق', value: totals.docs, cls: 'bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-800', arrow: 'up' },
@@ -363,7 +365,12 @@ const ManagerAccountingReview: React.FC = () => {
             </div>
             <div className="relative grid grid-cols-3 gap-2">
               {cards.map((c) => (
-                <div key={c.label} className={`relative rounded-lg border px-2 py-1.5 text-center ${c.cls}`}>
+                <div
+                  key={c.label}
+                  onClick={c.onClick}
+                  role={c.onClick ? 'button' : undefined}
+                  className={`relative rounded-lg border px-2 py-1.5 text-center ${c.cls} ${c.onClick ? 'cursor-pointer hover:ring-2 hover:ring-blue-400 transition' : ''}`}
+                >
                   <p className="text-[10px] opacity-80">{c.label}</p>
                   {c.custom ? c.custom : (<p className="text-xs font-bold">{Number(c.value).toLocaleString('fr-FR')}</p>)}
                   {c.arrow === 'right' && (
@@ -381,6 +388,13 @@ const ManagerAccountingReview: React.FC = () => {
           </div>
         );
       })()}
+
+      <ManagerReviewProductsDialog
+        open={showProductsDialog}
+        onOpenChange={setShowProductsDialog}
+        reviewIds={(reviewHistory as any[]).map((r) => r.id)}
+        title="تجميع المنتجات المباعة - جميع المراجعات"
+      />
 
       {/* Tabs */}
       <Tabs value={selectedReview ? 'detail' : activeTab} onValueChange={(v) => { if (v !== 'detail') { setSelectedReview(null); setActiveTab(v); } }}>
