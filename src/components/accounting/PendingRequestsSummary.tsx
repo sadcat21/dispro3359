@@ -106,7 +106,7 @@ const PendingRequestsSummary: React.FC<Props> = ({ workerId, periodStart, period
       if (!openOrder) return [];
       const { data, error } = await supabase
         .from('order_items')
-        .select('id, quantity, gift_quantity, unit_price, total_price, product:products(name)')
+        .select('id, quantity, gift_quantity, unit_price, total_price, product:products(name, image_url)')
         .eq('order_id', openOrder.id);
       if (error) throw error;
       return (data || []) as unknown as OrderItemRow[];
