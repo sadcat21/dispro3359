@@ -137,6 +137,7 @@ const ManagerAccountingReview: React.FC = () => {
 
   // Session selection (default: all filtered selected)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showProductsDialog, setShowProductsDialog] = useState(false);
   useEffect(() => {
     setSelectedIds(new Set(filteredPendingSessions.map((s: any) => s.id)));
   }, [filteredPendingSessions]);
