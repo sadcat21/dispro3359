@@ -149,6 +149,10 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
 
   const isEditMode = !!editSession;
   const selectedWorkerId = editSession?.worker_id || preselectedWorkerId || '';
+  const { data: profileData } = useWorkerAccountingProfile(selectedWorkerId || null);
+  const accountingProfile = profileData?.profile || 'full_with_stock';
+  const isFinancialOnly = accountingProfile === 'financial_only';
+
 
   useEffect(() => {
     if (open) {
