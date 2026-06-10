@@ -626,6 +626,35 @@ const ManagerAccountingReview: React.FC = () => {
                       </div>
                     );
                   })()}
+
+                  {/* Third row: net cash handed, surplus/deficit, coins */}
+                  {(() => {
+                    const fmt = (n: number) => Number(n || 0).toLocaleString('fr-FR');
+                    const surplus = Number(review.surplus || 0);
+                    const deficit = Number(review.deficit || 0);
+                    const net = Number(review.net_cash_handed || 0);
+                    const coin = Number(review.coin_amount || 0);
+                    return (
+                      <div dir="rtl" className="mt-1.5 grid grid-cols-3 gap-1.5">
+                        <div className="rounded-md border px-1.5 py-1 text-center bg-emerald-50 border-emerald-300 text-emerald-800">
+                          <p className="text-[9px] leading-tight opacity-80">صافي النقد المسلم للمدير</p>
+                          <p className="text-[11px] font-bold leading-tight mt-0.5">{fmt(net)}</p>
+                        </div>
+                        <div className="rounded-md border px-1.5 py-1 text-center bg-slate-50 border-slate-300">
+                          <p className="text-[9px] leading-tight opacity-80">الفائض / العجز</p>
+                          <p className="text-[11px] font-bold leading-tight mt-0.5">
+                            <span className="text-green-700">+{fmt(surplus)}</span>
+                            <span className="mx-1 text-muted-foreground">/</span>
+                            <span className="text-red-700">-{fmt(deficit)}</span>
+                          </p>
+                        </div>
+                        <div className="rounded-md border px-1.5 py-1 text-center bg-yellow-50 border-yellow-300 text-yellow-800">
+                          <p className="text-[9px] leading-tight opacity-80">صرف العملة</p>
+                          <p className="text-[11px] font-bold leading-tight mt-0.5">{fmt(coin)}</p>
+                        </div>
+                      </div>
+                    );
+                  })()}
                   {review.notes && (
                     <p className="text-xs text-muted-foreground mt-2 bg-muted/30 rounded p-1.5">{review.notes}</p>
                   )}
