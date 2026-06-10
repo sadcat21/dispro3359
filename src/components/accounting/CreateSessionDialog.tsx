@@ -50,6 +50,20 @@ interface CreateSessionDialogProps {
 
 const fmt = (n: number) => n.toLocaleString();
 
+const VerifyButton: React.FC<{ verified: boolean; onClick: () => void; label?: string }> = ({ verified, onClick, label = 'تحقق من التفاصيل' }) => (
+  <div className="mt-2 flex justify-end">
+    <Button
+      type="button"
+      size="sm"
+      variant={verified ? 'outline' : 'default'}
+      onClick={onClick}
+      className={verified ? 'h-8 text-[11px] bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100' : 'h-8 text-[11px] bg-emerald-600 hover:bg-emerald-700 text-white'}
+    >
+      {verified ? '✓ تم التحقق — إلغاء' : `✓ ${label}`}
+    </Button>
+  </div>
+);
+
 const flattenChildren = (children: React.ReactNode): React.ReactNode[] => {
   const out: React.ReactNode[] = [];
   React.Children.forEach(children, (child) => {
@@ -344,6 +358,8 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
   }).length;
   const hasOutstandingCollections = hasUndecidedDocuments || pendingStampedCount > 0;
   const [isUnfreezing, setIsUnfreezing] = useState(false);
+  const [verifications, setVerifications] = useState<{ pendingOrders: boolean; debtCollections: boolean; newDebts: boolean }>({ pendingOrders: false, debtCollections: false, newDebts: false });
+  const toggleVerify = (k: keyof typeof verifications) => setVerifications((v) => ({ ...v, [k]: !v[k] }));
   const queryClient = useQueryClient();
 
   // Worker freeze status (final review pending close)
@@ -986,6 +1002,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                       <PaymentRow label={t('accounting.invoice2')} value={calc.newDebtsByInvoice?.invoice2 || 0} />
                     </div>
                   </div>
+                  <VerifyButton verified={verifications.newDebts} onClick={() => toggleVerify('newDebts')} label="تحقق من تفاصيل الديون" />
                   {/* Debt Collections */}
                   <div className="rounded-lg border p-3 space-y-1.5">
                     <div className="flex items-center justify-between">
@@ -1037,6 +1054,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 {/* ━━━ Step 10: Debt Collections Detail ━━━ */}
                 <StepSection step={11} title={t('create_session.collected_debts_details')} color="orange">
                   <DebtCollectionsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} completedAt={null} />
+                  <VerifyButton verified={verifications.debtCollections} onClick={() => toggleVerify('debtCollections')} label="تحقق من الديون المحصلة" />
                 </StepSection>
 
 
@@ -1048,6 +1066,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 {/* ━━━ Pending Customer Approval Requests ━━━ */}
                 <StepSection step={13} title="تفاصيل الطلبيات الجديدة" color="amber">
                   <PendingRequestsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} />
+                  <VerifyButton verified={verifications.pendingOrders} onClick={() => toggleVerify('pendingOrders')} label="تحقق من الطلبيات الجديدة" />
                 </StepSection>
 
                 {/* ━━━ Step 13: Stock Discrepancies ━━━ */}
