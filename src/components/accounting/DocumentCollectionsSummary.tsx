@@ -458,7 +458,16 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
       } else if (doc.managerDecision === 'not_received') {
         next[key] = false;
         changed = true;
-      } else if (doc.documentStatus === 'received' || doc.documentStatus === 'verified') {
+      } else if (
+        doc.documentStatus === 'received' ||
+        doc.documentStatus === 'verified' ||
+        doc.documentStatus === 'collected' ||
+        doc.source === 'pending_collection'
+      ) {
+        // A row coming from document_collections with action='collected'
+        // (source='pending_collection') means the worker physically handed
+        // the document over — default it to "received" so the manager only
+        // needs to flip the toggle to reject it.
         next[key] = true;
         changed = true;
       }
