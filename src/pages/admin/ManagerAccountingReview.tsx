@@ -637,8 +637,8 @@ const ManagerAccountingReview: React.FC = () => {
                   {/* Metrics grid */}
                   {(() => {
                     const fmt = (n: number) => Number(n || 0).toLocaleString('fr-FR');
-                    const metrics: Array<{ label: string; value: number; cls: string; arrow?: 'right' | 'up' | 'up-right' }> = [
-                      { label: 'إجمالي المبيعات', value: review.total_sales, cls: 'text-blue-700 bg-blue-50 border-blue-200' },
+                    const metrics: Array<{ label: string; value: number; cls: string; arrow?: 'right' | 'up' | 'up-right'; onClick?: () => void }> = [
+                      { label: 'إجمالي المبيعات', value: review.total_sales, cls: 'text-blue-700 bg-blue-50 border-blue-200', onClick: () => setRowProductsReviewId(review.id) },
                       { label: 'ديون جديدة', value: review.new_debts, cls: 'text-rose-700 bg-rose-50 border-rose-200', arrow: 'right' },
                       { label: 'تحصيلات الديون', value: review.debt_collections, cls: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
                       { label: 'مدفوعات وثائق', value: review.doc_payments, cls: 'text-violet-700 bg-violet-50 border-violet-200', arrow: 'up' },
@@ -648,7 +648,11 @@ const ManagerAccountingReview: React.FC = () => {
                     return (
                       <div dir="rtl" className="mt-3 grid grid-cols-3 gap-1.5 overflow-visible" onClick={(e) => e.stopPropagation()}>
                         {metrics.map((m, i) => (
-                          <div key={i} className={`relative rounded-md border px-1.5 py-1 text-center ${m.cls}`}>
+                          <div
+                            key={i}
+                            className={`relative rounded-md border px-1.5 py-1 text-center ${m.cls} ${m.onClick ? 'cursor-pointer hover:ring-2 hover:ring-blue-400 transition' : ''}`}
+                            onClick={m.onClick ? (e) => { e.stopPropagation(); m.onClick!(); } : undefined}
+                          >
                             <p className="text-[9px] leading-tight opacity-80">{m.label}</p>
                             <p className="text-[11px] font-bold leading-tight mt-0.5">{fmt(m.value)}</p>
                             {m.arrow === 'right' && (
