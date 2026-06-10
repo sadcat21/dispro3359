@@ -247,9 +247,21 @@ const LoadSheetPrintView: React.FC<LoadSheetPrintViewProps> = ({
     ? [{ label: tp('print.surplus') || 'Surplus', productQuantities: surplusMap, style: 'highlight' as const }]
     : [];
 
+  // Dedicated portal for load sheet printing (matches @media print rules in index.css)
+  const [printPortalEl, setPrintPortalEl] = useState<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const div = document.createElement('div');
+    div.id = 'loadsheet-print-portal';
+    document.body.appendChild(div);
+    setPrintPortalEl(div);
+    return () => {
+      if (div.parentNode) div.parentNode.removeChild(div);
+    };
+  }, []);
+
   return (
     <>
-      {open && hasData && (
+      {open && hasData && printPortalEl && createPortal(
         <OrdersPrintView
           ref={printRef}
           orders={orders}
@@ -258,9 +270,11 @@ const LoadSheetPrintView: React.FC<LoadSheetPrintViewProps> = ({
           title={title}
           dateRange={printDate}
           isVisible
+          usePortal={false}
           extraRows={extraRows}
           columnConfig={columnConfig}
-        />
+        />,
+        printPortalEl
       )}
 
       <div className="print:hidden">
