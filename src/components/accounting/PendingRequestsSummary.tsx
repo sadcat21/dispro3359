@@ -33,7 +33,7 @@ interface OrderItemRow {
   gift_quantity: number | null;
   unit_price: number | null;
   total_price: number | null;
-  product: { name?: string | null } | null;
+  product: { name?: string | null; image_url?: string | null } | null;
 }
 
 const toTz = (v: string, isEnd: boolean) => {
@@ -106,7 +106,7 @@ const PendingRequestsSummary: React.FC<Props> = ({ workerId, periodStart, period
       if (!openOrder) return [];
       const { data, error } = await supabase
         .from('order_items')
-        .select('id, quantity, gift_quantity, unit_price, total_price, product:products(name)')
+        .select('id, quantity, gift_quantity, unit_price, total_price, product:products(name, image_url)')
         .eq('order_id', openOrder.id);
       if (error) throw error;
       return (data || []) as unknown as OrderItemRow[];
@@ -177,81 +177,98 @@ const PendingRequestsSummary: React.FC<Props> = ({ workerId, periodStart, period
       </div>
 
       <Dialog open={!!openOrder} onOpenChange={(o) => !o && setOpenOrder(null)}>
-        <DialogContent className="max-w-md max-h-[85dvh] p-0 flex flex-col" dir="rtl">
-          <DialogHeader className="p-4 pb-2 border-b">
-            <DialogTitle className="flex items-center gap-2 text-base">
-              <Package className="w-5 h-5 text-primary" />
+        <DialogContent className="max-w-md max-h-[90dvh] p-0 flex flex-col gap-0 overflow-hidden bg-muted/30" dir="rtl">
+          <DialogHeader className="p-3 bg-destructive/10 border-b">
+            <DialogTitle className="flex items-center justify-end gap-2 text-sm font-bold text-destructive">
               تفاصيل الطلبية
+              <Package className="w-4 h-4" />
             </DialogTitle>
           </DialogHeader>
 
           {openOrder && (
-            <ScrollArea className="flex-1 p-4 space-y-3">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Badge variant="outline" className={`text-[10px] ${statusBadgeClass(openOrder.status)}`}>
-                    {statusLabel(openOrder.status)}
-                  </Badge>
-                  <span className="text-[10px] text-muted-foreground font-mono">#{openOrder.id.slice(0, 8)}</span>
-                </div>
-
-                <h3 className="text-sm font-bold flex items-center gap-1.5">
-                  <Store className="w-4 h-4 text-primary" />
-                  {openOrder.customer?.store_name || openOrder.customer?.name || '—'}
-                </h3>
-
-                <div className="grid grid-cols-2 gap-2 text-[11px]">
-                  {openOrder.assigned?.full_name && (
-                    <div className="bg-muted/40 rounded p-2">
-                      <p className="text-muted-foreground flex items-center gap-1"><UserIcon className="w-3 h-3" /> الموصل</p>
-                      <p className="font-semibold">{openOrder.assigned.full_name}</p>
+            <ScrollArea className="flex-1">
+              <div className="p-3 space-y-3">
+                {/* Customer card */}
+                <Card className="overflow-hidden">
+                  <CardContent className="p-3 space-y-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <Badge variant="outline" className={`text-[10px] ${statusBadgeClass(openOrder.status)}`}>
+                        {statusLabel(openOrder.status)}
+                      </Badge>
+                      <h3 className="text-sm font-bold flex items-center gap-1.5">
+                        {openOrder.customer?.store_name || openOrder.customer?.name || '—'}
+                        {openOrder.assigned?.full_name && (
+                          <span className="text-[11px] text-muted-foreground font-normal">— {openOrder.assigned.full_name}</span>
+                        )}
+                        <Store className="w-4 h-4 text-primary" />
+                      </h3>
                     </div>
-                  )}
-                  {openOrder.delivery_date && (
-                    <div className="bg-muted/40 rounded p-2">
-                      <p className="text-muted-foreground flex items-center gap-1"><Calendar className="w-3 h-3" /> تاريخ التوصيل</p>
-                      <p className="font-semibold">{new Date(openOrder.delivery_date).toLocaleDateString('ar-DZ')}</p>
+                    {openOrder.customer?.phone && (
+                      <p className="text-[11px] text-muted-foreground text-end">📞 {openOrder.customer.phone}</p>
+                    )}
+                    <p className="text-[11px] text-muted-foreground text-end">
+                      التاريخ: {new Date(openOrder.created_at).toLocaleString('ar-DZ')}
+                    </p>
+                  </CardContent>
+                </Card>
+
+                {/* Products */}
+                <div className="space-y-2">
+                  <p className="text-xs font-bold text-end">المنتجات</p>
+                  {itemsLoading ? (
+                    <div className="flex justify-center py-4">
+                      <Loader2 className="w-4 h-4 animate-spin text-primary" />
                     </div>
+                  ) : !items || items.length === 0 ? (
+                    <p className="text-[11px] text-muted-foreground text-center py-2">لا توجد منتجات.</p>
+                  ) : (
+                    items.map((it) => (
+                      <Card key={it.id} className="overflow-hidden">
+                        <CardContent className="p-2.5 flex items-center gap-2.5">
+                          <div className="shrink-0">
+                            <p className="text-xs font-bold text-destructive whitespace-nowrap">
+                              DA {fmt(Number(it.total_price || 0))}
+                            </p>
+                          </div>
+                          <div className="flex-1 min-w-0 text-end space-y-0.5">
+                            <p className="text-xs font-semibold leading-tight">{it.product?.name || '—'}</p>
+                            <p className="text-[10px] text-muted-foreground">
+                              الكمية المباعة: {fmt(Number(it.quantity || 0))} • السعر: {fmt(Number(it.unit_price || 0))}
+                            </p>
+                            {Number(it.gift_quantity || 0) > 0 && (
+                              <p className="text-[10px] text-destructive font-semibold">
+                                هدية: {fmt(Number(it.gift_quantity))}
+                              </p>
+                            )}
+                          </div>
+                          <div className="shrink-0 w-12 h-12 rounded-md bg-muted overflow-hidden flex items-center justify-center">
+                            {it.product?.image_url ? (
+                              <img src={it.product.image_url} alt={it.product.name || ''} className="w-full h-full object-cover" loading="lazy" />
+                            ) : (
+                              <Package className="w-5 h-5 text-muted-foreground" />
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
                   )}
-                  <div className="bg-muted/40 rounded p-2">
-                    <p className="text-muted-foreground flex items-center gap-1"><CreditCard className="w-3 h-3" /> طريقة الدفع</p>
-                    <p className="font-semibold">{paymentLabel(openOrder.payment_type)}</p>
-                  </div>
-                  <div className="bg-primary/10 rounded p-2">
-                    <p className="text-muted-foreground">المبلغ</p>
-                    <p className="font-bold text-primary">{fmt(Number(openOrder.total_amount || 0))} دج</p>
-                  </div>
                 </div>
 
                 {openOrder.notes && (
-                  <p className="text-[11px] bg-muted/30 rounded p-2 text-muted-foreground">{openOrder.notes}</p>
-                )}
-              </div>
-
-              <div className="mt-3 pt-3 border-t space-y-1.5">
-                <p className="text-xs font-semibold">المنتجات</p>
-                {itemsLoading ? (
-                  <div className="flex justify-center py-3">
-                    <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                  </div>
-                ) : !items || items.length === 0 ? (
-                  <p className="text-[11px] text-muted-foreground">لا توجد منتجات.</p>
-                ) : (
-                  items.map((it) => (
-                    <div key={it.id} className="rounded-md border bg-background px-2 py-1.5 flex items-center justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="text-[11px] font-semibold truncate">{it.product?.name || '—'}</p>
-                        <p className="text-[10px] text-muted-foreground">
-                          {fmt(Number(it.quantity || 0))} × {fmt(Number(it.unit_price || 0))} دج
-                          {Number(it.gift_quantity || 0) > 0 && ` • هدية: ${fmt(Number(it.gift_quantity))}`}
-                        </p>
-                      </div>
-                      <span className="text-[11px] font-bold shrink-0">{fmt(Number(it.total_price || 0))} دج</span>
-                    </div>
-                  ))
+                  <p className="text-[11px] bg-muted/50 rounded p-2 text-muted-foreground text-end">{openOrder.notes}</p>
                 )}
               </div>
             </ScrollArea>
+          )}
+
+          {/* Total bar */}
+          {openOrder && (
+            <div className="border-t bg-destructive/10 p-3 flex items-center justify-between">
+              <span className="text-base font-bold text-destructive">
+                DA {fmt(Number(openOrder.total_amount || 0))}
+              </span>
+              <span className="text-sm font-bold text-destructive">المجموع</span>
+            </div>
           )}
         </DialogContent>
       </Dialog>
