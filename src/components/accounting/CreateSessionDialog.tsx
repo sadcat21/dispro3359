@@ -1153,7 +1153,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
               disabled={isSubmitting || createSession.isPending || updateSession.isPending}
             >
               {(isSubmitting || createSession.isPending || updateSession.isPending) && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
-              {isEditMode ? t('create_session.confirm_save') : t('create_session.continue_to_unload')}
+              {isEditMode || isFinancialOnly ? t('create_session.confirm_save') : t('create_session.continue_to_unload')}
             </Button>
           </div>
         </DialogContent>
