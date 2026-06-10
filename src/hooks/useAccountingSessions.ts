@@ -207,23 +207,16 @@ export const useUpdateFullSession = () => {
       notes?: string;
       items: { item_type: string; expected_amount: number; actual_amount: number; notes?: string }[];
     }) => {
-      // Update session
-      // Convert datetime-local to timestamptz with Algeria timezone (+01:00)
-      const toTz = (v: string) => v.includes('T') ? v + ':00+01:00' : v + 'T00:00:00+01:00';
-      const completedAt = new Date().toISOString();
-      const effectivePeriodEnd = getEffectiveAccountingSessionEnd(toTz(params.period_end), completedAt);
-      
+      // Update session — preserve original period_start/period_end/completed_at on modify
       const { error: sessionErr } = await supabase
         .from('accounting_sessions')
         .update({
-          period_start: toTz(params.period_start),
-          period_end: effectivePeriodEnd,
           notes: params.notes || null,
-          completed_at: completedAt,
         })
         .eq('id', params.session_id);
 
       if (sessionErr) throw sessionErr;
+
 
       // Delete old items
       const { error: deleteErr } = await supabase
