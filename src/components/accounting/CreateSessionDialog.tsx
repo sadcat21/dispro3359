@@ -1001,7 +1001,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 </StepSection>
 
                 {/* ━━━ Step 4: Debt Details (mirrors payment_details layout) ━━━ */}
-                <StepSection step={6} title={t('create_session.debt_details')} color="orange" badge={`${fmt((calc.newDebts || 0) + (calc.debtCollections?.total || 0))} DA`} verified={verifications.newDebts || ((calc.newDebts || 0) === 0 && (calc.debtCollections?.total || 0) === 0)}>
+                <StepSection step={6} title={t('create_session.debt_details')} color="orange" badge={`${fmt((calc.newDebts || 0) + (calc.debtCollections?.total || 0))} DA`} verified={verifications.newDebts || ((calc.newDebts || 0) === 0 && (calc.debtCollections?.total || 0) === 0)} requiresVerification={(calc.newDebts || 0) > 0 || (calc.debtCollections?.total || 0) > 0}>
                   {/* New Debts */}
                   <div className="rounded-lg border p-3 space-y-1.5 mb-2">
                     <div className="flex items-center justify-between">
@@ -1075,7 +1075,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 )}
 
                 {/* ━━━ Step 10: Debt Collections Detail ━━━ */}
-                <StepSection step={11} title={t('create_session.collected_debts_details')} color="orange" verified={verifications.debtCollections || (calc?.debtCollections?.total || 0) === 0}>
+                <StepSection step={11} title={t('create_session.collected_debts_details')} color="orange" verified={verifications.debtCollections || (calc?.debtCollections?.total || 0) === 0} requiresVerification={(calc?.debtCollections?.total || 0) > 0}>
                   <DebtCollectionsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} completedAt={null} />
                   <VerifyButton verified={verifications.debtCollections} onClick={() => toggleVerify('debtCollections')} label="تحقق من الديون المحصلة" />
                 </StepSection>
@@ -1087,7 +1087,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
                 </StepSection>
 
                 {/* ━━━ Pending Customer Approval Requests ━━━ */}
-                <StepSection step={13} title="تفاصيل الطلبيات الجديدة" color="amber" verified={verifications.pendingOrders || pendingOrdersCount === 0}>
+                <StepSection step={13} title="تفاصيل الطلبيات الجديدة" color="amber" verified={verifications.pendingOrders || pendingOrdersCount === 0} requiresVerification={pendingOrdersCount > 0}>
                   <PendingRequestsSummary workerId={selectedWorkerId} periodStart={periodStart} periodEnd={periodEnd} />
                   <VerifyButton verified={verifications.pendingOrders} onClick={() => toggleVerify('pendingOrders')} label="تحقق من الطلبيات الجديدة" />
                 </StepSection>
@@ -1138,10 +1138,11 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             <Button
               className="flex-1 rounded-xl h-11 text-base font-bold"
               onClick={handleShowConfirmation}
-              disabled={isSubmitting || createSession.isPending || updateSession.isPending || !selectedWorkerId || !calc || hasOutstandingCollections}
+              disabled={isSubmitting || createSession.isPending || updateSession.isPending || !selectedWorkerId || !calc || hasOutstandingCollections || (!verifications.newDebts && ((calc?.newDebts || 0) > 0 || (calc?.debtCollections?.total || 0) > 0)) || (!verifications.debtCollections && (calc?.debtCollections?.total || 0) > 0) || (!verifications.pendingOrders && pendingOrdersCount > 0)}
             >
               {isEditMode ? 'حفظ التعديلات' : t('accounting.save_session')}
             </Button>
+
           </div>
         </div>
       </DialogContent>
@@ -1238,23 +1239,29 @@ const StepSection: React.FC<{
   hideHeader?: boolean;
   defaultOpen?: boolean;
   verified?: boolean;
+  requiresVerification?: boolean;
   children: React.ReactNode;
-}> = ({ step, title, color = 'primary', badge, important, forceOpen, hideHeader, defaultOpen, verified, children }) => {
+}> = ({ step, title, color = 'primary', badge, important, forceOpen, hideHeader, defaultOpen, verified, requiresVerification, children }) => {
   const colorClass = stepColors[color] || stepColors.primary;
   const [open, setOpen] = React.useState(!!defaultOpen);
   React.useEffect(() => { if (forceOpen) setOpen(true); }, [forceOpen]);
+  const needsVerify = !!requiresVerification && !verified;
 
   return (
-    <Collapsible open={open} onOpenChange={setOpen} className={hideHeader ? 'space-y-2.5' : `rounded-xl border-2 p-3.5 space-y-2.5 ${important ? 'border-primary bg-primary/5' : verified ? 'border-emerald-300 bg-emerald-50/40' : 'border-border'}`}>
+    <Collapsible open={open} onOpenChange={setOpen} className={hideHeader ? 'space-y-2.5' : `rounded-xl border-2 p-3.5 space-y-2.5 ${important ? 'border-primary bg-primary/5' : needsVerify ? 'border-destructive bg-destructive/5' : verified ? 'border-emerald-300 bg-emerald-50/40' : 'border-border'}`}>
       {!hideHeader && (
         <CollapsibleTrigger className="flex items-center gap-2.5 w-full text-right">
           <div className={`${badge ? 'w-auto px-1.5 min-w-[1.5rem]' : 'w-6'} h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${colorClass}`}>
             {badge ? `${step}-${badge}` : step}
           </div>
           <h3 className="font-bold text-sm flex-1 text-right flex items-center gap-2 justify-end">
-            {verified && (
+            {verified ? (
               <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 border border-emerald-300 rounded-full px-2 py-0.5">
                 ✓ تم التحقق
+              </span>
+            ) : requiresVerification && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-destructive bg-destructive/10 border border-destructive/30 rounded-full px-2 py-0.5 animate-pulse">
+                ⚠ يتطلب التحقق
               </span>
             )}
             <span>{title}</span>
