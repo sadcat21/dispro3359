@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, Package } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { getProductDisplayName } from '@/utils/productDisplayName';
+import { boxesToBPAlways } from '@/utils/boxPieceInput';
 
 interface Props {
   open: boolean;
