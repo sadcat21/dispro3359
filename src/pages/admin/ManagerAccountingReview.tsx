@@ -140,6 +140,7 @@ const ManagerAccountingReview: React.FC = () => {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showProductsDialog, setShowProductsDialog] = useState(false);
   const [rowProductsReviewId, setRowProductsReviewId] = useState<string | null>(null);
+  const [rowInvoiceSessions, setRowInvoiceSessions] = useState<any[] | null>(null);
   useEffect(() => {
     setSelectedIds(new Set(filteredPendingSessions.map((s: any) => s.id)));
   }, [filteredPendingSessions]);
