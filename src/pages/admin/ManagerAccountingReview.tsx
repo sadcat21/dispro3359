@@ -1848,8 +1848,8 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
       ${commandesBlock}
       <div class="block">
         <div class="block-title" style="background:#fef2f2">Ventes par Vendeur et Méthode</div>
-      </div>
-      ${perWorkerBlocks}`;
+        <table style="table-layout:fixed;width:100%">${colgroup}<thead>${head}</thead><tbody>${perWorkerBlocks}</tbody></table>
+      </div>`;
     })()}
 
 
