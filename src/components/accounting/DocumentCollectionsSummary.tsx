@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, FileCheck2, FileText, Truck, Clock, ShieldCheck, ShieldAlert, AlertCircle, ClipboardCheck, Stamp, CheckCircle, XCircle, Package, ImageIcon, Gift, Paperclip } from 'lucide-react';
+import { Loader2, FileCheck2, FileText, Truck, Clock, ShieldCheck, ShieldAlert, AlertCircle, ClipboardCheck, Stamp, CheckCircle, XCircle, Package, ImageIcon, Gift, Paperclip, DollarSign } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -52,6 +52,8 @@ interface CollectedDoc {
   documentStatus: string | null;
   managerDecision: 'received' | 'not_received' | null;
   bucket: 'cash' | 'doc' | null;
+  invoiceNumber: string | null;
+  deliveryDate: string | null;
   verification: {
     checkNumber?: string;
     checkDate?: string;
@@ -317,7 +319,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
 
       const { data: pendingCollections } = await supabase
         .from('document_collections')
-        .select(`id, action, status, collection_date, created_at, order_id, order:orders!document_collections_order_id_fkey(id, total_amount, invoice_payment_method, document_status, document_manager_decision, document_verification, payment_status, payment_method_resolved, customer:customers!orders_customer_id_fkey(name, store_name, owner_first_name_ar, owner_last_name_ar, owner_first_name_fr, owner_last_name_fr))`)
+        .select(`id, action, status, collection_date, created_at, order_id, order:orders!document_collections_order_id_fkey(id, total_amount, invoice_payment_method, invoice_number, delivery_date, document_status, document_manager_decision, document_verification, payment_status, payment_method_resolved, customer:customers!orders_customer_id_fkey(name, store_name, owner_first_name_ar, owner_last_name_ar, owner_first_name_fr, owner_last_name_fr))`)
         .eq('worker_id', workerId)
         .eq('action', 'collected')
         .neq('status', 'rejected')
@@ -348,6 +350,8 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           documentStatus: order.document_status,
           managerDecision: (order as any).document_manager_decision || null,
           bucket: resolveBucket(dv, order),
+          invoiceNumber: order.invoice_number || null,
+          deliveryDate: order.delivery_date || null,
           verification: parseVerification(order.document_verification, docType),
         });
       }
@@ -376,6 +380,8 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
               id,
               total_amount,
               invoice_payment_method,
+              invoice_number,
+              delivery_date,
               document_status,
               document_manager_decision,
               document_verification,
@@ -423,6 +429,8 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           documentStatus: order.document_status,
           managerDecision: order.document_manager_decision || null,
           bucket: resolveBucket(dv, docOrder),
+          invoiceNumber: order.invoice_number || null,
+          deliveryDate: order.delivery_date || null,
           verification: parseVerification(order.document_verification, docType),
         });
         pendingOrderIds.add(order.id);
@@ -432,7 +440,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
       // updated_at falls within the period. Filtering by updated_at alone
       // silently drops delivered orders that contribute to session totals
       // but had their updated_at slip just outside the window.
-      const baseSelect = `id, total_amount, invoice_payment_method, document_status, document_manager_decision, document_verification, payment_status, payment_method_resolved, updated_at, created_at, customer:customers!orders_customer_id_fkey(name, store_name, owner_first_name_ar, owner_last_name_ar, owner_first_name_fr, owner_last_name_fr)`;
+      const baseSelect = `id, total_amount, invoice_payment_method, invoice_number, delivery_date, document_status, document_manager_decision, document_verification, payment_status, payment_method_resolved, updated_at, created_at, customer:customers!orders_customer_id_fkey(name, store_name, owner_first_name_ar, owner_last_name_ar, owner_first_name_fr, owner_last_name_fr)`;
       // Include delivered orders, AND cancelled orders whose document was already
       // received/verified — the worker remains accountable for the physical
       // document even if the order itself was later cancelled.
@@ -471,6 +479,8 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           documentStatus: o.document_status,
           managerDecision: (o as any).document_manager_decision || null,
           bucket: resolveBucket(dv, o),
+          invoiceNumber: (o as any).invoice_number || null,
+          deliveryDate: (o as any).delivery_date || null,
           verification: parseVerification(o.document_verification, docType),
         });
       }
@@ -672,8 +682,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                 ) : isRejected ? (
                   <XCircle className="w-5 h-5 text-white" strokeWidth={3} />
                 ) : (
-                  <FileText className="w-5 h-5 text-white" strokeWidth={2.5} />
-                )}
+                  <DollarSign className="w-5 h-5 text-white" strokeWidth={2.5} />)}
               </div>
               <div className="min-w-0 flex-1">
                 {/* Top line: owner full name from business file (fallback to app name) */}
@@ -717,6 +726,23 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
             </div>
           );
         })()}
+
+        {(doc.invoiceNumber || doc.deliveryDate) && (
+          <div className="grid grid-cols-2 gap-1.5">
+            {doc.invoiceNumber && (
+              <div className="bg-muted/50 rounded p-1.5 text-[10px] text-center">
+                <p className="text-muted-foreground mb-0.5">رقم الفاتورة</p>
+                <p className="font-bold" dir="ltr">{doc.invoiceNumber}</p>
+              </div>
+            )}
+            {doc.deliveryDate && (
+              <div className="bg-muted/50 rounded p-1.5 text-[10px] text-center">
+                <p className="text-muted-foreground mb-0.5">تاريخ التوصيل</p>
+                <p className="font-bold" dir="ltr">{new Date(doc.deliveryDate).toLocaleDateString('ar-DZ')}</p>
+              </div>
+            )}
+          </div>
+        )}
 
         {(doc.documentType === 'receipt' || doc.documentType === 'versement') && v.receiptNumber && (
           <div className="bg-muted/50 rounded p-1.5 text-[10px] text-center">
