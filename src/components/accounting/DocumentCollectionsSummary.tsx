@@ -429,6 +429,8 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           documentStatus: order.document_status,
           managerDecision: order.document_manager_decision || null,
           bucket: resolveBucket(dv, docOrder),
+          invoiceNumber: order.invoice_number || null,
+          deliveryDate: order.delivery_date || null,
           verification: parseVerification(order.document_verification, docType),
         });
         pendingOrderIds.add(order.id);
