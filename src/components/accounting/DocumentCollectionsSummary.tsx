@@ -682,8 +682,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                 ) : isRejected ? (
                   <XCircle className="w-5 h-5 text-white" strokeWidth={3} />
                 ) : (
-                  <FileText className="w-5 h-5 text-white" strokeWidth={2.5} />
-                )}
+                  <DollarSign className="w-5 h-5 text-white" strokeWidth={2.5} />)}
               </div>
               <div className="min-w-0 flex-1">
                 {/* Top line: owner full name from business file (fallback to app name) */}
