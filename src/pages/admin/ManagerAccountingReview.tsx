@@ -1742,7 +1742,19 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
       // Per-worker blocks — render each worker as its own .block so they can
       // flow across pages independently (page-break-inside: avoid on a single
       // wrapper was clipping all but the first worker on the printed output).
-      const perWorkerBlocks = productMatrix.workers.map(w => {
+      const perWorkerBlocks = productMatrix.workers.filter(w => {
+        const mQty = productMatrix.workerMethodProductQty?.[w.id] || {} as any;
+        const offered = productMatrix.workerOfferedQty?.[w.id] || {};
+        let any = 0;
+        methods.forEach(([k]) => {
+          products.forEach(p => {
+            const s = mQty[k as 'invoice1']?.[p.id];
+            if (s) any += Number(s.paid||0)+Number(s.debt||0)+Number(s.paidAmt||0)+Number(s.debtAmt||0);
+          });
+        });
+        products.forEach(p => { any += Number((offered as any)[p.id] || 0); });
+        return any > 0;
+      }).map(w => {
         const mQty = productMatrix.workerMethodProductQty?.[w.id] || { invoice1: {}, super_gros: {}, gros: {}, retail: {}, remise: {} } as any;
         const offered = productMatrix.workerOfferedQty?.[w.id] || {};
         const roleCode = productMatrix.workerRoles?.[w.id];
