@@ -1267,13 +1267,15 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
   if (!workerIds.length || !starts.length || !ends.length) return { products: [], rows: {}, workers: [], workerRows: {}, workerMethodAmounts: {}, workerMethodProductQty: {}, workerOfferedQty: {}, workerProductAmount: {} };
   const from = new Date(Math.min(...starts.map((d: string) => new Date(d).getTime()))).toISOString();
   const to = new Date(Math.max(...ends.map((d: string) => new Date(d).getTime()))).toISOString();
-  const { data: orders } = await supabase
+  const { data: orders, error: ordersErr } = await supabase
     .from('orders')
-    .select('id, payment_type, payment_status, invoice_payment_method, assigned_worker_id, created_at, order_items(product_id, quantity, unit_price, total_price, pricing_unit, gift_quantity, gift_pieces, price_subtype, products(id, name, app_name, pieces_per_box, weight_per_box, price_super_gros, price_gros, price_retail, price_invoice, price_no_invoice, pricing_unit))')
+    .select('id, status, payment_type, payment_status, invoice_payment_method, assigned_worker_id, created_at, order_items(product_id, quantity, unit_price, total_price, pricing_unit, gift_quantity, gift_pieces, price_subtype, products(id, name, app_name, pieces_per_box, weight_per_box, price_super_gros, price_gros, price_retail, price_invoice, price_no_invoice, pricing_unit))')
     .in('assigned_worker_id', workerIds)
-    .in('status', ['delivered', 'assigned'])
+    .neq('status', 'cancelled')
     .gte('created_at', from)
     .lte('created_at', to);
+  if (ordersErr) console.error('[fetchProductMatrix] orders error:', ordersErr);
+  console.log('[fetchProductMatrix]', { workerIds, from, to, ordersCount: orders?.length, byWorker: (orders || []).reduce((a: any, o: any) => { a[o.assigned_worker_id] = (a[o.assigned_worker_id] || 0) + 1; return a; }, {}) });
   const productMap = new Map<string, { name: string; ppb: number }>();
   const workerMap = new Map<string, string>();
   sessions.forEach((s: any) => {
