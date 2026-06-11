@@ -479,6 +479,8 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           documentStatus: o.document_status,
           managerDecision: (o as any).document_manager_decision || null,
           bucket: resolveBucket(dv, o),
+          invoiceNumber: (o as any).invoice_number || null,
+          deliveryDate: (o as any).delivery_date || null,
           verification: parseVerification(o.document_verification, docType),
         });
       }
