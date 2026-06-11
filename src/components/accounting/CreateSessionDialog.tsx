@@ -236,20 +236,29 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             const windows = (allSessions || [])
               .map((s: any) => ({ start: new Date(s.period_start).getTime(), end: new Date(s.period_end).getTime() }))
               .filter((w) => !isNaN(w.start) && !isNaN(w.end));
+            // Use delivery_date (fallback created_at) — NOT updated_at — so that
+            // edits to old delivered orders after a session is posted don't make
+            // them appear "uncovered" and re-pull already-counted sales.
             const { data: deliveredOrders } = await supabase
               .from('orders')
-              .select('updated_at')
+              .select('created_at, delivery_date')
               .eq('assigned_worker_id', selectedWorkerId)
               .eq('status', 'delivered')
-              .order('updated_at', { ascending: true })
+              .order('created_at', { ascending: true })
               .limit(500);
             let earliestUncovered: Date | null = null;
             for (const o of deliveredOrders || []) {
-              const t = o.updated_at ? new Date(o.updated_at) : null;
+              const raw = (o as any).delivery_date || o.created_at;
+              const t = raw ? new Date(raw) : null;
               if (!t || isNaN(t.getTime())) continue;
               const ms = t.getTime();
               const covered = windows.some((w) => ms >= w.start && ms <= w.end);
-              if (!covered) { earliestUncovered = t; break; }
+              // Also treat any order at/before refDate as already covered by the
+              // last posted session anchor — refDate = MAX(completed_at, period_end).
+              if (covered) continue;
+              if (refDate && ms <= refDate.getTime()) continue;
+              earliestUncovered = t;
+              break;
             }
             if (earliestUncovered && (!refDate || earliestUncovered.getTime() < refDate.getTime())) {
               refDate = earliestUncovered;
