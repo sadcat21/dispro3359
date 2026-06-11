@@ -748,14 +748,13 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                     {doc.storeName || <span className="italic opacity-70">بدون اسم محل</span>}
                   </div>
                   <div className="text-end">
-                    {psMeta ? (
+                    {psMeta && (
                       <Badge className={`${psMeta.cls} text-[9px] px-1.5 py-0 h-4 border-0`}>
                         {psMeta.label}
                       </Badge>
-                    ) : (
-                      <span className="text-[10px] text-muted-foreground">#{doc.orderId.slice(0, 8)}</span>
                     )}
                   </div>
+
                 </div>
               </div>
             </div>
