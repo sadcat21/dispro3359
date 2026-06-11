@@ -1544,7 +1544,15 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
                     type="button"
                     variant="outline"
                     className="w-full h-12 gap-2 text-primary border-primary/40 hover:bg-primary/5"
-                    onClick={() => setShowProductPicker(true)}
+                    onClick={async () => {
+                      try {
+                        await ensureAllProductsLoaded();
+                        setShowProductPicker(true);
+                      } catch (error) {
+                        console.error('Failed to load products for picker:', error);
+                        toast.error('فشل تحميل المنتجات');
+                      }
+                    }}
                   >
                     <PlusCircle className="w-5 h-5" />
                     {t('orders.add_product')}
@@ -1863,7 +1871,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
           setTimeout(() => {
             setNewProductId('');
             // Trigger add
-            const product = allProducts.find(p => p.id === productId);
+            const product = getProductById(productId);
             if (!product) return;
             if (saleItems.some(i => i.productId === productId)) {
               toast.error(t('orders.product_already_added'));
