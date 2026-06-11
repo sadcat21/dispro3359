@@ -1765,9 +1765,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
           (k, pid) => mQty[k as 'invoice1']?.[pid] || { paid: 0, debt: 0, paidAmt: 0, debtAmt: 0 },
           (pid) => Number((offered as any)[pid] || 0),
         );
-        return `<div class="block" style="page-break-inside:auto">
-          <table style="table-layout:fixed;width:100%">${colgroup}<thead>${head}</thead><tbody>${headerRow}${body}</tbody></table>
-        </div>`;
+        return `${headerRow}${body}`;
       }).join('');
 
       // Aggregate totals across all workers
@@ -1850,8 +1848,8 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
       ${commandesBlock}
       <div class="block">
         <div class="block-title" style="background:#fef2f2">Ventes par Vendeur et Méthode</div>
-      </div>
-      ${perWorkerBlocks}`;
+        <table style="table-layout:fixed;width:100%">${colgroup}<thead>${head}</thead><tbody>${perWorkerBlocks}</tbody></table>
+      </div>`;
     })()}
 
 
