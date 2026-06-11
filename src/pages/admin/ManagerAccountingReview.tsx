@@ -1829,9 +1829,17 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
           const fmt = (v: number) => v ? boxesToBPAlways(v, ppb) : '0';
           return `<tr><td style="text-align:left;padding-left:8px;font-weight:700;color:#0f172a">${escapeHtml(p.name)}</td>${cells.map(v => `<td style="color:#047857;font-weight:600">${fmt(v)}</td>`).join('')}<td style="font-weight:800;color:#0369a1">${fmt(tot)}</td></tr>`;
         }).join('');
+        const repTotals = repsWithData.map(r => products.reduce((a, p) => a + getOrderedQty(r.id, p.id), 0));
+        const grandTotal = repTotals.reduce((a, b) => a + b, 0);
+        const fmtBoxes = (v: number) => v ? `${Math.round(v).toLocaleString()}` : '0';
+        const totalRow = `<tr>
+          <td style="text-align:left;padding-left:8px;font-weight:900;color:#0f172a;background:#f1f5f9;text-transform:uppercase">Total Caisses</td>
+          ${repTotals.map(v => `<td style="font-weight:900;color:#047857;background:#ecfdf5">${fmtBoxes(v)}</td>`).join('')}
+          <td style="font-weight:900;color:#0369a1;background:#e0f2fe">${fmtBoxes(grandTotal)}</td>
+        </tr>`;
         return `<div class="block">
           <div class="block-title" style="background:#fef3c7">Commandes par Vendeur</div>
-          <table style="table-layout:fixed;width:100%">${cg}<thead>${hd}</thead><tbody>${bodyRows}</tbody></table>
+          <table style="table-layout:fixed;width:100%">${cg}<thead>${hd}</thead><tbody>${bodyRows}${totalRow}</tbody></table>
         </div>`;
       })();
 
