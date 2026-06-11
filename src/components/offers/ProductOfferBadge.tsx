@@ -105,6 +105,14 @@ export const preloadProductOffersForBadge = (productId: string, customerTypes?: 
   });
 };
 
+/** Synchronous reader for the in-memory offers cache (no network). */
+export const getCachedProductOffersForBadge = (
+  productId: string,
+  customerTypes?: string[] | null,
+): ProductOfferWithDetails[] | undefined => {
+  return productOfferMemoryCache.get(getProductOfferLookupKey(productId, customerTypes));
+};
+
 const ProductOfferBadge: React.FC<ProductOfferBadgeProps> = ({ 
   productId, 
   quantity, 
