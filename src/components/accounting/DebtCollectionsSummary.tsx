@@ -134,6 +134,8 @@ const DebtCollectionsSummary: React.FC<DebtCollectionsSummaryProps> = ({ workerI
   if (!rows || rows.length === 0) return <p data-empty="true" className="text-xs text-muted-foreground text-center py-3">{t('debt_collections.no_collections')}</p>;
 
   const totalCollected = rows.reduce((s, r) => s + r.collectedNow, 0);
+  const totalCash = rows.reduce((s, r: any) => s + (r.cashAmount || 0), 0);
+  const totalDoc = rows.reduce((s, r: any) => s + (r.docAmount || 0), 0);
 
   const methodLabel = (m: string) => {
     const map: Record<string, string> = {
@@ -173,9 +175,21 @@ const DebtCollectionsSummary: React.FC<DebtCollectionsSummaryProps> = ({ workerI
           </div>
         </div>
       ))}
-      <div className="bg-primary/5 border border-primary/20 rounded-lg p-2.5 flex justify-between items-center">
-        <span className="text-sm font-bold">{t('debt_collections.total')}</span>
-        <span className="font-bold text-primary">{fmt(totalCollected)} DA</span>
+      <div className="bg-primary/5 border border-primary/20 rounded-lg p-2.5 space-y-1.5">
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="bg-green-50 dark:bg-green-900/20 rounded p-2 flex justify-between items-center">
+            <span className="font-semibold text-green-700 dark:text-green-400">نقدي</span>
+            <span className="font-bold text-green-600">{fmt(totalCash)} DA</span>
+          </div>
+          <div className="bg-blue-50 dark:bg-blue-900/20 rounded p-2 flex justify-between items-center">
+            <span className="font-semibold text-blue-700 dark:text-blue-400">وثائق</span>
+            <span className="font-bold text-blue-600">{fmt(totalDoc)} DA</span>
+          </div>
+        </div>
+        <div className="flex justify-between items-center pt-1 border-t border-primary/20">
+          <span className="text-sm font-bold">{t('debt_collections.total')}</span>
+          <span className="font-bold text-primary">{fmt(totalCollected)} DA</span>
+        </div>
       </div>
     </div>
   );
