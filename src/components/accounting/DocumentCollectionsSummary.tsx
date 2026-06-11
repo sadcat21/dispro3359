@@ -736,9 +736,8 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                     <span className="font-bold text-sm text-primary">{fmt(doc.orderTotal)} DA</span>
                   </div>
 
-                  <div className="text-[11px] text-foreground/80 truncate" dir="auto">
-                    {doc.customerName}
-                  </div>
+                  <div />
+
                   <div className="text-end">
                     <Badge className={`${docTypeColor(doc.documentType)} text-[9px] px-1.5 py-0 h-4`}>
                       {stampedMethodLabel(doc.documentType, doc.bucket)}
