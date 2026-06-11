@@ -736,9 +736,8 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                     <span className="font-bold text-sm text-primary">{fmt(doc.orderTotal)} DA</span>
                   </div>
 
-                  <div className="text-[11px] text-foreground/80 truncate" dir="auto">
-                    {doc.customerName}
-                  </div>
+                  <div />
+
                   <div className="text-end">
                     <Badge className={`${docTypeColor(doc.documentType)} text-[9px] px-1.5 py-0 h-4`}>
                       {stampedMethodLabel(doc.documentType, doc.bucket)}
@@ -749,14 +748,13 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                     {doc.storeName || <span className="italic opacity-70">بدون اسم محل</span>}
                   </div>
                   <div className="text-end">
-                    {psMeta ? (
+                    {psMeta && (
                       <Badge className={`${psMeta.cls} text-[9px] px-1.5 py-0 h-4 border-0`}>
                         {psMeta.label}
                       </Badge>
-                    ) : (
-                      <span className="text-[10px] text-muted-foreground">#{doc.orderId.slice(0, 8)}</span>
                     )}
                   </div>
+
                 </div>
               </div>
             </div>
