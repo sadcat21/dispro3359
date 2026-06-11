@@ -1269,11 +1269,11 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
   const to = new Date(Math.max(...ends.map((d: string) => new Date(d).getTime()))).toISOString();
   const { data: orders, error: ordersErr } = await supabase
     .from('orders')
-    .select('id, status, payment_type, payment_status, invoice_payment_method, assigned_worker_id, created_at, order_items(product_id, quantity, unit_price, total_price, pricing_unit, gift_quantity, gift_pieces, price_subtype, products(id, name, app_name, pieces_per_box, weight_per_box, price_super_gros, price_gros, price_retail, price_invoice, price_no_invoice, pricing_unit))')
+    .select('id, status, payment_type, payment_status, invoice_payment_method, assigned_worker_id, created_at, updated_at, order_items(product_id, quantity, unit_price, total_price, pricing_unit, gift_quantity, gift_pieces, price_subtype, products(id, name, app_name, pieces_per_box, weight_per_box, price_super_gros, price_gros, price_retail, price_invoice, price_no_invoice, pricing_unit))')
     .in('assigned_worker_id', workerIds)
-    .neq('status', 'cancelled')
-    .gte('created_at', from)
-    .lte('created_at', to);
+    .eq('status', 'delivered')
+    .gte('updated_at', from)
+    .lte('updated_at', to);
   if (ordersErr) console.error('[fetchProductMatrix] orders error:', ordersErr);
   console.log('[fetchProductMatrix]', { workerIds, from, to, ordersCount: orders?.length, byWorker: (orders || []).reduce((a: any, o: any) => { a[o.assigned_worker_id] = (a[o.assigned_worker_id] || 0) + 1; return a; }, {}) });
   const productMap = new Map<string, { name: string; ppb: number }>();
@@ -1339,7 +1339,7 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
   (orders || []).forEach((o: any) => {
     const wins = workerWindows.get(o.assigned_worker_id);
     if (!wins) return;
-    const t = new Date(o.created_at).getTime();
+    const t = new Date(o.updated_at || o.created_at).getTime();
     if (!wins.some(([s, e]) => t >= s && t <= e)) return;
     const isInvoice1 = o.payment_type === 'with_invoice';
     const isPaid = (o.payment_status || '').toLowerCase() !== 'pending';
