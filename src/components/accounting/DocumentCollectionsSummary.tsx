@@ -440,7 +440,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
       // updated_at falls within the period. Filtering by updated_at alone
       // silently drops delivered orders that contribute to session totals
       // but had their updated_at slip just outside the window.
-      const baseSelect = `id, total_amount, invoice_payment_method, document_status, document_manager_decision, document_verification, payment_status, payment_method_resolved, updated_at, created_at, customer:customers!orders_customer_id_fkey(name, store_name, owner_first_name_ar, owner_last_name_ar, owner_first_name_fr, owner_last_name_fr)`;
+      const baseSelect = `id, total_amount, invoice_payment_method, invoice_number, delivery_date, document_status, document_manager_decision, document_verification, payment_status, payment_method_resolved, updated_at, created_at, customer:customers!orders_customer_id_fkey(name, store_name, owner_first_name_ar, owner_last_name_ar, owner_first_name_fr, owner_last_name_fr)`;
       // Include delivered orders, AND cancelled orders whose document was already
       // received/verified — the worker remains accountable for the physical
       // document even if the order itself was later cancelled.
