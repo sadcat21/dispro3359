@@ -18,8 +18,8 @@ import {
   fetchProductMatrix,
   ProductMatrix,
 } from './ManagerAccountingReview';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Package } from 'lucide-react';
+import { boxesToBPAlways } from '@/utils/boxPieceInput';
 
 const ManagerReviewDetail: React.FC = () => {
   const { reviewId } = useParams<{ reviewId: string }>();
