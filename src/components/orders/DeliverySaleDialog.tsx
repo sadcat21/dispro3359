@@ -38,7 +38,6 @@ import DeliveryPaymentDialog from '@/components/orders/DeliveryPaymentDialog';
 import CheckVerificationDialog from '@/components/orders/CheckVerificationDialog';
 import ReceiptPaymentDialog from '@/components/orders/ReceiptPaymentDialog';
 import ProductQuantityDialog from '@/components/orders/ProductQuantityDialog';
-import { preloadProductOffersForBadge } from '@/components/offers/ProductOfferBadge';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import CustomerDistanceIndicator from './CustomerDistanceIndicator';
 import SimpleProductPickerDialog from '@/components/stock/SimpleProductPickerDialog';
@@ -88,7 +87,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
   const markCreditUsed = useMarkCreditUsed();
   const logActivity = useLogActivity();
   const { trackVisit } = useTrackVisit();
-  const { activeOffers } = useProductOffers();
+  const { activeOffers } = useProductOffers({ includeOffers: false, includeActiveOffers: true });
   const creditSummary = useCustomerCreditSummary(order.customer_id);
   const { data: customerCredits } = useCustomerCredits(order.customer_id);
   const [useCreditBalance, setUseCreditBalance] = useState(false);
@@ -233,31 +232,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
   const [partialDeliveryAction, setPartialDeliveryAction] = useState<'none' | 'create_order' | 'deliver_only'>('none');
   const productsSectionRef = useRef<HTMLElement | null>(null);
 
-  // Fetch products for adding
-  useEffect(() => {
-    if (!open) return;
-    const fetch = async () => {
-      const { data } = await supabase.from('products').select('*').eq('is_active', true).order('sort_order', { ascending: true }).order('name');
-      setAllProducts(data || []);
-    };
-    fetch();
-  }, [open]);
-
-  // Warm the offer cache in the background so first ProductQuantityDialog open is instant
-  useEffect(() => {
-    if (!open || !allProducts.length) return;
-    const ct = getCustomerTypesArray(order?.customer);
-    const idle: (cb: () => void) => number = (window as any).requestIdleCallback || ((cb: () => void) => window.setTimeout(cb, 200));
-    const handle = idle(() => {
-      for (const p of allProducts) {
-        preloadProductOffersForBadge(p.id, ct);
-      }
-    });
-    return () => {
-      const cancel = (window as any).cancelIdleCallback || window.clearTimeout;
-      try { cancel(handle); } catch {}
-    };
-  }, [open, allProducts, order?.customer]);
+  // Keep the initial dialog light: do not load the full products catalog until user opens add-product picker.
 
   // Initialize sale items from order items
   // Helper: recalculate gift for a product based on paid quantity and active offers
