@@ -433,7 +433,11 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
 
   const customerTypesKey = JSON.stringify([...(customerTypes || [])].filter(Boolean).sort());
   const currentOfferLookupKey = product ? getProductOfferLookupKey(product.id, customerTypes) : '';
-  const currentPrefetchedOffers = currentOfferLookupKey ? prefetchedOffersByKey[currentOfferLookupKey] : undefined;
+  // Read sync from module cache so first paint already has offers when DeliverySaleDialog warmed them.
+  const cachedOffers = product ? getCachedProductOffersForBadge(product.id, customerTypes) : undefined;
+  const currentPrefetchedOffers = currentOfferLookupKey
+    ? (prefetchedOffersByKey[currentOfferLookupKey] ?? cachedOffers)
+    : undefined;
   const offerCheckPending = Boolean(open && product && !isUnitSale && !currentPrefetchedOffers) || offersLoading;
 
   const prefetchOffers = useCallback(async (productId: string, nextCustomerTypes?: string[] | null) => {
@@ -450,8 +454,10 @@ const ProductQuantityDialog: React.FC<ProductQuantityDialogProps> = ({
 
   useEffect(() => {
     if (!open || !product || isUnitSale) return;
+    // If module cache already has it, skip — we read it synchronously above (concurrent with detail render).
+    if (cachedOffers) return;
     prefetchOffers(product.id, customerTypes);
-  }, [open, product, isUnitSale, customerTypesKey, prefetchOffers]);
+  }, [open, product, isUnitSale, customerTypesKey, prefetchOffers, cachedOffers]);
 
   if (!product) return null;
 
