@@ -424,7 +424,6 @@ const HandoverPrintView: React.FC<Props> = ({
         const sections: Array<{ title: string; isEmpty: boolean; node: React.ReactNode }> = [
           { title: 'CHEQUES', isEmpty: checks.length === 0, node: renderSimpleTable('CHEQUES', checks, checksAmount, [
             { header: 'N° Chèque', cell: (item) => item.check_number || '-' },
-            { header: 'Banque', cell: (item) => item.check_bank || '-' },
           ]) },
           { title: 'ESPÈCES FACTURE 1', isEmpty: cashItemsWithStamp.length === 0, node: renderCashInvoice1Table() },
           { title: 'VERSEMENT CASH', isEmpty: receiptCash.length === 0, node: renderSimpleTable('VERSEMENT CASH', receiptCash, receiptCashTotal, [
