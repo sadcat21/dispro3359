@@ -121,13 +121,18 @@ export async function fetchSessionCalculations(params: SessionCalcParams | null)
     // created_by is the sales rep who recorded the order and bears no cash responsibility.
     .eq('assigned_worker_id', workerId);
 
+  // Fetch by created_at OR delivery_date within the window. We intentionally
+  // DO NOT filter by updated_at because post-delivery edits (e.g. manager
+  // applying invoice/receipt decisions on session save) bump updated_at past
+  // the prior session's period_end, which would re-pull already-counted orders
+  // into the next session and double-count sales/debts.
   const [createdOrdersRes, updatedOrdersRes] = await Promise.all([
     buildOrdersQuery()
       .gt('created_at', effectiveStartTz)
       .lte('created_at', periodEndTz),
     buildOrdersQuery()
-      .gt('updated_at', effectiveStartTz)
-      .lte('updated_at', periodEndTz),
+      .gt('delivery_date', effectiveStartTz)
+      .lte('delivery_date', periodEndTz),
   ]);
 
   ensureNoError(createdOrdersRes.error, 'created orders');
