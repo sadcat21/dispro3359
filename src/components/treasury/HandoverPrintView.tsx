@@ -118,7 +118,7 @@ const HandoverPrintView: React.FC<Props> = ({
       if (orderIds.length > 0) {
         const { data: orders } = await supabase
           .from('orders')
-          .select('id, created_at, delivery_date, total_amount, order_items(total_price), customers(name_fr, name, store_name_fr, store_name, owner_first_name_fr, owner_last_name_fr)')
+          .select('id, created_at, delivery_date, total_amount, invoice_number, document_verification, order_items(total_price), customers(name_fr, name, store_name_fr, store_name, owner_first_name_fr, owner_last_name_fr)')
           .in('id', orderIds);
         (orders || []).forEach((order) => {
           orderMap[order.id] = order;
@@ -173,11 +173,11 @@ const HandoverPrintView: React.FC<Props> = ({
             : undefined,
           stamp_amount: item.payment_method === 'cash' ? exactStampAmount : undefined,
           stamp_percentage: item.payment_method === 'cash' ? Number(matchedTier?.percentage || 0) : undefined,
-          invoice_number: treasuryEntry?.invoice_number || undefined,
+          invoice_number: treasuryEntry?.invoice_number || order?.invoice_number || undefined,
           invoice_date: treasuryEntry?.invoice_date || (order ? format(new Date(order.delivery_date || order.created_at), 'dd/MM/yyyy') : undefined),
-          check_number: treasuryEntry?.check_number || undefined,
-          check_date: treasuryEntry?.check_date || undefined,
-          check_bank: treasuryEntry?.check_bank || undefined,
+          check_number: treasuryEntry?.check_number || order?.document_verification?.check_number || undefined,
+          check_date: treasuryEntry?.check_date || order?.document_verification?.check_date || undefined,
+          check_bank: treasuryEntry?.check_bank || order?.document_verification?.check_bank || undefined,
           receipt_number: treasuryEntry?.receipt_number || undefined,
           transfer_reference: treasuryEntry?.transfer_reference || undefined,
           paid_amount: debt ? debt.paid : (item.payment_method === 'receipt_cash' ? Number(item.amount || 0) : undefined),
