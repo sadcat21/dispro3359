@@ -1257,6 +1257,7 @@ export type ProductMatrix = {
   workerMethodProductQty: Record<string, { invoice1: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>; super_gros: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>; gros: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>; retail: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>; remise: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }> }>;
   workerOfferedQty: Record<string, Record<string, number>>;
   workerProductAmount: Record<string, Record<string, number>>;
+  workerRoles: Record<string, string>;
 };
 
 
@@ -1264,18 +1265,59 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
   const workerIds = Array.from(new Set(sessions.map((s: any) => s.worker_id ?? s.worker?.id).filter(Boolean)));
   const starts = sessions.map((s: any) => s.period_start).filter(Boolean);
   const ends = sessions.map((s: any) => s.period_end || s.completed_at).filter(Boolean);
-  if (!workerIds.length || !starts.length || !ends.length) return { products: [], rows: {}, workers: [], workerRows: {}, workerMethodAmounts: {}, workerMethodProductQty: {}, workerOfferedQty: {}, workerProductAmount: {} };
+  if (!workerIds.length || !starts.length || !ends.length) return { products: [], rows: {}, workers: [], workerRows: {}, workerMethodAmounts: {}, workerMethodProductQty: {}, workerOfferedQty: {}, workerProductAmount: {}, workerRoles: {} };
   const from = new Date(Math.min(...starts.map((d: string) => new Date(d).getTime()))).toISOString();
   const to = new Date(Math.max(...ends.map((d: string) => new Date(d).getTime()))).toISOString();
-  const { data: orders, error: ordersErr } = await supabase
-    .from('orders')
-    .select('id, status, payment_type, payment_status, invoice_payment_method, assigned_worker_id, created_at, updated_at, order_items(product_id, quantity, unit_price, total_price, pricing_unit, gift_quantity, gift_pieces, price_subtype, products(id, name, app_name, pieces_per_box, weight_per_box, price_super_gros, price_gros, price_retail, price_invoice, price_no_invoice, pricing_unit))')
-    .in('assigned_worker_id', workerIds)
-    .eq('status', 'delivered')
-    .gte('updated_at', from)
-    .lte('updated_at', to);
-  if (ordersErr) console.error('[fetchProductMatrix] orders error:', ordersErr);
-  console.log('[fetchProductMatrix]', { workerIds, from, to, ordersCount: orders?.length, byWorker: (orders || []).reduce((a: any, o: any) => { a[o.assigned_worker_id] = (a[o.assigned_worker_id] || 0) + 1; return a; }, {}) });
+
+  // Determine each worker's functional role (sales_rep vs delivery_rep, ...)
+  const workerRolesMap: Record<string, string> = {};
+  try {
+    const { data: roleRows } = await supabase
+      .from('worker_roles')
+      .select('worker_id, custom_roles!inner(code)')
+      .in('worker_id', workerIds);
+    for (const r of (roleRows || []) as any[]) {
+      const code = r.custom_roles?.code;
+      if (!code) continue;
+      // delivery_rep wins over sales_rep if both exist
+      if (workerRolesMap[r.worker_id] === 'delivery_rep') continue;
+      workerRolesMap[r.worker_id] = code;
+    }
+  } catch (e) { console.warn('[fetchProductMatrix] roles error', e); }
+
+  const deliveryWorkerIds = workerIds.filter((id) => workerRolesMap[id] !== 'sales_rep');
+  const salesWorkerIds = workerIds.filter((id) => workerRolesMap[id] === 'sales_rep');
+
+  const ordersSelect = 'id, status, payment_type, payment_status, invoice_payment_method, assigned_worker_id, created_by, created_at, updated_at, order_items(product_id, quantity, unit_price, total_price, pricing_unit, gift_quantity, gift_pieces, price_subtype, products(id, name, app_name, pieces_per_box, weight_per_box, price_super_gros, price_gros, price_retail, price_invoice, price_no_invoice, pricing_unit))';
+
+  let deliveredOrders: any[] = [];
+  if (deliveryWorkerIds.length) {
+    const { data, error } = await supabase
+      .from('orders')
+      .select(ordersSelect)
+      .in('assigned_worker_id', deliveryWorkerIds)
+      .eq('status', 'delivered')
+      .gte('updated_at', from)
+      .lte('updated_at', to);
+    if (error) console.error('[fetchProductMatrix] delivery orders error:', error);
+    deliveredOrders = (data || []).map((o: any) => ({ ...o, _attribWorkerId: o.assigned_worker_id }));
+  }
+
+  let salesOrders: any[] = [];
+  if (salesWorkerIds.length) {
+    const { data, error } = await supabase
+      .from('orders')
+      .select(ordersSelect)
+      .in('created_by', salesWorkerIds)
+      .neq('status', 'cancelled')
+      .gte('created_at', from)
+      .lte('created_at', to);
+    if (error) console.error('[fetchProductMatrix] sales orders error:', error);
+    salesOrders = (data || []).map((o: any) => ({ ...o, _attribWorkerId: o.created_by, _isSalesRepOrder: true }));
+  }
+
+  const orders = [...deliveredOrders, ...salesOrders];
+  console.log('[fetchProductMatrix]', { workerIds, from, to, deliveryCount: deliveredOrders.length, salesCount: salesOrders.length, roles: workerRolesMap });
   const productMap = new Map<string, { name: string; ppb: number }>();
   const workerMap = new Map<string, string>();
   sessions.forEach((s: any) => {
@@ -1337,9 +1379,10 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
     workerWindows.set(wid, arr);
   });
   (orders || []).forEach((o: any) => {
-    const wins = workerWindows.get(o.assigned_worker_id);
+    const attribWid = o._attribWorkerId || o.assigned_worker_id;
+    const wins = workerWindows.get(attribWid);
     if (!wins) return;
-    const t = new Date(o.updated_at || o.created_at).getTime();
+    const t = new Date((o._isSalesRepOrder ? o.created_at : (o.updated_at || o.created_at))).getTime();
     if (!wins.some(([s, e]) => t >= s && t <= e)) return;
     const isInvoice1 = o.payment_type === 'with_invoice';
     const isPaid = (o.payment_status || '').toLowerCase() !== 'pending';
@@ -1348,9 +1391,6 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       const p = it.products || {};
       const ppb = Math.max(1, Number(p.pieces_per_box || 1));
       productMap.set(it.product_id, { name: p.app_name || p.name || '—', ppb });
-      // Quantity is stored as boxes (B.P decimal for 'box', raw boxes for 'unit'/'piece',
-      // raw kg for 'kg'). Verified against DB: unit_price equals the per-box price for
-      // pricing_unit='unit' products (e.g. AROMA 400/700 Gr), so quantity is boxes, not pieces.
       const itemPU = (it.pricing_unit || p.pricing_unit || 'box').toString().toLowerCase();
       const isKgSale = itemPU === 'kg';
       const toBoxes = (raw: number) => {
@@ -1362,8 +1402,6 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       const giftPiecesAsBoxes = Number(it.gift_pieces || 0) / ppb;
       const gift = giftBoxes + giftPiecesAsBoxes;
       const sub = (it.price_subtype || '').toLowerCase();
-      // Use stored total_price when available (already accounts for pricing_unit box/piece).
-      // Fallback: derive from unit_price * (qty in boxes or pieces depending on pricing_unit).
       let lineAmount = Number(it.total_price || 0);
       if (!lineAmount) {
         const unitPrice = Number(it.unit_price || 0);
@@ -1385,10 +1423,9 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       bump('sold', it.product_id, qty);
       bump('offered', it.product_id, gift);
       bump('amount', it.product_id, lineAmount);
-      bumpWorker(o.assigned_worker_id, it.product_id, qty);
-      bumpWorkerOffered(o.assigned_worker_id, it.product_id, gift);
-      bumpWorkerAmount(o.assigned_worker_id, it.product_id, lineAmount);
-      // Resolve effective method: prefer explicit subtype, otherwise infer from unit price vs catalog
+      bumpWorker(attribWid, it.product_id, qty);
+      bumpWorkerOffered(attribWid, it.product_id, gift);
+      bumpWorkerAmount(attribWid, it.product_id, lineAmount);
       const explicitSub = (it.price_subtype || '').toString().toLowerCase();
       const resolvedSubtype = isInvoice1
         ? 'invoice'
@@ -1400,7 +1437,6 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
             pricingUnit: it.pricing_unit,
             piecesPerBox: p.pieces_per_box,
           });
-      // Detect Remise: explicit subtype OR effective box unit price below catalog retail price
       const boxUnitPrice = (() => {
         const up = Number(it.unit_price || 0);
         if (!up) return 0;
@@ -1412,31 +1448,31 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       const isRemise = !isInvoice1 && (explicitSub === 'remise' || (retailRef > 0 && boxUnitPrice > 0 && boxUnitPrice < retailRef * 0.95));
       if (isRemise) {
         bump('remise', it.product_id, qty);
-        bumpWorkerMethod(o.assigned_worker_id, 'remise', lineAmount);
-        bumpWMP(o.assigned_worker_id, 'remise', it.product_id, qty, lineAmount, isPaid);
+        bumpWorkerMethod(attribWid, 'remise', lineAmount);
+        bumpWMP(attribWid, 'remise', it.product_id, qty, lineAmount, isPaid);
       } else if (resolvedSubtype === 'invoice') {
         bump('invoice1', it.product_id, qty);
-        bumpWorkerMethod(o.assigned_worker_id, 'invoice1', lineAmount);
-        bumpWMP(o.assigned_worker_id, 'invoice1', it.product_id, qty, lineAmount, isPaid);
+        bumpWorkerMethod(attribWid, 'invoice1', lineAmount);
+        bumpWMP(attribWid, 'invoice1', it.product_id, qty, lineAmount, isPaid);
       } else if (resolvedSubtype === 'super_gros') {
         bump('super_gros', it.product_id, qty);
-        bumpWorkerMethod(o.assigned_worker_id, 'super_gros', lineAmount);
-        bumpWMP(o.assigned_worker_id, 'super_gros', it.product_id, qty, lineAmount, isPaid);
+        bumpWorkerMethod(attribWid, 'super_gros', lineAmount);
+        bumpWMP(attribWid, 'super_gros', it.product_id, qty, lineAmount, isPaid);
       } else if (resolvedSubtype === 'gros') {
         bump('gros', it.product_id, qty);
-        bumpWorkerMethod(o.assigned_worker_id, 'gros', lineAmount);
-        bumpWMP(o.assigned_worker_id, 'gros', it.product_id, qty, lineAmount, isPaid);
+        bumpWorkerMethod(attribWid, 'gros', lineAmount);
+        bumpWMP(attribWid, 'gros', it.product_id, qty, lineAmount, isPaid);
       } else {
         bump('retail', it.product_id, qty);
-        bumpWorkerMethod(o.assigned_worker_id, 'retail', lineAmount);
-        bumpWMP(o.assigned_worker_id, 'retail', it.product_id, qty, lineAmount, isPaid);
+        bumpWorkerMethod(attribWid, 'retail', lineAmount);
+        bumpWMP(attribWid, 'retail', it.product_id, qty, lineAmount, isPaid);
       }
     });
   });
   const products = Array.from(productMap.entries()).map(([id, v]) => ({ id, name: v.name, piecesPerBox: v.ppb }));
   const workers = Array.from(workerMap.entries())
     .map(([id, name]) => ({ id, name }));
-  return { products, rows, workers, workerRows, workerMethodAmounts, workerMethodProductQty, workerOfferedQty, workerProductAmount };
+  return { products, rows, workers, workerRows, workerMethodAmounts, workerMethodProductQty, workerOfferedQty, workerProductAmount, workerRoles: workerRolesMap };
 
 
 
@@ -1709,7 +1745,9 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
       const perWorkerBlocks = productMatrix.workers.map(w => {
         const mQty = productMatrix.workerMethodProductQty?.[w.id] || { invoice1: {}, super_gros: {}, gros: {}, retail: {}, remise: {} } as any;
         const offered = productMatrix.workerOfferedQty?.[w.id] || {};
-        const headerRow = `<tr class="worker-name-row"><td colspan="${totalCols}" style="background:#000 !important;color:#fff !important;text-align:center;padding:6px 8px;font-weight:800;text-transform:uppercase;font-size:11px;letter-spacing:0.5px;-webkit-print-color-adjust:exact;print-color-adjust:exact">${escapeHtml(w.name)}</td></tr>`;
+        const roleCode = productMatrix.workerRoles?.[w.id];
+        const roleLabel = roleCode === 'sales_rep' ? 'Commandes' : 'Ventes';
+        const headerRow = `<tr class="worker-name-row"><td colspan="${totalCols}" style="background:#000 !important;color:#fff !important;text-align:center;padding:6px 8px;font-weight:800;text-transform:uppercase;font-size:11px;letter-spacing:0.5px;-webkit-print-color-adjust:exact;print-color-adjust:exact">${escapeHtml(w.name)} <span style="color:#fde047;font-weight:700;margin-inline-start:8px">— ${roleLabel}</span></td></tr>`;
         const body = renderBlock(
           (k, pid) => mQty[k as 'invoice1']?.[pid] || { paid: 0, debt: 0, paidAmt: 0, debtAmt: 0 },
           (pid) => Number((offered as any)[pid] || 0),
