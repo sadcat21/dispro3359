@@ -1379,9 +1379,10 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
     workerWindows.set(wid, arr);
   });
   (orders || []).forEach((o: any) => {
-    const wins = workerWindows.get(o.assigned_worker_id);
+    const attribWid = o._attribWorkerId || o.assigned_worker_id;
+    const wins = workerWindows.get(attribWid);
     if (!wins) return;
-    const t = new Date(o.updated_at || o.created_at).getTime();
+    const t = new Date((o._isSalesRepOrder ? o.created_at : (o.updated_at || o.created_at))).getTime();
     if (!wins.some(([s, e]) => t >= s && t <= e)) return;
     const isInvoice1 = o.payment_type === 'with_invoice';
     const isPaid = (o.payment_status || '').toLowerCase() !== 'pending';
@@ -1390,9 +1391,6 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       const p = it.products || {};
       const ppb = Math.max(1, Number(p.pieces_per_box || 1));
       productMap.set(it.product_id, { name: p.app_name || p.name || '—', ppb });
-      // Quantity is stored as boxes (B.P decimal for 'box', raw boxes for 'unit'/'piece',
-      // raw kg for 'kg'). Verified against DB: unit_price equals the per-box price for
-      // pricing_unit='unit' products (e.g. AROMA 400/700 Gr), so quantity is boxes, not pieces.
       const itemPU = (it.pricing_unit || p.pricing_unit || 'box').toString().toLowerCase();
       const isKgSale = itemPU === 'kg';
       const toBoxes = (raw: number) => {
@@ -1404,8 +1402,6 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       const giftPiecesAsBoxes = Number(it.gift_pieces || 0) / ppb;
       const gift = giftBoxes + giftPiecesAsBoxes;
       const sub = (it.price_subtype || '').toLowerCase();
-      // Use stored total_price when available (already accounts for pricing_unit box/piece).
-      // Fallback: derive from unit_price * (qty in boxes or pieces depending on pricing_unit).
       let lineAmount = Number(it.total_price || 0);
       if (!lineAmount) {
         const unitPrice = Number(it.unit_price || 0);
@@ -1427,10 +1423,9 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       bump('sold', it.product_id, qty);
       bump('offered', it.product_id, gift);
       bump('amount', it.product_id, lineAmount);
-      bumpWorker(o.assigned_worker_id, it.product_id, qty);
-      bumpWorkerOffered(o.assigned_worker_id, it.product_id, gift);
-      bumpWorkerAmount(o.assigned_worker_id, it.product_id, lineAmount);
-      // Resolve effective method: prefer explicit subtype, otherwise infer from unit price vs catalog
+      bumpWorker(attribWid, it.product_id, qty);
+      bumpWorkerOffered(attribWid, it.product_id, gift);
+      bumpWorkerAmount(attribWid, it.product_id, lineAmount);
       const explicitSub = (it.price_subtype || '').toString().toLowerCase();
       const resolvedSubtype = isInvoice1
         ? 'invoice'
@@ -1442,7 +1437,6 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
             pricingUnit: it.pricing_unit,
             piecesPerBox: p.pieces_per_box,
           });
-      // Detect Remise: explicit subtype OR effective box unit price below catalog retail price
       const boxUnitPrice = (() => {
         const up = Number(it.unit_price || 0);
         if (!up) return 0;
@@ -1454,31 +1448,31 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
       const isRemise = !isInvoice1 && (explicitSub === 'remise' || (retailRef > 0 && boxUnitPrice > 0 && boxUnitPrice < retailRef * 0.95));
       if (isRemise) {
         bump('remise', it.product_id, qty);
-        bumpWorkerMethod(o.assigned_worker_id, 'remise', lineAmount);
-        bumpWMP(o.assigned_worker_id, 'remise', it.product_id, qty, lineAmount, isPaid);
+        bumpWorkerMethod(attribWid, 'remise', lineAmount);
+        bumpWMP(attribWid, 'remise', it.product_id, qty, lineAmount, isPaid);
       } else if (resolvedSubtype === 'invoice') {
         bump('invoice1', it.product_id, qty);
-        bumpWorkerMethod(o.assigned_worker_id, 'invoice1', lineAmount);
-        bumpWMP(o.assigned_worker_id, 'invoice1', it.product_id, qty, lineAmount, isPaid);
+        bumpWorkerMethod(attribWid, 'invoice1', lineAmount);
+        bumpWMP(attribWid, 'invoice1', it.product_id, qty, lineAmount, isPaid);
       } else if (resolvedSubtype === 'super_gros') {
         bump('super_gros', it.product_id, qty);
-        bumpWorkerMethod(o.assigned_worker_id, 'super_gros', lineAmount);
-        bumpWMP(o.assigned_worker_id, 'super_gros', it.product_id, qty, lineAmount, isPaid);
+        bumpWorkerMethod(attribWid, 'super_gros', lineAmount);
+        bumpWMP(attribWid, 'super_gros', it.product_id, qty, lineAmount, isPaid);
       } else if (resolvedSubtype === 'gros') {
         bump('gros', it.product_id, qty);
-        bumpWorkerMethod(o.assigned_worker_id, 'gros', lineAmount);
-        bumpWMP(o.assigned_worker_id, 'gros', it.product_id, qty, lineAmount, isPaid);
+        bumpWorkerMethod(attribWid, 'gros', lineAmount);
+        bumpWMP(attribWid, 'gros', it.product_id, qty, lineAmount, isPaid);
       } else {
         bump('retail', it.product_id, qty);
-        bumpWorkerMethod(o.assigned_worker_id, 'retail', lineAmount);
-        bumpWMP(o.assigned_worker_id, 'retail', it.product_id, qty, lineAmount, isPaid);
+        bumpWorkerMethod(attribWid, 'retail', lineAmount);
+        bumpWMP(attribWid, 'retail', it.product_id, qty, lineAmount, isPaid);
       }
     });
   });
   const products = Array.from(productMap.entries()).map(([id, v]) => ({ id, name: v.name, piecesPerBox: v.ppb }));
   const workers = Array.from(workerMap.entries())
     .map(([id, name]) => ({ id, name }));
-  return { products, rows, workers, workerRows, workerMethodAmounts, workerMethodProductQty, workerOfferedQty, workerProductAmount };
+  return { products, rows, workers, workerRows, workerMethodAmounts, workerMethodProductQty, workerOfferedQty, workerProductAmount, workerRoles: workerRolesMap };
 
 
 
