@@ -135,7 +135,7 @@ const ManagerReviewDetail: React.FC = () => {
   }
 
   return (
-    <div className="p-4 space-y-5">
+    <div className="p-4 pb-32 space-y-5">
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={() => navigate('/manager-accounting-review')} className="shrink-0">
           <ChevronLeft className="w-5 h-5" />
