@@ -400,6 +400,28 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
     stockItems?.find(s => s.product_id === productId)?.quantity || 0,
   [stockItems]);
 
+  const ensureAllProductsLoaded = useCallback(async () => {
+    if (allProducts.length > 0) return allProducts;
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+      .order('name');
+    if (error) throw error;
+    const products = (data || []) as Product[];
+    setAllProducts(products);
+    return products;
+  }, [allProducts]);
+
+  const getProductById = useCallback((productId: string, productsPool?: Product[]) => {
+    const source = productsPool || allProducts;
+    return source.find((p) => p.id === productId)
+      || orderItems?.find((oi) => oi.product_id === productId)?.product
+      || stockItems?.find((s) => s.product_id === productId)?.product
+      || null;
+  }, [allProducts, orderItems, stockItems]);
+
   const resolveCustomSalePrice = useCallback((product: Product, baseUnitPrice: number, unitSale: boolean): number => {
     const piecesPerBox = product.pieces_per_box || 1;
     const weightPerBox = product.weight_per_box || 1;
@@ -423,10 +445,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
   };
 
   const handleEditItem = (item: SaleItem) => {
-    const product =
-      allProducts.find(p => p.id === item.productId) ||
-      orderItems?.find(oi => oi.product_id === item.productId)?.product ||
-      null;
+    const product = getProductById(item.productId);
     if (!product) return;
 
     const paidQty = Math.max(1, item.quantity - item.giftQuantity);
@@ -483,7 +502,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
     isUnitSale?: boolean,
     perItemPricing?: any
   ) => {
-    const product = allProducts.find(p => p.id === productId) || orderItems?.find(oi => oi.product_id === productId)?.product;
+    const product = getProductById(productId);
     if (!product) return;
 
     const giftQuantity = giftInfo?.giftQuantity || 0;
@@ -516,7 +535,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
       toast.error(t('orders.product_already_added'));
       return;
     }
-    const product = allProducts.find(p => p.id === newProductId);
+    const product = getProductById(newProductId);
     if (!product) return;
     const available = getAvailable(newProductId);
     if (available <= 0) {
