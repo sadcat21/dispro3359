@@ -1265,18 +1265,59 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
   const workerIds = Array.from(new Set(sessions.map((s: any) => s.worker_id ?? s.worker?.id).filter(Boolean)));
   const starts = sessions.map((s: any) => s.period_start).filter(Boolean);
   const ends = sessions.map((s: any) => s.period_end || s.completed_at).filter(Boolean);
-  if (!workerIds.length || !starts.length || !ends.length) return { products: [], rows: {}, workers: [], workerRows: {}, workerMethodAmounts: {}, workerMethodProductQty: {}, workerOfferedQty: {}, workerProductAmount: {} };
+  if (!workerIds.length || !starts.length || !ends.length) return { products: [], rows: {}, workers: [], workerRows: {}, workerMethodAmounts: {}, workerMethodProductQty: {}, workerOfferedQty: {}, workerProductAmount: {}, workerRoles: {} };
   const from = new Date(Math.min(...starts.map((d: string) => new Date(d).getTime()))).toISOString();
   const to = new Date(Math.max(...ends.map((d: string) => new Date(d).getTime()))).toISOString();
-  const { data: orders, error: ordersErr } = await supabase
-    .from('orders')
-    .select('id, status, payment_type, payment_status, invoice_payment_method, assigned_worker_id, created_at, updated_at, order_items(product_id, quantity, unit_price, total_price, pricing_unit, gift_quantity, gift_pieces, price_subtype, products(id, name, app_name, pieces_per_box, weight_per_box, price_super_gros, price_gros, price_retail, price_invoice, price_no_invoice, pricing_unit))')
-    .in('assigned_worker_id', workerIds)
-    .eq('status', 'delivered')
-    .gte('updated_at', from)
-    .lte('updated_at', to);
-  if (ordersErr) console.error('[fetchProductMatrix] orders error:', ordersErr);
-  console.log('[fetchProductMatrix]', { workerIds, from, to, ordersCount: orders?.length, byWorker: (orders || []).reduce((a: any, o: any) => { a[o.assigned_worker_id] = (a[o.assigned_worker_id] || 0) + 1; return a; }, {}) });
+
+  // Determine each worker's functional role (sales_rep vs delivery_rep, ...)
+  const workerRolesMap: Record<string, string> = {};
+  try {
+    const { data: roleRows } = await supabase
+      .from('worker_roles')
+      .select('worker_id, custom_roles!inner(code)')
+      .in('worker_id', workerIds);
+    for (const r of (roleRows || []) as any[]) {
+      const code = r.custom_roles?.code;
+      if (!code) continue;
+      // delivery_rep wins over sales_rep if both exist
+      if (workerRolesMap[r.worker_id] === 'delivery_rep') continue;
+      workerRolesMap[r.worker_id] = code;
+    }
+  } catch (e) { console.warn('[fetchProductMatrix] roles error', e); }
+
+  const deliveryWorkerIds = workerIds.filter((id) => workerRolesMap[id] !== 'sales_rep');
+  const salesWorkerIds = workerIds.filter((id) => workerRolesMap[id] === 'sales_rep');
+
+  const ordersSelect = 'id, status, payment_type, payment_status, invoice_payment_method, assigned_worker_id, created_by, created_at, updated_at, order_items(product_id, quantity, unit_price, total_price, pricing_unit, gift_quantity, gift_pieces, price_subtype, products(id, name, app_name, pieces_per_box, weight_per_box, price_super_gros, price_gros, price_retail, price_invoice, price_no_invoice, pricing_unit))';
+
+  let deliveredOrders: any[] = [];
+  if (deliveryWorkerIds.length) {
+    const { data, error } = await supabase
+      .from('orders')
+      .select(ordersSelect)
+      .in('assigned_worker_id', deliveryWorkerIds)
+      .eq('status', 'delivered')
+      .gte('updated_at', from)
+      .lte('updated_at', to);
+    if (error) console.error('[fetchProductMatrix] delivery orders error:', error);
+    deliveredOrders = (data || []).map((o: any) => ({ ...o, _attribWorkerId: o.assigned_worker_id }));
+  }
+
+  let salesOrders: any[] = [];
+  if (salesWorkerIds.length) {
+    const { data, error } = await supabase
+      .from('orders')
+      .select(ordersSelect)
+      .in('created_by', salesWorkerIds)
+      .neq('status', 'cancelled')
+      .gte('created_at', from)
+      .lte('created_at', to);
+    if (error) console.error('[fetchProductMatrix] sales orders error:', error);
+    salesOrders = (data || []).map((o: any) => ({ ...o, _attribWorkerId: o.created_by, _isSalesRepOrder: true }));
+  }
+
+  const orders = [...deliveredOrders, ...salesOrders];
+  console.log('[fetchProductMatrix]', { workerIds, from, to, deliveryCount: deliveredOrders.length, salesCount: salesOrders.length, roles: workerRolesMap });
   const productMap = new Map<string, { name: string; ppb: number }>();
   const workerMap = new Map<string, string>();
   sessions.forEach((s: any) => {
