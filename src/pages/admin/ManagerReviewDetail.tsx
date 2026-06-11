@@ -18,8 +18,8 @@ import {
   fetchProductMatrix,
   ProductMatrix,
 } from './ManagerAccountingReview';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Package } from 'lucide-react';
+import { boxesToBPAlways } from '@/utils/boxPieceInput';
 
 const ManagerReviewDetail: React.FC = () => {
   const { reviewId } = useParams<{ reviewId: string }>();
@@ -68,25 +68,60 @@ const ManagerReviewDetail: React.FC = () => {
     enabled: sessions.length > 0,
   });
 
-  const soldProducts = useMemo(() => {
-    if (!productMatrix) return [] as { id: string; name: string; soldBoxes: number; soldPieces: number; offeredBoxes: number; piecesPerBox: number }[];
-    const sold = productMatrix.rows?.sold || {};
-    const offered = productMatrix.rows?.offered || {};
-    return productMatrix.products
-      .map((p) => {
-        const soldBoxes = Number(sold[p.id] || 0);
-        const offeredBoxes = Number(offered[p.id] || 0);
-        return {
-          id: p.id,
-          name: p.name,
-          piecesPerBox: p.piecesPerBox,
-          soldBoxes,
-          soldPieces: Math.round(soldBoxes * (p.piecesPerBox || 1)),
-          offeredBoxes,
-        };
-      })
-      .filter((r) => r.soldBoxes > 0 || r.offeredBoxes > 0)
-      .sort((a, b) => b.soldBoxes - a.soldBoxes);
+  const METHOD_KEYS = ['invoice1', 'super_gros', 'gros', 'retail', 'remise'] as const;
+  const METHOD_LABELS: Record<string, string> = {
+    invoice1: 'FACTURE 1',
+    super_gros: 'SUPER GROS',
+    gros: 'GROS',
+    retail: 'DÉTAIL',
+    remise: 'REMISE',
+  };
+
+  const productSalesMatrix = useMemo(() => {
+    if (!productMatrix) return null as null | {
+      products: { id: string; name: string; piecesPerBox: number; cells: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>; offered: number; rowQty: number; rowAmt: number }[];
+      totals: Record<string, { paidAmt: number; debtAmt: number }>;
+      grandAmt: number;
+    };
+    const aggMQty: Record<string, Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>> = { invoice1: {}, super_gros: {}, gros: {}, retail: {}, remise: {} };
+    const aggOffered: Record<string, number> = {};
+    productMatrix.workers.forEach((w) => {
+      const mQty = (productMatrix.workerMethodProductQty?.[w.id] || {}) as any;
+      const off = productMatrix.workerOfferedQty?.[w.id] || {};
+      METHOD_KEYS.forEach((k) => {
+        productMatrix.products.forEach((p) => {
+          const cur = aggMQty[k][p.id] || { paid: 0, debt: 0, paidAmt: 0, debtAmt: 0 };
+          const src = mQty[k]?.[p.id] || { paid: 0, debt: 0, paidAmt: 0, debtAmt: 0 };
+          aggMQty[k][p.id] = {
+            paid: cur.paid + Number(src.paid || 0),
+            debt: cur.debt + Number(src.debt || 0),
+            paidAmt: cur.paidAmt + Number(src.paidAmt || 0),
+            debtAmt: cur.debtAmt + Number(src.debtAmt || 0),
+          };
+        });
+      });
+      productMatrix.products.forEach((p) => {
+        aggOffered[p.id] = (aggOffered[p.id] || 0) + Number((off as any)[p.id] || 0);
+      });
+    });
+    const totals: Record<string, { paidAmt: number; debtAmt: number }> = { invoice1: { paidAmt: 0, debtAmt: 0 }, super_gros: { paidAmt: 0, debtAmt: 0 }, gros: { paidAmt: 0, debtAmt: 0 }, retail: { paidAmt: 0, debtAmt: 0 }, remise: { paidAmt: 0, debtAmt: 0 } };
+    const rows = productMatrix.products.map((p) => {
+      const cells: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }> = {};
+      let rowQty = 0;
+      let rowAmt = 0;
+      METHOD_KEYS.forEach((k) => {
+        const c = aggMQty[k][p.id] || { paid: 0, debt: 0, paidAmt: 0, debtAmt: 0 };
+        cells[k] = c;
+        rowQty += c.paid + c.debt;
+        rowAmt += c.paidAmt + c.debtAmt;
+        totals[k].paidAmt += c.paidAmt;
+        totals[k].debtAmt += c.debtAmt;
+      });
+      const offered = Number(aggOffered[p.id] || 0);
+      return { id: p.id, name: p.name, piecesPerBox: p.piecesPerBox, cells, offered, rowQty, rowAmt };
+    }).filter((r) => r.rowQty + r.offered > 0);
+    const grandAmt = METHOD_KEYS.reduce((a, k) => a + totals[k].paidAmt + totals[k].debtAmt, 0);
+    return { products: rows, totals, grandAmt };
   }, [productMatrix]);
 
 
@@ -169,37 +204,75 @@ const ManagerReviewDetail: React.FC = () => {
           </Button>
           <WorkerBreakdown sessions={sessions} />
 
-          <Card>
-            <CardContent className="p-3 space-y-2">
-              <div className="flex items-center gap-2">
-                <Package className="w-4 h-4 text-primary" />
-                <h3 className="text-sm font-bold">المنتجات المباعة</h3>
-                <Badge variant="secondary" className="text-[10px]">{soldProducts.length}</Badge>
-              </div>
-              {soldProducts.length === 0 ? (
+          <Card className="border-2 border-rose-200 overflow-hidden" dir="ltr">
+            <div className="bg-rose-50 border-b-2 border-rose-200 px-3 py-2">
+              <h3 className="text-xs font-extrabold uppercase tracking-wide text-rose-700">
+                Total Général (Tous les Vendeurs) — Produits Vendus
+              </h3>
+            </div>
+            <CardContent className="p-0">
+              {!productSalesMatrix || productSalesMatrix.products.length === 0 ? (
                 <p className="text-xs text-center text-muted-foreground py-6">لا توجد منتجات مباعة</p>
               ) : (
                 <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-right">المنتج</TableHead>
-                        <TableHead className="text-center">الصناديق المباعة</TableHead>
-                        <TableHead className="text-center">القطع</TableHead>
-                        <TableHead className="text-center">المهدى (صناديق)</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {soldProducts.map((p) => (
-                        <TableRow key={p.id}>
-                          <TableCell className="font-medium">{p.name}</TableCell>
-                          <TableCell className="text-center">{p.soldBoxes.toLocaleString('fr-FR', { maximumFractionDigits: 2 })}</TableCell>
-                          <TableCell className="text-center text-muted-foreground">{p.soldPieces.toLocaleString('fr-FR')}</TableCell>
-                          <TableCell className="text-center text-emerald-700">{p.offeredBoxes.toLocaleString('fr-FR', { maximumFractionDigits: 2 })}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  <table className="w-full border-collapse text-[11px]" style={{ tableLayout: 'auto' }}>
+                    <thead>
+                      <tr className="bg-slate-100 text-slate-800">
+                        <th rowSpan={2} className="border border-slate-300 px-2 py-1 text-left font-bold">PRODUIT</th>
+                        {METHOD_KEYS.map((k) => (
+                          <th key={k} colSpan={2} className="border border-slate-300 px-2 py-1 font-bold uppercase">{METHOD_LABELS[k]}</th>
+                        ))}
+                        <th rowSpan={2} className="border border-slate-300 px-2 py-1 font-bold">PROMO</th>
+                        <th rowSpan={2} className="border border-slate-300 px-2 py-1 font-bold text-sky-700">TOTAL</th>
+                      </tr>
+                      <tr className="bg-slate-50 text-slate-700">
+                        {METHOD_KEYS.map((k) => (
+                          <React.Fragment key={k}>
+                            <th className="border border-slate-300 px-2 py-0.5 font-semibold text-emerald-700">PAYÉ</th>
+                            <th className="border border-slate-300 px-2 py-0.5 font-semibold text-rose-600">CRÉDIT</th>
+                          </React.Fragment>
+                        ))}
+                      </tr>
+                      <tr>
+                        <td colSpan={2 + METHOD_KEYS.length * 2 + 1} className="bg-emerald-100 text-center font-extrabold uppercase text-[10px] py-1 text-slate-900 border border-slate-300 tracking-wide">
+                          Total Général (Tous les Vendeurs)
+                        </td>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {productSalesMatrix.products.map((p) => {
+                        const fmt = (v: number) => (v ? boxesToBPAlways(v, p.piecesPerBox) : '0');
+                        return (
+                          <tr key={p.id} className="hover:bg-slate-50">
+                            <td className="border border-slate-300 px-2 py-1 font-bold text-slate-900 text-left">{p.name}</td>
+                            {METHOD_KEYS.map((k) => (
+                              <React.Fragment key={k}>
+                                <td className="border border-slate-300 px-2 py-1 text-center text-emerald-700">{fmt(p.cells[k].paid)}</td>
+                                <td className="border border-slate-300 px-2 py-1 text-center text-rose-600">{fmt(p.cells[k].debt)}</td>
+                              </React.Fragment>
+                            ))}
+                            <td className="border border-slate-300 px-2 py-1 text-center text-rose-600">{fmt(p.offered)}</td>
+                            <td className="border border-slate-300 px-2 py-1 text-center font-extrabold text-sky-700">{fmt(p.rowQty)}</td>
+                          </tr>
+                        );
+                      })}
+                      <tr>
+                        <td className="border border-slate-300 px-2 py-1.5 bg-slate-100 font-extrabold uppercase text-left text-slate-900">Total (DA)</td>
+                        {METHOD_KEYS.map((k) => {
+                          const t = productSalesMatrix.totals[k];
+                          const fmtDA = (v: number) => (v ? Math.round(v).toLocaleString('fr-FR') : '0');
+                          return (
+                            <React.Fragment key={k}>
+                              <td className="border border-slate-300 px-2 py-1.5 text-center bg-emerald-50 font-extrabold text-emerald-700">{fmtDA(t.paidAmt)}</td>
+                              <td className="border border-slate-300 px-2 py-1.5 text-center bg-rose-50 font-extrabold text-rose-600">{fmtDA(t.debtAmt)}</td>
+                            </React.Fragment>
+                          );
+                        })}
+                        <td className="border border-slate-300 px-2 py-1.5 text-center bg-slate-100">—</td>
+                        <td className="border border-slate-300 px-2 py-1.5 text-center bg-sky-50 font-extrabold text-sky-700">{Math.round(productSalesMatrix.grandAmt).toLocaleString('fr-FR')}</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               )}
             </CardContent>
