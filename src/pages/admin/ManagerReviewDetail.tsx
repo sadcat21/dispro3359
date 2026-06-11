@@ -204,37 +204,75 @@ const ManagerReviewDetail: React.FC = () => {
           </Button>
           <WorkerBreakdown sessions={sessions} />
 
-          <Card>
-            <CardContent className="p-3 space-y-2">
-              <div className="flex items-center gap-2">
-                <Package className="w-4 h-4 text-primary" />
-                <h3 className="text-sm font-bold">المنتجات المباعة</h3>
-                <Badge variant="secondary" className="text-[10px]">{soldProducts.length}</Badge>
-              </div>
-              {soldProducts.length === 0 ? (
+          <Card className="border-2 border-rose-200 overflow-hidden" dir="ltr">
+            <div className="bg-rose-50 border-b-2 border-rose-200 px-3 py-2">
+              <h3 className="text-xs font-extrabold uppercase tracking-wide text-rose-700">
+                Total Général (Tous les Vendeurs) — Produits Vendus
+              </h3>
+            </div>
+            <CardContent className="p-0">
+              {!productSalesMatrix || productSalesMatrix.products.length === 0 ? (
                 <p className="text-xs text-center text-muted-foreground py-6">لا توجد منتجات مباعة</p>
               ) : (
                 <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-right">المنتج</TableHead>
-                        <TableHead className="text-center">الصناديق المباعة</TableHead>
-                        <TableHead className="text-center">القطع</TableHead>
-                        <TableHead className="text-center">المهدى (صناديق)</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {soldProducts.map((p) => (
-                        <TableRow key={p.id}>
-                          <TableCell className="font-medium">{p.name}</TableCell>
-                          <TableCell className="text-center">{p.soldBoxes.toLocaleString('fr-FR', { maximumFractionDigits: 2 })}</TableCell>
-                          <TableCell className="text-center text-muted-foreground">{p.soldPieces.toLocaleString('fr-FR')}</TableCell>
-                          <TableCell className="text-center text-emerald-700">{p.offeredBoxes.toLocaleString('fr-FR', { maximumFractionDigits: 2 })}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  <table className="w-full border-collapse text-[11px]" style={{ tableLayout: 'auto' }}>
+                    <thead>
+                      <tr className="bg-slate-100 text-slate-800">
+                        <th rowSpan={2} className="border border-slate-300 px-2 py-1 text-left font-bold">PRODUIT</th>
+                        {METHOD_KEYS.map((k) => (
+                          <th key={k} colSpan={2} className="border border-slate-300 px-2 py-1 font-bold uppercase">{METHOD_LABELS[k]}</th>
+                        ))}
+                        <th rowSpan={2} className="border border-slate-300 px-2 py-1 font-bold">PROMO</th>
+                        <th rowSpan={2} className="border border-slate-300 px-2 py-1 font-bold text-sky-700">TOTAL</th>
+                      </tr>
+                      <tr className="bg-slate-50 text-slate-700">
+                        {METHOD_KEYS.map((k) => (
+                          <React.Fragment key={k}>
+                            <th className="border border-slate-300 px-2 py-0.5 font-semibold text-emerald-700">PAYÉ</th>
+                            <th className="border border-slate-300 px-2 py-0.5 font-semibold text-rose-600">CRÉDIT</th>
+                          </React.Fragment>
+                        ))}
+                      </tr>
+                      <tr>
+                        <td colSpan={2 + METHOD_KEYS.length * 2 + 1} className="bg-emerald-100 text-center font-extrabold uppercase text-[10px] py-1 text-slate-900 border border-slate-300 tracking-wide">
+                          Total Général (Tous les Vendeurs)
+                        </td>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {productSalesMatrix.products.map((p) => {
+                        const fmt = (v: number) => (v ? boxesToBPAlways(v, p.piecesPerBox) : '0');
+                        return (
+                          <tr key={p.id} className="hover:bg-slate-50">
+                            <td className="border border-slate-300 px-2 py-1 font-bold text-slate-900 text-left">{p.name}</td>
+                            {METHOD_KEYS.map((k) => (
+                              <React.Fragment key={k}>
+                                <td className="border border-slate-300 px-2 py-1 text-center text-emerald-700">{fmt(p.cells[k].paid)}</td>
+                                <td className="border border-slate-300 px-2 py-1 text-center text-rose-600">{fmt(p.cells[k].debt)}</td>
+                              </React.Fragment>
+                            ))}
+                            <td className="border border-slate-300 px-2 py-1 text-center text-rose-600">{fmt(p.offered)}</td>
+                            <td className="border border-slate-300 px-2 py-1 text-center font-extrabold text-sky-700">{fmt(p.rowQty)}</td>
+                          </tr>
+                        );
+                      })}
+                      <tr>
+                        <td className="border border-slate-300 px-2 py-1.5 bg-slate-100 font-extrabold uppercase text-left text-slate-900">Total (DA)</td>
+                        {METHOD_KEYS.map((k) => {
+                          const t = productSalesMatrix.totals[k];
+                          const fmtDA = (v: number) => (v ? Math.round(v).toLocaleString('fr-FR') : '0');
+                          return (
+                            <React.Fragment key={k}>
+                              <td className="border border-slate-300 px-2 py-1.5 text-center bg-emerald-50 font-extrabold text-emerald-700">{fmtDA(t.paidAmt)}</td>
+                              <td className="border border-slate-300 px-2 py-1.5 text-center bg-rose-50 font-extrabold text-rose-600">{fmtDA(t.debtAmt)}</td>
+                            </React.Fragment>
+                          );
+                        })}
+                        <td className="border border-slate-300 px-2 py-1.5 text-center bg-slate-100">—</td>
+                        <td className="border border-slate-300 px-2 py-1.5 text-center bg-sky-50 font-extrabold text-sky-700">{Math.round(productSalesMatrix.grandAmt).toLocaleString('fr-FR')}</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               )}
             </CardContent>
