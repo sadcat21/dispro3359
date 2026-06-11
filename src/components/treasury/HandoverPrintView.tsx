@@ -130,9 +130,10 @@ const HandoverPrintView: React.FC<Props> = ({
             .in('id', orderIds),
           (supabase as any)
             .from('manager_decision_drafts')
-            .select('order_id, kind, payload')
+            .select('order_id, kind, payload, created_at')
             .in('order_id', orderIds)
-            .in('kind', ['document', 'stamp_invoice']),
+            .in('kind', ['document', 'stamp_invoice'])
+            .order('created_at', { ascending: true }),
         ]);
 
         (orders || []).forEach((order) => {
@@ -141,8 +142,8 @@ const HandoverPrintView: React.FC<Props> = ({
 
         (drafts || []).forEach((draft: any) => {
           const current = draftMap[draft.order_id] || {};
-          if (draft.kind === 'document') current.doc = draft.payload || {};
-          if (draft.kind === 'stamp_invoice') current.inv = draft.payload || {};
+          if (draft.kind === 'document' && draft.payload && Object.keys(draft.payload).length > 0) current.doc = draft.payload || {};
+          if (draft.kind === 'stamp_invoice' && draft.payload && Object.keys(draft.payload).length > 0) current.inv = draft.payload || {};
           draftMap[draft.order_id] = current;
         });
       }
