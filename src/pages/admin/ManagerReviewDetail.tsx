@@ -68,25 +68,60 @@ const ManagerReviewDetail: React.FC = () => {
     enabled: sessions.length > 0,
   });
 
-  const soldProducts = useMemo(() => {
-    if (!productMatrix) return [] as { id: string; name: string; soldBoxes: number; soldPieces: number; offeredBoxes: number; piecesPerBox: number }[];
-    const sold = productMatrix.rows?.sold || {};
-    const offered = productMatrix.rows?.offered || {};
-    return productMatrix.products
-      .map((p) => {
-        const soldBoxes = Number(sold[p.id] || 0);
-        const offeredBoxes = Number(offered[p.id] || 0);
-        return {
-          id: p.id,
-          name: p.name,
-          piecesPerBox: p.piecesPerBox,
-          soldBoxes,
-          soldPieces: Math.round(soldBoxes * (p.piecesPerBox || 1)),
-          offeredBoxes,
-        };
-      })
-      .filter((r) => r.soldBoxes > 0 || r.offeredBoxes > 0)
-      .sort((a, b) => b.soldBoxes - a.soldBoxes);
+  const METHOD_KEYS = ['invoice1', 'super_gros', 'gros', 'retail', 'remise'] as const;
+  const METHOD_LABELS: Record<string, string> = {
+    invoice1: 'FACTURE 1',
+    super_gros: 'SUPER GROS',
+    gros: 'GROS',
+    retail: 'DÉTAIL',
+    remise: 'REMISE',
+  };
+
+  const productSalesMatrix = useMemo(() => {
+    if (!productMatrix) return null as null | {
+      products: { id: string; name: string; piecesPerBox: number; cells: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>; offered: number; rowQty: number; rowAmt: number }[];
+      totals: Record<string, { paidAmt: number; debtAmt: number }>;
+      grandAmt: number;
+    };
+    const aggMQty: Record<string, Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }>> = { invoice1: {}, super_gros: {}, gros: {}, retail: {}, remise: {} };
+    const aggOffered: Record<string, number> = {};
+    productMatrix.workers.forEach((w) => {
+      const mQty = (productMatrix.workerMethodProductQty?.[w.id] || {}) as any;
+      const off = productMatrix.workerOfferedQty?.[w.id] || {};
+      METHOD_KEYS.forEach((k) => {
+        productMatrix.products.forEach((p) => {
+          const cur = aggMQty[k][p.id] || { paid: 0, debt: 0, paidAmt: 0, debtAmt: 0 };
+          const src = mQty[k]?.[p.id] || { paid: 0, debt: 0, paidAmt: 0, debtAmt: 0 };
+          aggMQty[k][p.id] = {
+            paid: cur.paid + Number(src.paid || 0),
+            debt: cur.debt + Number(src.debt || 0),
+            paidAmt: cur.paidAmt + Number(src.paidAmt || 0),
+            debtAmt: cur.debtAmt + Number(src.debtAmt || 0),
+          };
+        });
+      });
+      productMatrix.products.forEach((p) => {
+        aggOffered[p.id] = (aggOffered[p.id] || 0) + Number((off as any)[p.id] || 0);
+      });
+    });
+    const totals: Record<string, { paidAmt: number; debtAmt: number }> = { invoice1: { paidAmt: 0, debtAmt: 0 }, super_gros: { paidAmt: 0, debtAmt: 0 }, gros: { paidAmt: 0, debtAmt: 0 }, retail: { paidAmt: 0, debtAmt: 0 }, remise: { paidAmt: 0, debtAmt: 0 } };
+    const rows = productMatrix.products.map((p) => {
+      const cells: Record<string, { paid: number; debt: number; paidAmt: number; debtAmt: number }> = {};
+      let rowQty = 0;
+      let rowAmt = 0;
+      METHOD_KEYS.forEach((k) => {
+        const c = aggMQty[k][p.id] || { paid: 0, debt: 0, paidAmt: 0, debtAmt: 0 };
+        cells[k] = c;
+        rowQty += c.paid + c.debt;
+        rowAmt += c.paidAmt + c.debtAmt;
+        totals[k].paidAmt += c.paidAmt;
+        totals[k].debtAmt += c.debtAmt;
+      });
+      const offered = Number(aggOffered[p.id] || 0);
+      return { id: p.id, name: p.name, piecesPerBox: p.piecesPerBox, cells, offered, rowQty, rowAmt };
+    }).filter((r) => r.rowQty + r.offered > 0);
+    const grandAmt = METHOD_KEYS.reduce((a, k) => a + totals[k].paidAmt + totals[k].debtAmt, 0);
+    return { products: rows, totals, grandAmt };
   }, [productMatrix]);
 
 
