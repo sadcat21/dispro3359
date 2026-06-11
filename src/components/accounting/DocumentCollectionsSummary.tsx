@@ -380,6 +380,8 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
               id,
               total_amount,
               invoice_payment_method,
+              invoice_number,
+              delivery_date,
               document_status,
               document_manager_decision,
               document_verification,
