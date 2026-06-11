@@ -727,6 +727,23 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           );
         })()}
 
+        {(doc.invoiceNumber || doc.deliveryDate) && (
+          <div className="grid grid-cols-2 gap-1.5">
+            {doc.invoiceNumber && (
+              <div className="bg-muted/50 rounded p-1.5 text-[10px] text-center">
+                <p className="text-muted-foreground mb-0.5">رقم الفاتورة</p>
+                <p className="font-bold" dir="ltr">{doc.invoiceNumber}</p>
+              </div>
+            )}
+            {doc.deliveryDate && (
+              <div className="bg-muted/50 rounded p-1.5 text-[10px] text-center">
+                <p className="text-muted-foreground mb-0.5">تاريخ التوصيل</p>
+                <p className="font-bold" dir="ltr">{new Date(doc.deliveryDate).toLocaleDateString('ar-DZ')}</p>
+              </div>
+            )}
+          </div>
+        )}
+
         {(doc.documentType === 'receipt' || doc.documentType === 'versement') && v.receiptNumber && (
           <div className="bg-muted/50 rounded p-1.5 text-[10px] text-center">
             <p className="text-muted-foreground mb-0.5">رقم الوصل</p>
