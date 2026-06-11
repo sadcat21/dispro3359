@@ -178,6 +178,41 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
   const findDraft = (orderId: string, kind: 'document' | 'stamp_invoice') =>
     (existingDrafts || []).find((d) => d.order_id === orderId && d.kind === kind);
 
+  const formatDisplayDate = (value: string | null | undefined) => {
+    if (!value) return null;
+    const dateOnly = String(value).substring(0, 10);
+    const parts = dateOnly.split('-');
+    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+
+    const parsed = new Date(String(value));
+    if (Number.isNaN(parsed.getTime())) return String(value);
+    return parsed.toLocaleDateString('ar-DZ');
+  };
+
+  const getDocumentDisplayValues = (doc: CollectedDoc) => {
+    const payload = ((findDraft(doc.orderId, 'document')?.payload || {}) as Record<string, any>);
+    const docNumber = payload.doc_number || doc.verification.checkNumber || doc.verification.receiptNumber || doc.verification.transferReference || null;
+    const docDate = payload.doc_date || doc.verification.checkDate || null;
+    const invoiceNumber = payload.invoice_number || doc.invoiceNumber || null;
+    const invoiceDate = payload.invoice_date || doc.deliveryDate || null;
+
+    return {
+      payload,
+      docNumber,
+      docDate,
+      invoiceNumber,
+      invoiceDate,
+    };
+  };
+
+  const getStampDisplayValues = (orderId: string, invoiceNumber: string | null, issueDate: string | null) => {
+    const payload = ((findDraft(orderId, 'stamp_invoice')?.payload || {}) as Record<string, any>);
+    return {
+      invoiceNumber: payload.invoice_number || invoiceNumber || null,
+      issueDate: payload.issue_date || issueDate || null,
+    };
+  };
+
   useEffect(() => {
     if (!existingDrafts || !onReceivedDocsChange) return;
     const next: Record<string, boolean> = { ...(receivedDocs || {}) };
@@ -635,6 +670,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
   const renderDocCard = (doc: CollectedDoc) => {
     const v = doc.verification;
     const docKey = `doc_${doc.orderId}`;
+    const display = getDocumentDisplayValues(doc);
     const draftDecision = receivedDocs ? receivedDocs[docKey] : undefined;
     const persistedDecision =
       doc.managerDecision === 'received'
@@ -727,34 +763,34 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           );
         })()}
 
-        {(doc.invoiceNumber || doc.deliveryDate) && (
+        {(display.invoiceNumber || display.invoiceDate) && (
           <div className="grid grid-cols-2 gap-1.5">
-            {doc.invoiceNumber && (
+            {display.invoiceNumber && (
               <div className="bg-muted/50 rounded p-1.5 text-[10px] text-center">
                 <p className="text-muted-foreground mb-0.5">رقم الفاتورة</p>
-                <p className="font-bold" dir="ltr">{doc.invoiceNumber}</p>
+                <p className="font-bold" dir="ltr">{display.invoiceNumber}</p>
               </div>
             )}
-            {doc.deliveryDate && (
+            {display.invoiceDate && (
               <div className="bg-muted/50 rounded p-1.5 text-[10px] text-center">
-                <p className="text-muted-foreground mb-0.5">تاريخ التوصيل</p>
-                <p className="font-bold" dir="ltr">{new Date(doc.deliveryDate).toLocaleDateString('ar-DZ')}</p>
+                <p className="text-muted-foreground mb-0.5">{display.payload.invoice_date ? 'تاريخ الفاتورة' : 'تاريخ التوصيل'}</p>
+                <p className="font-bold" dir="ltr">{formatDisplayDate(display.invoiceDate)}</p>
               </div>
             )}
           </div>
         )}
 
-        {(doc.documentType === 'receipt' || doc.documentType === 'versement') && v.receiptNumber && (
+        {display.docNumber && (
           <div className="bg-muted/50 rounded p-1.5 text-[10px] text-center">
-            <p className="text-muted-foreground mb-0.5">رقم الوصل</p>
-            <p className="font-bold">{v.receiptNumber}</p>
+            <p className="text-muted-foreground mb-0.5">{docNumberLabel(doc.documentType)}</p>
+            <p className="font-bold">{display.docNumber}</p>
           </div>
         )}
 
-        {(doc.documentType === 'transfer' || doc.documentType === 'virement') && v.transferReference && (
+        {display.docDate && (
           <div className="bg-muted/50 rounded p-1.5 text-[10px] text-center">
-            <p className="text-muted-foreground mb-0.5">مرجع التحويل</p>
-            <p className="font-bold">{v.transferReference}</p>
+            <p className="text-muted-foreground mb-0.5">{docDateLabel(doc.documentType)}</p>
+            <p className="font-bold" dir="ltr">{formatDisplayDate(display.docDate)}</p>
           </div>
         )}
 
@@ -803,6 +839,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
           <div className="border-2 border-violet-200 dark:border-violet-900/40 rounded-xl p-2.5 space-y-2 bg-violet-50/30 dark:bg-violet-900/10">
             {stampedInvoices.map(inv => {
               const stampKey = `stamp_${inv.orderId}`;
+              const display = getStampDisplayValues(inv.orderId, inv.invoiceNumber, inv.issueDate);
               const draftDecision = receivedDocs ? receivedDocs[stampKey] : undefined;
               // Draft decision (when present) overrides the persisted invoice state
               // so toggling inside the edit dialog recolors the row immediately.
@@ -845,8 +882,11 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
                       <Badge variant="outline" className="text-[9px] px-1 py-0">
                         {stampedMethodLabel(inv.paymentMethod, inv.bucket)}
                       </Badge>
-                      {inv.invoiceNumber && (
-                        <span className="text-[10px] text-muted-foreground">فاتورة: {inv.invoiceNumber}</span>
+                      {display.invoiceNumber && (
+                        <span className="text-[10px] text-muted-foreground">فاتورة: {display.invoiceNumber}</span>
+                      )}
+                      {display.issueDate && (
+                        <span className="text-[10px] text-muted-foreground">التاريخ: {formatDisplayDate(display.issueDate)}</span>
                       )}
                     </div>
                   </div>
