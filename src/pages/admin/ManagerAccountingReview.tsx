@@ -1743,6 +1743,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
       // flow across pages independently (page-break-inside: avoid on a single
       // wrapper was clipping all but the first worker on the printed output).
       const perWorkerBlocks = productMatrix.workers.filter(w => {
+        if (productMatrix.workerRoles?.[w.id] === 'sales_rep') return false;
         const mQty = productMatrix.workerMethodProductQty?.[w.id] || {} as any;
         const offered = productMatrix.workerOfferedQty?.[w.id] || {};
         let any = 0;
