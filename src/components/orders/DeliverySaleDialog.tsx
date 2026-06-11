@@ -242,6 +242,22 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
     fetch();
   }, [open]);
 
+  // Warm the offer cache in the background so first ProductQuantityDialog open is instant
+  useEffect(() => {
+    if (!open || !allProducts.length) return;
+    const ct = getCustomerTypesArray(order?.customer);
+    const idle: (cb: () => void) => number = (window as any).requestIdleCallback || ((cb: () => void) => window.setTimeout(cb, 200));
+    const handle = idle(() => {
+      for (const p of allProducts) {
+        preloadProductOffersForBadge(p.id, ct);
+      }
+    });
+    return () => {
+      const cancel = (window as any).cancelIdleCallback || window.clearTimeout;
+      try { cancel(handle); } catch {}
+    };
+  }, [open, allProducts, order?.customer]);
+
   // Initialize sale items from order items
   // Helper: recalculate gift for a product based on paid quantity and active offers
   // Returns { giftBoxes, giftPieces } where giftPieces is the remainder that doesn't fill a full box
