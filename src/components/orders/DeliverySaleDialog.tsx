@@ -38,6 +38,7 @@ import DeliveryPaymentDialog from '@/components/orders/DeliveryPaymentDialog';
 import CheckVerificationDialog from '@/components/orders/CheckVerificationDialog';
 import ReceiptPaymentDialog from '@/components/orders/ReceiptPaymentDialog';
 import ProductQuantityDialog from '@/components/orders/ProductQuantityDialog';
+import { preloadProductOffersForBadge } from '@/components/offers/ProductOfferBadge';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import CustomerDistanceIndicator from './CustomerDistanceIndicator';
 import SimpleProductPickerDialog from '@/components/stock/SimpleProductPickerDialog';
