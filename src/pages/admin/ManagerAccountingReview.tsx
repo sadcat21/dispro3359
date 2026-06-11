@@ -1760,7 +1760,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         const offered = productMatrix.workerOfferedQty?.[w.id] || {};
         const roleCode = productMatrix.workerRoles?.[w.id];
         const roleLabel = roleCode === 'sales_rep' ? 'Commandes' : 'Ventes';
-        const headerRow = `<tr class="worker-name-row"><td colspan="${totalCols}" style="background:#000 !important;color:#fff !important;text-align:center;padding:6px 8px;font-weight:800;text-transform:uppercase;font-size:11px;letter-spacing:0.5px;-webkit-print-color-adjust:exact;print-color-adjust:exact">${escapeHtml(w.name)} <span style="color:#fde047;font-weight:700;margin-inline-start:8px">— ${roleLabel}</span></td></tr>`;
+        const headerRow = `<tr class="worker-name-row"><td colspan="${totalCols}" style="background:#fff !important;text-align:center;padding:6px 8px;-webkit-print-color-adjust:exact;print-color-adjust:exact"><span style="display:inline-block;background:#000 !important;color:#fff !important;padding:4px 14px;border-radius:9999px;font-weight:800;text-transform:uppercase;font-size:11px;letter-spacing:0.5px;-webkit-print-color-adjust:exact;print-color-adjust:exact">${escapeHtml(w.name)}</span></td></tr>`;
         const body = renderBlock(
           (k, pid) => mQty[k as 'invoice1']?.[pid] || { paid: 0, debt: 0, paidAmt: 0, debtAmt: 0 },
           (pid) => Number((offered as any)[pid] || 0),
