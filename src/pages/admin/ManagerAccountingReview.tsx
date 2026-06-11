@@ -1831,7 +1831,7 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         }).join('');
         const repTotals = repsWithData.map(r => products.reduce((a, p) => a + getOrderedQty(r.id, p.id), 0));
         const grandTotal = repTotals.reduce((a, b) => a + b, 0);
-        const fmtBoxes = (v: number) => v ? `${Math.round(v).toLocaleString()}` : '0';
+        const fmtBoxes = (v: number) => v ? `${Math.round(v).toLocaleString()}.00` : '0.00';
         const totalRow = `<tr>
           <td style="text-align:left;padding-left:8px;font-weight:900;color:#0f172a;background:#f1f5f9;text-transform:uppercase">Total Caisses</td>
           ${repTotals.map(v => `<td style="font-weight:900;color:#047857;background:#ecfdf5">${fmtBoxes(v)}</td>`).join('')}
