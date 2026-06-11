@@ -1800,10 +1800,46 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
       const grandBlock = gHeader + gBody;
 
 
+
+      // Commandes par Vendeur (sales reps) — columns = sales reps, rows = products, cell = total ordered qty
+      const salesReps = productMatrix.workers.filter(w => productMatrix.workerRoles?.[w.id] === 'sales_rep');
+      const getOrderedQty = (workerId: string, productId: string) => {
+        const mQty = productMatrix.workerMethodProductQty?.[workerId];
+        const offered = productMatrix.workerOfferedQty?.[workerId] || {};
+        let q = 0;
+        methods.forEach(([k]) => {
+          const s = mQty?.[k as 'invoice1']?.[productId];
+          if (s) q += Number(s.paid||0) + Number(s.debt||0);
+        });
+        q += Number((offered as any)[productId] || 0);
+        return q;
+      };
+      const repsWithData = salesReps.filter(r => products.some(p => getOrderedQty(r.id, p.id) > 0));
+      const commandesBlock = repsWithData.length === 0 ? '' : (() => {
+        const cols = 1 + repsWithData.length + 1;
+        const pctP = 28;
+        const pctO = (100 - pctP) / (cols - 1);
+        const cg = `<colgroup><col style="width:${pctP}%" />${Array.from({length: cols-1}).map(() => `<col style="width:${pctO}%" />`).join('')}</colgroup>`;
+        const hd = `<tr><th style="text-align:left;padding-left:8px">Produit</th>${repsWithData.map(r => `<th>${escapeHtml(r.name)}</th>`).join('')}<th style="color:#0369a1">TOTAL</th></tr>`;
+        const bodyRows = products.map(p => {
+          const cells = repsWithData.map(r => getOrderedQty(r.id, p.id));
+          const tot = cells.reduce((a,b)=>a+b,0);
+          if (tot <= 0) return '';
+          const ppb = p.piecesPerBox;
+          const fmt = (v: number) => v ? boxesToBPAlways(v, ppb) : '0';
+          return `<tr><td style="text-align:left;padding-left:8px;font-weight:700;color:#0f172a">${escapeHtml(p.name)}</td>${cells.map(v => `<td style="color:#047857;font-weight:600">${fmt(v)}</td>`).join('')}<td style="font-weight:800;color:#0369a1">${fmt(tot)}</td></tr>`;
+        }).join('');
+        return `<div class="block">
+          <div class="block-title" style="background:#fef3c7">Commandes par Vendeur</div>
+          <table style="table-layout:fixed;width:100%">${cg}<thead>${hd}</thead><tbody>${bodyRows}</tbody></table>
+        </div>`;
+      })();
+
       return `<div class="block">
         <div class="block-title" style="background:#dcfce7">Total Général (Tous les Vendeurs)</div>
         <table style="table-layout:fixed;width:100%">${colgroup}<thead>${head}</thead><tbody>${grandBlock}</tbody></table>
       </div>
+      ${commandesBlock}
       <div class="block">
         <div class="block-title" style="background:#fef2f2">Ventes par Vendeur et Méthode</div>
       </div>
