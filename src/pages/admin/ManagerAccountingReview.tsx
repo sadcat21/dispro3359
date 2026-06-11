@@ -1433,7 +1433,6 @@ export const fetchProductMatrix = async (sessions: any[]): Promise<ProductMatrix
   });
   const products = Array.from(productMap.entries()).map(([id, v]) => ({ id, name: v.name, piecesPerBox: v.ppb }));
   const workers = Array.from(workerMap.entries())
-    .filter(([id]) => workerRows[id])
     .map(([id, name]) => ({ id, name }));
   return { products, rows, workers, workerRows, workerMethodAmounts, workerMethodProductQty, workerOfferedQty, workerProductAmount };
 
