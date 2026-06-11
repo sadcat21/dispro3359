@@ -1754,8 +1754,8 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
       </div>
       <div class="block">
         <div class="block-title" style="background:#fef2f2">Ventes par Vendeur et Méthode</div>
-        <table style="table-layout:fixed;width:100%">${colgroup}<thead>${head}</thead><tbody>${blocks}</tbody></table>
-      </div>`;
+      </div>
+      ${perWorkerBlocks}`;
     })()}
 
 
