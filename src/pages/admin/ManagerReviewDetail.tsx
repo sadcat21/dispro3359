@@ -168,6 +168,42 @@ const ManagerReviewDetail: React.FC = () => {
             <Printer className="w-4 h-4" /> طباعة ملخص A4
           </Button>
           <WorkerBreakdown sessions={sessions} />
+
+          <Card>
+            <CardContent className="p-3 space-y-2">
+              <div className="flex items-center gap-2">
+                <Package className="w-4 h-4 text-primary" />
+                <h3 className="text-sm font-bold">المنتجات المباعة</h3>
+                <Badge variant="secondary" className="text-[10px]">{soldProducts.length}</Badge>
+              </div>
+              {soldProducts.length === 0 ? (
+                <p className="text-xs text-center text-muted-foreground py-6">لا توجد منتجات مباعة</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-right">المنتج</TableHead>
+                        <TableHead className="text-center">الصناديق المباعة</TableHead>
+                        <TableHead className="text-center">القطع</TableHead>
+                        <TableHead className="text-center">المهدى (صناديق)</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {soldProducts.map((p) => (
+                        <TableRow key={p.id}>
+                          <TableCell className="font-medium">{p.name}</TableCell>
+                          <TableCell className="text-center">{p.soldBoxes.toLocaleString('fr-FR', { maximumFractionDigits: 2 })}</TableCell>
+                          <TableCell className="text-center text-muted-foreground">{p.soldPieces.toLocaleString('fr-FR')}</TableCell>
+                          <TableCell className="text-center text-emerald-700">{p.offeredBoxes.toLocaleString('fr-FR', { maximumFractionDigits: 2 })}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </>
       )}
     </div>
