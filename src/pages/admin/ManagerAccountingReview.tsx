@@ -1702,18 +1702,20 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
         return rowsHtml + totalRow;
       };
 
-      // Per-worker blocks
-      const blocks = productMatrix.workers.map(w => {
+      // Per-worker blocks — render each worker as its own .block so they can
+      // flow across pages independently (page-break-inside: avoid on a single
+      // wrapper was clipping all but the first worker on the printed output).
+      const perWorkerBlocks = productMatrix.workers.map(w => {
         const mQty = productMatrix.workerMethodProductQty?.[w.id] || { invoice1: {}, super_gros: {}, gros: {}, retail: {}, remise: {} } as any;
         const offered = productMatrix.workerOfferedQty?.[w.id] || {};
-        const wAmt = productMatrix.workerProductAmount?.[w.id] || {};
-        const workerTotalAmount = products.reduce((a, p) => a + Number(wAmt[p.id] || 0), 0);
         const headerRow = `<tr class="worker-name-row"><td colspan="${totalCols}" style="background:#000 !important;color:#fff !important;text-align:center;padding:6px 8px;font-weight:800;text-transform:uppercase;font-size:11px;letter-spacing:0.5px;-webkit-print-color-adjust:exact;print-color-adjust:exact">${escapeHtml(w.name)}</td></tr>`;
         const body = renderBlock(
           (k, pid) => mQty[k as 'invoice1']?.[pid] || { paid: 0, debt: 0, paidAmt: 0, debtAmt: 0 },
           (pid) => Number((offered as any)[pid] || 0),
         );
-        return headerRow + body;
+        return `<div class="block" style="page-break-inside:auto">
+          <table style="table-layout:fixed;width:100%">${colgroup}<thead>${head}</thead><tbody>${headerRow}${body}</tbody></table>
+        </div>`;
       }).join('');
 
       // Aggregate totals across all workers
@@ -1752,8 +1754,8 @@ export const buildManagerReviewPrintHtml = ({ totals, sessions, branchName, qrDa
       </div>
       <div class="block">
         <div class="block-title" style="background:#fef2f2">Ventes par Vendeur et Méthode</div>
-        <table style="table-layout:fixed;width:100%">${colgroup}<thead>${head}</thead><tbody>${blocks}</tbody></table>
-      </div>`;
+      </div>
+      ${perWorkerBlocks}`;
     })()}
 
 
