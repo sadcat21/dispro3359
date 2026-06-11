@@ -1,10 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ProductOffer, ProductOfferWithDetails } from '@/types/productOffer';
 import { filterCurrentlyActiveOffers } from '@/utils/productOffers';
 import { toast } from 'sonner';
 
-export const useProductOffers = () => {
+interface UseProductOffersOptions {
+  includeOffers?: boolean;
+  includeActiveOffers?: boolean;
+  autoDeactivateExpired?: boolean;
+}
+
+export const useProductOffers = (options: UseProductOffersOptions = {}) => {
+  const {
+    includeOffers = true,
+    includeActiveOffers = true,
+    autoDeactivateExpired = true,
+  } = options;
   const [offers, setOffers] = useState<ProductOfferWithDetails[]>([]);
   const [activeOffers, setActiveOffers] = useState<ProductOfferWithDetails[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -17,10 +28,12 @@ export const useProductOffers = () => {
     }
   };
 
-  const fetchOffers = async () => {
+  const fetchOffers = useCallback(async (skipDeactivateExpired = false) => {
     setIsLoading(true);
     try {
-      await deactivateExpiredOffers();
+      if (autoDeactivateExpired && !skipDeactivateExpired) {
+        await deactivateExpiredOffers();
+      }
       const { data, error } = await supabase
         .from('product_offers')
         .select(`
@@ -56,11 +69,13 @@ export const useProductOffers = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [autoDeactivateExpired]);
 
-  const fetchActiveOffers = async () => {
+  const fetchActiveOffers = useCallback(async (skipDeactivateExpired = false) => {
     try {
-      await deactivateExpiredOffers();
+      if (autoDeactivateExpired && !skipDeactivateExpired) {
+        await deactivateExpiredOffers();
+      }
       const { data, error } = await supabase
         .from('product_offers')
         .select(`
@@ -93,7 +108,7 @@ export const useProductOffers = () => {
     } catch (error) {
       console.error('Error fetching active offers:', error);
     }
-  };
+  }, [autoDeactivateExpired]);
 
   const createOffer = async (offer: Omit<ProductOffer, 'id' | 'created_at' | 'updated_at'>) => {
     try {
@@ -153,8 +168,23 @@ export const useProductOffers = () => {
   };
 
   useEffect(() => {
-    fetchOffers();
-    fetchActiveOffers();
+    const refreshOffers = async () => {
+      setIsLoading(true);
+      try {
+        if (autoDeactivateExpired) {
+          await deactivateExpiredOffers();
+        }
+
+        await Promise.all([
+          includeOffers ? fetchOffers(true) : Promise.resolve(),
+          includeActiveOffers ? fetchActiveOffers(true) : Promise.resolve(),
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    refreshOffers();
 
     // Realtime for product_offers
     const baseChannelName = 'product-offers-realtime';
@@ -168,13 +198,12 @@ export const useProductOffers = () => {
     const channel = supabase
       .channel(baseChannelName)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'product_offers' }, () => {
-        fetchOffers();
-        fetchActiveOffers();
+        refreshOffers();
       })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, []);
+  }, [autoDeactivateExpired, fetchActiveOffers, fetchOffers, includeActiveOffers, includeOffers]);
 
   return {
     offers,

@@ -38,7 +38,6 @@ import DeliveryPaymentDialog from '@/components/orders/DeliveryPaymentDialog';
 import CheckVerificationDialog from '@/components/orders/CheckVerificationDialog';
 import ReceiptPaymentDialog from '@/components/orders/ReceiptPaymentDialog';
 import ProductQuantityDialog from '@/components/orders/ProductQuantityDialog';
-import { preloadProductOffersForBadge } from '@/components/offers/ProductOfferBadge';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import CustomerDistanceIndicator from './CustomerDistanceIndicator';
 import SimpleProductPickerDialog from '@/components/stock/SimpleProductPickerDialog';
@@ -88,7 +87,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
   const markCreditUsed = useMarkCreditUsed();
   const logActivity = useLogActivity();
   const { trackVisit } = useTrackVisit();
-  const { activeOffers } = useProductOffers();
+  const { activeOffers } = useProductOffers({ includeOffers: false, includeActiveOffers: true, autoDeactivateExpired: false });
   const creditSummary = useCustomerCreditSummary(order.customer_id);
   const { data: customerCredits } = useCustomerCredits(order.customer_id);
   const [useCreditBalance, setUseCreditBalance] = useState(false);
@@ -233,31 +232,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
   const [partialDeliveryAction, setPartialDeliveryAction] = useState<'none' | 'create_order' | 'deliver_only'>('none');
   const productsSectionRef = useRef<HTMLElement | null>(null);
 
-  // Fetch products for adding
-  useEffect(() => {
-    if (!open) return;
-    const fetch = async () => {
-      const { data } = await supabase.from('products').select('*').eq('is_active', true).order('sort_order', { ascending: true }).order('name');
-      setAllProducts(data || []);
-    };
-    fetch();
-  }, [open]);
-
-  // Warm the offer cache in the background so first ProductQuantityDialog open is instant
-  useEffect(() => {
-    if (!open || !allProducts.length) return;
-    const ct = getCustomerTypesArray(order?.customer);
-    const idle: (cb: () => void) => number = (window as any).requestIdleCallback || ((cb: () => void) => window.setTimeout(cb, 200));
-    const handle = idle(() => {
-      for (const p of allProducts) {
-        preloadProductOffersForBadge(p.id, ct);
-      }
-    });
-    return () => {
-      const cancel = (window as any).cancelIdleCallback || window.clearTimeout;
-      try { cancel(handle); } catch {}
-    };
-  }, [open, allProducts, order?.customer]);
+  // Keep the initial dialog light: do not load the full products catalog until user opens add-product picker.
 
   // Initialize sale items from order items
   // Helper: recalculate gift for a product based on paid quantity and active offers
@@ -425,6 +400,28 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
     stockItems?.find(s => s.product_id === productId)?.quantity || 0,
   [stockItems]);
 
+  const ensureAllProductsLoaded = useCallback(async () => {
+    if (allProducts.length > 0) return allProducts;
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+      .order('name');
+    if (error) throw error;
+    const products = (data || []) as Product[];
+    setAllProducts(products);
+    return products;
+  }, [allProducts]);
+
+  const getProductById = useCallback((productId: string, productsPool?: Product[]) => {
+    const source = productsPool || allProducts;
+    return source.find((p) => p.id === productId)
+      || orderItems?.find((oi) => oi.product_id === productId)?.product
+      || stockItems?.find((s) => s.product_id === productId)?.product
+      || null;
+  }, [allProducts, orderItems, stockItems]);
+
   const resolveCustomSalePrice = useCallback((product: Product, baseUnitPrice: number, unitSale: boolean): number => {
     const piecesPerBox = product.pieces_per_box || 1;
     const weightPerBox = product.weight_per_box || 1;
@@ -448,10 +445,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
   };
 
   const handleEditItem = (item: SaleItem) => {
-    const product =
-      allProducts.find(p => p.id === item.productId) ||
-      orderItems?.find(oi => oi.product_id === item.productId)?.product ||
-      null;
+    const product = getProductById(item.productId);
     if (!product) return;
 
     const paidQty = Math.max(1, item.quantity - item.giftQuantity);
@@ -508,7 +502,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
     isUnitSale?: boolean,
     perItemPricing?: any
   ) => {
-    const product = allProducts.find(p => p.id === productId) || orderItems?.find(oi => oi.product_id === productId)?.product;
+    const product = getProductById(productId);
     if (!product) return;
 
     const giftQuantity = giftInfo?.giftQuantity || 0;
@@ -541,7 +535,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
       toast.error(t('orders.product_already_added'));
       return;
     }
-    const product = allProducts.find(p => p.id === newProductId);
+    const product = getProductById(newProductId);
     if (!product) return;
     const available = getAvailable(newProductId);
     if (available <= 0) {
@@ -1550,7 +1544,15 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
                     type="button"
                     variant="outline"
                     className="w-full h-12 gap-2 text-primary border-primary/40 hover:bg-primary/5"
-                    onClick={() => setShowProductPicker(true)}
+                    onClick={async () => {
+                      try {
+                        await ensureAllProductsLoaded();
+                        setShowProductPicker(true);
+                      } catch (error) {
+                        console.error('Failed to load products for picker:', error);
+                        toast.error('فشل تحميل المنتجات');
+                      }
+                    }}
                   >
                     <PlusCircle className="w-5 h-5" />
                     {t('orders.add_product')}
@@ -1869,7 +1871,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
           setTimeout(() => {
             setNewProductId('');
             // Trigger add
-            const product = allProducts.find(p => p.id === productId);
+            const product = getProductById(productId);
             if (!product) return;
             if (saleItems.some(i => i.productId === productId)) {
               toast.error(t('orders.product_already_added'));
