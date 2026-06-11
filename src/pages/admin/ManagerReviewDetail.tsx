@@ -16,7 +16,10 @@ import {
   WorkerBreakdown,
   buildManagerReviewPrintHtml,
   fetchProductMatrix,
+  ProductMatrix,
 } from './ManagerAccountingReview';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Package } from 'lucide-react';
 
 const ManagerReviewDetail: React.FC = () => {
   const { reviewId } = useParams<{ reviewId: string }>();
