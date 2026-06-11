@@ -62,6 +62,34 @@ const ManagerReviewDetail: React.FC = () => {
 
   const totals = useMemo(() => calcTotals(sessions), [sessions]);
 
+  const { data: productMatrix } = useQuery({
+    queryKey: ['review-detail-product-matrix', reviewId, sessions.length],
+    queryFn: () => fetchProductMatrix(sessions),
+    enabled: sessions.length > 0,
+  });
+
+  const soldProducts = useMemo(() => {
+    if (!productMatrix) return [] as { id: string; name: string; soldBoxes: number; soldPieces: number; offeredBoxes: number; piecesPerBox: number }[];
+    const sold = productMatrix.rows?.sold || {};
+    const offered = productMatrix.rows?.offered || {};
+    return productMatrix.products
+      .map((p) => {
+        const soldBoxes = Number(sold[p.id] || 0);
+        const offeredBoxes = Number(offered[p.id] || 0);
+        return {
+          id: p.id,
+          name: p.name,
+          piecesPerBox: p.piecesPerBox,
+          soldBoxes,
+          soldPieces: Math.round(soldBoxes * (p.piecesPerBox || 1)),
+          offeredBoxes,
+        };
+      })
+      .filter((r) => r.soldBoxes > 0 || r.offeredBoxes > 0)
+      .sort((a, b) => b.soldBoxes - a.soldBoxes);
+  }, [productMatrix]);
+
+
   const handlePrint = async () => {
     if (typeof document === 'undefined') return;
     if (sessions.length === 0) { toast.error('لا توجد جلسات متاحة للطباعة'); return; }
