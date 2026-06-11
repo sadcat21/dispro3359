@@ -75,6 +75,12 @@ const HandoverPrintView: React.FC<Props> = ({
   const [loading, setLoading] = useState(true);
   const { companyInfo } = useCompanyInfo();
 
+  const formatDisplayDate = (value?: string | null) => {
+    if (!value) return undefined;
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? value : format(parsed, 'dd/MM/yyyy');
+  };
+
   useEffect(() => {
     const fetchItems = async () => {
       const { data: handoverRow } = await supabase
@@ -115,13 +121,30 @@ const HandoverPrintView: React.FC<Props> = ({
 
       const orderIds = data.map((item) => item.order_id).filter(Boolean);
       const orderMap: Record<string, any> = {};
+      const draftMap: Record<string, { doc?: Record<string, any>; inv?: Record<string, any> }> = {};
       if (orderIds.length > 0) {
-        const { data: orders } = await supabase
-          .from('orders')
-          .select('id, created_at, delivery_date, total_amount, invoice_number, document_verification, order_items(total_price), customers(name_fr, name, store_name_fr, store_name, owner_first_name_fr, owner_last_name_fr)')
-          .in('id', orderIds);
+        const [{ data: orders }, { data: drafts }] = await Promise.all([
+          supabase
+            .from('orders')
+            .select('id, created_at, delivery_date, total_amount, invoice_number, invoice_received_at, check_due_date, document_verification, order_items(total_price), customers(name_fr, name, store_name_fr, store_name, owner_first_name_fr, owner_last_name_fr)')
+            .in('id', orderIds),
+          (supabase as any)
+            .from('manager_decision_drafts')
+            .select('order_id, kind, payload, created_at')
+            .in('order_id', orderIds)
+            .in('kind', ['document', 'stamp_invoice'])
+            .order('created_at', { ascending: true }),
+        ]);
+
         (orders || []).forEach((order) => {
           orderMap[order.id] = order;
+        });
+
+        (drafts || []).forEach((draft: any) => {
+          const current = draftMap[draft.order_id] || {};
+          if (draft.kind === 'document' && draft.payload && Object.keys(draft.payload).length > 0) current.doc = draft.payload || {};
+          if (draft.kind === 'stamp_invoice' && draft.payload && Object.keys(draft.payload).length > 0) current.inv = draft.payload || {};
+          draftMap[draft.order_id] = current;
         });
       }
 
@@ -148,6 +171,12 @@ const HandoverPrintView: React.FC<Props> = ({
       const enriched: HandoverItem[] = data.map((item) => {
         const treasuryEntry = item.treasury_entry_id ? treasuryMap[item.treasury_entry_id] : null;
         const order = item.order_id ? orderMap[item.order_id] : null;
+        const drafts = item.order_id ? draftMap[item.order_id] : null;
+        const docDraft = drafts?.doc || {};
+        const invoiceDraft = drafts?.inv || {};
+        const docVerification = order?.document_verification && typeof order.document_verification === 'object' && !Array.isArray(order.document_verification)
+          ? order.document_verification as Record<string, any>
+          : {};
         const customer = order?.customers;
         const ownerFr = [customer?.owner_last_name_fr, customer?.owner_first_name_fr].filter(Boolean).join(' ').trim();
         const customerNameFr = ownerFr || customer?.name_fr || null;
@@ -173,11 +202,15 @@ const HandoverPrintView: React.FC<Props> = ({
             : undefined,
           stamp_amount: item.payment_method === 'cash' ? exactStampAmount : undefined,
           stamp_percentage: item.payment_method === 'cash' ? Number(matchedTier?.percentage || 0) : undefined,
-          invoice_number: treasuryEntry?.invoice_number || order?.invoice_number || undefined,
-          invoice_date: treasuryEntry?.invoice_date || (order ? format(new Date(order.delivery_date || order.created_at), 'dd/MM/yyyy') : undefined),
-          check_number: treasuryEntry?.check_number || order?.document_verification?.check_number || undefined,
-          check_date: treasuryEntry?.check_date || order?.document_verification?.check_date || undefined,
-          check_bank: treasuryEntry?.check_bank || order?.document_verification?.check_bank || undefined,
+          invoice_number: treasuryEntry?.invoice_number || order?.invoice_number || docDraft.invoice_number || invoiceDraft.invoice_number || undefined,
+          invoice_date: formatDisplayDate(
+            treasuryEntry?.invoice_date || order?.invoice_received_at || docDraft.invoice_date || invoiceDraft.issue_date,
+          ) || (order ? format(new Date(order.delivery_date || order.created_at), 'dd/MM/yyyy') : undefined),
+          check_number: treasuryEntry?.check_number || docVerification.check_number || docVerification.doc_number || docDraft.doc_number || undefined,
+          check_date: formatDisplayDate(
+            treasuryEntry?.check_date || order?.check_due_date || docVerification.check_date || docVerification.doc_date || docDraft.doc_date,
+          ),
+          check_bank: treasuryEntry?.check_bank || docVerification.check_bank || docVerification.bank_name || docDraft.check_bank || docDraft.bank_name || undefined,
           receipt_number: treasuryEntry?.receipt_number || undefined,
           transfer_reference: treasuryEntry?.transfer_reference || undefined,
           paid_amount: debt ? debt.paid : (item.payment_method === 'receipt_cash' ? Number(item.amount || 0) : undefined),
