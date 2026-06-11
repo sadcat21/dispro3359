@@ -70,21 +70,27 @@ const DebtCollectionsSummary: React.FC<DebtCollectionsSummaryProps> = ({ workerI
 
       if (error) throw error;
 
-      // Merge both sources, grouping by debt_id
-      const debtMap: Record<string, { collected: number; methods: Set<string> }> = {};
+      // Merge both sources, grouping by debt_id, tracking cash vs document amounts
+      const debtMap: Record<string, { collected: number; cash: number; doc: number; methods: Set<string> }> = {};
+      const isCashMethod = (m: string | null | undefined) => !m || m === 'cash';
 
       // Add from debt_payments
       for (const p of (payments || [])) {
-        if (!debtMap[p.debt_id]) debtMap[p.debt_id] = { collected: 0, methods: new Set() };
-        debtMap[p.debt_id].collected += Number(p.amount || 0);
+        if (!debtMap[p.debt_id]) debtMap[p.debt_id] = { collected: 0, cash: 0, doc: 0, methods: new Set() };
+        const amt = Number(p.amount || 0);
+        debtMap[p.debt_id].collected += amt;
+        if (isCashMethod(p.payment_method)) debtMap[p.debt_id].cash += amt;
+        else debtMap[p.debt_id].doc += amt;
         debtMap[p.debt_id].methods.add(p.payment_method || 'cash');
       }
 
       // Add from debt_collections (only if not already covered by debt_payments)
       for (const c of (collections || [])) {
         if (!debtMap[c.debt_id]) {
-          debtMap[c.debt_id] = { collected: 0, methods: new Set() };
-          debtMap[c.debt_id].collected += Number(c.amount_collected || 0);
+          const amt = Number(c.amount_collected || 0);
+          debtMap[c.debt_id] = { collected: amt, cash: 0, doc: 0, methods: new Set() };
+          if (isCashMethod(c.payment_method)) debtMap[c.debt_id].cash += amt;
+          else debtMap[c.debt_id].doc += amt;
           if (c.payment_method) debtMap[c.debt_id].methods.add(c.payment_method);
         }
       }
@@ -100,7 +106,7 @@ const DebtCollectionsSummary: React.FC<DebtCollectionsSummaryProps> = ({ workerI
 
       if (dErr) throw dErr;
 
-      const result: CollectedDebtRow[] = (debts || []).map((d: any) => {
+      const result: (CollectedDebtRow & { cashAmount: number; docAmount: number })[] = (debts || []).map((d: any) => {
         const info = debtMap[d.id];
         const totalDebt = Number(d.total_amount || 0);
         const currentPaid = Number(d.paid_amount || 0);
@@ -115,6 +121,8 @@ const DebtCollectionsSummary: React.FC<DebtCollectionsSummaryProps> = ({ workerI
           collectedNow,
           remainingAfter: Math.max(0, remainingAfter),
           paymentMethod: info ? Array.from(info.methods).join(', ') : 'cash',
+          cashAmount: info?.cash || 0,
+          docAmount: info?.doc || 0,
         };
       });
 
