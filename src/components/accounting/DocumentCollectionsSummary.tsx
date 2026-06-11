@@ -471,11 +471,12 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
         pendingOrderIds.add(order.id);
       }
 
-      // Mirror useSessionCalculations: include orders whose created_at OR
-      // updated_at falls within the period. Filtering by updated_at alone
-      // silently drops delivered orders that contribute to session totals
-      // but had their updated_at slip just outside the window.
-      const baseSelect = `id, total_amount, invoice_payment_method, invoice_number, delivery_date, document_status, document_manager_decision, document_verification, payment_status, payment_method_resolved, updated_at, created_at, customer:customers!orders_customer_id_fkey(name, store_name, owner_first_name_ar, owner_last_name_ar, owner_first_name_fr, owner_last_name_fr)`;
+      // Match session calculations: include orders whose created_at OR
+      // delivery_date falls within the period, but NEVER updated_at.
+      // Manager review / draft application updates old orders after the prior
+      // accounting session closes, and using updated_at re-injects those old
+      // documents into the new session's "received during delivery" bucket.
+      const baseSelect = `id, total_amount, invoice_payment_method, invoice_number, delivery_date, document_status, document_manager_decision, document_verification, payment_status, payment_method_resolved, created_at, customer:customers!orders_customer_id_fkey(name, store_name, owner_first_name_ar, owner_last_name_ar, owner_first_name_fr, owner_last_name_fr)`;
       // Include delivered orders, AND cancelled orders whose document was already
       // received/verified — the worker remains accountable for the physical
       // document even if the order itself was later cancelled.
@@ -486,13 +487,13 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
         .in('invoice_payment_method', ['check', 'receipt', 'transfer', 'versement', 'virement'])
         .or('status.eq.delivered,and(status.eq.cancelled,document_status.in.(received,verified,collected))');
 
-      const [createdRes, updatedRes] = await Promise.all([
+      const [createdRes, deliveredRes] = await Promise.all([
         buildDeliveryOrdersQuery().gte('created_at', startTz).lte('created_at', endTz),
-        buildDeliveryOrdersQuery().gte('updated_at', startTz).lte('updated_at', endTz),
+        buildDeliveryOrdersQuery().gte('delivery_date', startTz).lte('delivery_date', endTz),
       ]);
 
       const deliveryOrdersMap = new Map<string, any>();
-      for (const o of [...(createdRes.data || []), ...(updatedRes.data || [])]) {
+      for (const o of [...(createdRes.data || []), ...(deliveredRes.data || [])]) {
         if (o?.id) deliveryOrdersMap.set(o.id, o);
       }
 
@@ -543,7 +544,7 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
       const startTz = toTz2(periodStart, false);
       const endTz = toTz2(periodEnd, true);
 
-      const baseSelect = `id, total_amount, invoice_payment_method, invoice_received_at, invoice_number, invoice_sent_at, updated_at, created_at, payment_type, payment_status, payment_method_resolved, document_status, invoice_manager_decision, document_verification, customer:customers!orders_customer_id_fkey(name, store_name, phone, owner_first_name_ar, owner_last_name_ar, owner_first_name_fr, owner_last_name_fr)`;
+      const baseSelect = `id, total_amount, invoice_payment_method, invoice_received_at, invoice_number, invoice_sent_at, created_at, delivery_date, payment_type, payment_status, payment_method_resolved, document_status, invoice_manager_decision, document_verification, customer:customers!orders_customer_id_fkey(name, store_name, phone, owner_first_name_ar, owner_last_name_ar, owner_first_name_fr, owner_last_name_fr)`;
       const buildStampedInvoicesQuery = () => supabase
         .from('orders')
         .select(baseSelect)
@@ -552,13 +553,13 @@ const DocumentCollectionsSummary: React.FC<DocumentCollectionsSummaryProps> = ({
         .in('invoice_payment_method', ['check', 'cash', 'receipt', 'versement', 'transfer', 'virement'])
         .or('status.eq.delivered,and(status.eq.cancelled,document_status.in.(received,verified,collected))');
 
-      const [createdRes, updatedRes] = await Promise.all([
+      const [createdRes, deliveredRes] = await Promise.all([
         buildStampedInvoicesQuery().gte('created_at', startTz).lte('created_at', endTz),
-        buildStampedInvoicesQuery().gte('updated_at', startTz).lte('updated_at', endTz),
+        buildStampedInvoicesQuery().gte('delivery_date', startTz).lte('delivery_date', endTz),
       ]);
 
       const stampedInvoicesMap = new Map<string, any>();
-      for (const o of [...(createdRes.data || []), ...(updatedRes.data || [])]) {
+      for (const o of [...(createdRes.data || []), ...(deliveredRes.data || [])]) {
         if (o?.id) stampedInvoicesMap.set(o.id, o);
       }
 
