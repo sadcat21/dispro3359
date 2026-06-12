@@ -105,6 +105,56 @@ export type Database = {
           },
         ]
       }
+      accounting_session_truck_snapshots: {
+        Row: {
+          actual_qty: number | null
+          created_at: string
+          diff: number | null
+          id: string
+          loaded: number
+          product_id: string | null
+          product_name: string
+          session_id: string
+          sold: number
+          system_qty: number
+          unloaded: number
+        }
+        Insert: {
+          actual_qty?: number | null
+          created_at?: string
+          diff?: number | null
+          id?: string
+          loaded?: number
+          product_id?: string | null
+          product_name: string
+          session_id: string
+          sold?: number
+          system_qty?: number
+          unloaded?: number
+        }
+        Update: {
+          actual_qty?: number | null
+          created_at?: string
+          diff?: number | null
+          id?: string
+          loaded?: number
+          product_id?: string | null
+          product_name?: string
+          session_id?: string
+          sold?: number
+          system_qty?: number
+          unloaded?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_session_truck_snapshots_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       accounting_sessions: {
         Row: {
           branch_id: string | null

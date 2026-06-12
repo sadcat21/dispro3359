@@ -589,6 +589,8 @@ const SessionDetailsDialog: React.FC<SessionDetailsDialogProps> = ({ open, onOpe
                 periodEnd={session.period_end}
                 viewByProduct
                 promoTracking={liveCalc?.promoTracking}
+                sessionId={session.id}
+                useSnapshot={session.status === 'completed'}
               />
             </CollapsibleSection>
 
