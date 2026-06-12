@@ -212,6 +212,25 @@ export const useDeleteTreasuryResolution = () => {
   return useMutation({
     mutationFn: async (params: { id: string; treasury_id: string }) => {
       const current = await fetchSplits(params.treasury_id);
+      const target = current.find((r) => r.id === params.id) ?? null;
+
+      if (target?.resolution_type === 'worker_debt' && target.linked_debt_id) {
+        const { count, error: paymentsErr } = await supabase
+          .from('worker_debt_payments')
+          .select('id', { count: 'exact', head: true })
+          .eq('worker_debt_id', target.linked_debt_id);
+        if (paymentsErr) throw paymentsErr;
+        if ((count ?? 0) > 0) {
+          throw new Error('لا يمكن حذف سطر التسوية لأن الدين المرتبط عليه تسديدات مسجّلة');
+        }
+
+        const { error: deleteDebtErr } = await supabase
+          .from('worker_debts')
+          .delete()
+          .eq('id', target.linked_debt_id);
+        if (deleteDebtErr) throw deleteDebtErr;
+      }
+
       const next = current.filter((r) => r.id !== params.id);
       const { error } = await supabase
         .from('manager_treasury')
