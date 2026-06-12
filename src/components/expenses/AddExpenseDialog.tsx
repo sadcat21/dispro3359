@@ -245,7 +245,11 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
     const workerName = needsWorkerPick
       ? (branchWorkers?.find(w => w.id === advanceWorkerId)?.full_name || '')
       : '';
-    const justificationLabel = selectedJustification ? getCategoryName(selectedJustification as any, language) : '';
+    const justificationLabel = selectedJustification
+      ? (isJustificationOther && justificationOtherTitle.trim()
+          ? justificationOtherTitle.trim()
+          : getCategoryName(selectedJustification as any, language))
+      : '';
     const finalDescription = isAdvanceCategory
       ? `مسبق أجرة: ${workerName}${description ? ` — ${description}` : ''}`
       : isPeerHandoverCategory
