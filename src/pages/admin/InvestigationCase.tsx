@@ -125,7 +125,7 @@ const InvestigationCase: React.FC = () => {
             {data.evidence.map((e) => (
               <Card key={e.id} className="p-2">
                 <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                  <span>{e.kind === 'system' ? 'النظام' : 'محقّق'}</span>
+                  <span>{e.kind === 'system' ? 'النظام' : 'المسؤول'}</span>
                   <span>{format(new Date(e.created_at), 'dd/MM HH:mm')}</span>
                 </div>
                 <p className="text-sm mt-1 whitespace-pre-wrap">{e.body}</p>
