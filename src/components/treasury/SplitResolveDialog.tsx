@@ -94,6 +94,8 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
 
   const [customerOpen, setCustomerOpen] = useState(false);
   const [workerOpen, setWorkerOpen] = useState(false);
+  const [typePickerOpen, setTypePickerOpen] = useState(false);
+
 
   const isSurplus = entry?.source_type === 'accounting_surplus' || entry?.source_type === 'customer_surplus';
   const { data: custData } = useBranchCustomers(activeBranch?.id ?? entry?.branch_id ?? null, !!entry);
