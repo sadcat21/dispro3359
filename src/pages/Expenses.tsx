@@ -43,6 +43,7 @@ const Expenses: React.FC = () => {
   const [tab, setTab] = useState('expenses');
 
   const { data: expenses, isLoading } = useExpenses(isManager ? null : workerId);
+  const { data: categories = [] } = useExpenseCategories();
   const deleteExpense = useDeleteExpense();
   const { data: accountedRanges } = useWorkerAccountedRanges(isManager ? null : workerId);
   const { data: peerHandovers = [], isLoading: peerLoading } = usePendingPeerHandoversForMe(workerId);
