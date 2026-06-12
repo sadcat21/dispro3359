@@ -404,6 +404,9 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
                     setDraftType(o.key);
                     setDraftParty(null);
                     setTypePickerOpen(false);
+                    if (o.requires === 'customer') setCustomerOpen(true);
+                    else if (o.key === 'peer_cash_handover') setPeerPickerOpen(true);
+                    else if (o.requires === 'worker') setWorkerOpen(true);
                   }}
                   className={cn(
                     'rounded-lg border p-3 text-right text-xs font-medium transition-all',
