@@ -3117,15 +3117,22 @@ export type Database = {
           check_number: string | null
           created_at: string
           customer_name: string | null
+          due_date: string | null
           id: string
           invoice_date: string | null
           invoice_number: string | null
+          linked_debt_id: string | null
           manager_id: string
           notes: string | null
           payment_method: string
           receipt_number: string | null
+          resolution_notes: string | null
+          resolution_type: string | null
+          resolved_at: string | null
+          resolved_by: string | null
           session_id: string | null
           source_type: string
+          status: string
           transfer_reference: string | null
         }
         Insert: {
@@ -3136,15 +3143,22 @@ export type Database = {
           check_number?: string | null
           created_at?: string
           customer_name?: string | null
+          due_date?: string | null
           id?: string
           invoice_date?: string | null
           invoice_number?: string | null
+          linked_debt_id?: string | null
           manager_id: string
           notes?: string | null
           payment_method: string
           receipt_number?: string | null
+          resolution_notes?: string | null
+          resolution_type?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
           session_id?: string | null
           source_type?: string
+          status?: string
           transfer_reference?: string | null
         }
         Update: {
@@ -3155,15 +3169,22 @@ export type Database = {
           check_number?: string | null
           created_at?: string
           customer_name?: string | null
+          due_date?: string | null
           id?: string
           invoice_date?: string | null
           invoice_number?: string | null
+          linked_debt_id?: string | null
           manager_id?: string
           notes?: string | null
           payment_method?: string
           receipt_number?: string | null
+          resolution_notes?: string | null
+          resolution_type?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
           session_id?: string | null
           source_type?: string
+          status?: string
           transfer_reference?: string | null
         }
         Relationships: [
@@ -8017,6 +8038,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      treasury_tolerance_settings: {
+        Row: {
+          auto_writeoff_below_amount: number
+          branch_id: string | null
+          cash_tolerance_amount: number
+          cash_tolerance_pct: number
+          created_at: string
+          default_due_days: number
+          id: string
+          require_approval_above_amount: number
+          updated_at: string
+        }
+        Insert: {
+          auto_writeoff_below_amount?: number
+          branch_id?: string | null
+          cash_tolerance_amount?: number
+          cash_tolerance_pct?: number
+          created_at?: string
+          default_due_days?: number
+          id?: string
+          require_approval_above_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          auto_writeoff_below_amount?: number
+          branch_id?: string | null
+          cash_tolerance_amount?: number
+          cash_tolerance_pct?: number
+          created_at?: string
+          default_due_days?: number
+          id?: string
+          require_approval_above_amount?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
