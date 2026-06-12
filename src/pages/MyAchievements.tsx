@@ -1504,6 +1504,12 @@ const MyAchievements: React.FC = () => {
               الكل <span className="tabular-nums">{visits.length}</span>
             </button>
             <button
+              onClick={() => setActiveFilter(activeFilter === 'cancelled' ? null : 'cancelled')}
+              className={`inline-flex items-center gap-0.5 rounded-full px-2.5 py-1 text-[11px] font-medium border transition-colors ${activeFilter === 'cancelled' ? 'bg-primary text-primary-foreground border-primary shadow-sm' : 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'}`}
+            >
+              ملغاة <span className="font-bold tabular-nums">{cancelledCount}</span>
+            </button>
+            <button
               onClick={() => setActiveFilter(activeFilter === 'debt_new' ? null : 'debt_new')}
               className={`inline-flex items-center gap-0.5 rounded-full px-2.5 py-1 text-[11px] font-medium border transition-colors ${activeFilter === 'debt_new' ? 'bg-primary text-primary-foreground border-primary shadow-sm' : 'bg-orange-50 text-orange-600 border-orange-200 hover:bg-orange-100'}`}
             >
