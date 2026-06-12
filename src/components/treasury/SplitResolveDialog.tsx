@@ -226,7 +226,7 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
                   {splits.map((r) => {
                     const peer = r.resolution_type === 'peer_cash_handover' ? peerBySplit[r.id] : undefined;
                     return (
-                    <div key={r.id} className="flex items-center gap-2 rounded-md border p-2 text-xs bg-card">
+                    <div key={r.id} dir="rtl" className="flex items-center gap-2 rounded-md border p-2 text-xs bg-card">
                       <Badge variant="outline" className="text-[10px] shrink-0">{TYPE_LABEL[r.resolution_type] || r.resolution_type}</Badge>
                       {r.party_label && (
                         <span className="text-muted-foreground flex items-center gap-1 truncate flex-1 min-w-0">
