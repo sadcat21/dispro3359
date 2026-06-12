@@ -494,7 +494,7 @@ const ProductStockSummary: React.FC<ProductStockSummaryProps> = ({
   if (salesPerProduct) Object.keys(salesPerProduct).forEach(n => allProductNames.add(n));
   if (reviewData?.items) Object.keys(reviewData.items).forEach(n => allProductNames.add(n));
 
-  const productRows = Array.from(allProductNames).map(name => {
+  const liveProductRows = Array.from(allProductNames).map(name => {
     const truckRow = truckStock?.find(r => r.product_name === name);
     const review = reviewData?.items?.[name];
     const loaded = shippingPerProduct?.[name] ?? loadingData?.loadedMap?.[name] ?? 0;
@@ -506,6 +506,30 @@ const ProductStockSummary: React.FC<ProductStockSummaryProps> = ({
     const status = diff === null ? null : Math.abs(diff) < 0.001 ? 'match' : diff > 0 ? 'surplus' : 'deficit';
     return { name, loaded, unloaded, sold, systemQty, actualQty, diff, status };
   }).filter(r => r.loaded > 0 || r.unloaded > 0 || r.sold > 0 || r.systemQty > 0 || r.actualQty !== null);
+
+  // When viewing a saved session, replace live truck/load/sale numbers with
+  // the snapshot that was frozen at save time.
+  const snapshotProductRows = (snapshotRows || []).map(r => {
+    const diff = r.diff;
+    const status = diff === null || diff === undefined
+      ? null
+      : Math.abs(Number(diff)) < 0.001 ? 'match' : Number(diff) > 0 ? 'surplus' : 'deficit';
+    return {
+      name: r.product_name,
+      loaded: Number(r.loaded || 0),
+      unloaded: Number(r.unloaded || 0),
+      sold: Number(r.sold || 0),
+      systemQty: Number(r.system_qty || 0),
+      actualQty: r.actual_qty === null || r.actual_qty === undefined ? null : Number(r.actual_qty),
+      diff: diff === null || diff === undefined ? null : Number(diff),
+      status,
+    };
+  });
+
+  const productRows = useSnapshot && snapshotProductRows.length > 0
+    ? snapshotProductRows
+    : liveProductRows;
+
 
   return (
     <div className="space-y-4">
