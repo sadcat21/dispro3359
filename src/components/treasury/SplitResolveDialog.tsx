@@ -380,7 +380,12 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
                   type="button"
                   size="sm"
                   className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
-                  onClick={onClose}
+                  onClick={async () => {
+                    if (canAdd()) {
+                      await handleAdd();
+                    }
+                    onClose();
+                  }}
                 >
                   حفظ
                 </Button>
