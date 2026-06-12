@@ -200,7 +200,7 @@ const ApproveDialog: React.FC<{ entry: any | null; onClose: () => void }> = ({ e
         </DialogHeader>
         <div className="space-y-3">
           <p className="text-xs text-muted-foreground">
-            بصفتك مديرًا، يمكنك اعتماد القرار النهائي على هذا القيد. لا يمكن اعتماد قيد أنشأته بنفسك.
+            مبدأ الرقابة المزدوجة (Four-Eyes): القرار النهائي يحتاج إلى مدير ثانٍ غيرك. لا يمكنك اعتماد قيدٍ سجّلتَه أنت بنفسك حتى يراجعه زميلٌ آخر — لمنع التلاعب الفردي.
           </p>
           <div className="space-y-2">
             <Label>القرار</Label>
