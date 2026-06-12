@@ -267,12 +267,12 @@ const OpenInvestigationDialog: React.FC<Props> = ({ open, onClose, treasury }) =
             </div>
 
             <div className="space-y-1.5">
-              <Label>عنوان القضية</Label>
-              <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="مثال: عجز نقدي مشبوه في الجلسة #..." />
+              <Label>عنوان الملف</Label>
+              <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="مثال: متابعة فرق نقدي في جلسة #..." />
             </div>
 
             <div className="space-y-1.5">
-              <Label>الملخص الأولي</Label>
+              <Label>ملخص الحالة</Label>
               <Textarea value={summary} onChange={(e) => setSummary(e.target.value)} rows={3} placeholder="اشرح ما تعرفه حتى الآن..." />
             </div>
 
