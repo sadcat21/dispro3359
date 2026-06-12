@@ -176,7 +176,7 @@ const ResolveDialog: React.FC<{
               onClose();
             }}
           >
-            {isInvestigation ? 'فتح قضية تحقيق' : 'حفظ'}
+            {isInvestigation ? 'فتح ملف متابعة' : 'حفظ'}
           </Button>
         </DialogFooter>
       </DialogContent>
