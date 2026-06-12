@@ -13,6 +13,7 @@ import { Loader2, Upload, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSessionCalculations } from '@/hooks/useSessionCalculations';
 import { getCategoryName } from '@/utils/categoryName';
 import { isAdminRole } from '@/lib/utils';
 import { toast } from 'sonner';
