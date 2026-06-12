@@ -3484,6 +3484,65 @@ export type Database = {
           },
         ]
       }
+      manager_treasury_resolutions: {
+        Row: {
+          amount: number
+          created_at: string
+          customer_credit_id: string | null
+          id: string
+          linked_debt_id: string | null
+          notes: string | null
+          party_id: string | null
+          party_label: string | null
+          party_type: string | null
+          resolution_type: string
+          resolved_at: string
+          resolved_by: string | null
+          status: string
+          treasury_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          customer_credit_id?: string | null
+          id?: string
+          linked_debt_id?: string | null
+          notes?: string | null
+          party_id?: string | null
+          party_label?: string | null
+          party_type?: string | null
+          resolution_type: string
+          resolved_at?: string
+          resolved_by?: string | null
+          status?: string
+          treasury_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          customer_credit_id?: string | null
+          id?: string
+          linked_debt_id?: string | null
+          notes?: string | null
+          party_id?: string | null
+          party_label?: string | null
+          party_type?: string | null
+          resolution_type?: string
+          resolved_at?: string
+          resolved_by?: string | null
+          status?: string
+          treasury_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manager_treasury_resolutions_treasury_id_fkey"
+            columns: ["treasury_id"]
+            isOneToOne: false
+            referencedRelation: "manager_treasury"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       manager_workers: {
         Row: {
           created_at: string | null
