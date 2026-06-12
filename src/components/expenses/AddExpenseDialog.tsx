@@ -341,6 +341,7 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
               type="number"
               min="0"
               step="0.01"
+              max={isPeerHandoverCategory && isJustificationAdvance ? (receiverAdvance?.remaining ?? undefined) : undefined}
               value={amount}
               onChange={e => setAmount(e.target.value)}
               placeholder="0.00"
