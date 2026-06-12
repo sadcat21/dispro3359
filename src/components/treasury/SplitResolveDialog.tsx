@@ -360,8 +360,11 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
             </div>
           )}
 
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:gap-2">
             <Button variant="outline" onClick={onClose}>إغلاق</Button>
+            <Button className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={onClose}>
+              حفظ
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
