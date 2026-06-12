@@ -66,12 +66,43 @@ const WorkerDebtsPage: React.FC = () => {
     setShowAdd(true);
   };
 
+  const [limitReachedOpen, setLimitReachedOpen] = useState(false);
+  const [limitInfo, setLimitInfo] = useState<{ workerName: string; limit: number; used: number }>({ workerName: '', limit: 0, used: 0 });
+
   const handleSaveDebt = async () => {
     if (!addWorkerId || !addAmount || Number(addAmount) <= 0) return;
+    const amountNum = Number(addAmount);
     try {
+      // Enforce monthly salary advance limit
+      if (addType === 'advance') {
+        const { data: worker } = await supabase
+          .from('workers')
+          .select('full_name, max_monthly_salary_advance')
+          .eq('id', addWorkerId)
+          .single();
+        const limit = (worker as any)?.max_monthly_salary_advance;
+        if (limit != null && Number(limit) > 0) {
+          const start = new Date();
+          start.setDate(1);
+          start.setHours(0, 0, 0, 0);
+          const { data: rows } = await supabase
+            .from('worker_debts')
+            .select('amount')
+            .eq('worker_id', addWorkerId)
+            .eq('debt_type', 'advance')
+            .gte('created_at', start.toISOString());
+          const used = (rows || []).reduce((s: number, r: any) => s + Number(r.amount || 0), 0);
+          if (used + amountNum > Number(limit)) {
+            setLimitInfo({ workerName: (worker as any)?.full_name || '', limit: Number(limit), used });
+            setLimitReachedOpen(true);
+            return;
+          }
+        }
+      }
+
       await createDebt.mutateAsync({
         worker_id: addWorkerId,
-        amount: Number(addAmount),
+        amount: amountNum,
         debt_type: addType,
         description: addDesc || undefined,
       });
@@ -371,6 +402,25 @@ const WorkerDebtsPage: React.FC = () => {
               {payMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin ml-1" /> : <CheckCheck className="w-4 h-4 ml-1" />}
               {t('worker_debts.confirm_pay_all')} ({Math.ceil(totalRemaining).toLocaleString()} DA)
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={limitReachedOpen} onOpenChange={setLimitReachedOpen}>
+        <DialogContent className="max-w-md" dir={dir}>
+          <DialogHeader>
+            <DialogTitle className="text-destructive">تم استنفاد سلفة الراتب</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 text-sm">
+            <p className="font-medium">
+              العامل <span className="text-primary">{limitInfo.workerName}</span> قد استنفد كامل حقه من سلفة الراتب لهذا الشهر.
+            </p>
+            <div className="bg-muted/50 rounded-lg p-3 space-y-1">
+              <div className="flex justify-between"><span className="text-muted-foreground">الحد الشهري:</span><span>{limitInfo.limit.toLocaleString('ar-DZ')} دج</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">المُستهلَك حتى الآن:</span><span>{limitInfo.used.toLocaleString('ar-DZ')} دج</span></div>
+            </div>
+            <p className="text-xs text-muted-foreground">لا يمكن إضافة سلفة جديدة قبل بداية الشهر القادم، أو رفع الحد الأقصى من إعدادات العامل.</p>
+            <Button className="w-full" onClick={() => setLimitReachedOpen(false)}>حسنًا</Button>
           </div>
         </DialogContent>
       </Dialog>

@@ -9707,6 +9707,7 @@ export type Database = {
           is_test: boolean
           last_device_id: string | null
           last_device_info: Json | null
+          max_monthly_salary_advance: number | null
           password_hash: string
           personal_phone: string | null
           print_name: string | null
@@ -9730,6 +9731,7 @@ export type Database = {
           is_test?: boolean
           last_device_id?: string | null
           last_device_info?: Json | null
+          max_monthly_salary_advance?: number | null
           password_hash: string
           personal_phone?: string | null
           print_name?: string | null
@@ -9753,6 +9755,7 @@ export type Database = {
           is_test?: boolean
           last_device_id?: string | null
           last_device_info?: Json | null
+          max_monthly_salary_advance?: number | null
           password_hash?: string
           personal_phone?: string | null
           print_name?: string | null

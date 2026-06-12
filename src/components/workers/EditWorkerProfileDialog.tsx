@@ -30,6 +30,7 @@ const EditWorkerProfileDialog: React.FC<Props> = ({ open, onOpenChange, workerId
   const [deviceId, setDeviceId] = useState('');
   const [deviceInfo, setDeviceInfo] = useState<any>(null);
   const [deviceLocked, setDeviceLocked] = useState(false);
+  const [maxMonthlyAdvance, setMaxMonthlyAdvance] = useState('');
   useEffect(() => {
     if (open && workerId) {
       loadWorkerData();
@@ -40,7 +41,7 @@ const EditWorkerProfileDialog: React.FC<Props> = ({ open, onOpenChange, workerId
     if (!workerId) return;
     const { data } = await supabase
       .from('workers')
-      .select('username, full_name, full_name_fr, print_name, work_phone, personal_phone, last_device_id, last_device_info, device_locked')
+      .select('username, full_name, full_name_fr, print_name, work_phone, personal_phone, last_device_id, last_device_info, device_locked, max_monthly_salary_advance')
       .eq('id', workerId)
       .single();
     if (data) {
@@ -53,6 +54,7 @@ const EditWorkerProfileDialog: React.FC<Props> = ({ open, onOpenChange, workerId
       setDeviceId((data as any).last_device_id || '');
       setDeviceInfo((data as any).last_device_info || null);
       setDeviceLocked((data as any).device_locked || false);
+      setMaxMonthlyAdvance((data as any).max_monthly_salary_advance != null ? String((data as any).max_monthly_salary_advance) : '');
     }
   };
 
@@ -88,6 +90,7 @@ const EditWorkerProfileDialog: React.FC<Props> = ({ open, onOpenChange, workerId
         work_phone: workPhone || null,
         personal_phone: personalPhone || null,
         device_locked: deviceLocked,
+        max_monthly_salary_advance: maxMonthlyAdvance.trim() === '' ? null : Number(maxMonthlyAdvance),
       };
 
       if (newPassword.trim()) {
@@ -176,6 +179,20 @@ const EditWorkerProfileDialog: React.FC<Props> = ({ open, onOpenChange, workerId
               <Label>هاتف شخصي</Label>
               <Input value={personalPhone} onChange={e => setPersonalPhone(e.target.value)} placeholder="0555..." dir="ltr" />
             </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>الحد الأقصى لسلفة الراتب الشهرية (دج)</Label>
+            <Input
+              type="number"
+              min="0"
+              step="100"
+              value={maxMonthlyAdvance}
+              onChange={e => setMaxMonthlyAdvance(e.target.value)}
+              placeholder="اتركه فارغًا لعدم وضع حد"
+              dir="ltr"
+            />
+            <p className="text-[10px] text-muted-foreground">عند بلوغ هذا الحد خلال الشهر، لن يُسمح بإضافة سلفة جديدة</p>
           </div>
 
           {/* قسم بيانات الجهاز */}
