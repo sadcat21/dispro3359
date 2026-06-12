@@ -383,6 +383,38 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
           toast.error('تعذر تسجيل دين العامل: ' + (err?.message || ''));
         }
       }
+
+      // Peer cash handover — mirror entry for the receiver.
+      // Stored as a NEGATIVE expense so it behaves like a cash inflow in
+      // useSessionCalculations (cashExpenses is subtracted from physicalCash,
+      // a negative entry therefore adds back, mimicking a customer surplus).
+      // The expense list (ExpensesDetailsSummary) detects the sign and renders
+      // it as a positive value, highlighting the sender + justification.
+      if (isPeerHandoverCategory && advanceWorkerId) {
+        try {
+          const { data: rw } = await supabase
+            .from('workers')
+            .select('branch_id')
+            .eq('id', advanceWorkerId)
+            .maybeSingle();
+          const senderName = (user as any)?.full_name || '';
+          const mirrorDescription = `استلام نقدي من زميل: ${senderName}${justificationLabel ? ` — مبرر: ${justificationLabel}` : ''} — قيمة: ${parseFloat(amount).toFixed(2)} DA${description ? ` — ${description}` : ''}`;
+          await supabase.from('expenses').insert({
+            worker_id: advanceWorkerId,
+            branch_id: (rw as any)?.branch_id || effectiveBranchId,
+            category_id: categoryId,
+            amount: -parseFloat(amount),
+            description: mirrorDescription,
+            expense_date: expenseDate,
+            payment_method: 'cash',
+            status: 'approved',
+            reviewed_by: submitterWorkerId,
+            reviewed_at: new Date().toISOString(),
+          });
+        } catch (err: any) {
+          toast.error('تعذر تسجيل القيد المقابل للزميل: ' + (err?.message || ''));
+        }
+      }
     }
 
 
