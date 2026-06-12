@@ -232,8 +232,13 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
     };
   }, [open, isPeerHandoverCategory, submitterWorkerId, effectiveBranchId, submitterLastSessionEnd]);
   const { data: submitterCalc } = useSessionCalculations(submitterCalcParams);
+  // Admins and accountants have direct access to the treasury, so the
+  // "available cash" ceiling does not apply to them.
+  const isCashExempt = isAdminRole(role)
+    || role === 'accountant'
+    || activeRole?.custom_role_code === 'accountant';
   const availableCash = Math.max(0, Number(submitterCalc?.physicalCash || 0));
-  const exceedsAvailableCash = isPeerHandoverCategory && !!submitterCalc && amountNum > availableCash;
+  const exceedsAvailableCash = isPeerHandoverCategory && !isCashExempt && !!submitterCalc && amountNum > availableCash;
 
   const advanceTierClass = !receiverAdvance || receiverAdvance.limit <= 0
     ? 'bg-card border-border text-foreground'
