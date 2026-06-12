@@ -375,11 +375,16 @@ const SurplusDeficitTreasury: React.FC = () => {
 
   return (
     <div className="p-4 space-y-4" dir={dir}>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <h2 className="text-xl font-bold">{t('surplus.title')}</h2>
-        <Button variant="outline" size="sm" onClick={() => setShowSettings(true)} className="gap-1.5">
-          <SettingsIcon className="w-4 h-4" /> إعدادات التسامح
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => navigate('/admin/investigations')} className="gap-1.5">
+            <Search className="w-4 h-4" /> قضايا التحقيق
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setShowSettings(true)} className="gap-1.5">
+            <SettingsIcon className="w-4 h-4" /> إعدادات التسامح
+          </Button>
+        </div>
       </div>
 
       {/* Summary */}
