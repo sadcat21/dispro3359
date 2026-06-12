@@ -69,21 +69,21 @@ const InvestigationCase: React.FC = () => {
 
       <Card className="p-4 space-y-2">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-mono text-muted-foreground">قضية #{c.case_number}</span>
+          <span className="text-xs font-mono text-muted-foreground">ملف #{c.case_number}</span>
         </div>
         <h2 className="text-lg font-bold">{c.title}</h2>
         {c.summary && <p className="text-sm text-muted-foreground whitespace-pre-wrap">{c.summary}</p>}
 
         <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t mt-2">
           <div><span className="text-muted-foreground">فُتحت:</span> {format(new Date(c.opened_at), 'dd/MM/yyyy HH:mm')}</div>
-          {c.deadline && <div><span className="text-muted-foreground">المهلة:</span> {format(new Date(c.deadline), 'dd/MM/yyyy')}</div>}
+          {c.deadline && <div><span className="text-muted-foreground">تاريخ المتابعة:</span> {format(new Date(c.deadline), 'dd/MM/yyyy')}</div>}
           {c.closed_at && <div><span className="text-muted-foreground">أُغلقت:</span> {format(new Date(c.closed_at), 'dd/MM/yyyy HH:mm')}</div>}
           {c.decision && <div><span className="text-muted-foreground">القرار:</span> {DECISION_META[c.decision].ar}</div>}
         </div>
 
         {data.parties.length > 0 && (
           <div className="pt-2 border-t mt-2">
-            <Label className="text-xs">الأطراف المشتبه بهم</Label>
+            <Label className="text-xs">الأطراف المعنية</Label>
             <div className="flex flex-wrap gap-1.5 mt-1">
               {data.parties.map((p) => (
                 <Badge key={p.id} variant="outline" className="text-[11px]">
@@ -125,7 +125,7 @@ const InvestigationCase: React.FC = () => {
             {data.evidence.map((e) => (
               <Card key={e.id} className="p-2">
                 <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                  <span>{e.kind === 'system' ? 'النظام' : 'محقّق'}</span>
+                  <span>{e.kind === 'system' ? 'النظام' : 'المسؤول'}</span>
                   <span>{format(new Date(e.created_at), 'dd/MM HH:mm')}</span>
                 </div>
                 <p className="text-sm mt-1 whitespace-pre-wrap">{e.body}</p>
@@ -152,17 +152,17 @@ const InvestigationCase: React.FC = () => {
 
       {canClose && (
         <Button className="w-full gap-2" onClick={() => setCloseOpen(true)}>
-          <ShieldCheck className="w-4 h-4" /> إغلاق القضية وتطبيق القرار
+          <ShieldCheck className="w-4 h-4" /> إغلاق الملف وتطبيق القرار
         </Button>
       )}
       {isOpener && c.status !== 'concluded' && (
-        <p className="text-[11px] text-amber-700 text-center">لا يمكنك إغلاق قضية فتحتها بنفسك — يجب أن يُغلقها مديرٌ آخر</p>
+        <p className="text-[11px] text-amber-700 text-center">لا يمكنك إغلاق ملف فتحته بنفسك — يجب أن يُغلقه مديرٌ آخر</p>
       )}
 
       <Dialog open={closeOpen} onOpenChange={setCloseOpen}>
         <DialogContent dir="rtl">
           <DialogHeader>
-            <DialogTitle>إغلاق القضية</DialogTitle>
+            <DialogTitle>إغلاق الملف</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-2">
