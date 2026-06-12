@@ -228,7 +228,7 @@ const ApproveDialog: React.FC<{ entry: any | null; onClose: () => void }> = ({ e
             disabled={approve.isPending}
             className="bg-emerald-600 hover:bg-emerald-700"
             onClick={async () => {
-              await approve.mutateAsync({ id: entry.id, decision, notes: notes || undefined });
+              await approve.mutateAsync({ id: entry.id, decision: decision as any, notes: notes || undefined });
               onClose();
             }}
           >
