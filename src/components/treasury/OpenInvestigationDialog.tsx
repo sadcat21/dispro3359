@@ -140,7 +140,7 @@ const OpenInvestigationDialog: React.FC<Props> = ({ open, onClose, treasury }) =
   // Reset form when opening
   useEffect(() => {
     if (!open) return;
-    setTitle(treasury ? `تحقيق في ${treasury.source_type === 'accounting_deficit' ? 'عجز' : 'فائض'} بمبلغ ${treasury.amount} DA` : '');
+    setTitle(treasury ? `متابعة ${treasury.source_type === 'accounting_deficit' ? 'عجز' : 'فائض'} بمبلغ ${treasury.amount} DA` : '');
     setSummary(treasury?.notes ?? '');
     setSeverity('medium');
     setInvestigatorId('');
@@ -237,7 +237,7 @@ const OpenInvestigationDialog: React.FC<Props> = ({ open, onClose, treasury }) =
       <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
         <DialogContent dir="rtl" className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>فتح قضية تحقيق</DialogTitle>
+            <DialogTitle>فتح ملف متابعة</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4">
@@ -267,13 +267,13 @@ const OpenInvestigationDialog: React.FC<Props> = ({ open, onClose, treasury }) =
             </div>
 
             <div className="space-y-1.5">
-              <Label>عنوان القضية</Label>
-              <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="مثال: عجز نقدي مشبوه في الجلسة #..." />
+              <Label>عنوان الملف</Label>
+              <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="مثال: متابعة فرق نقدي في جلسة #..." />
             </div>
 
             <div className="space-y-1.5">
-              <Label>الملخص الأولي</Label>
-              <Textarea value={summary} onChange={(e) => setSummary(e.target.value)} rows={3} placeholder="اشرح ما تعرفه حتى الآن..." />
+              <Label>ملخص الحالة</Label>
+              <Textarea value={summary} onChange={(e) => setSummary(e.target.value)} rows={3} placeholder="اكتب باختصار ما تعرفه حتى الآن..." />
             </div>
 
             <div className="space-y-2">
@@ -358,7 +358,7 @@ const OpenInvestigationDialog: React.FC<Props> = ({ open, onClose, treasury }) =
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>المحقّق المُكلَّف</Label>
+                <Label>المسؤول عن المتابعة</Label>
                 <select
                   value={investigatorId}
                   onChange={(e) => setInvestigatorId(e.target.value)}
@@ -373,7 +373,7 @@ const OpenInvestigationDialog: React.FC<Props> = ({ open, onClose, treasury }) =
                 </select>
               </div>
               <div className="space-y-1.5">
-                <Label>المهلة النهائية</Label>
+                <Label>تاريخ المتابعة</Label>
                 <Input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
               </div>
             </div>
@@ -401,7 +401,7 @@ const OpenInvestigationDialog: React.FC<Props> = ({ open, onClose, treasury }) =
                 navigate(`/admin/investigations/${caseId}`);
               }}
             >
-              فتح القضية
+              بدء المتابعة
             </Button>
           </DialogFooter>
         </DialogContent>
