@@ -33,7 +33,8 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
 
   const createWorkerDebt = useCreateWorkerDebt();
   const { language, t, dir } = useLanguage();
-  const { role, activeRole, activeBranch } = useAuth();
+  const { role, activeRole, activeBranch, user } = useAuth();
+  const effectiveBranchId = activeBranch?.id || activeRole?.branch_id || (user as any)?.branch_id || null;
 
   // Filter categories based on user's active role
   const filteredCategories = useMemo(() => {
