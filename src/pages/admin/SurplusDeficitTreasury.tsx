@@ -186,16 +186,9 @@ const ApproveDialog: React.FC<{ entry: any | null; onClose: () => void }> = ({ e
           <p className="text-xs text-muted-foreground">
             بصفتك مديرًا، يمكنك اعتماد القرار النهائي على هذا القيد. لا يمكن اعتماد قيد أنشأته بنفسك.
           </p>
-          <div>
+          <div className="space-y-2">
             <Label>القرار</Label>
-            <Select value={decision} onValueChange={(v: any) => setDecision(v)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="manager_approved_writeoff">شطب باعتماد المدير</SelectItem>
-                <SelectItem value="worker_debt">تحويل لدين العامل</SelectItem>
-                <SelectItem value="investigation">إحالة للتحقيق</SelectItem>
-              </SelectContent>
-            </Select>
+            <ResolutionButtons value={decision} onChange={setDecision} />
           </div>
           <div>
             <Label>مبرر الاعتماد</Label>
