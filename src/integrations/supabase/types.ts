@@ -3384,6 +3384,7 @@ export type Database = {
           payment_method: string
           receipt_number: string | null
           resolution_notes: string | null
+          resolution_splits: Json
           resolution_type: string | null
           resolved_at: string | null
           resolved_by: string | null
@@ -3411,6 +3412,7 @@ export type Database = {
           payment_method: string
           receipt_number?: string | null
           resolution_notes?: string | null
+          resolution_splits?: Json
           resolution_type?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
@@ -3438,6 +3440,7 @@ export type Database = {
           payment_method?: string
           receipt_number?: string | null
           resolution_notes?: string | null
+          resolution_splits?: Json
           resolution_type?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
@@ -3480,65 +3483,6 @@ export type Database = {
             columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "accounting_sessions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      manager_treasury_resolutions: {
-        Row: {
-          amount: number
-          created_at: string
-          customer_credit_id: string | null
-          id: string
-          linked_debt_id: string | null
-          notes: string | null
-          party_id: string | null
-          party_label: string | null
-          party_type: string | null
-          resolution_type: string
-          resolved_at: string
-          resolved_by: string | null
-          status: string
-          treasury_id: string
-        }
-        Insert: {
-          amount: number
-          created_at?: string
-          customer_credit_id?: string | null
-          id?: string
-          linked_debt_id?: string | null
-          notes?: string | null
-          party_id?: string | null
-          party_label?: string | null
-          party_type?: string | null
-          resolution_type: string
-          resolved_at?: string
-          resolved_by?: string | null
-          status?: string
-          treasury_id: string
-        }
-        Update: {
-          amount?: number
-          created_at?: string
-          customer_credit_id?: string | null
-          id?: string
-          linked_debt_id?: string | null
-          notes?: string | null
-          party_id?: string | null
-          party_label?: string | null
-          party_type?: string | null
-          resolution_type?: string
-          resolved_at?: string
-          resolved_by?: string | null
-          status?: string
-          treasury_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "manager_treasury_resolutions_treasury_id_fkey"
-            columns: ["treasury_id"]
-            isOneToOne: false
-            referencedRelation: "manager_treasury"
             referencedColumns: ["id"]
           },
         ]
@@ -10269,6 +10213,7 @@ export type Database = {
           payment_method: string
           receipt_number: string | null
           resolution_notes: string | null
+          resolution_splits: Json
           resolution_type: string | null
           resolved_at: string | null
           resolved_by: string | null

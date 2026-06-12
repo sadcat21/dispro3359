@@ -33,20 +33,27 @@ export interface TreasuryResolutionRow {
   created_at: string;
 }
 
+const fetchSplits = async (treasuryId: string): Promise<TreasuryResolutionRow[]> => {
+  const { data, error } = await supabase
+    .from('manager_treasury')
+    .select('id, resolution_splits')
+    .eq('id', treasuryId)
+    .maybeSingle();
+  if (error) throw error;
+  const arr = ((data as any)?.resolution_splits ?? []) as any[];
+  return arr.map((r) => ({ ...r, treasury_id: treasuryId })) as TreasuryResolutionRow[];
+};
+
 export const useTreasuryResolutions = (treasuryId: string | null | undefined) =>
   useQuery({
     enabled: !!treasuryId,
     queryKey: ['treasury-resolutions', treasuryId],
-    queryFn: async (): Promise<TreasuryResolutionRow[]> => {
-      const { data, error } = await supabase
-        .from('manager_treasury_resolutions' as any)
-        .select('*')
-        .eq('treasury_id', treasuryId!)
-        .order('created_at', { ascending: true });
-      if (error) throw error;
-      return (data as any) || [];
-    },
+    queryFn: () => fetchSplits(treasuryId!),
   });
+
+const genId = () =>
+  (globalThis.crypto as any)?.randomUUID?.() ??
+  `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 export const useAddTreasuryResolution = () => {
   const qc = useQueryClient();
@@ -69,17 +76,29 @@ export const useAddTreasuryResolution = () => {
           : row.resolution_type === 'carry_forward'
           ? 'open'
           : 'settled');
-      const { error } = await supabase.from('manager_treasury_resolutions' as any).insert({
-        treasury_id: row.treasury_id,
-        resolution_type: row.resolution_type,
-        amount: row.amount,
-        party_type: row.party_type ?? null,
-        party_id: row.party_id ?? null,
-        party_label: row.party_label ?? null,
-        notes: row.notes ?? null,
-        resolved_by: row.resolved_by ?? null,
-        status,
-      });
+      const current = await fetchSplits(row.treasury_id);
+      const next = [
+        ...current,
+        {
+          id: genId(),
+          resolution_type: row.resolution_type,
+          amount: Number(row.amount),
+          party_type: row.party_type ?? null,
+          party_id: row.party_id ?? null,
+          party_label: row.party_label ?? null,
+          linked_debt_id: null,
+          customer_credit_id: null,
+          status,
+          notes: row.notes ?? null,
+          resolved_by: row.resolved_by ?? null,
+          resolved_at: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+        },
+      ];
+      const { error } = await supabase
+        .from('manager_treasury')
+        .update({ resolution_splits: next as any })
+        .eq('id', row.treasury_id);
       if (error) throw error;
     },
     onSuccess: (_d, vars) => {
@@ -96,10 +115,12 @@ export const useDeleteTreasuryResolution = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (params: { id: string; treasury_id: string }) => {
+      const current = await fetchSplits(params.treasury_id);
+      const next = current.filter((r) => r.id !== params.id);
       const { error } = await supabase
-        .from('manager_treasury_resolutions' as any)
-        .delete()
-        .eq('id', params.id);
+        .from('manager_treasury')
+        .update({ resolution_splits: next as any })
+        .eq('id', params.treasury_id);
       if (error) throw error;
     },
     onSuccess: (_d, vars) => {
