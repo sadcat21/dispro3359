@@ -420,6 +420,73 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
         </DialogContent>
       </Dialog>
 
+      <Dialog open={peerPickerOpen} onOpenChange={setPeerPickerOpen}>
+        <DialogContent dir="rtl" className="max-w-md max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>تسليم نقدية لزميل</DialogTitle>
+          </DialogHeader>
+
+          <div className="rounded-lg border bg-muted/40 p-3 mb-3 space-y-1">
+            <div className="text-xs text-muted-foreground">رصيدك النقدي المتاح للتسليم</div>
+            <div className={cn('text-xl font-bold', senderBalance > 0 ? 'text-emerald-700' : 'text-destructive')}>
+              {fmt(senderBalance)} DA
+            </div>
+            {senderBalance <= 0 && (
+              <p className="text-[11px] text-destructive flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" /> لا يمكن التسليم: رصيدك صفر.
+              </p>
+            )}
+            {senderBalance > 0 && (
+              <p className="text-[11px] text-muted-foreground">
+                لا يمكن تسليم مبلغ أكبر من رصيدك. المبلغ الحالي في النموذج: <b>{fmt(Number(draftAmount) || 0)} DA</b>
+              </p>
+            )}
+          </div>
+
+          {senderBalance <= 0 ? (
+            <div className="text-center text-sm text-muted-foreground py-6">
+              لا يمكن اختيار زميل بدون رصيد.
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              {(branchWorkersQ.data ?? [])
+                .filter((w) => w.id !== senderWorkerId)
+                .map((w) => {
+                  const selected = draftParty?.type === 'worker' && draftParty.id === w.id;
+                  return (
+                    <button
+                      key={w.id}
+                      type="button"
+                      onClick={() => {
+                        setDraftParty({ id: w.id, label: w.full_name, type: 'worker' });
+                        setPeerPickerOpen(false);
+                      }}
+                      className={cn(
+                        'rounded-lg border p-3 text-center text-xs font-medium transition-all flex flex-col items-center gap-1',
+                        selected
+                          ? 'border-primary bg-primary/5 ring-2 ring-primary/30'
+                          : 'border-border hover:border-primary/40 hover:bg-muted/40',
+                      )}
+                    >
+                      <UserRound className="w-5 h-5 text-primary" />
+                      <span className="line-clamp-2">{w.full_name}</span>
+                    </button>
+                  );
+                })}
+              {(branchWorkersQ.data ?? []).filter((w) => w.id !== senderWorkerId).length === 0 && (
+                <p className="col-span-2 text-center text-sm text-muted-foreground py-6">
+                  لا يوجد زملاء في نفس الفرع
+                </p>
+              )}
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => setPeerPickerOpen(false)}>إغلاق</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </>
   );
 };
