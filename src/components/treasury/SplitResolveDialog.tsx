@@ -134,6 +134,7 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
     return m;
   }, [peerHandoversQ.data]);
 
+  const availableOptions = OPTIONS.filter((o) => {
     if (o.surplusOnly && !isSurplus) return false;
     if (o.deficitOnly && isSurplus) return false;
     return true;
