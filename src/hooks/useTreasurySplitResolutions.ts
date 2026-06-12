@@ -70,6 +70,7 @@ export const useAddTreasuryResolution = () => {
       resolved_by?: string | null;
       status?: 'settled' | 'under_review' | 'open';
       sender_worker_id?: string | null;
+      branch_id?: string | null;
     }) => {
       const status =
         row.status ??
@@ -82,6 +83,26 @@ export const useAddTreasuryResolution = () => {
           : 'settled');
       const splitId = genId();
       const current = await fetchSplits(row.treasury_id);
+
+      // Create an actual worker_debt for "worker_debt" resolutions
+      let linkedDebtId: string | null = null;
+      if (row.resolution_type === 'worker_debt' && row.party_id && Number(row.amount) > 0) {
+        const { data: debtRow, error: debtErr } = await supabase
+          .from('worker_debts')
+          .insert({
+            worker_id: row.party_id,
+            amount: Number(row.amount),
+            debt_type: 'deficit',
+            description: row.notes || 'تحويل عجز خزينة لدين العامل',
+            branch_id: row.branch_id ?? null,
+            created_by: row.resolved_by ?? null,
+          })
+          .select('id')
+          .single();
+        if (debtErr) throw debtErr;
+        linkedDebtId = (debtRow as any)?.id ?? null;
+      }
+
       const next = [
         ...current,
         {
@@ -91,7 +112,7 @@ export const useAddTreasuryResolution = () => {
           party_type: row.party_type ?? null,
           party_id: row.party_id ?? null,
           party_label: row.party_label ?? null,
-          linked_debt_id: null,
+          linked_debt_id: linkedDebtId,
           customer_credit_id: null,
           status,
           notes: row.notes ?? null,
@@ -127,6 +148,7 @@ export const useAddTreasuryResolution = () => {
       qc.invalidateQueries({ queryKey: ['surplus-deficit-cash'] });
       qc.invalidateQueries({ queryKey: ['surplus-deficit-customer'] });
       qc.invalidateQueries({ queryKey: ['peer-cash-handovers'] });
+      qc.invalidateQueries({ queryKey: ['worker-debts'] });
       toast.success('تمت إضافة سطر التسوية');
     },
     onError: (e: any) => toast.error(e.message || 'فشل إضافة السطر'),
