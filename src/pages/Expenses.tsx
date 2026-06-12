@@ -61,7 +61,7 @@ const Expenses: React.FC = () => {
 
   const filtered = expenses?.filter(e => {
     if (!isManager && isAccounted(e.created_at)) return false;
-    return statusFilter === 'all' ? true : e.status === statusFilter;
+    return categoryFilter === 'all' ? true : e.category_id === categoryFilter;
   });
 
   return (
