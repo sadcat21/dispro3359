@@ -358,7 +358,7 @@ const OpenInvestigationDialog: React.FC<Props> = ({ open, onClose, treasury }) =
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>المحقّق المُكلَّف</Label>
+                <Label>المسؤول عن المتابعة</Label>
                 <select
                   value={investigatorId}
                   onChange={(e) => setInvestigatorId(e.target.value)}
