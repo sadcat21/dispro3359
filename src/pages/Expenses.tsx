@@ -317,18 +317,17 @@ const ExpenseCard: React.FC<{
           </div>
         )}
 
-        {/* Row 1: Date | Amount */}
-        <div className="mt-2 grid grid-cols-2 border-t border-border/50">
-          <div className="border-l border-border/50 px-3 py-1.5">
-            <p className="text-[9px] uppercase text-muted-foreground">{t('common.date') || 'التاريخ'}</p>
+        {/* Grid: 3 columns × 2 rows. Col1: Date/Category, Col2: Amount/Beneficiary, Col3: Edit/Delete */}
+        <div className="mt-2 grid grid-cols-[1fr_1fr_auto] border-t border-border/50">
+          {/* Row 1 */}
+          <div className="border-l border-border/50 px-3 py-2">
             <p className="text-xs font-semibold text-foreground" dir="ltr">
               {formatDate(expense.expense_date, 'dd/MM/yyyy', language as any)}
             </p>
           </div>
-          <div className="px-3 py-1.5">
-            <p className="text-[9px] uppercase text-muted-foreground">{t('common.amount') || 'المبلغ'}</p>
+          <div className="border-l border-border/50 px-3 py-2">
             <div className="flex items-baseline gap-1">
-              <span className="text-xl font-bold leading-none tracking-tight text-red-500">
+              <span className="text-lg font-bold leading-none tracking-tight text-red-500">
                 {formatNumber(Math.abs(amountNum), language as any)}
               </span>
               <span className="text-[10px] font-semibold uppercase text-red-500/80">
@@ -336,14 +335,23 @@ const ExpenseCard: React.FC<{
               </span>
             </div>
           </div>
-        </div>
+          {canModify && !hideDelete ? (
+            <button
+              onClick={onDelete}
+              aria-label={t('common.delete')}
+              className="row-span-1 flex items-center justify-center px-3 py-2 text-red-500 transition-colors hover:bg-red-500/5"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          ) : (
+            <div />
+          )}
 
-        {/* Row 2: Category | Beneficiary */}
-        <div className="grid grid-cols-2 border-t border-border/50">
-          <div className="flex items-center border-l border-border/50 px-3 py-1.5">
+          {/* Row 2 */}
+          <div className="flex items-center border-l border-t border-border/50 px-3 py-2">
             <p className="truncate text-xs font-bold text-foreground">{categoryName}</p>
           </div>
-          <div className="flex items-center px-3 py-1.5">
+          <div className="flex items-center border-l border-t border-border/50 px-3 py-2">
             {beneficiary ? (
               <p className="truncate text-xs font-bold text-foreground">{beneficiary}</p>
             ) : peerLabel ? (
@@ -352,49 +360,19 @@ const ExpenseCard: React.FC<{
               <p className="truncate text-xs text-muted-foreground">—</p>
             )}
           </div>
-        </div>
-
-
-        {/* Optional extras */}
-        {(expense.status === 'rejected' && expense.rejection_reason) || (isOwner && accounted) || (expense.description && !beneficiary && !peerLabel) ? (
-          <div className="space-y-1.5 border-t border-border/50 px-3 py-2">
-            {expense.description && !beneficiary && !peerLabel && (
-              <p className="text-[11px] text-foreground/80">{expense.description}</p>
-            )}
-            {expense.status === 'rejected' && expense.rejection_reason && (
-              <p className="rounded bg-destructive/10 p-1.5 text-[11px] text-destructive">
-                {t('expenses.rejection_reason')}: {expense.rejection_reason}
-              </p>
-            )}
-            {isOwner && accounted && (
-              <p className="text-[9px] text-muted-foreground">{t('expenses.locked_accounted')}</p>
-            )}
-          </div>
-        ) : null}
-
-        {/* Row 3: Delete | Edit */}
-        {canModify && (
-          <div className="grid grid-cols-2 border-t border-border">
-            {!hideDelete ? (
-              <button
-                onClick={onDelete}
-                className="flex items-center justify-center gap-1.5 border-l border-border py-2.5 text-xs font-bold text-red-500 transition-colors hover:bg-red-500/5"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                {t('common.delete')}
-              </button>
-            ) : (
-              <div className="border-l border-border" />
-            )}
+          {canModify ? (
             <button
               onClick={onEdit}
-              className="flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold text-foreground/80 transition-colors hover:bg-muted"
+              aria-label={t('common.edit')}
+              className="flex items-center justify-center border-t border-border/50 px-3 py-2 text-foreground/80 transition-colors hover:bg-muted"
             >
-              <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-              {t('common.edit')}
+              <Pencil className="h-4 w-4 text-muted-foreground" />
             </button>
-          </div>
-        )}
+          ) : (
+            <div className="border-t border-border/50" />
+          )}
+        </div>
+
       </Card>
 
       <ReceiptViewerDialog
