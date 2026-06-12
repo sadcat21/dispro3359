@@ -1,4 +1,6 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import OpenInvestigationDialog from '@/components/treasury/OpenInvestigationDialog';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -123,13 +125,15 @@ const ageBand = (createdAt: string): { label: string; days: number } => {
 const ResolveDialog: React.FC<{
   entry: any | null;
   onClose: () => void;
-}> = ({ entry, onClose }) => {
+  onRequestInvestigation: (entry: any) => void;
+}> = ({ entry, onClose, onRequestInvestigation }) => {
   const { workerId } = useAuth();
   const resolve = useResolveTreasuryEntry();
   const [resolution, setResolution] = useState<ResolutionKey>('manager_approved_writeoff');
   const [notes, setNotes] = useState('');
 
   if (!entry) return null;
+  const isInvestigation = resolution === 'investigation';
 
   return (
     <Dialog open={!!entry} onOpenChange={(o) => !o && onClose()}>
@@ -142,16 +146,27 @@ const ResolveDialog: React.FC<{
             <Label>القرار</Label>
             <ResolutionButtons value={resolution} onChange={setResolution} />
           </div>
-          <div>
-            <Label>المبرر / الملاحظات</Label>
-            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="اكتب سبب القرار..." />
-          </div>
+          {isInvestigation ? (
+            <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900">
+              ستُفتح <b>قضية تحقيق رسمية</b> بمحقّق مُكلَّف، مهلة، أدلة موثَّقة، وقرار ختامي يُطبَّق تلقائيًا على هذا القيد.
+            </div>
+          ) : (
+            <div>
+              <Label>المبرر / الملاحظات</Label>
+              <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="اكتب سبب القرار..." />
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>إلغاء</Button>
           <Button
             disabled={resolve.isPending}
             onClick={async () => {
+              if (isInvestigation) {
+                onClose();
+                onRequestInvestigation(entry);
+                return;
+              }
               await resolve.mutateAsync({
                 id: entry.id,
                 resolution_type: resolution,
@@ -161,13 +176,14 @@ const ResolveDialog: React.FC<{
               onClose();
             }}
           >
-            حفظ
+            {isInvestigation ? 'فتح قضية تحقيق' : 'حفظ'}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 };
+
 
 // ───────────── Approve dialog (admin four-eyes) ─────────────
 const ApproveDialog: React.FC<{ entry: any | null; onClose: () => void }> = ({ entry, onClose }) => {
@@ -282,7 +298,9 @@ const SurplusDeficitTreasury: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'open' | 'settled'>('open');
   const [resolveTarget, setResolveTarget] = useState<any | null>(null);
   const [approveTarget, setApproveTarget] = useState<any | null>(null);
+  const [investigationTarget, setInvestigationTarget] = useState<any | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const navigate = useNavigate();
 
   const { data: cashEntries = [] } = useQuery({
     queryKey: ['surplus-deficit-cash', activeBranch?.id],
@@ -357,11 +375,16 @@ const SurplusDeficitTreasury: React.FC = () => {
 
   return (
     <div className="p-4 space-y-4" dir={dir}>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <h2 className="text-xl font-bold">{t('surplus.title')}</h2>
-        <Button variant="outline" size="sm" onClick={() => setShowSettings(true)} className="gap-1.5">
-          <SettingsIcon className="w-4 h-4" /> إعدادات التسامح
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => navigate('/admin/investigations')} className="gap-1.5">
+            <Search className="w-4 h-4" /> قضايا التحقيق
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setShowSettings(true)} className="gap-1.5">
+            <SettingsIcon className="w-4 h-4" /> إعدادات التسامح
+          </Button>
+        </div>
       </div>
 
       {/* Summary */}
@@ -435,6 +458,15 @@ const SurplusDeficitTreasury: React.FC = () => {
                       <span className="text-[10px] text-muted-foreground">{format(new Date(entry.created_at), 'dd/MM/yyyy HH:mm')}</span>
                     </div>
                     {entry.notes && <p className="text-xs text-muted-foreground mt-1">{entry.notes}</p>}
+                    {entry.investigation_case_id && (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); navigate(`/admin/investigations/${entry.investigation_case_id}`); }}
+                        className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-full px-2 py-0.5 hover:bg-purple-100"
+                      >
+                        <Search className="w-3 h-3" /> قضية تحقيق مفتوحة — اعرض التفاصيل
+                      </button>
+                    )}
                     {entry.resolution_notes && <p className="text-[11px] text-blue-700 dark:text-blue-300 mt-1">قرار: {entry.resolution_notes}</p>}
                     {entry.due_date && canResolve && (
                       <p className="text-[10px] text-amber-700 mt-1">موعد الإغلاق: {format(new Date(entry.due_date), 'dd/MM/yyyy')}</p>
@@ -522,9 +554,18 @@ const SurplusDeficitTreasury: React.FC = () => {
         </TabsContent>
       </Tabs>
 
-      <ResolveDialog entry={resolveTarget} onClose={() => setResolveTarget(null)} />
+      <ResolveDialog
+        entry={resolveTarget}
+        onClose={() => setResolveTarget(null)}
+        onRequestInvestigation={(e) => setInvestigationTarget(e)}
+      />
       <ApproveDialog entry={approveTarget} onClose={() => setApproveTarget(null)} />
       <ToleranceDialog open={showSettings} onClose={() => setShowSettings(false)} branchId={activeBranch?.id} />
+      <OpenInvestigationDialog
+        open={!!investigationTarget}
+        onClose={() => setInvestigationTarget(null)}
+        treasury={investigationTarget}
+      />
     </div>
   );
 };

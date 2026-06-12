@@ -2741,6 +2741,262 @@ export type Database = {
           },
         ]
       }
+      investigation_case_audit: {
+        Row: {
+          action: string
+          actor_id: string | null
+          case_id: string
+          created_at: string
+          id: string
+          payload: Json | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          case_id: string
+          created_at?: string
+          id?: string
+          payload?: Json | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          case_id?: string
+          created_at?: string
+          id?: string
+          payload?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investigation_case_audit_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investigation_case_audit_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investigation_case_audit_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "investigation_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      investigation_case_evidence: {
+        Row: {
+          author_id: string | null
+          body: string | null
+          case_id: string
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["investigation_evidence_kind"]
+          storage_path: string | null
+        }
+        Insert: {
+          author_id?: string | null
+          body?: string | null
+          case_id: string
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["investigation_evidence_kind"]
+          storage_path?: string | null
+        }
+        Update: {
+          author_id?: string | null
+          body?: string | null
+          case_id?: string
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["investigation_evidence_kind"]
+          storage_path?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investigation_case_evidence_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investigation_case_evidence_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investigation_case_evidence_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "investigation_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      investigation_case_parties: {
+        Row: {
+          case_id: string
+          created_at: string
+          id: string
+          label: string | null
+          party_type: Database["public"]["Enums"]["investigation_party_type"]
+          party_user_id: string | null
+        }
+        Insert: {
+          case_id: string
+          created_at?: string
+          id?: string
+          label?: string | null
+          party_type: Database["public"]["Enums"]["investigation_party_type"]
+          party_user_id?: string | null
+        }
+        Update: {
+          case_id?: string
+          created_at?: string
+          id?: string
+          label?: string | null
+          party_type?: Database["public"]["Enums"]["investigation_party_type"]
+          party_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investigation_case_parties_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "investigation_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      investigation_cases: {
+        Row: {
+          branch_id: string | null
+          case_number: number
+          closed_at: string | null
+          closed_by: string | null
+          created_at: string
+          deadline: string | null
+          decision: Database["public"]["Enums"]["investigation_decision"] | null
+          decision_notes: string | null
+          id: string
+          investigator_id: string | null
+          opened_at: string
+          opened_by: string | null
+          severity: Database["public"]["Enums"]["investigation_severity"]
+          started_at: string | null
+          status: Database["public"]["Enums"]["investigation_status"]
+          summary: string | null
+          title: string
+          treasury_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          branch_id?: string | null
+          case_number?: never
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          deadline?: string | null
+          decision?:
+            | Database["public"]["Enums"]["investigation_decision"]
+            | null
+          decision_notes?: string | null
+          id?: string
+          investigator_id?: string | null
+          opened_at?: string
+          opened_by?: string | null
+          severity?: Database["public"]["Enums"]["investigation_severity"]
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["investigation_status"]
+          summary?: string | null
+          title: string
+          treasury_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          branch_id?: string | null
+          case_number?: never
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          deadline?: string | null
+          decision?:
+            | Database["public"]["Enums"]["investigation_decision"]
+            | null
+          decision_notes?: string | null
+          id?: string
+          investigator_id?: string | null
+          opened_at?: string
+          opened_by?: string | null
+          severity?: Database["public"]["Enums"]["investigation_severity"]
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["investigation_status"]
+          summary?: string | null
+          title?: string
+          treasury_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investigation_cases_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investigation_cases_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investigation_cases_investigator_id_fkey"
+            columns: ["investigator_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investigation_cases_investigator_id_fkey"
+            columns: ["investigator_id"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investigation_cases_opened_by_fkey"
+            columns: ["opened_by"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investigation_cases_opened_by_fkey"
+            columns: ["opened_by"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investigation_cases_treasury_id_fkey"
+            columns: ["treasury_id"]
+            isOneToOne: false
+            referencedRelation: "manager_treasury"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       loading_session_items: {
         Row: {
           created_at: string
@@ -3119,6 +3375,7 @@ export type Database = {
           customer_name: string | null
           due_date: string | null
           id: string
+          investigation_case_id: string | null
           invoice_date: string | null
           invoice_number: string | null
           linked_debt_id: string | null
@@ -3145,6 +3402,7 @@ export type Database = {
           customer_name?: string | null
           due_date?: string | null
           id?: string
+          investigation_case_id?: string | null
           invoice_date?: string | null
           invoice_number?: string | null
           linked_debt_id?: string | null
@@ -3171,6 +3429,7 @@ export type Database = {
           customer_name?: string | null
           due_date?: string | null
           id?: string
+          investigation_case_id?: string | null
           invoice_date?: string | null
           invoice_number?: string | null
           linked_debt_id?: string | null
@@ -3193,6 +3452,13 @@ export type Database = {
             columns: ["branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manager_treasury_investigation_case_id_fkey"
+            columns: ["investigation_case_id"]
+            isOneToOne: false
+            referencedRelation: "investigation_cases"
             referencedColumns: ["id"]
           },
           {
@@ -9900,6 +10166,15 @@ export type Database = {
     }
     Functions: {
       "55555555520262026": { Args: never; Returns: string }
+      add_case_evidence: {
+        Args: {
+          p_body: string
+          p_case_id: string
+          p_kind: Database["public"]["Enums"]["investigation_evidence_kind"]
+          p_storage_path?: string
+        }
+        Returns: string
+      }
       apply_manager_decision_drafts:
         | { Args: { p_worker_id: string }; Returns: number }
         | {
@@ -9926,6 +10201,7 @@ export type Database = {
           customer_name: string | null
           due_date: string | null
           id: string
+          investigation_case_id: string | null
           invoice_date: string | null
           invoice_number: string | null
           linked_debt_id: string | null
@@ -10009,6 +10285,14 @@ export type Database = {
         Returns: boolean
       }
       can_manage_targets: { Args: { _user_id: string }; Returns: boolean }
+      close_investigation_case: {
+        Args: {
+          p_case_id: string
+          p_decision: Database["public"]["Enums"]["investigation_decision"]
+          p_notes: string
+        }
+        Returns: undefined
+      }
       confirm_loading_session_atomic: {
         Args: { p_session_id: string }
         Returns: Json
@@ -10176,6 +10460,18 @@ export type Database = {
       merge_customers: {
         Args: { drop_ids: string[]; keep_id: string }
         Returns: Json
+      }
+      open_investigation_case: {
+        Args: {
+          p_deadline: string
+          p_investigator_id: string
+          p_parties?: Json
+          p_severity: Database["public"]["Enums"]["investigation_severity"]
+          p_summary: string
+          p_title: string
+          p_treasury_id: string
+        }
+        Returns: string
       }
       preview_recalibrate_worker_stock: {
         Args: { p_worker_id: string }
@@ -10523,6 +10819,21 @@ export type Database = {
         | "internal_supervisor"
         | "external_supervisor"
       document_stage: "pending" | "received" | "ready" | "handed" | "cancelled"
+      investigation_decision:
+        | "manager_approved_writeoff"
+        | "worker_debt"
+        | "customer_repayment"
+        | "fraud_confirmed"
+        | "inconclusive_writeoff"
+      investigation_evidence_kind: "note" | "file" | "system"
+      investigation_party_type:
+        | "worker"
+        | "driver"
+        | "cashier"
+        | "customer"
+        | "external"
+      investigation_severity: "low" | "medium" | "high" | "critical"
+      investigation_status: "open" | "in_progress" | "concluded" | "cancelled"
       invoice_stage: "unsealed" | "sealed" | "ready" | "delivered" | "cancelled"
       target_metric_type: "sales_amount" | "deliveries_count" | "cartons_sold"
       target_period_type: "daily" | "weekly" | "monthly"
@@ -10671,6 +10982,23 @@ export const Constants = {
         "external_supervisor",
       ],
       document_stage: ["pending", "received", "ready", "handed", "cancelled"],
+      investigation_decision: [
+        "manager_approved_writeoff",
+        "worker_debt",
+        "customer_repayment",
+        "fraud_confirmed",
+        "inconclusive_writeoff",
+      ],
+      investigation_evidence_kind: ["note", "file", "system"],
+      investigation_party_type: [
+        "worker",
+        "driver",
+        "cashier",
+        "customer",
+        "external",
+      ],
+      investigation_severity: ["low", "medium", "high", "critical"],
+      investigation_status: ["open", "in_progress", "concluded", "cancelled"],
       invoice_stage: ["unsealed", "sealed", "ready", "delivered", "cancelled"],
       target_metric_type: ["sales_amount", "deliveries_count", "cartons_sold"],
       target_period_type: ["daily", "weekly", "monthly"],
