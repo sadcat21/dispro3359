@@ -107,11 +107,19 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
     setReceiptFiles([]);
     setPaymentMethod('cash');
     setAdvanceWorkerId('');
+    setJustification('');
   };
 
   useEffect(() => {
     if (!needsWorkerPick) setAdvanceWorkerId('');
   }, [needsWorkerPick]);
+
+  // Auto-open the colleague picker as soon as the peer-handover category is chosen
+  useEffect(() => {
+    if (open && isPeerHandoverCategory && !advanceWorkerId) {
+      setWorkerPickerOpen(true);
+    }
+  }, [open, isPeerHandoverCategory, advanceWorkerId]);
 
   useEffect(() => {
     if (open && expense) {
