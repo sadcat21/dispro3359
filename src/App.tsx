@@ -604,6 +604,18 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
 
+      <Route path="/admin/investigations" element={
+        <ProtectedRoute allowedRoles={['admin', 'branch_admin', 'supervisor']}>
+          <Investigations />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/admin/investigations/:id" element={
+        <ProtectedRoute allowedRoles={['admin', 'branch_admin', 'supervisor']}>
+          <InvestigationCase />
+        </ProtectedRoute>
+      } />
+
       <Route path="/rewards" element={
         <ProtectedRoute allowedRoles={['admin', 'branch_admin']}>
           <Rewards />
