@@ -77,10 +77,33 @@ const calcBoxPrice = (p: any): number => {
 };
 
 const ProductStockSummary: React.FC<ProductStockSummaryProps> = ({
-  workerId, branchId, periodStart, periodEnd, viewByProduct, promoTracking,
+  workerId, branchId, periodStart, periodEnd, viewByProduct, promoTracking, sessionId, useSnapshot,
 }) => {
   const { t } = useLanguage();
   const [showEmptyTruck, setShowEmptyTruck] = useState(false);
+
+  // When a session is saved, the truck-balance section is rendered from a
+  // frozen snapshot persisted at save time. The branch-manager review must
+  // never reflect later changes to the worker's live truck.
+  const { data: snapshotRows } = useQuery({
+    queryKey: ['truck-snapshot', sessionId],
+    enabled: !!useSnapshot && !!sessionId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('accounting_session_truck_snapshots')
+        .select('product_name, loaded, unloaded, sold, system_qty, actual_qty, diff')
+        .eq('session_id', sessionId!);
+      return (data || []) as Array<{
+        product_name: string;
+        loaded: number;
+        unloaded: number;
+        sold: number;
+        system_qty: number;
+        actual_qty: number | null;
+        diff: number | null;
+      }>;
+    },
+  });
 
   // Helper to convert period values to proper timestamptz
   const toTz = (v: string, isEnd: boolean) => {
