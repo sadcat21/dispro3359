@@ -83,7 +83,7 @@ const InvestigationCase: React.FC = () => {
 
         {data.parties.length > 0 && (
           <div className="pt-2 border-t mt-2">
-            <Label className="text-xs">الأطراف المشتبه بهم</Label>
+            <Label className="text-xs">الأطراف المعنية</Label>
             <div className="flex flex-wrap gap-1.5 mt-1">
               {data.parties.map((p) => (
                 <Badge key={p.id} variant="outline" className="text-[11px]">
