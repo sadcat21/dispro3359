@@ -343,6 +343,55 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
         }}
         hideStatusBadge
       />
+
+      <Dialog open={typePickerOpen} onOpenChange={setTypePickerOpen}>
+        <DialogContent dir="rtl" className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>اختر نوع التسوية</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-2">
+            {availableOptions.map((o) => {
+              const selected = draftType === o.key;
+              return (
+                <button
+                  key={o.key}
+                  type="button"
+                  onClick={() => {
+                    setDraftType(o.key);
+                    setDraftParty(null);
+                    setTypePickerOpen(false);
+                  }}
+                  className={cn(
+                    'rounded-lg border p-3 text-right text-xs font-medium transition-all',
+                    selected
+                      ? 'border-primary bg-primary/5 ring-2 ring-primary/30'
+                      : 'border-border hover:border-primary/40 hover:bg-muted/40',
+                  )}
+                >
+                  {o.label}
+                </button>
+              );
+            })}
+            <button
+              type="button"
+              onClick={() => {
+                setDraftType('investigation' as SplitResolutionType);
+                setDraftParty(null);
+                setTypePickerOpen(false);
+              }}
+              className={cn(
+                'rounded-lg border p-3 text-right text-xs font-medium transition-all col-span-2 flex items-center justify-center gap-1.5',
+                draftType === 'investigation'
+                  ? 'border-amber-500 bg-amber-50 text-amber-800 ring-2 ring-amber-200'
+                  : 'border-border hover:border-amber-300 hover:bg-amber-50/50',
+              )}
+            >
+              <SearchIcon className="w-3.5 h-3.5" /> فتح ملف متابعة
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
     </>
   );
 };
