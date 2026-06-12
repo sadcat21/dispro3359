@@ -396,9 +396,9 @@ const ExpenseCard: React.FC<{
           <div className="flex border-t border-border">
             <button
               onClick={onEdit}
-              className="flex flex-1 items-center justify-center gap-2 py-3.5 text-sm font-bold text-foreground/80 transition-colors hover:bg-muted"
+              className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-bold text-foreground/80 transition-colors hover:bg-muted"
             >
-              <Pencil className="h-4 w-4 text-muted-foreground" />
+              <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
               {t('common.edit')}
             </button>
             {!hideDelete && (
@@ -406,9 +406,9 @@ const ExpenseCard: React.FC<{
                 <div className="w-px bg-border" />
                 <button
                   onClick={onDelete}
-                  className="flex flex-1 items-center justify-center gap-2 py-3.5 text-sm font-bold text-red-500 transition-colors hover:bg-red-500/5"
+                  className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-bold text-red-500 transition-colors hover:bg-red-500/5"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-3.5 w-3.5" />
                   {t('common.delete')}
                 </button>
               </>
