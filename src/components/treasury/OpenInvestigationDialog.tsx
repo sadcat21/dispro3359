@@ -373,7 +373,7 @@ const OpenInvestigationDialog: React.FC<Props> = ({ open, onClose, treasury }) =
                 </select>
               </div>
               <div className="space-y-1.5">
-                <Label>المهلة النهائية</Label>
+                <Label>تاريخ المتابعة</Label>
                 <Input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
               </div>
             </div>
