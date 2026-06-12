@@ -4,7 +4,81 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { format, differenceInDays } from 'date-fns';
-import { ArrowUpCircle, ArrowDownCircle, Package, Banknote, TrendingUp, TrendingDown, Users, Settings as SettingsIcon, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { ArrowUpCircle, ArrowDownCircle, Package, Banknote, TrendingUp, TrendingDown, Users, Settings as SettingsIcon, CheckCircle2, ShieldCheck, Eraser, UserMinus, Search, HandCoins } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+type ResolutionKey = 'manager_approved_writeoff' | 'worker_debt' | 'investigation' | 'customer_repayment';
+
+const RESOLUTION_OPTIONS: {
+  key: ResolutionKey;
+  label: string;
+  hint: string;
+  icon: React.ComponentType<{ className?: string }>;
+  active: string;
+  idle: string;
+}[] = [
+  {
+    key: 'manager_approved_writeoff',
+    label: 'شطب باعتماد المدير',
+    hint: 'إعفاء نهائي — يُسجَّل كخسارة معتمدة',
+    icon: Eraser,
+    active: 'border-rose-500 bg-rose-50 text-rose-700 ring-2 ring-rose-200',
+    idle: 'border-border hover:border-rose-300 hover:bg-rose-50/50',
+  },
+  {
+    key: 'worker_debt',
+    label: 'تحويل لدين العامل',
+    hint: 'يُخصم لاحقًا من مستحقات العامل',
+    icon: UserMinus,
+    active: 'border-purple-500 bg-purple-50 text-purple-700 ring-2 ring-purple-200',
+    idle: 'border-border hover:border-purple-300 hover:bg-purple-50/50',
+  },
+  {
+    key: 'customer_repayment',
+    label: 'استرداد من العميل',
+    hint: 'سيُحصَّل من العميل — تسوية لاحقة',
+    icon: HandCoins,
+    active: 'border-emerald-500 bg-emerald-50 text-emerald-700 ring-2 ring-emerald-200',
+    idle: 'border-border hover:border-emerald-300 hover:bg-emerald-50/50',
+  },
+  {
+    key: 'investigation',
+    label: 'إحالة للتحقيق',
+    hint: 'تعليق القرار حتى انتهاء المراجعة',
+    icon: Search,
+    active: 'border-amber-500 bg-amber-50 text-amber-700 ring-2 ring-amber-200',
+    idle: 'border-border hover:border-amber-300 hover:bg-amber-50/50',
+  },
+];
+
+const ResolutionButtons: React.FC<{
+  value: ResolutionKey;
+  onChange: (v: ResolutionKey) => void;
+}> = ({ value, onChange }) => (
+  <div className="grid grid-cols-2 gap-2">
+    {RESOLUTION_OPTIONS.map((opt) => {
+      const Icon = opt.icon;
+      const selected = value === opt.key;
+      return (
+        <button
+          key={opt.key}
+          type="button"
+          onClick={() => onChange(opt.key)}
+          className={cn(
+            'flex flex-col items-start gap-1 rounded-lg border p-3 text-right transition-all',
+            selected ? opt.active : opt.idle,
+          )}
+        >
+          <div className="flex items-center gap-2">
+            <Icon className="h-4 w-4" />
+            <span className="text-sm font-semibold">{opt.label}</span>
+          </div>
+          <span className="text-[11px] text-muted-foreground leading-tight">{opt.hint}</span>
+        </button>
+      );
+    })}
+  </div>
+);
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -52,7 +126,7 @@ const ResolveDialog: React.FC<{
 }> = ({ entry, onClose }) => {
   const { workerId } = useAuth();
   const resolve = useResolveTreasuryEntry();
-  const [resolution, setResolution] = useState<'manager_approved_writeoff' | 'worker_debt' | 'investigation'>('manager_approved_writeoff');
+  const [resolution, setResolution] = useState<ResolutionKey>('manager_approved_writeoff');
   const [notes, setNotes] = useState('');
 
   if (!entry) return null;
@@ -64,16 +138,9 @@ const ResolveDialog: React.FC<{
           <DialogTitle>تسوية القيد ({fmt(Number(entry.amount))} DA)</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
-          <div>
+          <div className="space-y-2">
             <Label>القرار</Label>
-            <Select value={resolution} onValueChange={(v: any) => setResolution(v)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="manager_approved_writeoff">شطب باعتماد المدير</SelectItem>
-                <SelectItem value="worker_debt">تحويل لدين العامل</SelectItem>
-                <SelectItem value="investigation">إحالة للتحقيق</SelectItem>
-              </SelectContent>
-            </Select>
+            <ResolutionButtons value={resolution} onChange={setResolution} />
           </div>
           <div>
             <Label>المبرر / الملاحظات</Label>
@@ -105,7 +172,7 @@ const ResolveDialog: React.FC<{
 // ───────────── Approve dialog (admin four-eyes) ─────────────
 const ApproveDialog: React.FC<{ entry: any | null; onClose: () => void }> = ({ entry, onClose }) => {
   const approve = useApproveTreasuryEntry();
-  const [decision, setDecision] = useState<'manager_approved_writeoff' | 'worker_debt' | 'investigation'>('manager_approved_writeoff');
+  const [decision, setDecision] = useState<ResolutionKey>('manager_approved_writeoff');
   const [notes, setNotes] = useState('');
 
   if (!entry) return null;
@@ -119,16 +186,9 @@ const ApproveDialog: React.FC<{ entry: any | null; onClose: () => void }> = ({ e
           <p className="text-xs text-muted-foreground">
             بصفتك مديرًا، يمكنك اعتماد القرار النهائي على هذا القيد. لا يمكن اعتماد قيد أنشأته بنفسك.
           </p>
-          <div>
+          <div className="space-y-2">
             <Label>القرار</Label>
-            <Select value={decision} onValueChange={(v: any) => setDecision(v)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="manager_approved_writeoff">شطب باعتماد المدير</SelectItem>
-                <SelectItem value="worker_debt">تحويل لدين العامل</SelectItem>
-                <SelectItem value="investigation">إحالة للتحقيق</SelectItem>
-              </SelectContent>
-            </Select>
+            <ResolutionButtons value={decision} onChange={setDecision} />
           </div>
           <div>
             <Label>مبرر الاعتماد</Label>
