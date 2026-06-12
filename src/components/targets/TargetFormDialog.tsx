@@ -146,12 +146,12 @@ export const TargetFormDialog: React.FC<Props> = ({ open, onOpenChange, initial 
           </div>
 
           <div>
-            <Label>مبلغ المكافأة (د.ج)</Label>
+            <Label>مبلغ المكافأة (DA)</Label>
             <Input type="number" min={0} value={form.reward_amount} onChange={e => setForm({ ...form, reward_amount: Number(e.target.value) })} />
           </div>
 
           <div>
-            <Label>مبلغ الخصم عند العجز (د.ج)</Label>
+            <Label>مبلغ الخصم عند العجز (DA)</Label>
             <Input type="number" min={0} value={form.penalty_amount} onChange={e => setForm({ ...form, penalty_amount: Number(e.target.value) })} />
           </div>
 

@@ -74,7 +74,7 @@ const RowMetricDetailsDialog: React.FC<Props> = ({ open, onOpenChange, sessions,
           <span className="flex items-center gap-2 text-yellow-800 font-medium">
             <Coins className="w-4 h-4" /> صرف العملة
           </span>
-          <span className="font-bold text-yellow-900">{fmt(amount)} دج</span>
+          <span className="font-bold text-yellow-900">{fmt(amount)} DA</span>
         </div>
       );
     }

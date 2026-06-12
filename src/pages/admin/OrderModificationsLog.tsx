@@ -156,7 +156,7 @@ const OrderModificationsLog: React.FC = () => {
     let md = `# طلبية ${d.order_id.slice(0, 8)}\n`;
     md += `- **العميل**: ${d.customer}${d.store ? ` (${d.store})` : ''}\n`;
     md += `- **الحالة**: ${STATUS_LABELS[d.status] || d.status}\n`;
-    md += `- **المبلغ**: ${d.total_amount?.toLocaleString() || '—'} د.ج\n`;
+    md += `- **المبلغ**: ${d.total_amount?.toLocaleString() || '—'} DA\n`;
     md += `- **منشئ الطلب**: ${d.created_by || '—'}\n`;
     md += `- **عامل التوصيل**: ${d.assigned_worker || '—'}\n\n`;
     md += `## سجل الأحداث\n\n`;
@@ -291,7 +291,7 @@ const OrderModificationsLog: React.FC = () => {
                       {STATUS_LABELS[order.currentStatus] || order.currentStatus}
                     </Badge>
                     {order.totalAmount != null && (
-                      <span className="text-xs font-bold">{Number(order.totalAmount).toLocaleString()} د.ج</span>
+                      <span className="text-xs font-bold">{Number(order.totalAmount).toLocaleString()} DA</span>
                     )}
                   </div>
                 </div>
@@ -385,7 +385,7 @@ const OrderDetailTimeline: React.FC<{
                     </div>
                     {event.event_type === 'created' && event.details?.total_amount && (
                       <div className="mt-0.5 text-[11px] text-muted-foreground">
-                        المبلغ: {Number(event.details.total_amount).toLocaleString()} د.ج
+                        المبلغ: {Number(event.details.total_amount).toLocaleString()} DA
                       </div>
                     )}
                     {event.event_type === 'status_change' && (
@@ -397,7 +397,7 @@ const OrderDetailTimeline: React.FC<{
                     )}
                     {event.event_type === 'amount_changed' && (
                       <div className="mt-0.5 text-[11px] text-muted-foreground" dir="ltr" style={{ unicodeBidi: 'embed' }}>
-                        {Number(event.old_value).toLocaleString()} → {Number(event.new_value).toLocaleString()} د.ج
+                        {Number(event.old_value).toLocaleString()} → {Number(event.new_value).toLocaleString()} DA
                       </div>
                     )}
                     {event.event_type === 'payment_updated' && (

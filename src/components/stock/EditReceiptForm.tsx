@@ -106,7 +106,7 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
   const totalExpenses = expenseLines.reduce((s, l) => s + (Number(l.amount) || 0), 0);
   const expensesDescriptionStr = expenseLines
     .filter(l => l.description || l.amount)
-    .map(l => `${l.description || 'مصروف'}: ${Number(l.amount || 0).toLocaleString()} دج`)
+    .map(l => `${l.description || 'مصروف'}: ${Number(l.amount || 0).toLocaleString()} DA`)
     .join(' • ');
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -423,7 +423,7 @@ const EditReceiptForm: React.FC<Props> = ({ receipt, initialItems, products, bra
               </div>
             ))}
             <div className="text-[11px] font-bold text-amber-700 text-end pt-1 border-t">
-              الإجمالي: {totalExpenses.toLocaleString()} دج
+              الإجمالي: {totalExpenses.toLocaleString()} DA
             </div>
           </div>
         )}

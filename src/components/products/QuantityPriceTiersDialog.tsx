@@ -153,7 +153,7 @@ const QuantityPriceTiersDialog: React.FC<QuantityPriceTiersDialogProps> = ({
               </div>
 
               <div>
-                <Label>{newTier.price_type === 'unit_price' ? 'سعر الوحدة (دج)' : 'نسبة الخصم %'}</Label>
+                <Label>{newTier.price_type === 'unit_price' ? 'سعر الوحدة (DA)' : 'نسبة الخصم %'}</Label>
                 <Input
                   type="number"
                   value={newTier.tier_price}
@@ -194,7 +194,7 @@ const QuantityPriceTiersDialog: React.FC<QuantityPriceTiersDialogProps> = ({
                       <span className="text-muted-foreground mx-2">→</span>
                       <span className="text-primary font-bold">
                         {tier.price_type === 'unit_price'
-                          ? `${tier.tier_price} دج/وحدة`
+                          ? `${tier.tier_price} DA/وحدة`
                           : `خصم ${tier.tier_price}%`
                         }
                       </span>

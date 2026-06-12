@@ -62,7 +62,7 @@ export const TargetsLeaderboard: React.FC = () => {
                     {METRIC_LABELS[t.metric_type]} • {PERIOD_LABELS[t.period_type]} • مستهدف: {Number(t.target_value).toLocaleString()}
                   </p>
                 </div>
-                <Badge variant="outline">مكافأة: {Number(t.reward_amount).toLocaleString()} د.ج</Badge>
+                <Badge variant="outline">مكافأة: {Number(t.reward_amount).toLocaleString()} DA</Badge>
               </div>
 
               {sorted.length === 0 && (
@@ -88,8 +88,8 @@ export const TargetsLeaderboard: React.FC = () => {
                       <Progress value={pct} className="h-2" />
                       {(Number(p.reward_calculated) > 0 || Number(p.penalty_calculated) > 0) && (
                         <div className="text-xs flex gap-3">
-                          {Number(p.reward_calculated) > 0 && <span className="text-green-600">💰 مكافأة: {Number(p.reward_calculated).toLocaleString()} د.ج</span>}
-                          {Number(p.penalty_calculated) > 0 && <span className="text-red-600">⚠️ خصم: {Number(p.penalty_calculated).toLocaleString()} د.ج</span>}
+                          {Number(p.reward_calculated) > 0 && <span className="text-green-600">💰 مكافأة: {Number(p.reward_calculated).toLocaleString()} DA</span>}
+                          {Number(p.penalty_calculated) > 0 && <span className="text-red-600">⚠️ خصم: {Number(p.penalty_calculated).toLocaleString()} DA</span>}
                         </div>
                       )}
                     </div>

@@ -724,7 +724,7 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
       isFullPayment,
       isNoPayment: !data.checkReceived,
       notes: data.remainingAction === 'another_check' && remaining > 0
-        ? `شيك جزئي - المتبقي ${remaining.toLocaleString()} دج مسند لشيك آخر`
+        ? `شيك جزئي - المتبقي ${remaining.toLocaleString()} DA مسند لشيك آخر`
         : undefined,
     });
     setShowCheckDialog(false);
@@ -1175,8 +1175,8 @@ const DeliverySaleDialog: React.FC<DeliverySaleDialogProps> = ({
             const paymentStatusText = paymentData.paidAmount >= totals.totalAmount
               ? 'الحالة: مدفوع بالكامل'
               : paymentData.paidAmount > 0
-                ? `المدفوع: ${paymentData.paidAmount.toLocaleString()} دج\nالمتبقي: ${paymentData.remainingAmount.toLocaleString()} دج`
-                : `الحالة: دين ${totals.totalAmount.toLocaleString()} دج`;
+                ? `المدفوع: ${paymentData.paidAmount.toLocaleString()} DA\nالمتبقي: ${paymentData.remainingAmount.toLocaleString()} DA`
+                : `الحالة: دين ${totals.totalAmount.toLocaleString()} DA`;
 
             const message = buildSmsFromTemplate(opConfig.template, {
               customer: order.customer?.name || '',

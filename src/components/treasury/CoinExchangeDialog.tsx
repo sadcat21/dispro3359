@@ -239,11 +239,11 @@ const CoinExchangeDialog = ({ open, onOpenChange, preselectedWorkerId }: CoinExc
               <Input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0" />
               <div className="flex items-center justify-between mt-1.5 text-xs">
                 <span className="text-muted-foreground">
-                  {t('coin_exchange.available_in_treasury')}: <span className={`font-bold ${(availableCoins - Number(amount || 0)) < 0 ? 'text-destructive' : 'text-green-600'}`}>{availableCoins.toLocaleString('ar-DZ')} د.ج</span>
+                  {t('coin_exchange.available_in_treasury')}: <span className={`font-bold ${(availableCoins - Number(amount || 0)) < 0 ? 'text-destructive' : 'text-green-600'}`}>{availableCoins.toLocaleString('ar-DZ')} DA</span>
                 </span>
                 {Number(amount) > 0 && (
                   <span className="text-muted-foreground">
-                    {t('coin_exchange.after_assign')}: <span className={`font-bold ${(availableCoins - Number(amount)) < 0 ? 'text-destructive' : ''}`}>{(availableCoins - Number(amount)).toLocaleString('ar-DZ')} د.ج</span>
+                    {t('coin_exchange.after_assign')}: <span className={`font-bold ${(availableCoins - Number(amount)) < 0 ? 'text-destructive' : ''}`}>{(availableCoins - Number(amount)).toLocaleString('ar-DZ')} DA</span>
                   </span>
                 )}
               </div>

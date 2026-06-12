@@ -161,7 +161,7 @@ const EditRewardTaskDialog: React.FC<Props> = ({ task, onOpenChange }) => {
                   <Input type="number" value={minCount} onChange={e => setMinCount(e.target.value)} placeholder="مثال: 5" />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-[11px] text-muted-foreground">الحد الأدنى (مبلغ د.ج)</Label>
+                  <Label className="text-[11px] text-muted-foreground">الحد الأدنى (مبلغ DA)</Label>
                   <Input type="number" value={minAmount} onChange={e => setMinAmount(e.target.value)} placeholder="اختياري" />
                 </div>
               </div>

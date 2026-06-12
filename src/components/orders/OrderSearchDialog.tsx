@@ -992,7 +992,7 @@ const OrderSearchDialog: React.FC<OrderSearchDialogProps> = ({ open, onOpenChang
                         </div>
                         {(item.unit_price || 0) > 0 && (
                           <p className="text-xs text-muted-foreground mt-1">
-                            {Number(item.unit_price).toLocaleString()} دج × {item.quantity - (item.gift_quantity || 0)} = {Number(item.total_price || 0).toLocaleString()} دج
+                            {Number(item.unit_price).toLocaleString()} DA × {item.quantity - (item.gift_quantity || 0)} = {Number(item.total_price || 0).toLocaleString()} DA
                           </p>
                         )}
                       </div>
@@ -1000,7 +1000,7 @@ const OrderSearchDialog: React.FC<OrderSearchDialogProps> = ({ open, onOpenChang
                     {order?.total_amount && Number(order.total_amount) > 0 && (
                       <div className="flex items-center justify-between p-2 bg-primary/10 rounded font-bold">
                         <span>الإجمالي</span>
-                        <span className="text-primary">{Number(order.total_amount).toLocaleString()} دج</span>
+                        <span className="text-primary">{Number(order.total_amount).toLocaleString()} DA</span>
                       </div>
                     )}
                   </div>
@@ -1020,7 +1020,7 @@ const OrderSearchDialog: React.FC<OrderSearchDialogProps> = ({ open, onOpenChang
                       </Badge>
                       {paymentStatus === 'partial' && (order as any).partial_amount && (
                         <span className="text-sm text-muted-foreground">
-                          ({(order as any).partial_amount} دج)
+                          ({(order as any).partial_amount} DA)
                         </span>
                       )}
                     </div>

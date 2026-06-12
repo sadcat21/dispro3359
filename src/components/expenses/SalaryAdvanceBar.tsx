@@ -81,12 +81,12 @@ const SalaryAdvanceBar: React.FC<Props> = ({ workerId, language }) => {
                   {formatNumber(data.used, language as any)}
                 </span>
                 <span className="bg-red-500 text-white px-2 py-1">
-                  {formatNumber(data.limit, language as any)} دج
+                  {formatNumber(data.limit, language as any)} DA
                 </span>
               </>
             ) : (
               <span className="bg-white text-red-600 px-2 py-1">
-                {formatNumber(data.used, language as any)} دج
+                {formatNumber(data.used, language as any)} DA
               </span>
             )}
           </span>
@@ -105,7 +105,7 @@ const SalaryAdvanceBar: React.FC<Props> = ({ workerId, language }) => {
               ? 'لم يحدد المدير حدًّا شهريًا للسلفة'
               : isFull
                 ? 'تم استنفاد سلفة الراتب لهذا الشهر'
-                : `يمكنك أخذ سلفة بقيمة ${formatNumber(remaining, language as any)} دج`}
+                : `يمكنك أخذ سلفة بقيمة ${formatNumber(remaining, language as any)} DA`}
           </span>
           <span className="text-muted-foreground">اضغط لعرض السجل</span>
         </div>
@@ -135,7 +135,7 @@ const SalaryAdvanceBar: React.FC<Props> = ({ workerId, language }) => {
                 >
                   <div className="space-y-0.5 flex-1 min-w-0">
                     <p className="font-semibold text-sm">
-                      {formatNumber(Number(d.amount), language as any)} دج
+                      {formatNumber(Number(d.amount), language as any)} DA
                     </p>
                     {d.description && (
                       <p className="text-xs text-muted-foreground line-clamp-2">{d.description}</p>
@@ -150,7 +150,7 @@ const SalaryAdvanceBar: React.FC<Props> = ({ workerId, language }) => {
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-bold">إجمالي السلف هذا الشهر</span>
                   <span className={`text-lg font-extrabold ${tier.text}`}>
-                    {formatNumber(data.used, language as any)} دج
+                    {formatNumber(data.used, language as any)} DA
                   </span>
                 </div>
                 {hasLimit && (
@@ -159,8 +159,8 @@ const SalaryAdvanceBar: React.FC<Props> = ({ workerId, language }) => {
                       <div className={`h-full ${tier.bar}`} style={{ width: `${pct}%` }} />
                     </div>
                     <div className="flex justify-between text-[11px] text-muted-foreground pt-1">
-                      <span>الحد الشهري: {formatNumber(data.limit, language as any)} دج</span>
-                      <span>المتبقي: <b className={tier.text}>{formatNumber(remaining, language as any)} دج</b></span>
+                      <span>الحد الشهري: {formatNumber(data.limit, language as any)} DA</span>
+                      <span>المتبقي: <b className={tier.text}>{formatNumber(remaining, language as any)} DA</b></span>
                     </div>
                   </>
                 )}

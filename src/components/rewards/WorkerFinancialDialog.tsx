@@ -116,7 +116,7 @@ const WorkerFinancialDialog: React.FC<Props> = ({ open, onOpenChange, workerId, 
             <Input type="number" value={bonusCap} onChange={e => setBonusCap(e.target.value)} placeholder="مثال: 30" />
             <p className="text-[10px] text-muted-foreground">
               {salary && bonusCap ? (
-                <>الحد الأقصى: {(Number(salary) * Number(bonusCap) / 100).toLocaleString('ar-DZ')} د.ج</>
+                <>الحد الأقصى: {(Number(salary) * Number(bonusCap) / 100).toLocaleString('ar-DZ')} DA</>
               ) : 'أدخل الأجرة والنسبة لحساب الحد الأقصى'}
             </p>
           </div>

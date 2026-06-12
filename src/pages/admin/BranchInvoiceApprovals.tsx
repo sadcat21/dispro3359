@@ -951,7 +951,7 @@ const BranchInvoiceApprovals: React.FC = () => {
                               فاتورة #{r.invoice_number || '—'}
                             </span>
                             <span className="font-bold text-blue-700 text-sm whitespace-nowrap">
-                              {Number(total).toLocaleString(language === 'ar' ? 'ar' : language)} <span className="text-[10px] text-slate-400">دج</span>
+                              {Number(total).toLocaleString(language === 'ar' ? 'ar' : language)} <span className="text-[10px] text-slate-400">DA</span>
                             </span>
                           </div>
                           <div className="flex items-center gap-1.5 flex-wrap">

@@ -183,7 +183,7 @@ const StampPriceDialog: React.FC<StampPriceDialogProps> = ({ open, onOpenChange 
             {/* Value Input */}
             <div className="space-y-2">
               <Label>
-                {stampType === 'value' ? 'سعر الطابع (دج)' : 'نسبة الطابع (%)'}
+                {stampType === 'value' ? 'سعر الطابع (DA)' : 'نسبة الطابع (%)'}
               </Label>
               <div className="relative">
                 <Input
@@ -198,7 +198,7 @@ const StampPriceDialog: React.FC<StampPriceDialogProps> = ({ open, onOpenChange 
                   autoFocus
                 />
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                  {stampType === 'value' ? 'دج' : '%'}
+                  {stampType === 'value' ? 'DA' : '%'}
                 </span>
               </div>
               <p className="text-xs text-muted-foreground">

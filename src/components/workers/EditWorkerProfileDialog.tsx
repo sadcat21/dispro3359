@@ -182,7 +182,7 @@ const EditWorkerProfileDialog: React.FC<Props> = ({ open, onOpenChange, workerId
           </div>
 
           <div className="space-y-1.5">
-            <Label>الحد الأقصى لسلفة الراتب الشهرية (دج)</Label>
+            <Label>الحد الأقصى لسلفة الراتب الشهرية (DA)</Label>
             <Input
               type="number"
               min="0"

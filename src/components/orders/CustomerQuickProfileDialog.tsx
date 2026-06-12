@@ -8,7 +8,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Loader2, Phone, MapPin, Store, ShoppingCart, Wallet, AlertCircle, CheckCircle2, Footprints, PackageX, X, TrendingUp, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatAmount } from '@/utils/formatters';
-const formatCurrency = (n: number) => `${formatAmount(n)} دج`;
+const formatCurrency = (n: number) => `${formatAmount(n)} DA`;
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { useState, useMemo } from 'react';
 

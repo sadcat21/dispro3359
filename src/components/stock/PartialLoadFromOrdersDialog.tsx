@@ -221,7 +221,7 @@ const PartialLoadFromOrdersDialog: React.FC<PartialLoadFromOrdersDialogProps> = 
                               <span>{format(new Date(order.created_at), 'MM/dd HH:mm')}</span>
                               <span>{order.items.length} منتج</span>
                               {order.total_amount && (
-                                <span className="font-medium">{order.total_amount.toLocaleString()} د.ج</span>
+                                <span className="font-medium">{order.total_amount.toLocaleString()} DA</span>
                               )}
                             </div>
                           </div>

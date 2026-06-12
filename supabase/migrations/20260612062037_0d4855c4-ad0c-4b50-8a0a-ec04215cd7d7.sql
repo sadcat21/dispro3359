@@ -1,0 +1,2 @@
+ALTER TABLE public.workers ALTER COLUMN max_monthly_salary_advance SET DEFAULT 10000;
+UPDATE public.workers SET max_monthly_salary_advance = 10000 WHERE max_monthly_salary_advance IS NULL OR max_monthly_salary_advance = 0;

@@ -25,7 +25,7 @@ export const FrozenWorkerBadge: React.FC<Props> = ({ workerId, variant = 'alert'
     return (
       <Badge variant="outline" className={`border-amber-500 text-amber-700 dark:text-amber-400 ${className || ''}`}>
         <AlertTriangle className="w-3 h-3 me-1" />
-        تنبيه: عجز {formatNumber(data.totalRemaining, language)} دج
+        تنبيه: عجز {formatNumber(data.totalRemaining, language)} DA
       </Badge>
     );
   }
@@ -35,7 +35,7 @@ export const FrozenWorkerBadge: React.FC<Props> = ({ workerId, variant = 'alert'
       <AlertTriangle className="h-4 w-4" />
       <AlertDescription>
         تنبيه: على هذا الموظف عجز غير مسدد بقيمة{' '}
-        <strong>{formatNumber(data.totalRemaining, language)} دج</strong>{' '}
+        <strong>{formatNumber(data.totalRemaining, language)} DA</strong>{' '}
         من مراجعة المخزون. يُرجى تسوية الحساب في أقرب وقت.
       </AlertDescription>
     </Alert>

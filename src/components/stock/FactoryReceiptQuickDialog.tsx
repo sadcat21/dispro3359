@@ -110,7 +110,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
   const totalExpenses = expenseLines.reduce((s, l) => s + (Number(l.amount) || 0), 0);
   const expensesDescription = expenseLines
     .filter(l => l.description || l.amount)
-    .map(l => `${l.description || 'مصروف'}: ${Number(l.amount || 0).toLocaleString()} دج`)
+    .map(l => `${l.description || 'مصروف'}: ${Number(l.amount || 0).toLocaleString()} DA`)
     .join(' • ');
   const [tab, setTab] = useState<'create' | 'pending'>('create');
   const [pendingReceipts, setPendingReceipts] = useState<PendingReceipt[]>([]);
@@ -785,12 +785,12 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
       <div class="section">
         <div class="section-title" style="background:#475569">💰 المصاريف</div>
         <table>
-          <thead><tr><th>#</th><th>الوصف</th><th>المبلغ (دج)</th></tr></thead>
+          <thead><tr><th>#</th><th>الوصف</th><th>المبلغ (DA)</th></tr></thead>
           <tbody>
             ${expenseLines.filter(l => l.description || l.amount).map((l, i) => `
               <tr><td>${i + 1}</td><td>${l.description || '-'}</td><td style="text-align:center">${Number(l.amount || 0).toLocaleString()}</td></tr>
             `).join('')}
-            <tr><td colspan="2" style="text-align:left;font-weight:bold">الإجمالي</td><td style="text-align:center;font-weight:bold">${totalExpenses.toLocaleString()} دج</td></tr>
+            <tr><td colspan="2" style="text-align:left;font-weight:bold">الإجمالي</td><td style="text-align:center;font-weight:bold">${totalExpenses.toLocaleString()} DA</td></tr>
           </tbody>
         </table>
       </div>` : '';
@@ -945,7 +945,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
                         </Button>
                       </div>
                     ))}
-                    <div className="text-[11px] font-bold text-amber-700 text-end pt-1 border-t">الإجمالي: {totalExpenses.toLocaleString()} دج</div>
+                    <div className="text-[11px] font-bold text-amber-700 text-end pt-1 border-t">الإجمالي: {totalExpenses.toLocaleString()} DA</div>
                   </div>
                 )}
               </div>
@@ -1658,7 +1658,7 @@ const FactoryReceiptQuickDialog: React.FC<Props> = ({ open, onOpenChange, editRe
               </div>
               <div className="border rounded-lg p-2 text-center bg-white">
                 <div className="text-[10px] text-muted-foreground">إجمالي المصاريف</div>
-                <div className="text-lg font-bold">{totalExpenses.toLocaleString()} دج</div>
+                <div className="text-lg font-bold">{totalExpenses.toLocaleString()} DA</div>
               </div>
             </div>
 

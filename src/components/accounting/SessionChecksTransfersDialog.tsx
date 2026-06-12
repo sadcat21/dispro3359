@@ -124,7 +124,7 @@ const SessionChecksTransfersDialog: React.FC<Props> = ({ open, onOpenChange, met
         <div className={`rounded-lg p-3 text-center border ${colorCls.bg} ${colorCls.border}`}>
           <p className="text-[11px] text-muted-foreground">الإجمالي</p>
           <p className={`text-lg font-bold ${colorCls.text}`}>
-            {fmt(total)} د.ج
+            {fmt(total)} DA
           </p>
         </div>
 
@@ -169,7 +169,7 @@ const SessionChecksTransfersDialog: React.FC<Props> = ({ open, onOpenChange, met
                     </div>
                     <div className="flex flex-col items-end gap-1 shrink-0">
                       <Badge variant="outline" className={amountCls}>
-                        {fmt(Number(o.total_amount || 0))} د.ج
+                        {fmt(Number(o.total_amount || 0))} DA
                       </Badge>
                       <Badge variant="outline" className={`text-[10px] ${deposited ? 'text-emerald-700 border-emerald-300 bg-emerald-50' : 'text-red-700 border-red-300 bg-red-50'}`}>
                         {statusLabel}

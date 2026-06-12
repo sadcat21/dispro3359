@@ -379,7 +379,7 @@ const WorkerLoadRequestDialog: React.FC<WorkerLoadRequestDialogProps> = ({ open,
                                 </div>
                                 {order.total_amount != null && order.total_amount > 0 && (
                                   <span className="text-[10px] font-bold text-foreground whitespace-nowrap tabular-nums">
-                                    {order.total_amount.toLocaleString()} د.ج
+                                    {order.total_amount.toLocaleString()} DA
                                   </span>
                                 )}
                               </div>

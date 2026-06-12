@@ -87,7 +87,7 @@ const DocCollectDialog: React.FC<DocCollectDialogProps> = ({
 
       const newTotal = collectedSoFar + submitAmount;
       const isFull = newTotal >= totalAmount - 0.01;
-      toast.success(isFull ? 'تم إكمال تحصيل المستند' : `تم تسجيل دفعة. المتبقي: ${fmt(totalAmount - newTotal)} دج`);
+      toast.success(isFull ? 'تم إكمال تحصيل المستند' : `تم تسجيل دفعة. المتبقي: ${fmt(totalAmount - newTotal)} DA`);
 
       void (async () => {
         try {
@@ -138,9 +138,9 @@ const DocCollectDialog: React.FC<DocCollectDialogProps> = ({
             <p className="text-sm font-bold">{fmt(totalAmount)} DA</p>
             {isVersement && collectedSoFar > 0 && (
               <div className="text-[11px] text-slate-600 pt-1 border-t border-green-200 mt-2">
-                المُحصَّل: <span className="font-bold text-emerald-700">{fmt(collectedSoFar)}</span> دج
+                المُحصَّل: <span className="font-bold text-emerald-700">{fmt(collectedSoFar)}</span> DA
                 {' • '}
-                المتبقي: <span className="font-bold text-rose-700">{fmt(remaining)}</span> دج
+                المتبقي: <span className="font-bold text-rose-700">{fmt(remaining)}</span> DA
               </div>
             )}
           </div>
@@ -170,7 +170,7 @@ const DocCollectDialog: React.FC<DocCollectDialogProps> = ({
                         {new Date(h.created_at).toLocaleDateString('ar-DZ')}
                       </span>
                     </div>
-                    <span className="font-bold text-slate-800">{fmt(Number(h.amount || 0))} دج</span>
+                    <span className="font-bold text-slate-800">{fmt(Number(h.amount || 0))} DA</span>
                   </div>
                 ))}
               </div>
@@ -206,7 +206,7 @@ const DocCollectDialog: React.FC<DocCollectDialogProps> = ({
               {collectionType && (
                 <div className="space-y-1.5">
                   <p className="text-xs font-semibold text-slate-700">
-                    المبلغ (المتبقي: {fmt(remaining)} دج)
+                    المبلغ (المتبقي: {fmt(remaining)} DA)
                   </p>
                   <Input
                     type="number"

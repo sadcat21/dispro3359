@@ -501,7 +501,7 @@ const ExceptionalActionsSummary: React.FC<ExceptionalActionsSummaryProps> = ({
                   </div>
                   <div className="rounded-lg bg-muted/40 p-2 space-y-0.5">
                     <p className="text-[10px] text-muted-foreground">المبلغ</p>
-                    <p className="text-xs font-semibold tabular-nums">{Number(detailData.total_amount || 0).toLocaleString()} د.ج</p>
+                    <p className="text-xs font-semibold tabular-nums">{Number(detailData.total_amount || 0).toLocaleString()} DA</p>
                   </div>
                   <div className="rounded-lg bg-muted/40 p-2 space-y-0.5">
                     <p className="text-[10px] text-muted-foreground">طريقة الدفع</p>
@@ -514,7 +514,7 @@ const ExceptionalActionsSummary: React.FC<ExceptionalActionsSummaryProps> = ({
                   {detailData.paid_amount != null && (
                     <div className="rounded-lg bg-muted/40 p-2 space-y-0.5">
                       <p className="text-[10px] text-muted-foreground">المبلغ المدفوع</p>
-                      <p className="text-xs font-semibold tabular-nums">{Number(detailData.paid_amount).toLocaleString()} د.ج</p>
+                      <p className="text-xs font-semibold tabular-nums">{Number(detailData.paid_amount).toLocaleString()} DA</p>
                     </div>
                   )}
                   {detailData.notes && (
@@ -537,11 +537,11 @@ const ExceptionalActionsSummary: React.FC<ExceptionalActionsSummaryProps> = ({
                             <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
                               <span>الكمية: {item.quantity}</span>
                               {item.gift_quantity > 0 && <span className="text-primary">هدية: {item.gift_quantity}</span>}
-                              {item.unit_price > 0 && <span>{Number(item.unit_price).toLocaleString()} د.ج/وحدة</span>}
+                              {item.unit_price > 0 && <span>{Number(item.unit_price).toLocaleString()} DA/وحدة</span>}
                             </div>
                           </div>
                           <span className="text-[11px] font-bold tabular-nums shrink-0 ms-2">
-                            {Number(item.total_price || 0).toLocaleString()} د.ج
+                            {Number(item.total_price || 0).toLocaleString()} DA
                           </span>
                         </div>
                       ))}

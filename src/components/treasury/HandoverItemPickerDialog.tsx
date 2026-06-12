@@ -282,14 +282,14 @@ const HandoverItemPickerDialog = ({ open, onOpenChange, paymentMethod, onConfirm
                     </p>
                     {paymentMethod === 'cash' && Number(item.stamp_amount || 0) > 0 && (
                       <p dir="ltr" className="mt-0.5 text-[10px] text-amber-600">
-                        طابع: {Number(item.stamp_amount || 0).toLocaleString()} د.ج
+                        طابع: {Number(item.stamp_amount || 0).toLocaleString()} DA
                         {' · '}
-                        الإجمالي: {Number(item.total_with_stamp || item.amount).toLocaleString()} د.ج
+                        الإجمالي: {Number(item.total_with_stamp || item.amount).toLocaleString()} DA
                       </p>
                     )}
                   </div>
                   <p dir="ltr" className="text-sm font-bold text-primary whitespace-nowrap">
-                    {item.amount.toLocaleString()} د.ج
+                    {item.amount.toLocaleString()} DA
                   </p>
                 </div>
               ))}
@@ -299,17 +299,17 @@ const HandoverItemPickerDialog = ({ open, onOpenChange, paymentMethod, onConfirm
               <div className="border-t pt-3 space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">المجموع ({selected.size} عنصر)</span>
-                  <span className="font-bold text-primary">{totalAmount.toLocaleString()} د.ج</span>
+                  <span className="font-bold text-primary">{totalAmount.toLocaleString()} DA</span>
                 </div>
                 {paymentMethod === 'cash' && totalStampAmount > 0 && (
                   <>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">الطابع</span>
-                      <span className="font-bold text-amber-600">{totalStampAmount.toLocaleString()} د.ج</span>
+                      <span className="font-bold text-amber-600">{totalStampAmount.toLocaleString()} DA</span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">الإجمالي مع الطابع</span>
-                      <span className="font-bold text-green-600">{totalWithStamp.toLocaleString()} د.ج</span>
+                      <span className="font-bold text-green-600">{totalWithStamp.toLocaleString()} DA</span>
                     </div>
                   </>
                 )}

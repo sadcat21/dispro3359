@@ -909,7 +909,7 @@ export const WorkerTruckStockList: React.FC<Props> = ({ workerId, emptyLabel = '
                               )}
                               <span className="text-[10px] text-muted-foreground ms-auto">{timeLabel}</span>
                               {entry.type === 'sale' && entry.totalPaid != null && entry.totalPaid > 0 && (
-                                <span className="text-[11px] font-bold text-emerald-700">{Number(entry.totalPaid).toLocaleString('ar-DZ')} دج</span>
+                                <span className="text-[11px] font-bold text-emerald-700">{Number(entry.totalPaid).toLocaleString('ar-DZ')} DA</span>
                               )}
                             </div>
 
