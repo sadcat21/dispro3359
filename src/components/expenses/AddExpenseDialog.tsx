@@ -114,16 +114,56 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
     setJustificationOtherTitle('');
   };
 
-  // Justification options = expense categories minus the peer-handover one
-  const justificationOptions = useMemo(
-    () => filteredCategories.filter(c => {
+  // Fetch the receiver's roles (system role + custom role codes) so the
+  // justification categories shown reflect what is allowed for the RECIPIENT,
+  // not the submitter. This handles cases where a category is allowed for the
+  // receiver but not the submitter (or vice versa).
+  const { data: receiverRoles } = useQuery({
+    queryKey: ['receiver-roles', advanceWorkerId],
+    enabled: open && isPeerHandoverCategory && !!advanceWorkerId,
+    queryFn: async () => {
+      const [{ data: w }, { data: wrs }] = await Promise.all([
+        supabase.from('workers').select('role').eq('id', advanceWorkerId).maybeSingle(),
+        supabase
+          .from('worker_roles')
+          .select('custom_role_id, is_active, custom_roles:custom_role_id(code)')
+          .eq('worker_id', advanceWorkerId)
+          .eq('is_active', true),
+      ]);
+      const systemRole = (w as any)?.role as string | null;
+      const codes = (wrs || [])
+        .map((r: any) => r?.custom_roles?.code)
+        .filter(Boolean) as string[];
+      return { systemRole, codes };
+    },
+  });
+
+  // Justification options = categories visible to the RECEIVER, minus the
+  // peer-handover one. Falls back to submitter's categories until a receiver
+  // is picked.
+  const justificationOptions = useMemo(() => {
+    const all = (categories || []).filter(c => {
       const n = c.name || '';
       const nf = (c.name_fr || '').toLowerCase();
       const ne = (c.name_en || '').toLowerCase();
       return !(n.includes('تسليم لزميل') || nf.includes('collègue') || nf.includes('collegue') || ne.includes('colleague') || ne.includes('handover to'));
-    }),
-    [filteredCategories],
-  );
+    });
+    if (!isPeerHandoverCategory || !advanceWorkerId || !receiverRoles) {
+      return filteredCategories.filter(c => {
+        const n = c.name || '';
+        const nf = (c.name_fr || '').toLowerCase();
+        const ne = (c.name_en || '').toLowerCase();
+        return !(n.includes('تسليم لزميل') || nf.includes('collègue') || nf.includes('collegue') || ne.includes('colleague') || ne.includes('handover to'));
+      });
+    }
+    return all.filter(cat => {
+      const visibleRoles = (cat as any).visible_to_roles as string[] | null;
+      if (!visibleRoles || visibleRoles.length === 0) return true;
+      if (receiverRoles.systemRole && visibleRoles.includes(receiverRoles.systemRole)) return true;
+      return receiverRoles.codes.some(code => visibleRoles.includes(code));
+    });
+  }, [categories, filteredCategories, isPeerHandoverCategory, advanceWorkerId, receiverRoles]);
+
   const selectedJustification = justificationOptions.find(c => c.id === justificationCategoryId);
   const isJustificationAdvance = !!(selectedJustification && (
     selectedJustification.name?.includes('مسبق') ||
