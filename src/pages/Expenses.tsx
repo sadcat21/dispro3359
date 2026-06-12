@@ -36,6 +36,8 @@ const Expenses: React.FC = () => {
   const isManager = isAdminRole(role);
 
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+  const [pickedCategoryId, setPickedCategoryId] = useState<string | undefined>(undefined);
   const [showAdd, setShowAdd] = useState(false);
   const [editExpense, setEditExpense] = useState<ExpenseWithDetails | null>(null);
   const [tab, setTab] = useState('expenses');
