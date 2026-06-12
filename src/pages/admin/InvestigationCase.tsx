@@ -69,7 +69,7 @@ const InvestigationCase: React.FC = () => {
 
       <Card className="p-4 space-y-2">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-mono text-muted-foreground">قضية #{c.case_number}</span>
+          <span className="text-xs font-mono text-muted-foreground">ملف #{c.case_number}</span>
         </div>
         <h2 className="text-lg font-bold">{c.title}</h2>
         {c.summary && <p className="text-sm text-muted-foreground whitespace-pre-wrap">{c.summary}</p>}
