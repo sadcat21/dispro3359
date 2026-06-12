@@ -53,15 +53,26 @@ const SalaryAdvanceBar: React.FC<Props> = ({ workerId, language }) => {
     { month: 'long', year: 'numeric' },
   );
 
+  // Dynamic color tiers based on consumption percentage
+  const tier = !hasLimit
+    ? { card: 'bg-card border-border', icon: 'text-primary', bar: 'bg-primary', text: 'text-primary' }
+    : pct >= 100
+      ? { card: 'bg-red-50 border-red-300 dark:bg-red-950/30 dark:border-red-800', icon: 'text-red-600', bar: 'bg-red-500', text: 'text-red-700 dark:text-red-400' }
+      : pct >= 75
+        ? { card: 'bg-orange-50 border-orange-300 dark:bg-orange-950/30 dark:border-orange-800', icon: 'text-orange-600', bar: 'bg-orange-500', text: 'text-orange-700 dark:text-orange-400' }
+        : pct >= 50
+          ? { card: 'bg-yellow-50 border-yellow-300 dark:bg-yellow-950/30 dark:border-yellow-800', icon: 'text-yellow-600', bar: 'bg-yellow-500', text: 'text-yellow-700 dark:text-yellow-500' }
+          : { card: 'bg-emerald-50 border-emerald-300 dark:bg-emerald-950/30 dark:border-emerald-800', icon: 'text-emerald-600', bar: 'bg-emerald-500', text: 'text-emerald-700 dark:text-emerald-400' };
+
   return (
     <>
       <Card
-        className="p-3 cursor-pointer hover:shadow-md transition-shadow"
+        className={`p-3 cursor-pointer hover:shadow-md transition-all border ${tier.card}`}
         onClick={() => setOpen(true)}
         role="button"
       >
         <div className="flex items-center gap-2 mb-2">
-          <Wallet className="w-4 h-4 text-primary" />
+          <Wallet className={`w-4 h-4 ${tier.icon}`} />
           <span className="text-sm font-semibold">سلفة شهر {monthLabel}</span>
           <span className="ms-auto text-xs text-muted-foreground">
             {hasLimit
@@ -72,13 +83,13 @@ const SalaryAdvanceBar: React.FC<Props> = ({ workerId, language }) => {
         {hasLimit && (
           <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
             <div
-              className={`h-full transition-all ${isFull ? 'bg-destructive' : 'bg-primary'}`}
+              className={`h-full transition-all ${tier.bar}`}
               style={{ width: `${pct}%` }}
             />
           </div>
         )}
         <div className="mt-2 flex items-center justify-between text-xs">
-          <span className={isFull ? 'text-destructive font-medium' : 'text-primary font-medium'}>
+          <span className={`font-medium ${tier.text}`}>
             {!hasLimit
               ? 'لم يحدد المدير حدًّا شهريًا للسلفة'
               : isFull
@@ -88,6 +99,7 @@ const SalaryAdvanceBar: React.FC<Props> = ({ workerId, language }) => {
           <span className="text-muted-foreground">اضغط لعرض السجل</span>
         </div>
       </Card>
+
 
 
       <Dialog open={open} onOpenChange={setOpen}>
