@@ -127,9 +127,9 @@ export const useOpenInvestigation = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['investigations'] });
       qc.invalidateQueries({ queryKey: ['surplus-deficit-cash'] });
-      toast.success('تم فتح قضية التحقيق');
+      toast.success('تم فتح ملف المتابعة');
     },
-    onError: (e: any) => toast.error(e.message || 'فشل فتح القضية'),
+    onError: (e: any) => toast.error(e.message || 'فشل فتح الملف'),
   });
 };
 
