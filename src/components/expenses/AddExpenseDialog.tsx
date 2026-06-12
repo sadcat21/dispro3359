@@ -139,8 +139,8 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!categoryId || !amount || parseFloat(amount) <= 0) return;
-    if (isAdvanceCategory && !advanceWorkerId) {
-      toast.error('يرجى اختيار العامل المستفيد من المسبق');
+    if (needsWorkerPick && !advanceWorkerId) {
+      toast.error(isPeerHandoverCategory ? 'يرجى اختيار الزميل المستلِم' : 'يرجى اختيار العامل المستفيد من المسبق');
       return;
     }
 
