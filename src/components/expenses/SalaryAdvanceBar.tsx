@@ -67,7 +67,7 @@ const SalaryAdvanceBar: React.FC<Props> = ({ workerId, language }) => {
   return (
     <>
       <Card
-        className={`p-3 cursor-pointer hover:shadow-md transition-all border ${tier.card}`}
+        className={`p-3 cursor-pointer hover:shadow-md transition-all border !border-red-400 ${tier.card}`}
         onClick={() => setOpen(true)}
         role="button"
       >
