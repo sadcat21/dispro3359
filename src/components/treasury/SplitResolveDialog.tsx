@@ -316,8 +316,11 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
                       variant="outline"
                       size="sm"
                       className="gap-1 text-xs"
-                      onClick={() => (needsCustomer ? setCustomerOpen(true) : setWorkerOpen(true))}
-                    >
+                      onClick={() => {
+                        if (needsCustomer) setCustomerOpen(true);
+                        else if (isPeerHandover) setPeerPickerOpen(true);
+                        else setWorkerOpen(true);
+                      }}
                       {needsCustomer ? <Store className="w-3.5 h-3.5" /> : <UserRound className="w-3.5 h-3.5" />}
                       {draftParty ? 'تغيير' : 'اختيار'}
                     </Button>
