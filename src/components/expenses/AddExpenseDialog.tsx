@@ -416,8 +416,19 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
                   );
                 })}
               </div>
+              {isJustificationOther && (
+                <Input
+                  value={justificationOtherTitle}
+                  onChange={e => setJustificationOtherTitle(e.target.value)}
+                  placeholder="أدخل عنوان المبرر"
+                  maxLength={80}
+                />
+              )}
               {isJustificationAdvance && receiverAdvance && receiverAdvance.remaining === 0 && (
                 <p className="text-[10px] text-red-600">لا يمكن منح مسبق أجرة لهذا الزميل هذا الشهر</p>
+              )}
+              {exceedsAdvanceLimit && (
+                <p className="text-[11px] font-medium text-red-600">المبلغ المُدخل يتجاوز الحد المسموح به</p>
               )}
             </div>
           )}
