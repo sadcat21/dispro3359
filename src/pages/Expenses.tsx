@@ -35,7 +35,7 @@ const Expenses: React.FC = () => {
   const { language, t, dir } = useLanguage();
   const isManager = isAdminRole(role);
 
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [pickedCategoryId, setPickedCategoryId] = useState<string | undefined>(undefined);
   const [showAdd, setShowAdd] = useState(false);
