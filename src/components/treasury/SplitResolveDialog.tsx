@@ -39,6 +39,7 @@ interface OptionDef {
 const OPTIONS: OptionDef[] = [
   { key: 'customer_repayment', label: 'استرداد من عميل', requires: 'customer', deficitOnly: true },
   { key: 'credit_to_customer', label: 'رصيد لحساب عميل', requires: 'customer', surplusOnly: true },
+  { key: 'peer_cash_handover', label: 'تسليم نقدية لزميل', requires: 'worker' },
   { key: 'transfer_to_other_employee', label: 'تسوية مع عامل آخر', requires: 'worker' },
   { key: 'worker_debt', label: 'تحويل لدين العامل الأصلي', requires: 'none' },
   { key: 'worker_acknowledged', label: 'العامل أقرّ بالفرق', requires: 'none' },
@@ -114,6 +115,25 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
     },
   });
 
+  // Live status of peer cash handovers for this treasury entry (for badges)
+  const peerHandoversQ = useQuery({
+    enabled: !!entry?.id,
+    queryKey: ['treasury-peer-handovers', entry?.id],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from('peer_cash_handovers')
+        .select('split_id, status, response_note, responded_at')
+        .eq('treasury_id', entry!.id);
+      if (error) throw error;
+      return data as Array<{ split_id: string; status: 'pending' | 'approved' | 'rejected'; response_note: string | null; responded_at: string | null }>;
+    },
+  });
+  const peerBySplit = useMemo(() => {
+    const m: Record<string, { status: string; response_note: string | null }> = {};
+    (peerHandoversQ.data ?? []).forEach((h) => { m[h.split_id] = h; });
+    return m;
+  }, [peerHandoversQ.data]);
+
   const availableOptions = OPTIONS.filter((o) => {
     if (o.surplusOnly && !isSurplus) return false;
     if (o.deficitOnly && isSurplus) return false;
@@ -155,6 +175,7 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
       party_label: draftParty?.label ?? null,
       notes: draftNotes || null,
       resolved_by: workerId || null,
+      sender_worker_id: entry?.worker_id || entry?.manager_id || null,
     });
     reset();
   };
@@ -200,8 +221,10 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
               <Label className="text-xs">السطور المُسجّلة</Label>
               <ScrollArea className="max-h-44">
                 <div className="space-y-1.5 pr-1">
-                  {splits.map((r) => (
-                    <div key={r.id} className="flex items-center gap-2 rounded-md border p-2 text-xs bg-card">
+                  {splits.map((r) => {
+                    const peer = r.resolution_type === 'peer_cash_handover' ? peerBySplit[r.id] : undefined;
+                    return (
+                    <div key={r.id} className="flex items-center gap-2 rounded-md border p-2 text-xs bg-card flex-wrap">
                       <Badge variant="outline" className="text-[10px]">{TYPE_LABEL[r.resolution_type] || r.resolution_type}</Badge>
                       <span className="font-bold">{fmt(Number(r.amount))} DA</span>
                       {r.party_label && (
@@ -209,6 +232,15 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
                           {r.party_type === 'customer' ? <Store className="w-3 h-3" /> : <UserRound className="w-3 h-3" />}
                           {r.party_label}
                         </span>
+                      )}
+                      {peer && (
+                        <Badge
+                          variant={peer.status === 'approved' ? 'default' : peer.status === 'rejected' ? 'destructive' : 'secondary'}
+                          className="text-[10px] gap-1"
+                        >
+                          {peer.status === 'approved' && <CheckCircle2 className="w-3 h-3" />}
+                          {peer.status === 'approved' ? 'أكّد الزميل الاستلام' : peer.status === 'rejected' ? 'رفض الزميل' : 'بانتظار تأكيد الزميل'}
+                        </Badge>
                       )}
                       {r.notes && <span className="text-muted-foreground truncate flex-1">— {r.notes}</span>}
                       <Button
@@ -220,7 +252,8 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </ScrollArea>
             </div>
