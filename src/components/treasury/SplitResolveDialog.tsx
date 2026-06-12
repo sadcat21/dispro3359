@@ -226,32 +226,50 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
                   {splits.map((r) => {
                     const peer = r.resolution_type === 'peer_cash_handover' ? peerBySplit[r.id] : undefined;
                     return (
-                    <div key={r.id} className="flex items-center gap-2 rounded-md border p-2 text-xs bg-card flex-wrap">
-                      <Badge variant="outline" className="text-[10px]">{TYPE_LABEL[r.resolution_type] || r.resolution_type}</Badge>
-                      <span className="font-bold">{fmt(Number(r.amount))} DA</span>
+                    <div key={r.id} className="flex items-center gap-2 rounded-md border p-2 text-xs bg-card">
+                      <Badge variant="outline" className="text-[10px] shrink-0">{TYPE_LABEL[r.resolution_type] || r.resolution_type}</Badge>
                       {r.party_label && (
-                        <span className="text-muted-foreground flex items-center gap-1">
-                          {r.party_type === 'customer' ? <Store className="w-3 h-3" /> : <UserRound className="w-3 h-3" />}
-                          {r.party_label}
+                        <span className="text-muted-foreground flex items-center gap-1 truncate flex-1 min-w-0">
+                          {r.party_type === 'customer' ? <Store className="w-3 h-3 shrink-0" /> : <UserRound className="w-3 h-3 shrink-0" />}
+                          <span className="truncate">{r.party_label}</span>
                         </span>
                       )}
+                      {!r.party_label && <span className="flex-1" />}
+                      <span className="font-bold shrink-0">{fmt(Number(r.amount))} DA</span>
                       {peer && (
                         <Badge
                           variant={peer.status === 'approved' ? 'default' : peer.status === 'rejected' ? 'destructive' : 'secondary'}
-                          className="text-[10px] gap-1"
+                          className="text-[10px] gap-1 shrink-0"
                         >
                           {peer.status === 'approved' && <CheckCircle2 className="w-3 h-3" />}
                           {peer.status === 'approved' ? 'أكّد الزميل الاستلام' : peer.status === 'rejected' ? 'رفض الزميل' : 'بانتظار تأكيد الزميل'}
                         </Badge>
                       )}
-                      {r.notes && <span className="text-muted-foreground truncate flex-1">— {r.notes}</span>}
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="h-6 w-6 ms-auto text-destructive"
+                        className="h-6 w-6 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
                         onClick={() => del.mutate({ id: r.id, treasury_id: entry.id })}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-6 w-6 shrink-0 text-foreground"
+                        onClick={() => {
+                          setDraftType(r.resolution_type as SplitResolutionType);
+                          setDraftAmount(String(r.amount));
+                          setDraftParty(
+                            r.party_id && r.party_type
+                              ? { id: r.party_id, label: r.party_label || '', type: r.party_type as 'customer' | 'worker' }
+                              : null
+                          );
+                          setDraftNotes(r.notes || '');
+                          del.mutate({ id: r.id, treasury_id: entry.id });
+                        }}
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
                       </Button>
                     </div>
                     );
