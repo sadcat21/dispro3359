@@ -136,9 +136,6 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
     selectedJustification.name_en?.toLowerCase().includes('other')
   ));
 
-  const amountNum = parseFloat(amount || '0') || 0;
-  const exceedsAdvanceLimit = isPeerHandoverCategory && isJustificationAdvance && !!receiverAdvance && amountNum > receiverAdvance.remaining;
-
   // Receiver's salary-advance status for the current month (used to color the
   // "advance" justification button and clamp the amount). No values are exposed
   // in the UI — only a tier color, to preserve the receiver's privacy.
@@ -158,6 +155,9 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
       return { limit, used, remaining: Math.max(0, limit - used), pct: limit > 0 ? Math.min(100, (used / limit) * 100) : 0 };
     },
   });
+
+  const amountNum = parseFloat(amount || '0') || 0;
+  const exceedsAdvanceLimit = isPeerHandoverCategory && isJustificationAdvance && !!receiverAdvance && amountNum > receiverAdvance.remaining;
 
   const advanceTierClass = !receiverAdvance || receiverAdvance.limit <= 0
     ? 'bg-card border-border text-foreground'
