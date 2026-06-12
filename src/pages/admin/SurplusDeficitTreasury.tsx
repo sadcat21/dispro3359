@@ -172,7 +172,7 @@ const ResolveDialog: React.FC<{
 // ───────────── Approve dialog (admin four-eyes) ─────────────
 const ApproveDialog: React.FC<{ entry: any | null; onClose: () => void }> = ({ entry, onClose }) => {
   const approve = useApproveTreasuryEntry();
-  const [decision, setDecision] = useState<'manager_approved_writeoff' | 'worker_debt' | 'investigation'>('manager_approved_writeoff');
+  const [decision, setDecision] = useState<ResolutionKey>('manager_approved_writeoff');
   const [notes, setNotes] = useState('');
 
   if (!entry) return null;
