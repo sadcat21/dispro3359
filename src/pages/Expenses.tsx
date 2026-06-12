@@ -166,7 +166,16 @@ const Expenses: React.FC = () => {
         )}
       </Tabs>
 
-      <AddExpenseDialog open={showAdd} onOpenChange={setShowAdd} />
+      <CategoryPickerDialog
+        open={showCategoryPicker}
+        onOpenChange={setShowCategoryPicker}
+        onPick={(id) => { setPickedCategoryId(id); setShowAdd(true); }}
+      />
+      <AddExpenseDialog
+        open={showAdd}
+        onOpenChange={(o) => { setShowAdd(o); if (!o) setPickedCategoryId(undefined); }}
+        initialCategoryId={pickedCategoryId}
+      />
       <AddExpenseDialog
         open={!!editExpense}
         onOpenChange={(o) => { if (!o) setEditExpense(null); }}
