@@ -123,13 +123,15 @@ const ageBand = (createdAt: string): { label: string; days: number } => {
 const ResolveDialog: React.FC<{
   entry: any | null;
   onClose: () => void;
-}> = ({ entry, onClose }) => {
+  onRequestInvestigation: (entry: any) => void;
+}> = ({ entry, onClose, onRequestInvestigation }) => {
   const { workerId } = useAuth();
   const resolve = useResolveTreasuryEntry();
   const [resolution, setResolution] = useState<ResolutionKey>('manager_approved_writeoff');
   const [notes, setNotes] = useState('');
 
   if (!entry) return null;
+  const isInvestigation = resolution === 'investigation';
 
   return (
     <Dialog open={!!entry} onOpenChange={(o) => !o && onClose()}>
@@ -142,16 +144,27 @@ const ResolveDialog: React.FC<{
             <Label>القرار</Label>
             <ResolutionButtons value={resolution} onChange={setResolution} />
           </div>
-          <div>
-            <Label>المبرر / الملاحظات</Label>
-            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="اكتب سبب القرار..." />
-          </div>
+          {isInvestigation ? (
+            <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900">
+              ستُفتح <b>قضية تحقيق رسمية</b> بمحقّق مُكلَّف، مهلة، أدلة موثَّقة، وقرار ختامي يُطبَّق تلقائيًا على هذا القيد.
+            </div>
+          ) : (
+            <div>
+              <Label>المبرر / الملاحظات</Label>
+              <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="اكتب سبب القرار..." />
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>إلغاء</Button>
           <Button
             disabled={resolve.isPending}
             onClick={async () => {
+              if (isInvestigation) {
+                onClose();
+                onRequestInvestigation(entry);
+                return;
+              }
               await resolve.mutateAsync({
                 id: entry.id,
                 resolution_type: resolution,
@@ -161,13 +174,14 @@ const ResolveDialog: React.FC<{
               onClose();
             }}
           >
-            حفظ
+            {isInvestigation ? 'فتح قضية تحقيق' : 'حفظ'}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 };
+
 
 // ───────────── Approve dialog (admin four-eyes) ─────────────
 const ApproveDialog: React.FC<{ entry: any | null; onClose: () => void }> = ({ entry, onClose }) => {
