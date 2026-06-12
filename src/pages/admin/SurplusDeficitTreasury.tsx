@@ -126,7 +126,7 @@ const ResolveDialog: React.FC<{
 }> = ({ entry, onClose }) => {
   const { workerId } = useAuth();
   const resolve = useResolveTreasuryEntry();
-  const [resolution, setResolution] = useState<'manager_approved_writeoff' | 'worker_debt' | 'investigation'>('manager_approved_writeoff');
+  const [resolution, setResolution] = useState<ResolutionKey>('manager_approved_writeoff');
   const [notes, setNotes] = useState('');
 
   if (!entry) return null;
