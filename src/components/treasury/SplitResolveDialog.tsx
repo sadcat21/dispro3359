@@ -274,8 +274,44 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
       <Dialog open={!!entry} onOpenChange={(o) => !o && onClose()}>
         <DialogContent dir="rtl" className="max-w-2xl max-h-[92vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>تسوية الفرق ({fmt(total)} DA)</DialogTitle>
+            <div className="flex items-center justify-between gap-2 pl-6">
+              <DialogTitle>تسوية الفرق ({fmt(total)} DA)</DialogTitle>
+              <Collapsible open={helpOpen} onOpenChange={setHelpOpen}>
+                <CollapsibleTrigger asChild>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="h-7 gap-1 text-xs"
+                  >
+                    <HelpCircle className="w-3.5 h-3.5" />
+                    شرح طرق التسوية
+                    <ChevronDown className={cn('w-3 h-3 transition-transform', helpOpen && 'rotate-180')} />
+                  </Button>
+                </CollapsibleTrigger>
+              </Collapsible>
+            </div>
           </DialogHeader>
+
+          <Collapsible open={helpOpen} onOpenChange={setHelpOpen}>
+            <CollapsibleContent>
+              <div className="rounded-lg border bg-muted/30 p-3 space-y-2 max-h-72 overflow-y-auto">
+                <p className="text-[11px] text-muted-foreground">شرح موجز لكل طريقة تسوية مع مثال:</p>
+                {availableOptions.map((o) => {
+                  const help = TYPE_HELP[o.key];
+                  if (!help) return null;
+                  return (
+                    <div key={o.key} className="rounded-md border bg-card p-2 space-y-1">
+                      <div className="text-xs font-semibold text-primary">{o.label}</div>
+                      <div className="text-[11px]"><b>السلوك:</b> {help.behavior}</div>
+                      <div className="text-[11px] text-muted-foreground"><b>مثال:</b> {help.example}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
 
           {/* Progress */}
           <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
