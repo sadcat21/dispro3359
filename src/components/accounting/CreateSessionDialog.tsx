@@ -149,6 +149,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
   const createSession = useCreateSession();
   const updateSession = useUpdateFullSession();
   const createWorkerDebt = useCreateWorkerDebt();
+  const { data: toleranceSettings } = useTreasuryToleranceSettings(activeBranch?.id);
   const [registerDeficit, setRegisterDeficit] = useState(false);
   const [viewByProduct, setViewByProduct] = useState(false);
   const [swipeMode, setSwipeMode] = useState(false);
