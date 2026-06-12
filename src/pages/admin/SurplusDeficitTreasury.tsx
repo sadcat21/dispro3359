@@ -487,7 +487,7 @@ const SurplusDeficitTreasury: React.FC = () => {
                           </Button>
                         )}
                         {isAdmin && entry.manager_id === workerId && (
-                          <span className="text-[10px] text-muted-foreground self-center">لا يمكنك اعتماد قيد أنشأته</span>
+                          <span className="text-[10px] text-amber-700 self-center">يحتاج اعتماد مديرٍ آخر (رقابة مزدوجة)</span>
                         )}
                       </div>
                     )}
