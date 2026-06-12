@@ -509,7 +509,7 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
                   placeholder="0.00"
                   required
                 />
-                {isPeerHandoverCategory && submitterCalc && (
+                {isPeerHandoverCategory && !isCashExempt && submitterCalc && (
                   <p className={`text-[11px] ${exceedsAvailableCash ? 'text-red-600 font-medium' : 'text-muted-foreground'}`}>
                     {exceedsAvailableCash
                       ? `المبلغ يتجاوز السيولة المتوفرة لديك (${availableCash.toFixed(2)} DA)`
