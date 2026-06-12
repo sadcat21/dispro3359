@@ -135,15 +135,24 @@ const SalaryAdvanceBar: React.FC<Props> = ({ workerId, language }) => {
                   </span>
                 </div>
               ))}
-              <div className="pt-2 border-t mt-2 flex justify-between text-sm font-semibold">
-                <span>المجموع</span>
-                <span className="text-primary">
-                  {formatNumber(data.used, language as any)} دج
-                </span>
-              </div>
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>المتبقي</span>
-                <span>{formatNumber(remaining, language as any)} دج</span>
+              <div className={`mt-3 rounded-lg border-2 p-3 space-y-1 ${tier.card}`}>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-bold">إجمالي السلف هذا الشهر</span>
+                  <span className={`text-lg font-extrabold ${tier.text}`}>
+                    {formatNumber(data.used, language as any)} دج
+                  </span>
+                </div>
+                {hasLimit && (
+                  <>
+                    <div className="h-1.5 w-full rounded-full bg-background/60 overflow-hidden">
+                      <div className={`h-full ${tier.bar}`} style={{ width: `${pct}%` }} />
+                    </div>
+                    <div className="flex justify-between text-[11px] text-muted-foreground pt-1">
+                      <span>الحد الشهري: {formatNumber(data.limit, language as any)} دج</span>
+                      <span>المتبقي: <b className={tier.text}>{formatNumber(remaining, language as any)} دج</b></span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           )}
