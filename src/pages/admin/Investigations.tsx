@@ -50,7 +50,7 @@ const Investigations: React.FC = () => {
         <div className="space-y-2">
           {isLoading && <p className="text-center text-sm text-muted-foreground py-8">جاري التحميل...</p>}
           {!isLoading && cases.length === 0 && (
-            <p className="text-center text-sm text-muted-foreground py-8">لا توجد قضايا</p>
+            <p className="text-center text-sm text-muted-foreground py-8">لا توجد ملفات متابعة</p>
           )}
           {cases.map((c) => {
             const overdue =
