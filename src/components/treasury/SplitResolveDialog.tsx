@@ -221,8 +221,10 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
               <Label className="text-xs">السطور المُسجّلة</Label>
               <ScrollArea className="max-h-44">
                 <div className="space-y-1.5 pr-1">
-                  {splits.map((r) => (
-                    <div key={r.id} className="flex items-center gap-2 rounded-md border p-2 text-xs bg-card">
+                  {splits.map((r) => {
+                    const peer = r.resolution_type === 'peer_cash_handover' ? peerBySplit[r.id] : undefined;
+                    return (
+                    <div key={r.id} className="flex items-center gap-2 rounded-md border p-2 text-xs bg-card flex-wrap">
                       <Badge variant="outline" className="text-[10px]">{TYPE_LABEL[r.resolution_type] || r.resolution_type}</Badge>
                       <span className="font-bold">{fmt(Number(r.amount))} DA</span>
                       {r.party_label && (
@@ -230,6 +232,15 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
                           {r.party_type === 'customer' ? <Store className="w-3 h-3" /> : <UserRound className="w-3 h-3" />}
                           {r.party_label}
                         </span>
+                      )}
+                      {peer && (
+                        <Badge
+                          variant={peer.status === 'approved' ? 'default' : peer.status === 'rejected' ? 'destructive' : 'secondary'}
+                          className="text-[10px] gap-1"
+                        >
+                          {peer.status === 'approved' && <CheckCircle2 className="w-3 h-3" />}
+                          {peer.status === 'approved' ? 'أكّد الزميل الاستلام' : peer.status === 'rejected' ? 'رفض الزميل' : 'بانتظار تأكيد الزميل'}
+                        </Badge>
                       )}
                       {r.notes && <span className="text-muted-foreground truncate flex-1">— {r.notes}</span>}
                       <Button
@@ -241,7 +252,8 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </ScrollArea>
             </div>
