@@ -45,8 +45,8 @@ const RESOLUTION_OPTIONS: {
   },
   {
     key: 'investigation',
-    label: 'إحالة للتحقيق',
-    hint: 'تعليق القرار حتى انتهاء المراجعة',
+    label: 'فتح ملف متابعة',
+    hint: 'تأجيل القرار حتى انتهاء المراجعة',
     icon: Search,
     active: 'border-amber-500 bg-amber-50 text-amber-700 ring-2 ring-amber-200',
     idle: 'border-border hover:border-amber-300 hover:bg-amber-50/50',
