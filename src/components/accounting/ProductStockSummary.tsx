@@ -17,6 +17,8 @@ interface ProductStockSummaryProps {
   periodEnd: string;
   viewByProduct?: boolean;
   promoTracking?: PromoTrackingItem[];
+  sessionId?: string;
+  useSnapshot?: boolean;
 }
 
 interface SoldProductPricingRow {
