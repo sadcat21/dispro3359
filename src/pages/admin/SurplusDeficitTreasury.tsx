@@ -292,21 +292,28 @@ const ResolveDialog: React.FC<{
   const resolve = useResolveTreasuryEntry();
   const [resolution, setResolution] = useState<ResolutionKey>('manager_approved_writeoff');
   const [notes, setNotes] = useState('');
+  const [helpOpen, setHelpOpen] = useState(false);
 
   if (!entry) return null;
   const isInvestigation = resolution === 'investigation';
 
   return (
     <Dialog open={!!entry} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent dir="rtl">
+      <DialogContent dir="rtl" className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>تسوية القيد ({fmt(Number(entry.amount))} DA)</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           <div className="space-y-2">
-            <Label>القرار</Label>
+            <div className="flex items-center justify-between">
+              <Label>القرار</Label>
+              <Button type="button" variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={() => setHelpOpen(true)}>
+                <HelpCircle className="w-3.5 h-3.5" /> ما معنى كل خيار؟
+              </Button>
+            </div>
             <ResolutionButtons value={resolution} onChange={setResolution} />
           </div>
+          <ResolutionHelpDialog open={helpOpen} onClose={() => setHelpOpen(false)} />
           {isInvestigation ? (
             <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900">
               سيُفتح <b>ملف متابعة</b> مع مسؤول مُكلَّف ومهلة، تُجمع فيه الملاحظات والمستندات، ويُطبَّق القرار النهائي تلقائيًا على هذا القيد.
