@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useExpenses, useDeleteExpense, useWorkerAccountedRanges } from '@/hooks/useExpenses';
+import { useExpenses, useDeleteExpense, useWorkerAccountedRanges, useExpenseCategories } from '@/hooks/useExpenses';
 import { ExpenseWithDetails } from '@/types/expense';
 import AddExpenseDialog from '@/components/expenses/AddExpenseDialog';
 import CategoryPickerDialog from '@/components/expenses/CategoryPickerDialog';
