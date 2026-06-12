@@ -365,25 +365,29 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
                 />
               </div>
 
-              <Button
-                type="button"
-                size="sm"
-                className="w-full gap-1"
-                disabled={!canAdd() || add.isPending}
-                onClick={handleAdd}
-              >
-                <Plus className="w-4 h-4" />
-                {draftType === 'investigation' ? 'فتح ملف متابعة' : 'إضافة السطر'}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  className="flex-1 gap-1"
+                  disabled={!canAdd() || add.isPending}
+                  onClick={handleAdd}
+                >
+                  <Plus className="w-4 h-4" />
+                  {draftType === 'investigation' ? 'فتح ملف متابعة' : 'إضافة السطر'}
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+                  onClick={onClose}
+                >
+                  حفظ
+                </Button>
+              </div>
             </div>
           )}
 
-          <DialogFooter className="gap-2 sm:gap-2">
-            <Button variant="outline" onClick={onClose}>إغلاق</Button>
-            <Button className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={onClose}>
-              حفظ
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
