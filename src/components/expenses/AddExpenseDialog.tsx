@@ -239,29 +239,27 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
             </div>
           )}
 
-          {/* Worker selector for advance category */}
-          {isAdvanceCategory && (
+          {/* Worker selector for advance / peer handover category */}
+          {needsWorkerPick && (
             <div className="space-y-2">
-              <Label>العامل المستفيد من المسبق</Label>
-              <Select value={advanceWorkerId} onValueChange={setAdvanceWorkerId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="اختر العامل" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(branchWorkers || []).map(w => (
-                    <SelectItem key={w.id} value={w.id}>
-                      {w.full_name}
-                    </SelectItem>
-                  ))}
-                  {(!branchWorkers || branchWorkers.length === 0) && (
-                    <div className="px-2 py-1.5 text-xs text-muted-foreground">
-                      لا يوجد عمال في هذا الفرع
-                    </div>
-                  )}
-                </SelectContent>
-              </Select>
+              <Label>{isPeerHandoverCategory ? 'الزميل المستلِم' : 'العامل المستفيد من المسبق'}</Label>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full justify-between"
+                onClick={() => setWorkerPickerOpen(true)}
+              >
+                <span className="truncate">
+                  {advanceWorkerId
+                    ? (branchWorkers?.find(w => w.id === advanceWorkerId)?.full_name || 'تم الاختيار')
+                    : 'اختر العامل'}
+                </span>
+                <span className="text-xs text-muted-foreground">{isPeerHandoverCategory ? 'تسليم لزميل' : 'مسبق'}</span>
+              </Button>
               <p className="text-[10px] text-muted-foreground">
-                سيتم تسجيل المبلغ ضمن ديون العامل تلقائياً
+                {isPeerHandoverCategory
+                  ? 'سيتم تسجيل المبلغ كتسليم نقدي للزميل'
+                  : 'سيتم تسجيل المبلغ ضمن ديون العامل تلقائياً'}
               </p>
             </div>
           )}
