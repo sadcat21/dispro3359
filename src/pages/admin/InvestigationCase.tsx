@@ -152,17 +152,17 @@ const InvestigationCase: React.FC = () => {
 
       {canClose && (
         <Button className="w-full gap-2" onClick={() => setCloseOpen(true)}>
-          <ShieldCheck className="w-4 h-4" /> إغلاق القضية وتطبيق القرار
+          <ShieldCheck className="w-4 h-4" /> إغلاق الملف وتطبيق القرار
         </Button>
       )}
       {isOpener && c.status !== 'concluded' && (
-        <p className="text-[11px] text-amber-700 text-center">لا يمكنك إغلاق قضية فتحتها بنفسك — يجب أن يُغلقها مديرٌ آخر</p>
+        <p className="text-[11px] text-amber-700 text-center">لا يمكنك إغلاق ملف فتحته بنفسك — يجب أن يُغلقه مديرٌ آخر</p>
       )}
 
       <Dialog open={closeOpen} onOpenChange={setCloseOpen}>
         <DialogContent dir="rtl">
           <DialogHeader>
-            <DialogTitle>إغلاق القضية</DialogTitle>
+            <DialogTitle>إغلاق الملف</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-2">
