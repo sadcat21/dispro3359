@@ -302,76 +302,77 @@ const ExpenseCard: React.FC<{
 
   return (
     <>
-      <Card className="overflow-hidden rounded-2xl border-border bg-card p-0 shadow-lg" dir="rtl">
+      <Card className="overflow-hidden rounded-2xl border-border bg-card p-0 shadow-md" dir="rtl">
         {/* Header: Date & Status */}
-        <div className="flex items-center justify-between border-b border-border/50 px-5 py-3">
-          <span className="text-xs font-medium text-muted-foreground">
+        <div className="flex items-center justify-between border-b border-border/50 px-3 py-2">
+          <span className="text-[11px] font-medium text-muted-foreground">
             {formatDate(expense.expense_date, 'dd MMM yyyy', language as any)}
           </span>
-          <span className={`rounded-full border px-3 py-1 text-xs font-bold ${statusPill}`}>
+          <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${statusPill}`}>
             {t(status.labelKey)}
           </span>
         </div>
 
-        {/* Amount & Category */}
-        <div className="px-5 py-5">
-          <div className="mb-1 flex items-baseline gap-2">
-            <span className={`text-3xl font-bold tracking-tight ${isNegative ? 'text-emerald-500' : 'text-foreground'}`}>
-              {formatNumber(Math.abs(amountNum), language as any)}
-            </span>
-            <span className="text-sm font-semibold uppercase text-muted-foreground">
-              {t('common.currency')}
-            </span>
+        {/* Amount & Category + Beneficiary inline */}
+        <div className="flex items-start justify-between gap-2 px-3 py-3">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-baseline gap-1">
+              <span className={`text-2xl font-bold leading-none tracking-tight ${isNegative ? 'text-emerald-500' : 'text-foreground'}`}>
+                {formatNumber(Math.abs(amountNum), language as any)}
+              </span>
+              <span className="text-[10px] font-semibold uppercase text-muted-foreground">
+                {t('common.currency')}
+              </span>
+            </div>
+            <h3 className="mt-1 truncate text-xs font-semibold text-foreground">
+              {getCategoryName(expense.category as any, language as any) || t('expenses.uncategorized')}
+            </h3>
           </div>
-          <h3 className="text-base font-bold text-foreground">
-            {getCategoryName(expense.category as any, language as any) || t('expenses.uncategorized')}
-          </h3>
+          {beneficiary && (
+            <div className="max-w-[55%] shrink-0 rounded-lg border border-primary/20 bg-primary/5 px-2 py-1.5 text-right">
+              <p className="text-[9px] text-primary/70">🧾 المستفيد</p>
+              <p className="truncate text-xs font-bold text-foreground">{beneficiary}</p>
+            </div>
+          )}
         </div>
 
         {/* Metadata Grid */}
-        <div className="space-y-3 px-5 pb-5">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-xl border border-border/40 bg-muted/30 p-3">
-              <p className="mb-1 text-[10px] text-muted-foreground">{t('expenses.worker') || 'الموظف'}</p>
-              <p className="text-sm font-semibold text-foreground">
+        <div className="space-y-2 px-3 pb-3">
+          <div className="grid grid-cols-2 gap-2">
+            <div className="rounded-lg border border-border/40 bg-muted/30 px-2 py-1.5">
+              <p className="text-[9px] text-muted-foreground">{t('expenses.worker') || 'الموظف'}</p>
+              <p className="truncate text-xs font-semibold text-foreground">
                 {expense.worker?.full_name ?? '—'}
               </p>
             </div>
-            <div className="rounded-xl border border-border/40 bg-muted/30 p-3">
-              <p className="mb-1 text-[10px] text-muted-foreground">{t('expenses.reviewer') || 'المراجع'}</p>
-              <div className="flex items-center gap-1.5">
+            <div className="rounded-lg border border-border/40 bg-muted/30 px-2 py-1.5">
+              <p className="text-[9px] text-muted-foreground">{t('expenses.reviewer') || 'المراجع'}</p>
+              <div className="flex items-center gap-1">
                 {expense.reviewer && (
-                  <div className={`h-2 w-2 rounded-full ${expense.status === 'approved' ? 'bg-emerald-400' : expense.status === 'rejected' ? 'bg-red-400' : 'bg-amber-400'}`} />
+                  <div className={`h-1.5 w-1.5 rounded-full ${expense.status === 'approved' ? 'bg-emerald-400' : expense.status === 'rejected' ? 'bg-red-400' : 'bg-amber-400'}`} />
                 )}
-                <p className="text-sm font-semibold text-foreground">
+                <p className="truncate text-xs font-semibold text-foreground">
                   {expense.reviewer?.full_name ?? '—'}
                 </p>
               </div>
             </div>
           </div>
 
-          {beneficiary && (
-            <div className="rounded-xl border border-primary/15 bg-primary/5 p-3">
-              <p className="mb-1 text-[10px] text-primary/70">🧾 المستفيد من المسبق</p>
-              <p className="text-sm font-bold text-foreground">{beneficiary}</p>
-            </div>
-          )}
-
           {peerLabel && (
-            <div className="rounded-xl border border-emerald-500/15 bg-emerald-500/5 p-3">
-              <p className="mb-1 text-[10px] text-emerald-500/80">تحويل بين الزملاء</p>
-              <p className="text-sm font-bold text-foreground">{peerLabel}</p>
+            <div className="rounded-lg border border-emerald-500/15 bg-emerald-500/5 px-2 py-1.5">
+              <p className="text-[9px] text-emerald-500/80">تحويل بين الزملاء</p>
+              <p className="text-xs font-bold text-foreground">{peerLabel}</p>
             </div>
           )}
 
           {expense.description && !beneficiary && !peerLabel && (
-            <p className="text-sm text-foreground/80">{expense.description}</p>
+            <p className="text-xs text-foreground/80">{expense.description}</p>
           )}
 
           {receiptUrls.length > 0 && (
             <button
               onClick={() => setShowReceipt(true)}
-              className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+              className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline"
             >
               <Image className="h-3 w-3" />
               {receiptUrls.length > 1 ? `${t('expenses.has_receipts')} (${receiptUrls.length})` : t('expenses.view_receipt')}
@@ -379,15 +380,16 @@ const ExpenseCard: React.FC<{
           )}
 
           {expense.status === 'rejected' && expense.rejection_reason && (
-            <p className="rounded bg-destructive/10 p-2 text-xs text-destructive">
+            <p className="rounded bg-destructive/10 p-1.5 text-[11px] text-destructive">
               {t('expenses.rejection_reason')}: {expense.rejection_reason}
             </p>
           )}
 
           {isOwner && accounted && (
-            <p className="text-[10px] text-muted-foreground">{t('expenses.locked_accounted')}</p>
+            <p className="text-[9px] text-muted-foreground">{t('expenses.locked_accounted')}</p>
           )}
         </div>
+
 
         {/* Actions */}
         {canModify && (
