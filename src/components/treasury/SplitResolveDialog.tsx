@@ -155,6 +155,7 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
   const [workerOpen, setWorkerOpen] = useState(false);
   const [peerPickerOpen, setPeerPickerOpen] = useState(false);
   const [typePickerOpen, setTypePickerOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
 
 
   const isSurplus = entry?.source_type === 'accounting_surplus' || entry?.source_type === 'customer_surplus';
