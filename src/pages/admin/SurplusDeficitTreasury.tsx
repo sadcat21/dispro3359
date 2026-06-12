@@ -463,6 +463,7 @@ const SurplusDeficitTreasury: React.FC = () => {
       </Tabs>
 
       <ResolveDialog entry={resolveTarget} onClose={() => setResolveTarget(null)} />
+      <ApproveDialog entry={approveTarget} onClose={() => setApproveTarget(null)} />
       <ToleranceDialog open={showSettings} onClose={() => setShowSettings(false)} branchId={activeBranch?.id} />
     </div>
   );
