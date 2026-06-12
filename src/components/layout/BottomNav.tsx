@@ -138,7 +138,7 @@ const NavButton: React.FC<{
       )}
       style={
         isAchievements ? { boxShadow: '0 6px 16px rgba(34,197,94,0.35)' }
-        : isHome ? { boxShadow: '0 6px 16px rgba(132,204,22,0.45)' }
+        : isHome ? { boxShadow: '0 6px 16px rgba(239,68,68,0.45)' }
 
 
 
