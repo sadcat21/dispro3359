@@ -111,6 +111,7 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
     setAdvanceWorkerId('');
     setJustification('');
     setJustificationCategoryId(null);
+    setJustificationOtherTitle('');
   };
 
   // Justification options = expense categories minus the peer-handover one
@@ -129,6 +130,14 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
     selectedJustification.name_fr?.toLowerCase().includes('avance') ||
     selectedJustification.name_en?.toLowerCase().includes('advance')
   ));
+  const isJustificationOther = !!(selectedJustification && (
+    selectedJustification.name?.includes('أخرى') ||
+    selectedJustification.name_fr?.toLowerCase().includes('autre') ||
+    selectedJustification.name_en?.toLowerCase().includes('other')
+  ));
+
+  const amountNum = parseFloat(amount || '0') || 0;
+  const exceedsAdvanceLimit = isPeerHandoverCategory && isJustificationAdvance && !!receiverAdvance && amountNum > receiverAdvance.remaining;
 
   // Receiver's salary-advance status for the current month (used to color the
   // "advance" justification button and clamp the amount). No values are exposed
