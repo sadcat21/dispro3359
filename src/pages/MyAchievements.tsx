@@ -1004,7 +1004,9 @@ const MyAchievements: React.FC = () => {
     if (activeFilter) {
       result = activeFilter === 'debt_new'
         ? result.filter((visit: any) => isDebtNewAchievement(visit))
-        : result.filter((visit: any) => visit.operation_type === activeFilter);
+        : activeFilter === 'cancelled'
+          ? result.filter((visit: any) => (visit as any).order_status === 'cancelled')
+          : result.filter((visit: any) => visit.operation_type === activeFilter);
     }
 
     if (searchQuery.trim()) {
@@ -1043,6 +1045,7 @@ const MyAchievements: React.FC = () => {
   }, [visits, activeFilter, searchQuery, invoiceMode, selectedProductIds, selectedSessionRanges]);
 
   const debtNewCount = useMemo(() => visits.filter((visit: any) => isDebtNewAchievement(visit)).length, [visits]);
+  const cancelledCount = useMemo(() => visits.filter((visit: any) => (visit as any).order_status === 'cancelled').length, [visits]);
 
   const handleOpenAchievement = async (visit: any) => {
     if (visit.operation_type === 'debt_collection') {
@@ -1499,6 +1502,12 @@ const MyAchievements: React.FC = () => {
               className={`inline-flex items-center gap-0.5 rounded-full px-2.5 py-1 text-[11px] font-bold border transition-colors ${!activeFilter ? 'bg-primary text-primary-foreground border-primary shadow-sm' : 'bg-muted/50 text-muted-foreground border-border hover:bg-muted'}`}
             >
               الكل <span className="tabular-nums">{visits.length}</span>
+            </button>
+            <button
+              onClick={() => setActiveFilter(activeFilter === 'cancelled' ? null : 'cancelled')}
+              className={`inline-flex items-center gap-0.5 rounded-full px-2.5 py-1 text-[11px] font-medium border transition-colors ${activeFilter === 'cancelled' ? 'bg-primary text-primary-foreground border-primary shadow-sm' : 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'}`}
+            >
+              ملغاة <span className="font-bold tabular-nums">{cancelledCount}</span>
             </button>
             <button
               onClick={() => setActiveFilter(activeFilter === 'debt_new' ? null : 'debt_new')}
