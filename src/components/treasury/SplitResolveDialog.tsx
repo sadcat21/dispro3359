@@ -285,7 +285,13 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
                     className="w-full h-9 justify-between text-xs"
                     onClick={() => setTypePickerOpen(true)}
                   >
-                    <span className="truncate">{TYPE_LABEL[draftType] || 'اختر النوع'}</span>
+                    <span className="truncate">
+                      {draftType === 'customer_repayment' && draftParty
+                        ? `استرداد من: ${draftParty.label}`
+                        : draftType === 'worker_debt'
+                        ? `دين على: ${(branchWorkersQ.data ?? []).find((w) => w.id === (entry?.worker_id || entry?.manager_id))?.full_name || 'العامل الأصلي'}`
+                        : TYPE_LABEL[draftType] || 'اختر النوع'}
+                    </span>
                     <Plus className="w-3.5 h-3.5 opacity-60" />
                   </Button>
                 </div>
