@@ -90,6 +90,7 @@ const EditWorkerProfileDialog: React.FC<Props> = ({ open, onOpenChange, workerId
         work_phone: workPhone || null,
         personal_phone: personalPhone || null,
         device_locked: deviceLocked,
+        max_monthly_salary_advance: maxMonthlyAdvance.trim() === '' ? null : Number(maxMonthlyAdvance),
       };
 
       if (newPassword.trim()) {
