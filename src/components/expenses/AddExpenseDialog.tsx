@@ -66,6 +66,7 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
   const [advanceWorkerId, setAdvanceWorkerId] = useState('');
   const [justification, setJustification] = useState('');
   const [justificationCategoryId, setJustificationCategoryId] = useState<string | null>(null);
+  const [justificationOtherTitle, setJustificationOtherTitle] = useState('');
 
   // Check if selected category is fuel / advance
   const selectedCategory = filteredCategories.find(c => c.id === categoryId);
@@ -110,6 +111,7 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
     setAdvanceWorkerId('');
     setJustification('');
     setJustificationCategoryId(null);
+    setJustificationOtherTitle('');
   };
 
   // Justification options = expense categories minus the peer-handover one
@@ -127,6 +129,11 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
     selectedJustification.name?.includes('مسبق') ||
     selectedJustification.name_fr?.toLowerCase().includes('avance') ||
     selectedJustification.name_en?.toLowerCase().includes('advance')
+  ));
+  const isJustificationOther = !!(selectedJustification && (
+    selectedJustification.name?.includes('أخرى') ||
+    selectedJustification.name_fr?.toLowerCase().includes('autre') ||
+    selectedJustification.name_en?.toLowerCase().includes('other')
   ));
 
   // Receiver's salary-advance status for the current month (used to color the
@@ -148,6 +155,9 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
       return { limit, used, remaining: Math.max(0, limit - used), pct: limit > 0 ? Math.min(100, (used / limit) * 100) : 0 };
     },
   });
+
+  const amountNum = parseFloat(amount || '0') || 0;
+  const exceedsAdvanceLimit = isPeerHandoverCategory && isJustificationAdvance && !!receiverAdvance && amountNum > receiverAdvance.remaining;
 
   const advanceTierClass = !receiverAdvance || receiverAdvance.limit <= 0
     ? 'bg-card border-border text-foreground'
@@ -235,7 +245,11 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
     const workerName = needsWorkerPick
       ? (branchWorkers?.find(w => w.id === advanceWorkerId)?.full_name || '')
       : '';
-    const justificationLabel = selectedJustification ? getCategoryName(selectedJustification as any, language) : '';
+    const justificationLabel = selectedJustification
+      ? (isJustificationOther && justificationOtherTitle.trim()
+          ? justificationOtherTitle.trim()
+          : getCategoryName(selectedJustification as any, language))
+      : '';
     const finalDescription = isAdvanceCategory
       ? `مسبق أجرة: ${workerName}${description ? ` — ${description}` : ''}`
       : isPeerHandoverCategory
@@ -402,8 +416,19 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
                   );
                 })}
               </div>
+              {isJustificationOther && (
+                <Input
+                  value={justificationOtherTitle}
+                  onChange={e => setJustificationOtherTitle(e.target.value)}
+                  placeholder="أدخل عنوان المبرر"
+                  maxLength={80}
+                />
+              )}
               {isJustificationAdvance && receiverAdvance && receiverAdvance.remaining === 0 && (
                 <p className="text-[10px] text-red-600">لا يمكن منح مسبق أجرة لهذا الزميل هذا الشهر</p>
+              )}
+              {exceedsAdvanceLimit && (
+                <p className="text-[11px] font-medium text-red-600">المبلغ المُدخل يتجاوز الحد المسموح به</p>
               )}
             </div>
           )}
@@ -452,7 +477,7 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
           <Button
             type="submit"
             className="w-full"
-            disabled={!categoryId || !amount || createExpense.isPending || updateExpense.isPending || uploading || createWorkerDebt.isPending || (!isEdit && needsWorkerPick && !advanceWorkerId)}
+            disabled={!categoryId || !amount || createExpense.isPending || updateExpense.isPending || uploading || createWorkerDebt.isPending || (!isEdit && needsWorkerPick && !advanceWorkerId) || exceedsAdvanceLimit || (isPeerHandoverCategory && isJustificationOther && !justificationOtherTitle.trim())}
           >
             {(createExpense.isPending || updateExpense.isPending || uploading) && <Loader2 className="w-4 h-4 animate-spin me-2" />}
             {isEdit ? t('common.save') : t('expenses.add_button')}
