@@ -181,6 +181,20 @@ const EditWorkerProfileDialog: React.FC<Props> = ({ open, onOpenChange, workerId
             </div>
           </div>
 
+          <div className="space-y-1.5">
+            <Label>الحد الأقصى لسلفة الراتب الشهرية (دج)</Label>
+            <Input
+              type="number"
+              min="0"
+              step="100"
+              value={maxMonthlyAdvance}
+              onChange={e => setMaxMonthlyAdvance(e.target.value)}
+              placeholder="اتركه فارغًا لعدم وضع حد"
+              dir="ltr"
+            />
+            <p className="text-[10px] text-muted-foreground">عند بلوغ هذا الحد خلال الشهر، لن يُسمح بإضافة سلفة جديدة</p>
+          </div>
+
           {/* قسم بيانات الجهاز */}
           <div className="border-t pt-4 mt-2 space-y-3">
             <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
