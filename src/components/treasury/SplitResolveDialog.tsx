@@ -156,6 +156,7 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
       party_label: draftParty?.label ?? null,
       notes: draftNotes || null,
       resolved_by: workerId || null,
+      sender_worker_id: entry?.worker_id || entry?.manager_id || null,
     });
     reset();
   };
