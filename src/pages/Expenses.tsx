@@ -98,11 +98,11 @@ const Expenses: React.FC = () => {
       )}
 
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="w-full">
-          <TabsTrigger value="expenses" className="flex-1">
-            {isManager ? t('expenses.title') : t('expenses.my_expenses')}
-          </TabsTrigger>
-          {!isManager && (
+        {!isManager && (
+          <TabsList className="w-full">
+            <TabsTrigger value="expenses" className="flex-1">
+              {t('expenses.my_expenses')}
+            </TabsTrigger>
             <TabsTrigger value="peer" className="flex-1 gap-1">
               تحويلات بانتظار تأكيدي
               {pendingPeerCount > 0 && (
@@ -111,26 +111,10 @@ const Expenses: React.FC = () => {
                 </Badge>
               )}
             </TabsTrigger>
-          )}
-        </TabsList>
+          </TabsList>
+        )}
 
         <TabsContent value="expenses" className="space-y-4 mt-4">
-          <div className="flex gap-2">
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-48">
-                <Filter className="w-4 h-4 me-1" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t('expenses.all')}</SelectItem>
-                {categories.map((c: any) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {getCategoryName(c, language)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
 
           {isLoading ? (
             <div className="flex justify-center py-12">
