@@ -72,11 +72,17 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
   const isAdvanceCategory = selectedCategory?.name?.includes('مسبق') ||
     selectedCategory?.name_fr?.toLowerCase().includes('avance') ||
     selectedCategory?.name_en?.toLowerCase().includes('advance');
+  const isPeerHandoverCategory = selectedCategory?.name?.includes('تسليم لزميل') ||
+    selectedCategory?.name_fr?.toLowerCase().includes('collègue') ||
+    selectedCategory?.name_fr?.toLowerCase().includes('collegue') ||
+    selectedCategory?.name_en?.toLowerCase().includes('colleague') ||
+    selectedCategory?.name_en?.toLowerCase().includes('handover to');
+  const needsWorkerPick = isAdvanceCategory || isPeerHandoverCategory;
 
-  // Load workers of the current branch (for advance category)
+  // Load workers of the current branch (for advance / peer-handover category)
   const { data: branchWorkers } = useQuery({
     queryKey: ['expense-advance-workers', activeBranch?.id],
-    enabled: open && isAdvanceCategory && !!activeBranch?.id,
+    enabled: open && needsWorkerPick && !!activeBranch?.id,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('workers')
@@ -89,6 +95,8 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
     },
   });
 
+  const [workerPickerOpen, setWorkerPickerOpen] = useState(false);
+
   const resetForm = () => {
     setCategoryId('');
     setAmount('');
@@ -100,8 +108,8 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
   };
 
   useEffect(() => {
-    if (!isAdvanceCategory) setAdvanceWorkerId('');
-  }, [isAdvanceCategory]);
+    if (!needsWorkerPick) setAdvanceWorkerId('');
+  }, [needsWorkerPick]);
 
   useEffect(() => {
     if (open && expense) {
@@ -131,8 +139,8 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!categoryId || !amount || parseFloat(amount) <= 0) return;
-    if (isAdvanceCategory && !advanceWorkerId) {
-      toast.error('يرجى اختيار العامل المستفيد من المسبق');
+    if (needsWorkerPick && !advanceWorkerId) {
+      toast.error(isPeerHandoverCategory ? 'يرجى اختيار الزميل المستلِم' : 'يرجى اختيار العامل المستفيد من المسبق');
       return;
     }
 
@@ -206,6 +214,7 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md" dir={dir}>
         <DialogHeader>
@@ -231,29 +240,27 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
             </div>
           )}
 
-          {/* Worker selector for advance category */}
-          {isAdvanceCategory && (
+          {/* Worker selector for advance / peer handover category */}
+          {needsWorkerPick && (
             <div className="space-y-2">
-              <Label>العامل المستفيد من المسبق</Label>
-              <Select value={advanceWorkerId} onValueChange={setAdvanceWorkerId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="اختر العامل" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(branchWorkers || []).map(w => (
-                    <SelectItem key={w.id} value={w.id}>
-                      {w.full_name}
-                    </SelectItem>
-                  ))}
-                  {(!branchWorkers || branchWorkers.length === 0) && (
-                    <div className="px-2 py-1.5 text-xs text-muted-foreground">
-                      لا يوجد عمال في هذا الفرع
-                    </div>
-                  )}
-                </SelectContent>
-              </Select>
+              <Label>{isPeerHandoverCategory ? 'الزميل المستلِم' : 'العامل المستفيد من المسبق'}</Label>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full justify-between"
+                onClick={() => setWorkerPickerOpen(true)}
+              >
+                <span className="truncate">
+                  {advanceWorkerId
+                    ? (branchWorkers?.find(w => w.id === advanceWorkerId)?.full_name || 'تم الاختيار')
+                    : 'اختر العامل'}
+                </span>
+                <span className="text-xs text-muted-foreground">{isPeerHandoverCategory ? 'تسليم لزميل' : 'مسبق'}</span>
+              </Button>
               <p className="text-[10px] text-muted-foreground">
-                سيتم تسجيل المبلغ ضمن ديون العامل تلقائياً
+                {isPeerHandoverCategory
+                  ? 'سيتم تسجيل المبلغ كتسليم نقدي للزميل'
+                  : 'سيتم تسجيل المبلغ ضمن ديون العامل تلقائياً'}
               </p>
             </div>
           )}
@@ -344,7 +351,7 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
           <Button
             type="submit"
             className="w-full"
-            disabled={!categoryId || !amount || createExpense.isPending || updateExpense.isPending || uploading || createWorkerDebt.isPending || (!isEdit && isAdvanceCategory && !advanceWorkerId)}
+            disabled={!categoryId || !amount || createExpense.isPending || updateExpense.isPending || uploading || createWorkerDebt.isPending || (!isEdit && needsWorkerPick && !advanceWorkerId)}
           >
             {(createExpense.isPending || updateExpense.isPending || uploading) && <Loader2 className="w-4 h-4 animate-spin me-2" />}
             {isEdit ? t('common.save') : t('expenses.add_button')}
@@ -353,6 +360,40 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
         </form>
       </DialogContent>
     </Dialog>
+
+    <Dialog open={workerPickerOpen} onOpenChange={setWorkerPickerOpen}>
+      <DialogContent className="max-w-md" dir={dir}>
+        <DialogHeader>
+          <DialogTitle>{isPeerHandoverCategory ? 'اختر الزميل المستلِم' : 'اختر العامل المستفيد'}</DialogTitle>
+        </DialogHeader>
+        {(!branchWorkers || branchWorkers.length === 0) ? (
+          <p className="text-center text-sm text-muted-foreground py-6">
+            لا يوجد عمال في هذا الفرع
+          </p>
+        ) : (
+          <div className="grid grid-cols-2 gap-2 pt-2 max-h-[60vh] overflow-y-auto">
+            {branchWorkers.map(w => {
+              const selected = advanceWorkerId === w.id;
+              return (
+                <button
+                  key={w.id}
+                  type="button"
+                  onClick={() => { setAdvanceWorkerId(w.id); setWorkerPickerOpen(false); }}
+                  className={`rounded-lg border p-3 text-center text-xs font-medium transition-all flex flex-col items-center gap-1 ${
+                    selected
+                      ? 'border-primary bg-primary/5 ring-2 ring-primary/30'
+                      : 'border-border hover:border-primary/40 hover:bg-muted/40'
+                  }`}
+                >
+                  <span className="line-clamp-2">{w.full_name}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+    </>
   );
 };
 
