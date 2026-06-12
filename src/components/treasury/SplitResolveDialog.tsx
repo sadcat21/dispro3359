@@ -240,18 +240,17 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
                   <Label className="text-xs">نوع التسوية</Label>
-                  <Select value={draftType} onValueChange={(v) => { setDraftType(v as SplitResolutionType); setDraftParty(null); }}>
-                    <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {availableOptions.map((o) => (
-                        <SelectItem key={o.key} value={o.key} className="text-xs">{o.label}</SelectItem>
-                      ))}
-                      <SelectItem value="investigation" className="text-xs">
-                        <span className="flex items-center gap-1"><SearchIcon className="w-3 h-3" /> فتح ملف متابعة</span>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full h-9 justify-between text-xs"
+                    onClick={() => setTypePickerOpen(true)}
+                  >
+                    <span className="truncate">{TYPE_LABEL[draftType] || 'اختر النوع'}</span>
+                    <Plus className="w-3.5 h-3.5 opacity-60" />
+                  </Button>
                 </div>
+
 
                 <div className="space-y-1">
                   <Label className="text-xs">المبلغ (≤ {fmt(remaining)})</Label>
