@@ -148,7 +148,7 @@ const ResolveDialog: React.FC<{
           </div>
           {isInvestigation ? (
             <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900">
-              ستُفتح <b>قضية تحقيق رسمية</b> بمحقّق مُكلَّف، مهلة، أدلة موثَّقة، وقرار ختامي يُطبَّق تلقائيًا على هذا القيد.
+              سيُفتح <b>ملف متابعة</b> مع مسؤول مُكلَّف ومهلة، تُجمع فيه الملاحظات والمستندات، ويُطبَّق القرار النهائي تلقائيًا على هذا القيد.
             </div>
           ) : (
             <div>
