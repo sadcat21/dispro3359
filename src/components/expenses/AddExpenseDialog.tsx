@@ -200,6 +200,41 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
   const amountNum = parseFloat(amount || '0') || 0;
   const exceedsAdvanceLimit = isPeerHandoverCategory && isJustificationAdvance && !!receiverAdvance && amountNum > receiverAdvance.remaining;
 
+  // Submitter's physical cash on hand for the current open accounting period.
+  // For peer-handover, the submitter cannot give more cash than they actually
+  // hold and are due to hand over to the manager.
+  const { data: submitterLastSessionEnd } = useQuery({
+    queryKey: ['submitter-last-session-end', submitterWorkerId],
+    enabled: open && isPeerHandoverCategory && !!submitterWorkerId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('accounting_sessions')
+        .select('period_end')
+        .eq('worker_id', submitterWorkerId!)
+        .eq('status', 'completed')
+        .order('period_end', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return (data as any)?.period_end || null;
+    },
+  });
+  const submitterCalcParams = useMemo(() => {
+    if (!open || !isPeerHandoverCategory || !submitterWorkerId) return null;
+    const now = new Date();
+    const periodEndValue = now.toISOString();
+    const localDateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const periodStartValue = submitterLastSessionEnd || `${localDateKey}T00:00:00+01:00`;
+    return {
+      workerId: submitterWorkerId,
+      branchId: effectiveBranchId || undefined,
+      periodStart: periodStartValue,
+      periodEnd: periodEndValue,
+    };
+  }, [open, isPeerHandoverCategory, submitterWorkerId, effectiveBranchId, submitterLastSessionEnd]);
+  const { data: submitterCalc } = useSessionCalculations(submitterCalcParams);
+  const availableCash = Math.max(0, Number(submitterCalc?.physicalCash || 0));
+  const exceedsAvailableCash = isPeerHandoverCategory && !!submitterCalc && amountNum > availableCash;
+
   const advanceTierClass = !receiverAdvance || receiverAdvance.limit <= 0
     ? 'bg-card border-border text-foreground'
     : receiverAdvance.pct >= 100
