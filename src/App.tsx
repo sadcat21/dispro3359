@@ -70,6 +70,8 @@ const Suppliers = lazy(() => import("./pages/admin/Suppliers"));
 const BranchInvoiceApprovals = lazy(() => import("./pages/admin/BranchInvoiceApprovals"));
 const BranchManagerApprovals = lazy(() => import("./pages/admin/BranchManagerApprovals"));
 const SurplusDeficitTreasury = lazy(() => import("./pages/admin/SurplusDeficitTreasury"));
+const Investigations = lazy(() => import("./pages/admin/Investigations"));
+const InvestigationCase = lazy(() => import("./pages/admin/InvestigationCase"));
 const Rewards = lazy(() => import("./pages/admin/Rewards"));
 const Targets = lazy(() => import("./pages/admin/Targets"));
 const TargetsLeaderboardPage = lazy(() => import("./pages/admin/TargetsLeaderboardPage"));
