@@ -6,10 +6,22 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { format, differenceInDays } from 'date-fns';
-import { ArrowUpCircle, ArrowDownCircle, Package, Banknote, TrendingUp, TrendingDown, Users, Settings as SettingsIcon, CheckCircle2, ShieldCheck, Eraser, UserMinus, Search, HandCoins } from 'lucide-react';
+import { ArrowUpCircle, ArrowDownCircle, Package, Banknote, TrendingUp, TrendingDown, Users, Settings as SettingsIcon, CheckCircle2, ShieldCheck, Eraser, UserMinus, Search, HandCoins, HelpCircle, Sparkles, Gift, RotateCcw, PenLine, Wallet } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
-type ResolutionKey = 'manager_approved_writeoff' | 'worker_debt' | 'investigation' | 'customer_repayment';
+type ResolutionKey =
+  | 'manager_approved_writeoff'
+  | 'worker_debt'
+  | 'investigation'
+  | 'customer_repayment'
+  | 'tolerance_writeoff'
+  | 'split_writeoff_debt'
+  | 'deduct_from_reward'
+  | 'offset_against_return'
+  | 'worker_acknowledged'
+  | 'credit_to_customer'
+  | 'carry_forward';
 
 const RESOLUTION_OPTIONS: {
   key: ResolutionKey;
@@ -51,7 +63,156 @@ const RESOLUTION_OPTIONS: {
     active: 'border-amber-500 bg-amber-50 text-amber-700 ring-2 ring-amber-200',
     idle: 'border-border hover:border-amber-300 hover:bg-amber-50/50',
   },
+  {
+    key: 'tolerance_writeoff',
+    label: 'فرق بسيط — تجاوز',
+    hint: 'مبلغ صغير ضمن حد التسامح اليومي',
+    icon: Sparkles,
+    active: 'border-sky-500 bg-sky-50 text-sky-700 ring-2 ring-sky-200',
+    idle: 'border-border hover:border-sky-300 hover:bg-sky-50/50',
+  },
+  {
+    key: 'worker_acknowledged',
+    label: 'العامل أقرّ بالفرق',
+    hint: 'اعتراف طوعي — يتحوّل فورًا لحسابه',
+    icon: PenLine,
+    active: 'border-indigo-500 bg-indigo-50 text-indigo-700 ring-2 ring-indigo-200',
+    idle: 'border-border hover:border-indigo-300 hover:bg-indigo-50/50',
+  },
+  {
+    key: 'deduct_from_reward',
+    label: 'خصم من المكافأة',
+    hint: 'يُحسم من حافز العامل القادم',
+    icon: Gift,
+    active: 'border-pink-500 bg-pink-50 text-pink-700 ring-2 ring-pink-200',
+    idle: 'border-border hover:border-pink-300 hover:bg-pink-50/50',
+  },
+  {
+    key: 'split_writeoff_debt',
+    label: 'تقاسم: شطب + دين',
+    hint: 'جزء يُشطب وجزء يتحمّله العامل',
+    icon: UserMinus,
+    active: 'border-fuchsia-500 bg-fuchsia-50 text-fuchsia-700 ring-2 ring-fuchsia-200',
+    idle: 'border-border hover:border-fuchsia-300 hover:bg-fuchsia-50/50',
+  },
+  {
+    key: 'offset_against_return',
+    label: 'مقاصّة مع مرتجع',
+    hint: 'بانتظار تسجيل مرتجع العميل',
+    icon: RotateCcw,
+    active: 'border-teal-500 bg-teal-50 text-teal-700 ring-2 ring-teal-200',
+    idle: 'border-border hover:border-teal-300 hover:bg-teal-50/50',
+  },
+  {
+    key: 'credit_to_customer',
+    label: 'رصيد لحساب العميل',
+    hint: 'للفائض — يُضاف لحساب العميل',
+    icon: Wallet,
+    active: 'border-cyan-500 bg-cyan-50 text-cyan-700 ring-2 ring-cyan-200',
+    idle: 'border-border hover:border-cyan-300 hover:bg-cyan-50/50',
+  },
+  {
+    key: 'carry_forward',
+    label: 'ترحيل للجلسة القادمة',
+    hint: 'تأجيل لحين جلسة العامل التالية',
+    icon: ArrowUpCircle,
+    active: 'border-slate-500 bg-slate-100 text-slate-700 ring-2 ring-slate-200',
+    idle: 'border-border hover:border-slate-300 hover:bg-slate-50/50',
+  },
 ];
+
+const HELP_ITEMS: { key: ResolutionKey; title: string; body: string; example: string }[] = [
+  {
+    key: 'manager_approved_writeoff',
+    title: 'شطب باعتماد المدير',
+    body: 'يقرّر المدير إعفاء العامل من الفرق بشكل نهائي. تُسجَّل خسارة معتمدة في حسابات الشركة ولا تعود للنقاش.',
+    example: 'مثال: فرق 1500 DA بسبب سرقة موثّقة بفاتورة شرطة — المدير يعتمد الشطب.',
+  },
+  {
+    key: 'worker_debt',
+    title: 'تحويل لدين العامل',
+    body: 'يتحوّل الفرق إلى دين على العامل، ويُخصم لاحقًا من راتبه أو مستحقاته بشكل مجدول.',
+    example: 'مثال: العامل ناقص 800 DA بدون مبرّر واضح — يتحوّل لدين ويُخصم من راتب نهاية الشهر.',
+  },
+  {
+    key: 'customer_repayment',
+    title: 'استرداد من العميل',
+    body: 'الفرق سببه العميل (دفعة ناقصة مثلاً)، فيُكلَّف بإرجاعه في الزيارة القادمة.',
+    example: 'مثال: العميل أحمد دفع 4500 بدل 5000 — يُسجَّل عليه 500 يُحصِّلها العامل لاحقًا.',
+  },
+  {
+    key: 'investigation',
+    title: 'فتح ملف متابعة',
+    body: 'القرار غير واضح بعد. نفتح ملفًا فيه الأطراف المعنية والأدلة، ويُغلق لاحقًا بقرار نهائي.',
+    example: 'مثال: عجز 3000 DA والعامل والمساعد يختلفان في الرواية — نفتح ملف ونجمع المعلومات.',
+  },
+  {
+    key: 'tolerance_writeoff',
+    title: 'فرق بسيط — تجاوز',
+    body: 'الفرق صغير وضمن الحد اليومي المسموح (مثلاً ≤ 100 DA). يُشطب تلقائيًا دون مساءلة.',
+    example: 'مثال: نقص 50 DA من فكّ العملة في يوم طويل — يُتجاوز بدون إجراءات.',
+  },
+  {
+    key: 'worker_acknowledged',
+    title: 'العامل أقرّ بالفرق',
+    body: 'العامل بنفسه يعترف بالفرق ويقبل تحميله عليه. مسار سريع بدون فتح ملف، مع توثيق الاعتراف.',
+    example: 'مثال: العامل يقول "نسيت ورقة 200 DA في جيبي بالغلط، احسبوها عليّ" — يضغط زر الإقرار.',
+  },
+  {
+    key: 'deduct_from_reward',
+    title: 'خصم من المكافأة',
+    body: 'بدل ما نسجّله دَين رسمي، نخصمه من حافز/مكافأة العامل القادمة. أخفّ نفسيًا وأسرع تحصيلًا.',
+    example: 'مثال: فرق 300 DA — يُخصم من مكافأة الشهر بدل تسجيله كدَين دائم.',
+  },
+  {
+    key: 'split_writeoff_debt',
+    title: 'تقاسم: شطب + دين',
+    body: 'حين تكون المسؤولية مشتركة، نقسّم: جزء يُشطب باعتماد المدير وجزء يتحمّله العامل.',
+    example: 'مثال: عجز 1000 DA بسبب إهمال غير متعمَّد — 600 شطب و 400 على العامل.',
+  },
+  {
+    key: 'offset_against_return',
+    title: 'مقاصّة مع مرتجع',
+    body: 'العامل يقول إن الفرق سببه مرتجع لم يُسجَّل بعد. نُعلّق القيد لحين تسجيل المرتجع رسميًا.',
+    example: 'مثال: نقص 500 DA — العامل يقول رجّع له عميل بضاعة بـ 500، نُعلّق لحين تسجيلها بكرا.',
+  },
+  {
+    key: 'credit_to_customer',
+    title: 'رصيد لحساب العميل',
+    body: 'في حالة الفائض، نُضيف المبلغ كرصيد دائن في حساب عميل محدّد، يستفيد منه في فاتورته القادمة.',
+    example: 'مثال: زيادة 300 DA — العميل دفع زيادة بالغلط، نُضيفها كرصيد له يُستعمل في الطلب القادم.',
+  },
+  {
+    key: 'carry_forward',
+    title: 'ترحيل للجلسة القادمة',
+    body: 'تأجيل الفرق لحين جلسة العامل المحاسبية التالية، علّه يُسوّى بفرق معاكس.',
+    example: 'مثال: فرق فكّ عملة 80 DA — نُرحّله للأسبوع القادم؛ غالبًا يُعوَّض بفرق مماثل.',
+  },
+];
+
+const ResolutionHelpDialog: React.FC<{ open: boolean; onClose: () => void }> = ({ open, onClose }) => (
+  <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+    <DialogContent dir="rtl" className="max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle className="flex items-center gap-2"><HelpCircle className="w-5 h-5" /> دليل خيارات التسوية</DialogTitle>
+      </DialogHeader>
+      <Accordion type="single" collapsible className="w-full">
+        {HELP_ITEMS.map((item) => (
+          <AccordionItem key={item.key} value={item.key}>
+            <AccordionTrigger className="text-sm text-right">{item.title}</AccordionTrigger>
+            <AccordionContent className="space-y-2 text-xs">
+              <p className="text-foreground">{item.body}</p>
+              <p className="rounded-md bg-muted/50 p-2 text-muted-foreground">{item.example}</p>
+            </AccordionContent>
+          </AccordionItem>
+        ))}
+      </Accordion>
+      <DialogFooter>
+        <Button variant="outline" onClick={onClose}>إغلاق</Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+);
 
 const ResolutionButtons: React.FC<{
   value: ResolutionKey;
@@ -131,21 +292,28 @@ const ResolveDialog: React.FC<{
   const resolve = useResolveTreasuryEntry();
   const [resolution, setResolution] = useState<ResolutionKey>('manager_approved_writeoff');
   const [notes, setNotes] = useState('');
+  const [helpOpen, setHelpOpen] = useState(false);
 
   if (!entry) return null;
   const isInvestigation = resolution === 'investigation';
 
   return (
     <Dialog open={!!entry} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent dir="rtl">
+      <DialogContent dir="rtl" className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>تسوية القيد ({fmt(Number(entry.amount))} DA)</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           <div className="space-y-2">
-            <Label>القرار</Label>
+            <div className="flex items-center justify-between">
+              <Label>القرار</Label>
+              <Button type="button" variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={() => setHelpOpen(true)}>
+                <HelpCircle className="w-3.5 h-3.5" /> ما معنى كل خيار؟
+              </Button>
+            </div>
             <ResolutionButtons value={resolution} onChange={setResolution} />
           </div>
+          <ResolutionHelpDialog open={helpOpen} onClose={() => setHelpOpen(false)} />
           {isInvestigation ? (
             <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900">
               سيُفتح <b>ملف متابعة</b> مع مسؤول مُكلَّف ومهلة، تُجمع فيه الملاحظات والمستندات، ويُطبَّق القرار النهائي تلقائيًا على هذا القيد.
@@ -217,7 +385,7 @@ const ApproveDialog: React.FC<{ entry: any | null; onClose: () => void }> = ({ e
             disabled={approve.isPending}
             className="bg-emerald-600 hover:bg-emerald-700"
             onClick={async () => {
-              await approve.mutateAsync({ id: entry.id, decision, notes: notes || undefined });
+              await approve.mutateAsync({ id: entry.id, decision: decision as any, notes: notes || undefined });
               onClose();
             }}
           >

@@ -81,14 +81,29 @@ export const useResolveTreasuryEntry = () => {
   return useMutation({
     mutationFn: async (params: {
       id: string;
-      resolution_type: 'manager_approved_writeoff' | 'worker_debt' | 'investigation' | 'customer_repayment' | 'auto_writeoff';
+      resolution_type:
+        | 'manager_approved_writeoff'
+        | 'worker_debt'
+        | 'investigation'
+        | 'customer_repayment'
+        | 'auto_writeoff'
+        | 'tolerance_writeoff'
+        | 'carry_forward'
+        | 'split_writeoff_debt'
+        | 'deduct_from_reward'
+        | 'offset_against_return'
+        | 'worker_acknowledged'
+        | 'credit_to_customer';
       resolution_notes?: string;
       linked_debt_id?: string | null;
       resolver_user_id?: string | null;
     }) => {
-      const status = params.resolution_type === 'worker_debt' ? 'transferred_to_debt'
-        : params.resolution_type === 'investigation' ? 'under_review'
-        : params.resolution_type === 'customer_repayment' ? 'settled'
+      const t = params.resolution_type;
+      const status =
+        t === 'worker_debt' || t === 'worker_acknowledged' || t === 'split_writeoff_debt' ? 'transferred_to_debt'
+        : t === 'investigation' || t === 'offset_against_return' ? 'under_review'
+        : t === 'customer_repayment' || t === 'deduct_from_reward' || t === 'credit_to_customer' ? 'settled'
+        : t === 'carry_forward' ? 'open'
         : 'written_off';
       const { error } = await supabase
         .from('manager_treasury')
