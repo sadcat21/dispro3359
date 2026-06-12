@@ -276,8 +276,8 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
                 </Button>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
+              <div className="grid grid-cols-3 gap-2">
+                <div className="space-y-1 col-span-2">
                   <Label className="text-xs">نوع التسوية</Label>
                   <Button
                     type="button"
@@ -287,17 +287,17 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
                   >
                     <span className="truncate">
                       {draftType === 'customer_repayment' && draftParty
-                        ? `استرداد من: ${draftParty.label}`
+                        ? draftParty.label
                         : draftType === 'worker_debt'
                         ? `دين على: ${(branchWorkersQ.data ?? []).find((w) => w.id === (entry?.worker_id || entry?.manager_id))?.full_name || 'العامل الأصلي'}`
                         : TYPE_LABEL[draftType] || 'اختر النوع'}
                     </span>
-                    <Plus className="w-3.5 h-3.5 opacity-60" />
+                    <Plus className="w-3.5 h-3.5 opacity-60 shrink-0" />
                   </Button>
                 </div>
 
 
-                <div className="space-y-1">
+                <div className="space-y-1 col-span-1">
                   <Label className="text-xs">المبلغ (≤ {fmt(remaining)})</Label>
                   <Input
                     type="number"
