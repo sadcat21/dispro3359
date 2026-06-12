@@ -375,22 +375,6 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
                 </button>
               );
             })}
-            <button
-              type="button"
-              onClick={() => {
-                setDraftType('investigation' as SplitResolutionType);
-                setDraftParty(null);
-                setTypePickerOpen(false);
-              }}
-              className={cn(
-                'rounded-lg border p-3 text-right text-xs font-medium transition-all col-span-2 flex items-center justify-center gap-1.5',
-                draftType === 'investigation'
-                  ? 'border-amber-500 bg-amber-50 text-amber-800 ring-2 ring-amber-200'
-                  : 'border-border hover:border-amber-300 hover:bg-amber-50/50',
-              )}
-            >
-              <SearchIcon className="w-3.5 h-3.5" /> فتح ملف متابعة
-            </button>
           </div>
         </DialogContent>
       </Dialog>
