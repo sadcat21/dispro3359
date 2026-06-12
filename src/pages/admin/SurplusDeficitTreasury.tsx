@@ -516,12 +516,19 @@ const SurplusDeficitTreasury: React.FC = () => {
     return rows.filter((r) => ['settled', 'written_off', 'transferred_to_debt'].includes(r.status || ''));
   };
 
+  // Remaining amount after partial settlements
+  const remainingOf = (e: any) => {
+    const splits = Array.isArray(e?.resolution_splits) ? e.resolution_splits : [];
+    const settled = splits.reduce((s: number, r: any) => s + Number(r?.amount || 0), 0);
+    return Math.max(0, Number(e?.amount || 0) - settled);
+  };
+
   const cashRows = filterByStatus(cashEntries);
   const custRows = filterByStatus(customerSurplusEntries);
 
-  const totalCashSurplus = cashEntries.filter((e: any) => e.source_type === 'accounting_surplus').reduce((s: number, e: any) => s + Number(e.amount || 0), 0);
-  const totalCashDeficit = cashEntries.filter((e: any) => e.source_type === 'accounting_deficit').reduce((s: number, e: any) => s + Number(e.amount || 0), 0);
-  const totalCustomerSurplus = customerSurplusEntries.reduce((s: number, e: any) => s + Number(e.amount || 0), 0);
+  const totalCashSurplus = cashEntries.filter((e: any) => e.source_type === 'accounting_surplus').reduce((s: number, e: any) => s + remainingOf(e), 0);
+  const totalCashDeficit = cashEntries.filter((e: any) => e.source_type === 'accounting_deficit').reduce((s: number, e: any) => s + remainingOf(e), 0);
+  const totalCustomerSurplus = customerSurplusEntries.reduce((s: number, e: any) => s + remainingOf(e), 0);
   const totalStockSurplus = stockEntries.filter((e: any) => e.discrepancy_type === 'surplus').reduce((s: number, e: any) => s + Number(e.monetary_value || 0), 0);
   const totalStockDeficit = stockEntries.filter((e: any) => e.discrepancy_type === 'deficit').reduce((s: number, e: any) => s + Number(e.monetary_value || 0), 0);
 
@@ -537,7 +544,7 @@ const SurplusDeficitTreasury: React.FC = () => {
     openCash.forEach((e: any) => {
       const b = ageBand(e.created_at).label;
       groups[b].count += 1;
-      groups[b].total += Number(e.amount || 0);
+      groups[b].total += remainingOf(e);
     });
     return groups;
   }, [cashEntries]);
@@ -620,7 +627,10 @@ const SurplusDeficitTreasury: React.FC = () => {
                       <div className="flex items-center gap-2">
                         {isSurplus ? <ArrowUpCircle className="w-4 h-4 text-green-600" /> : <ArrowDownCircle className="w-4 h-4 text-destructive" />}
                         <span className={`text-sm font-bold ${isSurplus ? 'text-green-700 dark:text-green-400' : 'text-destructive'}`}>
-                          {isSurplus ? t('surplus.surplus_word') : t('surplus.deficit_word')} {fmt(Number(entry.amount))} DA
+                          {isSurplus ? t('surplus.surplus_word') : t('surplus.deficit_word')} {fmt(remainingOf(entry))} DA
+                          {remainingOf(entry) !== Number(entry.amount) && (
+                            <span className="ms-1 text-[10px] font-normal text-muted-foreground line-through">{fmt(Number(entry.amount))}</span>
+                          )}
                         </span>
                         <StatusBadge status={entry.status} />
                       </div>
@@ -677,7 +687,10 @@ const SurplusDeficitTreasury: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <ArrowUpCircle className="w-4 h-4 text-blue-600" />
                       <span className="text-sm font-bold text-blue-700 dark:text-blue-400">
-                        {t('surplus.customer_surplus')} {fmt(Number(entry.amount))} DA
+                        {t('surplus.customer_surplus')} {fmt(remainingOf(entry))} DA
+                        {remainingOf(entry) !== Number(entry.amount) && (
+                          <span className="ms-1 text-[10px] font-normal text-muted-foreground line-through">{fmt(Number(entry.amount))}</span>
+                        )}
                       </span>
                       <StatusBadge status={entry.status} />
                     </div>
