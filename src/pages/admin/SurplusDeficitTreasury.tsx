@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import OpenInvestigationDialog from '@/components/treasury/OpenInvestigationDialog';
+import SplitResolveDialog from '@/components/treasury/SplitResolveDialog';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -722,7 +723,7 @@ const SurplusDeficitTreasury: React.FC = () => {
         </TabsContent>
       </Tabs>
 
-      <ResolveDialog
+      <SplitResolveDialog
         entry={resolveTarget}
         onClose={() => setResolveTarget(null)}
         onRequestInvestigation={(e) => setInvestigationTarget(e)}
