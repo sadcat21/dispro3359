@@ -410,9 +410,10 @@ const OpenInvestigationDialog: React.FC<Props> = ({ open, onClose, treasury }) =
       <WorkerPickerDialog
         open={workerPickerOpen}
         onOpenChange={setWorkerPickerOpen}
-        workers={workers}
+        workers={workers.filter(w => !parties.some(p => p.user_id === w.id))}
         selectedWorkerId=""
         onSelect={(id) => { onPickWorker(id); setWorkerPickerOpen(false); }}
+        hideStatusBadge
       />
 
       <CustomerPickerDialog
