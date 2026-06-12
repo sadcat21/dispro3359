@@ -605,14 +605,14 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
       // Register deficit as worker debt AND in surplus/deficit treasury
       if (registerDeficit && cashDifference < 0) {
         try {
-          await createWorkerDebt.mutateAsync({
+          const debt = await createWorkerDebt.mutateAsync({
             worker_id: selectedWorkerId,
             amount: Math.abs(cashDifference),
             debt_type: 'deficit',
             session_id: sessionId,
             description: `${t('create_session.deficit_session_desc')} ${format(new Date(), 'dd/MM/yyyy')}`,
           });
-          // Always also record in surplus/deficit treasury
+          // Always also record in surplus/deficit treasury (already linked to worker debt → transferred_to_debt)
           await supabase.from('manager_treasury').insert({
             manager_id: currentWorkerId!,
             branch_id: activeBranch?.id || null,
@@ -621,6 +621,11 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             payment_method: 'cash',
             amount: Math.abs(cashDifference),
             notes: `${t('create_session.deficit_session_desc')} - ${workerName || selectedWorkerId}`,
+            status: 'transferred_to_debt',
+            resolution_type: 'worker_debt',
+            resolved_by: currentWorkerId || null,
+            resolved_at: new Date().toISOString(),
+            linked_debt_id: (debt as any)?.id ?? null,
           });
           toast.success(t('create_session.deficit_recorded_full'));
         } catch { toast.error(t('create_session.deficit_error')); }
@@ -629,6 +634,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
       // Register deficit ONLY in surplus/deficit treasury (no worker debt)
       if (registerDeficitTreasury && cashDifference < 0) {
         try {
+          const lifecycle = decideTreasuryLifecycle(Math.abs(cashDifference), toleranceSettings ?? null);
           await supabase.from('manager_treasury').insert({
             manager_id: currentWorkerId!,
             branch_id: activeBranch?.id || null,
@@ -637,6 +643,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             payment_method: 'cash',
             amount: Math.abs(cashDifference),
             notes: `${t('create_session.deficit_session_desc')} - ${workerName || selectedWorkerId}`,
+            ...lifecycle,
           });
           toast.success(t('create_session.deficit_recorded_treasury'));
         } catch { toast.error(t('create_session.deficit_treasury_error')); }
@@ -645,6 +652,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
       // Register surplus in manager treasury
       if (registerSurplus && cashDifference > 0) {
         try {
+          const lifecycle = decideTreasuryLifecycle(cashDifference, toleranceSettings ?? null);
           await supabase.from('manager_treasury').insert({
             manager_id: currentWorkerId!,
             branch_id: activeBranch?.id || null,
@@ -653,6 +661,7 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             payment_method: 'cash',
             amount: cashDifference,
             notes: `${t('create_session.surplus_session_note')} - ${workerName || selectedWorkerId}`,
+            ...lifecycle,
           });
           toast.success(t('create_session.surplus_recorded'));
         } catch { toast.error(t('create_session.surplus_error')); }
