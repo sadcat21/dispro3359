@@ -165,10 +165,12 @@ const ToleranceDialog: React.FC<{ open: boolean; onClose: () => void; branchId?:
 
 // ───────────── Page ─────────────
 const SurplusDeficitTreasury: React.FC = () => {
-  const { activeBranch } = useAuth();
+  const { activeBranch, role, workerId } = useAuth();
   const { dir, t } = useLanguage();
+  const isAdmin = isAdminRole(role);
   const [statusFilter, setStatusFilter] = useState<'all' | 'open' | 'settled'>('open');
   const [resolveTarget, setResolveTarget] = useState<any | null>(null);
+  const [approveTarget, setApproveTarget] = useState<any | null>(null);
   const [showSettings, setShowSettings] = useState(false);
 
   const { data: cashEntries = [] } = useQuery({
