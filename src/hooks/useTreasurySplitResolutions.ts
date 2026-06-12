@@ -70,6 +70,7 @@ export const useAddTreasuryResolution = () => {
       resolved_by?: string | null;
       status?: 'settled' | 'under_review' | 'open';
       sender_worker_id?: string | null;
+      branch_id?: string | null;
     }) => {
       const status =
         row.status ??
