@@ -270,9 +270,8 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
                 <Label className="text-sm font-semibold">إضافة سطر تسوية</Label>
                 <Button
                   type="button"
-                  variant="ghost"
                   size="sm"
-                  className="h-7 text-xs"
+                  className="h-7 text-xs bg-red-600 text-white hover:bg-red-700"
                   onClick={() => setDraftAmount(String(remaining))}
                 >
                   استخدم كامل المتبقّي ({fmt(remaining)})
