@@ -195,9 +195,9 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
           {/* Progress */}
           <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
             <div className="flex items-center justify-between text-xs">
-              <span>الإجمالي: <b>{fmt(total)} DA</b></span>
-              <span>المُسوّى: <b className="text-emerald-700">{fmt(used)} DA</b></span>
-              <span>المتبقّي: <b className={remaining > 0 ? 'text-amber-700' : 'text-emerald-700'}>{fmt(remaining)} DA</b></span>
+              <span>الإجمالي: <b dir="ltr">{fmt(total)} DA</b></span>
+              <span>المُسوّى: <b className="text-emerald-700" dir="ltr">{fmt(used)} DA</b></span>
+              <span>المتبقّي: <b className={remaining > 0 ? 'text-amber-700' : 'text-emerald-700'} dir="ltr">{fmt(remaining)} DA</b></span>
             </div>
             <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
               <div
@@ -235,7 +235,7 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
                         </span>
                       )}
                       {!r.party_label && <span className="flex-1" />}
-                      <span className="font-bold shrink-0">{fmt(Number(r.amount))} DA</span>
+                      <span className="font-bold shrink-0" dir="ltr">{fmt(Number(r.amount))} DA</span>
                       {peer && (
                         <Badge
                           variant={peer.status === 'approved' ? 'default' : peer.status === 'rejected' ? 'destructive' : 'secondary'}
@@ -380,7 +380,12 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
                   type="button"
                   size="sm"
                   className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
-                  onClick={onClose}
+                  onClick={async () => {
+                    if (canAdd()) {
+                      await handleAdd();
+                    }
+                    onClose();
+                  }}
                 >
                   حفظ
                 </Button>
