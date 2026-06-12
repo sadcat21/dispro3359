@@ -102,6 +102,57 @@ const ResolveDialog: React.FC<{
   );
 };
 
+// ───────────── Approve dialog (admin four-eyes) ─────────────
+const ApproveDialog: React.FC<{ entry: any | null; onClose: () => void }> = ({ entry, onClose }) => {
+  const approve = useApproveTreasuryEntry();
+  const [decision, setDecision] = useState<'manager_approved_writeoff' | 'worker_debt' | 'investigation'>('manager_approved_writeoff');
+  const [notes, setNotes] = useState('');
+
+  if (!entry) return null;
+  return (
+    <Dialog open={!!entry} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent dir="rtl">
+        <DialogHeader>
+          <DialogTitle>اعتماد القيد ({fmt(Number(entry.amount))} DA)</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <p className="text-xs text-muted-foreground">
+            بصفتك مديرًا، يمكنك اعتماد القرار النهائي على هذا القيد. لا يمكن اعتماد قيد أنشأته بنفسك.
+          </p>
+          <div>
+            <Label>القرار</Label>
+            <Select value={decision} onValueChange={(v: any) => setDecision(v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="manager_approved_writeoff">شطب باعتماد المدير</SelectItem>
+                <SelectItem value="worker_debt">تحويل لدين العامل</SelectItem>
+                <SelectItem value="investigation">إحالة للتحقيق</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>مبرر الاعتماد</Label>
+            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>إلغاء</Button>
+          <Button
+            disabled={approve.isPending}
+            className="bg-emerald-600 hover:bg-emerald-700"
+            onClick={async () => {
+              await approve.mutateAsync({ id: entry.id, decision, notes: notes || undefined });
+              onClose();
+            }}
+          >
+            اعتماد
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 // ───────────── Tolerance settings dialog ─────────────
 const ToleranceDialog: React.FC<{ open: boolean; onClose: () => void; branchId?: string | null }> = ({ open, onClose, branchId }) => {
   const { data: settings } = useTreasuryToleranceSettings(branchId);
