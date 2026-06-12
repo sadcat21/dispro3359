@@ -310,9 +310,9 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
                 </div>
               </div>
 
-              {(needsCustomer || needsWorker) && (
+              {needsWorker && (
                 <div className="space-y-1">
-                  <Label className="text-xs">{needsCustomer ? 'الزبون' : 'العامل'}</Label>
+                  <Label className="text-xs">العامل</Label>
                   <div className="flex items-center gap-2">
                     <Button
                       type="button"
@@ -320,12 +320,11 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
                       size="sm"
                       className="gap-1 text-xs"
                       onClick={() => {
-                        if (needsCustomer) setCustomerOpen(true);
-                        else if (isPeerHandover) setPeerPickerOpen(true);
+                        if (isPeerHandover) setPeerPickerOpen(true);
                         else setWorkerOpen(true);
                       }}
                     >
-                      {needsCustomer ? <Store className="w-3.5 h-3.5" /> : <UserRound className="w-3.5 h-3.5" />}
+                      <UserRound className="w-3.5 h-3.5" />
                       {draftParty ? 'تغيير' : 'اختيار'}
                     </Button>
                     {draftParty ? (
