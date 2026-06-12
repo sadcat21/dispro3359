@@ -602,39 +602,34 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
       }
 
 
-      // Register deficit as worker debt AND in surplus/deficit treasury
-      if (registerDeficit && cashDifference < 0) {
+      // Deficit handling: always record in surplus/deficit treasury when there is a deficit.
+      // If the manager explicitly chose "transfer to worker debt", also create the worker_debt
+      // record and mark the treasury entry as transferred_to_debt.
+      if (cashDifference < 0) {
         try {
-          const debt = await createWorkerDebt.mutateAsync({
-            worker_id: selectedWorkerId,
-            amount: Math.abs(cashDifference),
-            debt_type: 'deficit',
-            session_id: sessionId,
-            description: `${t('create_session.deficit_session_desc')} ${format(new Date(), 'dd/MM/yyyy')}`,
-          });
-          // Always also record in surplus/deficit treasury (already linked to worker debt → transferred_to_debt)
-          await supabase.from('manager_treasury').insert({
-            manager_id: currentWorkerId!,
-            branch_id: activeBranch?.id || null,
-            session_id: sessionId || null,
-            source_type: 'accounting_deficit',
-            payment_method: 'cash',
-            amount: Math.abs(cashDifference),
-            notes: `${t('create_session.deficit_session_desc')} - ${workerName || selectedWorkerId}`,
-            status: 'transferred_to_debt',
-            resolution_type: 'worker_debt',
-            resolved_by: currentWorkerId || null,
-            resolved_at: new Date().toISOString(),
-            linked_debt_id: (debt as any)?.id ?? null,
-          });
-          toast.success(t('create_session.deficit_recorded_full'));
-        } catch { toast.error(t('create_session.deficit_error')); }
-      }
+          let linkedDebtId: string | null = null;
+          let lifecycle: any = decideTreasuryLifecycle(Math.abs(cashDifference), toleranceSettings ?? null);
 
-      // Register deficit ONLY in surplus/deficit treasury (no worker debt)
-      if (registerDeficitTreasury && cashDifference < 0) {
-        try {
-          const lifecycle = decideTreasuryLifecycle(Math.abs(cashDifference), toleranceSettings ?? null);
+          if (registerDeficit) {
+            try {
+              const debt = await createWorkerDebt.mutateAsync({
+                worker_id: selectedWorkerId,
+                amount: Math.abs(cashDifference),
+                debt_type: 'deficit',
+                session_id: sessionId,
+                description: `${t('create_session.deficit_session_desc')} ${format(new Date(), 'dd/MM/yyyy')}`,
+              });
+              linkedDebtId = (debt as any)?.id ?? null;
+              lifecycle = {
+                status: 'transferred_to_debt',
+                resolution_type: 'worker_debt',
+                resolved_by: currentWorkerId || null,
+                resolved_at: new Date().toISOString(),
+                due_date: null,
+              };
+            } catch { toast.error(t('create_session.deficit_error')); }
+          }
+
           await supabase.from('manager_treasury').insert({
             manager_id: currentWorkerId!,
             branch_id: activeBranch?.id || null,
@@ -643,14 +638,19 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
             payment_method: 'cash',
             amount: Math.abs(cashDifference),
             notes: `${t('create_session.deficit_session_desc')} - ${workerName || selectedWorkerId}`,
+            linked_debt_id: linkedDebtId,
             ...lifecycle,
           });
-          toast.success(t('create_session.deficit_recorded_treasury'));
+          toast.success(
+            registerDeficit
+              ? t('create_session.deficit_recorded_full')
+              : t('create_session.deficit_recorded_treasury'),
+          );
         } catch { toast.error(t('create_session.deficit_treasury_error')); }
       }
 
-      // Register surplus in manager treasury
-      if (registerSurplus && cashDifference > 0) {
+      // Surplus: always record in manager treasury when there is a surplus.
+      if (cashDifference > 0) {
         try {
           const lifecycle = decideTreasuryLifecycle(cashDifference, toleranceSettings ?? null);
           await supabase.from('manager_treasury').insert({
