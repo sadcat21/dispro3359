@@ -213,7 +213,7 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {!initialCategoryId && !isEdit ? null : (
+          {!(initialCategoryId && !isEdit) && (
             <div className="space-y-2">
               <Label>{t('expenses.category')}</Label>
               <Select value={categoryId} onValueChange={setCategoryId}>
