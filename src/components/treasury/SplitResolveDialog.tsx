@@ -94,6 +94,8 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
 
   const [customerOpen, setCustomerOpen] = useState(false);
   const [workerOpen, setWorkerOpen] = useState(false);
+  const [typePickerOpen, setTypePickerOpen] = useState(false);
+
 
   const isSurplus = entry?.source_type === 'accounting_surplus' || entry?.source_type === 'customer_surplus';
   const { data: custData } = useBranchCustomers(activeBranch?.id ?? entry?.branch_id ?? null, !!entry);
@@ -240,18 +242,17 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
                   <Label className="text-xs">نوع التسوية</Label>
-                  <Select value={draftType} onValueChange={(v) => { setDraftType(v as SplitResolutionType); setDraftParty(null); }}>
-                    <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {availableOptions.map((o) => (
-                        <SelectItem key={o.key} value={o.key} className="text-xs">{o.label}</SelectItem>
-                      ))}
-                      <SelectItem value="investigation" className="text-xs">
-                        <span className="flex items-center gap-1"><SearchIcon className="w-3 h-3" /> فتح ملف متابعة</span>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full h-9 justify-between text-xs"
+                    onClick={() => setTypePickerOpen(true)}
+                  >
+                    <span className="truncate">{TYPE_LABEL[draftType] || 'اختر النوع'}</span>
+                    <Plus className="w-3.5 h-3.5 opacity-60" />
+                  </Button>
                 </div>
+
 
                 <div className="space-y-1">
                   <Label className="text-xs">المبلغ (≤ {fmt(remaining)})</Label>
@@ -342,6 +343,55 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
         }}
         hideStatusBadge
       />
+
+      <Dialog open={typePickerOpen} onOpenChange={setTypePickerOpen}>
+        <DialogContent dir="rtl" className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>اختر نوع التسوية</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-2">
+            {availableOptions.map((o) => {
+              const selected = draftType === o.key;
+              return (
+                <button
+                  key={o.key}
+                  type="button"
+                  onClick={() => {
+                    setDraftType(o.key);
+                    setDraftParty(null);
+                    setTypePickerOpen(false);
+                  }}
+                  className={cn(
+                    'rounded-lg border p-3 text-right text-xs font-medium transition-all',
+                    selected
+                      ? 'border-primary bg-primary/5 ring-2 ring-primary/30'
+                      : 'border-border hover:border-primary/40 hover:bg-muted/40',
+                  )}
+                >
+                  {o.label}
+                </button>
+              );
+            })}
+            <button
+              type="button"
+              onClick={() => {
+                setDraftType('investigation' as SplitResolutionType);
+                setDraftParty(null);
+                setTypePickerOpen(false);
+              }}
+              className={cn(
+                'rounded-lg border p-3 text-right text-xs font-medium transition-all col-span-2 flex items-center justify-center gap-1.5',
+                draftType === 'investigation'
+                  ? 'border-amber-500 bg-amber-50 text-amber-800 ring-2 ring-amber-200'
+                  : 'border-border hover:border-amber-300 hover:bg-amber-50/50',
+              )}
+            >
+              <SearchIcon className="w-3.5 h-3.5" /> فتح ملف متابعة
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
     </>
   );
 };
