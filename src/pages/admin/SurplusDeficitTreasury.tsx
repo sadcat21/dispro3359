@@ -329,10 +329,23 @@ const SurplusDeficitTreasury: React.FC = () => {
                       <p className="text-[10px] text-amber-700 mt-1">موعد الإغلاق: {format(new Date(entry.due_date), 'dd/MM/yyyy')}</p>
                     )}
                     {canResolve && (
-                      <div className="flex gap-1.5 mt-2">
+                      <div className="flex gap-1.5 mt-2 flex-wrap">
                         <Button size="sm" variant="outline" className="gap-1 h-7 text-xs" onClick={() => setResolveTarget(entry)}>
                           <CheckCircle2 className="w-3 h-3" /> تسوية
                         </Button>
+                        {isAdmin && entry.manager_id !== workerId && (
+                          <Button
+                            size="sm"
+                            variant="default"
+                            className="gap-1 h-7 text-xs bg-emerald-600 hover:bg-emerald-700"
+                            onClick={() => setApproveTarget(entry)}
+                          >
+                            <ShieldCheck className="w-3 h-3" /> اعتماد
+                          </Button>
+                        )}
+                        {isAdmin && entry.manager_id === workerId && (
+                          <span className="text-[10px] text-muted-foreground self-center">لا يمكنك اعتماد قيد أنشأته</span>
+                        )}
                       </div>
                     )}
                   </div>
