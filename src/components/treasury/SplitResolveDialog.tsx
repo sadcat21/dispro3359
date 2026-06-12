@@ -100,6 +100,11 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
   const [draftNotes, setDraftNotes] = useState('');
   const [editingSplitId, setEditingSplitId] = useState<string | null>(null);
   const [editingLinkedDebtId, setEditingLinkedDebtId] = useState<string | null>(null);
+  const editingRow = useMemo(
+    () => splits.find((r) => r.id === editingSplitId) ?? null,
+    [splits, editingSplitId],
+  );
+  const availableAmount = remaining + Number(editingRow?.amount || 0);
 
   const [customerOpen, setCustomerOpen] = useState(false);
   const [workerOpen, setWorkerOpen] = useState(false);
