@@ -341,25 +341,8 @@ const ExpenseCard: React.FC<{
 
         {/* Row 2: Classification (reviewer/worker) | Beneficiary */}
         <div className="grid grid-cols-2 border-t border-border/50">
-          <div className="space-y-1.5 border-l border-border/50 px-3 py-2.5">
-            <p className="text-[9px] uppercase text-muted-foreground">{t('expenses.classification') || 'التصنيف'}</p>
-            <div className="flex items-center justify-between gap-1">
-              <span className="text-[9px] text-muted-foreground">{t('expenses.reviewer') || 'المراجع'}</span>
-              <div className="flex items-center gap-1">
-                {expense.reviewer && (
-                  <div className={`h-1.5 w-1.5 rounded-full ${expense.status === 'approved' ? 'bg-emerald-400' : expense.status === 'rejected' ? 'bg-red-400' : 'bg-amber-400'}`} />
-                )}
-                <p className="truncate text-[11px] font-semibold text-foreground">
-                  {expense.reviewer?.full_name ?? '—'}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center justify-between gap-1">
-              <span className="text-[9px] text-muted-foreground">{t('expenses.worker') || 'الموظف'}</span>
-              <p className="truncate text-[11px] font-semibold text-foreground">
-                {expense.worker?.full_name ?? '—'}
-              </p>
-            </div>
+          <div className="flex items-center border-l border-border/50 px-3 py-2.5">
+            <p className="truncate text-xs font-bold text-foreground">{categoryName}</p>
           </div>
           <div className="px-3 py-2.5">
             <p className="text-[9px] uppercase text-muted-foreground">🧾 {t('expenses.beneficiary') || 'المستفيد'}</p>
