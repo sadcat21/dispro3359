@@ -13,6 +13,7 @@ import { Loader2, Upload, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSessionCalculations } from '@/hooks/useSessionCalculations';
 import { getCategoryName } from '@/utils/categoryName';
 import { isAdminRole } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -33,7 +34,7 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
 
   const createWorkerDebt = useCreateWorkerDebt();
   const { language, t, dir } = useLanguage();
-  const { role, activeRole, activeBranch, user } = useAuth();
+  const { role, activeRole, activeBranch, user, workerId: submitterWorkerId } = useAuth();
   const effectiveBranchId = activeBranch?.id || activeRole?.branch_id || (user as any)?.branch_id || null;
 
   // Filter categories based on user's active role
@@ -199,6 +200,41 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
   const amountNum = parseFloat(amount || '0') || 0;
   const exceedsAdvanceLimit = isPeerHandoverCategory && isJustificationAdvance && !!receiverAdvance && amountNum > receiverAdvance.remaining;
 
+  // Submitter's physical cash on hand for the current open accounting period.
+  // For peer-handover, the submitter cannot give more cash than they actually
+  // hold and are due to hand over to the manager.
+  const { data: submitterLastSessionEnd } = useQuery({
+    queryKey: ['submitter-last-session-end', submitterWorkerId],
+    enabled: open && isPeerHandoverCategory && !!submitterWorkerId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('accounting_sessions')
+        .select('period_end')
+        .eq('worker_id', submitterWorkerId!)
+        .eq('status', 'completed')
+        .order('period_end', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return (data as any)?.period_end || null;
+    },
+  });
+  const submitterCalcParams = useMemo(() => {
+    if (!open || !isPeerHandoverCategory || !submitterWorkerId) return null;
+    const now = new Date();
+    const periodEndValue = now.toISOString();
+    const localDateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const periodStartValue = submitterLastSessionEnd || `${localDateKey}T00:00:00+01:00`;
+    return {
+      workerId: submitterWorkerId,
+      branchId: effectiveBranchId || undefined,
+      periodStart: periodStartValue,
+      periodEnd: periodEndValue,
+    };
+  }, [open, isPeerHandoverCategory, submitterWorkerId, effectiveBranchId, submitterLastSessionEnd]);
+  const { data: submitterCalc } = useSessionCalculations(submitterCalcParams);
+  const availableCash = Math.max(0, Number(submitterCalc?.physicalCash || 0));
+  const exceedsAvailableCash = isPeerHandoverCategory && !!submitterCalc && amountNum > availableCash;
+
   const advanceTierClass = !receiverAdvance || receiverAdvance.limit <= 0
     ? 'bg-card border-border text-foreground'
     : receiverAdvance.pct >= 100
@@ -258,6 +294,10 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
     }
     if (isPeerHandoverCategory && isJustificationOther && !justificationOtherTitle.trim()) {
       toast.error('يرجى إدخال عنوان المبرر');
+      return;
+    }
+    if (isPeerHandoverCategory && submitterCalc && parseFloat(amount) > availableCash) {
+      toast.error('المبلغ يتجاوز السيولة المتوفرة لديك');
       return;
     }
     // Enforce remaining advance limit when the justification is "salary advance"
@@ -444,59 +484,75 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
             </div>
           )}
 
-          <div className="space-y-2">
-            <Label>{t('expenses.amount')}</Label>
-            <Input
-              type="number"
-              min="0"
-              step="0.01"
-              max={isPeerHandoverCategory && isJustificationAdvance ? (receiverAdvance?.remaining ?? undefined) : undefined}
-              value={amount}
-              onChange={e => setAmount(e.target.value)}
-              placeholder="0.00"
-              required
-            />
-          </div>
+          {(!isPeerHandoverCategory || !!advanceWorkerId) && (
+            <>
+              <div className="space-y-2">
+                <Label>{t('expenses.amount')}</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  max={
+                    isPeerHandoverCategory
+                      ? (isJustificationAdvance && receiverAdvance
+                          ? Math.min(receiverAdvance.remaining, availableCash)
+                          : availableCash)
+                      : undefined
+                  }
+                  value={amount}
+                  onChange={e => setAmount(e.target.value)}
+                  placeholder="0.00"
+                  required
+                />
+                {isPeerHandoverCategory && submitterCalc && (
+                  <p className={`text-[11px] ${exceedsAvailableCash ? 'text-red-600 font-medium' : 'text-muted-foreground'}`}>
+                    {exceedsAvailableCash
+                      ? `المبلغ يتجاوز السيولة المتوفرة لديك (${availableCash.toFixed(2)} DA)`
+                      : `السيولة المتوفرة لديك: ${availableCash.toFixed(2)} DA`}
+                  </p>
+                )}
+              </div>
 
-          {/* Fuel Payment Method */}
-          {isFuelCategory && (
-            <div className="space-y-2">
-              <Label>{t('expenses.payment_method')}</Label>
-              <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cash">{t('expenses.payment_cash')}</SelectItem>
-                  <SelectItem value="card">{t('expenses.payment_card')}</SelectItem>
-                </SelectContent>
-              </Select>
-              {paymentMethod === 'card' && (
-                <p className="text-xs text-muted-foreground">{t('expenses.card_note')}</p>
+              {/* Fuel Payment Method */}
+              {isFuelCategory && (
+                <div className="space-y-2">
+                  <Label>{t('expenses.payment_method')}</Label>
+                  <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cash">{t('expenses.payment_cash')}</SelectItem>
+                      <SelectItem value="card">{t('expenses.payment_card')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {paymentMethod === 'card' && (
+                    <p className="text-xs text-muted-foreground">{t('expenses.card_note')}</p>
+                  )}
+                </div>
               )}
-            </div>
+
+              <div className="space-y-2">
+                <Label>{t('expenses.date')}</Label>
+                <Input
+                  type="date"
+                  value={expenseDate}
+                  onChange={e => setExpenseDate(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t('expenses.description')}</Label>
+                <Textarea
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
+                  placeholder={t('expenses.description_placeholder')}
+                  rows={2}
+                />
+              </div>
+            </>
           )}
-
-          <div className="space-y-2">
-            <Label>{t('expenses.date')}</Label>
-            <Input
-              type="date"
-              value={expenseDate}
-              onChange={e => setExpenseDate(e.target.value)}
-              required
-            />
-          </div>
-
-
-          <div className="space-y-2">
-            <Label>{t('expenses.description')}</Label>
-            <Textarea
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              placeholder={t('expenses.description_placeholder')}
-              rows={2}
-            />
-          </div>
 
           {!isPeerHandoverCategory && (
             <div className="space-y-2">
@@ -532,7 +588,7 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
           <Button
             type="submit"
             className="w-full"
-            disabled={!categoryId || !amount || createExpense.isPending || updateExpense.isPending || uploading || createWorkerDebt.isPending || (!isEdit && needsWorkerPick && !advanceWorkerId) || exceedsAdvanceLimit || (isPeerHandoverCategory && !justificationCategoryId) || (isPeerHandoverCategory && isJustificationOther && !justificationOtherTitle.trim())}
+            disabled={!categoryId || !amount || createExpense.isPending || updateExpense.isPending || uploading || createWorkerDebt.isPending || (!isEdit && needsWorkerPick && !advanceWorkerId) || exceedsAdvanceLimit || exceedsAvailableCash || (isPeerHandoverCategory && !justificationCategoryId) || (isPeerHandoverCategory && isJustificationOther && !justificationOtherTitle.trim())}
           >
             {(createExpense.isPending || updateExpense.isPending || uploading) && <Loader2 className="w-4 h-4 animate-spin me-2" />}
             {isEdit ? t('common.save') : t('expenses.add_button')}
