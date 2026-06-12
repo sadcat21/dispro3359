@@ -9914,6 +9914,41 @@ export type Database = {
         Args: { p_receipt_id: string; p_stage: string }
         Returns: Json
       }
+      approve_treasury_entry: {
+        Args: { p_decision: string; p_entry_id: string; p_notes?: string }
+        Returns: {
+          amount: number
+          branch_id: string | null
+          check_bank: string | null
+          check_date: string | null
+          check_number: string | null
+          created_at: string
+          customer_name: string | null
+          due_date: string | null
+          id: string
+          invoice_date: string | null
+          invoice_number: string | null
+          linked_debt_id: string | null
+          manager_id: string
+          notes: string | null
+          payment_method: string
+          receipt_number: string | null
+          resolution_notes: string | null
+          resolution_type: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          session_id: string | null
+          source_type: string
+          status: string
+          transfer_reference: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "manager_treasury"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       archive_cash_movements:
         | { Args: never; Returns: Json }
         | { Args: { p_worker_id: string }; Returns: Json }

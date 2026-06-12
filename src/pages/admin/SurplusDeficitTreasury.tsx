@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { format, differenceInDays } from 'date-fns';
-import { ArrowUpCircle, ArrowDownCircle, Package, Banknote, TrendingUp, TrendingDown, Users, Settings as SettingsIcon, CheckCircle2, FileSearch, UserMinus } from 'lucide-react';
+import { ArrowUpCircle, ArrowDownCircle, Package, Banknote, TrendingUp, TrendingDown, Users, Settings as SettingsIcon, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -14,10 +14,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { isAdminRole } from '@/lib/utils';
 import {
   useTreasuryToleranceSettings,
   useUpdateToleranceSettings,
   useResolveTreasuryEntry,
+  useApproveTreasuryEntry,
 } from '@/hooks/useTreasuryTolerance';
 
 const fmt = (n: number) => n.toLocaleString();
@@ -100,6 +102,57 @@ const ResolveDialog: React.FC<{
   );
 };
 
+// ───────────── Approve dialog (admin four-eyes) ─────────────
+const ApproveDialog: React.FC<{ entry: any | null; onClose: () => void }> = ({ entry, onClose }) => {
+  const approve = useApproveTreasuryEntry();
+  const [decision, setDecision] = useState<'manager_approved_writeoff' | 'worker_debt' | 'investigation'>('manager_approved_writeoff');
+  const [notes, setNotes] = useState('');
+
+  if (!entry) return null;
+  return (
+    <Dialog open={!!entry} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent dir="rtl">
+        <DialogHeader>
+          <DialogTitle>اعتماد القيد ({fmt(Number(entry.amount))} DA)</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <p className="text-xs text-muted-foreground">
+            بصفتك مديرًا، يمكنك اعتماد القرار النهائي على هذا القيد. لا يمكن اعتماد قيد أنشأته بنفسك.
+          </p>
+          <div>
+            <Label>القرار</Label>
+            <Select value={decision} onValueChange={(v: any) => setDecision(v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="manager_approved_writeoff">شطب باعتماد المدير</SelectItem>
+                <SelectItem value="worker_debt">تحويل لدين العامل</SelectItem>
+                <SelectItem value="investigation">إحالة للتحقيق</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>مبرر الاعتماد</Label>
+            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>إلغاء</Button>
+          <Button
+            disabled={approve.isPending}
+            className="bg-emerald-600 hover:bg-emerald-700"
+            onClick={async () => {
+              await approve.mutateAsync({ id: entry.id, decision, notes: notes || undefined });
+              onClose();
+            }}
+          >
+            اعتماد
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 // ───────────── Tolerance settings dialog ─────────────
 const ToleranceDialog: React.FC<{ open: boolean; onClose: () => void; branchId?: string | null }> = ({ open, onClose, branchId }) => {
   const { data: settings } = useTreasuryToleranceSettings(branchId);
@@ -163,10 +216,12 @@ const ToleranceDialog: React.FC<{ open: boolean; onClose: () => void; branchId?:
 
 // ───────────── Page ─────────────
 const SurplusDeficitTreasury: React.FC = () => {
-  const { activeBranch } = useAuth();
+  const { activeBranch, role, workerId } = useAuth();
   const { dir, t } = useLanguage();
+  const isAdmin = isAdminRole(role);
   const [statusFilter, setStatusFilter] = useState<'all' | 'open' | 'settled'>('open');
   const [resolveTarget, setResolveTarget] = useState<any | null>(null);
+  const [approveTarget, setApproveTarget] = useState<any | null>(null);
   const [showSettings, setShowSettings] = useState(false);
 
   const { data: cashEntries = [] } = useQuery({
@@ -325,10 +380,23 @@ const SurplusDeficitTreasury: React.FC = () => {
                       <p className="text-[10px] text-amber-700 mt-1">موعد الإغلاق: {format(new Date(entry.due_date), 'dd/MM/yyyy')}</p>
                     )}
                     {canResolve && (
-                      <div className="flex gap-1.5 mt-2">
+                      <div className="flex gap-1.5 mt-2 flex-wrap">
                         <Button size="sm" variant="outline" className="gap-1 h-7 text-xs" onClick={() => setResolveTarget(entry)}>
                           <CheckCircle2 className="w-3 h-3" /> تسوية
                         </Button>
+                        {isAdmin && entry.manager_id !== workerId && (
+                          <Button
+                            size="sm"
+                            variant="default"
+                            className="gap-1 h-7 text-xs bg-emerald-600 hover:bg-emerald-700"
+                            onClick={() => setApproveTarget(entry)}
+                          >
+                            <ShieldCheck className="w-3 h-3" /> اعتماد
+                          </Button>
+                        )}
+                        {isAdmin && entry.manager_id === workerId && (
+                          <span className="text-[10px] text-muted-foreground self-center">لا يمكنك اعتماد قيد أنشأته</span>
+                        )}
                       </div>
                     )}
                   </div>
@@ -395,6 +463,7 @@ const SurplusDeficitTreasury: React.FC = () => {
       </Tabs>
 
       <ResolveDialog entry={resolveTarget} onClose={() => setResolveTarget(null)} />
+      <ApproveDialog entry={approveTarget} onClose={() => setApproveTarget(null)} />
       <ToleranceDialog open={showSettings} onClose={() => setShowSettings(false)} branchId={activeBranch?.id} />
     </div>
   );
