@@ -109,7 +109,55 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
     setPaymentMethod('cash');
     setAdvanceWorkerId('');
     setJustification('');
+    setJustificationCategoryId(null);
   };
+
+  // Justification options = expense categories minus the peer-handover one
+  const justificationOptions = useMemo(
+    () => filteredCategories.filter(c => {
+      const n = c.name || '';
+      const nf = (c.name_fr || '').toLowerCase();
+      const ne = (c.name_en || '').toLowerCase();
+      return !(n.includes('تسليم لزميل') || nf.includes('collègue') || nf.includes('collegue') || ne.includes('colleague') || ne.includes('handover to'));
+    }),
+    [filteredCategories],
+  );
+  const selectedJustification = justificationOptions.find(c => c.id === justificationCategoryId);
+  const isJustificationAdvance = !!(selectedJustification && (
+    selectedJustification.name?.includes('مسبق') ||
+    selectedJustification.name_fr?.toLowerCase().includes('avance') ||
+    selectedJustification.name_en?.toLowerCase().includes('advance')
+  ));
+
+  // Receiver's salary-advance status for the current month (used to color the
+  // "advance" justification button and clamp the amount). No values are exposed
+  // in the UI — only a tier color, to preserve the receiver's privacy.
+  const monthStartISO = useMemo(() => {
+    const d = new Date(); d.setDate(1); d.setHours(0,0,0,0); return d.toISOString();
+  }, []);
+  const { data: receiverAdvance } = useQuery({
+    queryKey: ['receiver-advance-status', advanceWorkerId, monthStartISO],
+    enabled: open && isPeerHandoverCategory && !!advanceWorkerId,
+    queryFn: async () => {
+      const [{ data: w }, { data: debts }] = await Promise.all([
+        supabase.from('workers').select('max_monthly_salary_advance').eq('id', advanceWorkerId).maybeSingle(),
+        supabase.from('worker_debts').select('amount').eq('worker_id', advanceWorkerId).eq('debt_type', 'advance').gte('created_at', monthStartISO),
+      ]);
+      const limit = Number((w as any)?.max_monthly_salary_advance || 0);
+      const used = (debts || []).reduce((s, d: any) => s + Number(d.amount || 0), 0);
+      return { limit, used, remaining: Math.max(0, limit - used), pct: limit > 0 ? Math.min(100, (used / limit) * 100) : 0 };
+    },
+  });
+
+  const advanceTierClass = !receiverAdvance || receiverAdvance.limit <= 0
+    ? 'bg-card border-border text-foreground'
+    : receiverAdvance.pct >= 100
+      ? 'bg-red-50 border-red-300 text-red-700'
+      : receiverAdvance.pct >= 75
+        ? 'bg-orange-50 border-orange-300 text-orange-700'
+        : receiverAdvance.pct >= 50
+          ? 'bg-yellow-50 border-yellow-300 text-yellow-700'
+          : 'bg-emerald-50 border-emerald-300 text-emerald-700';
 
   useEffect(() => {
     if (!needsWorkerPick) setAdvanceWorkerId('');
