@@ -295,6 +295,7 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
     if (isPeerHandoverCategory && isJustificationOther && !justificationOtherTitle.trim()) {
       toast.error('يرجى إدخال عنوان المبرر');
       return;
+    }
     if (isPeerHandoverCategory && submitterCalc && parseFloat(amount) > availableCash) {
       toast.error('المبلغ يتجاوز السيولة المتوفرة لديك');
       return;
