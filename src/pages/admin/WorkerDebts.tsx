@@ -66,12 +66,43 @@ const WorkerDebtsPage: React.FC = () => {
     setShowAdd(true);
   };
 
+  const [limitReachedOpen, setLimitReachedOpen] = useState(false);
+  const [limitInfo, setLimitInfo] = useState<{ workerName: string; limit: number; used: number }>({ workerName: '', limit: 0, used: 0 });
+
   const handleSaveDebt = async () => {
     if (!addWorkerId || !addAmount || Number(addAmount) <= 0) return;
+    const amountNum = Number(addAmount);
     try {
+      // Enforce monthly salary advance limit
+      if (addType === 'advance') {
+        const { data: worker } = await supabase
+          .from('workers')
+          .select('full_name, max_monthly_salary_advance')
+          .eq('id', addWorkerId)
+          .single();
+        const limit = (worker as any)?.max_monthly_salary_advance;
+        if (limit != null && Number(limit) > 0) {
+          const start = new Date();
+          start.setDate(1);
+          start.setHours(0, 0, 0, 0);
+          const { data: rows } = await supabase
+            .from('worker_debts')
+            .select('amount')
+            .eq('worker_id', addWorkerId)
+            .eq('debt_type', 'advance')
+            .gte('created_at', start.toISOString());
+          const used = (rows || []).reduce((s: number, r: any) => s + Number(r.amount || 0), 0);
+          if (used + amountNum > Number(limit)) {
+            setLimitInfo({ workerName: (worker as any)?.full_name || '', limit: Number(limit), used });
+            setLimitReachedOpen(true);
+            return;
+          }
+        }
+      }
+
       await createDebt.mutateAsync({
         worker_id: addWorkerId,
-        amount: Number(addAmount),
+        amount: amountNum,
         debt_type: addType,
         description: addDesc || undefined,
       });
