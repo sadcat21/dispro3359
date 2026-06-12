@@ -416,8 +416,8 @@ const WorkerDebtsPage: React.FC = () => {
               العامل <span className="text-primary">{limitInfo.workerName}</span> قد استنفد كامل حقه من سلفة الراتب لهذا الشهر.
             </p>
             <div className="bg-muted/50 rounded-lg p-3 space-y-1">
-              <div className="flex justify-between"><span className="text-muted-foreground">الحد الشهري:</span><span>{limitInfo.limit.toLocaleString('ar-DZ')} دج</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">المُستهلَك حتى الآن:</span><span>{limitInfo.used.toLocaleString('ar-DZ')} دج</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">الحد الشهري:</span><span>{limitInfo.limit.toLocaleString('ar-DZ')} DA</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">المُستهلَك حتى الآن:</span><span>{limitInfo.used.toLocaleString('ar-DZ')} DA</span></div>
             </div>
             <p className="text-xs text-muted-foreground">لا يمكن إضافة سلفة جديدة قبل بداية الشهر القادم، أو رفع الحد الأقصى من إعدادات العامل.</p>
             <Button className="w-full" onClick={() => setLimitReachedOpen(false)}>حسنًا</Button>

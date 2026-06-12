@@ -858,7 +858,7 @@ const AddCustomerDialog: React.FC<AddCustomerDialogProps> = ({
             </Label>
 
             <div className="space-y-2">
-              <Label className="text-xs">الدين الابتدائي (دج)</Label>
+              <Label className="text-xs">الدين الابتدائي (DA)</Label>
               <Input type="number" min="0" step="0.01" value={debtAmount} onChange={(e) => setDebtAmount(e.target.value)} placeholder="0" className="text-right" dir="ltr" />
             </div>
 

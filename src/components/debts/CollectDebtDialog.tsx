@@ -143,7 +143,7 @@ const CollectDebtDialog: React.FC<CollectDebtDialogProps> = ({
             company: companyInfo?.company_name || '',
             amount: numAmount.toLocaleString(),
             remaining: liveRemaining.toLocaleString(),
-            payment_status: isFullPayment ? 'تم السداد الكامل' : `متبقي ${liveRemaining.toLocaleString()} دج`,
+            payment_status: isFullPayment ? 'تم السداد الكامل' : `متبقي ${liveRemaining.toLocaleString()} DA`,
           });
 
           if (customerPhone) {

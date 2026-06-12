@@ -154,7 +154,7 @@ const SessionInvoiceMethodsDialog: React.FC<Props> = ({ open, onOpenChange, sess
                   </span>
                   <span className="flex items-center gap-2 pointer-events-none">
                     <span className="text-xs opacity-90">{g.count} عملية</span>
-                    <span className="text-sm font-bold">{fmt(g.amount)} د.ج</span>
+                    <span className="text-sm font-bold">{fmt(g.amount)} DA</span>
                     <ChevronRight className="w-4 h-4" />
                   </span>
                 </button>
@@ -169,7 +169,7 @@ const SessionInvoiceMethodsDialog: React.FC<Props> = ({ open, onOpenChange, sess
           <div className="space-y-2 mt-2">
             <div className={`rounded-lg p-3 text-center border ${selectedMeta ? colorMap[selectedMeta.color].chip : ''}`}>
               <p className="text-[11px] text-muted-foreground">الإجمالي</p>
-              <p className="text-lg font-bold">{fmt(grouped[selected!].amount)} د.ج</p>
+              <p className="text-lg font-bold">{fmt(grouped[selected!].amount)} DA</p>
             </div>
             {list.map((o: any) => (
               <div key={o.id} className="rounded-lg border p-3 bg-white">
@@ -184,7 +184,7 @@ const SessionInvoiceMethodsDialog: React.FC<Props> = ({ open, onOpenChange, sess
                     )}
                   </div>
                   <Badge variant="outline" className="font-bold">
-                    {fmt(Number(o.total_amount || 0))} د.ج
+                    {fmt(Number(o.total_amount || 0))} DA
                   </Badge>
                 </div>
               </div>

@@ -553,7 +553,7 @@ const AssistantApprovals: React.FC = () => {
                           <Badge variant="outline">{r.branches?.name || '—'}</Badge>
                           <Badge variant="secondary">{r.payment_method || '—'}</Badge>
                           <span className="font-bold">
-                            {Number(r.total_amount || 0).toLocaleString('ar')} دج
+                            {Number(r.total_amount || 0).toLocaleString('ar')} DA
                           </span>
                         </div>
                         <p className="text-xs text-muted-foreground">

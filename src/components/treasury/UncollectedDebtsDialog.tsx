@@ -102,7 +102,7 @@ const UncollectedDebtsDialog = ({ open, onOpenChange }: Props) => {
 
         <div className="p-3 rounded-lg bg-destructive/5 border border-destructive/20 text-center mb-2">
           <p className="text-xs text-muted-foreground">الإجمالي</p>
-          <p className="text-xl font-bold text-destructive">{totalRemaining.toLocaleString()} د.ج</p>
+          <p className="text-xl font-bold text-destructive">{totalRemaining.toLocaleString()} DA</p>
         </div>
 
         {isLoading ? (
@@ -127,7 +127,7 @@ const UncollectedDebtsDialog = ({ open, onOpenChange }: Props) => {
                       />
                     </div>
                     <div className="w-full min-w-0 sm:w-auto sm:shrink-0 sm:text-left">
-                      <p className="font-bold text-destructive text-sm break-words sm:whitespace-nowrap">{group.total_remaining.toLocaleString()} د.ج</p>
+                      <p className="font-bold text-destructive text-sm break-words sm:whitespace-nowrap">{group.total_remaining.toLocaleString()} DA</p>
                       <Badge variant="outline" className="mt-1 text-[10px]">
                         {group.debts.length} دين
                       </Badge>
@@ -151,8 +151,8 @@ const UncollectedDebtsDialog = ({ open, onOpenChange }: Props) => {
                             {debt.notes && <p className="text-[10px] text-muted-foreground break-words">{debt.notes}</p>}
                           </div>
                           <div className="w-full min-w-0 sm:w-auto sm:max-w-[45%] sm:text-left">
-                            <p className="font-medium break-words sm:whitespace-nowrap">{Number(debt.total_amount || 0).toLocaleString()} د.ج</p>
-                            <p className="text-destructive break-words sm:whitespace-nowrap">متبقٍ: {Number(debt.remaining_amount || 0).toLocaleString()} د.ج</p>
+                            <p className="font-medium break-words sm:whitespace-nowrap">{Number(debt.total_amount || 0).toLocaleString()} DA</p>
+                            <p className="text-destructive break-words sm:whitespace-nowrap">متبقٍ: {Number(debt.remaining_amount || 0).toLocaleString()} DA</p>
                           </div>
                         </div>
                       </div>

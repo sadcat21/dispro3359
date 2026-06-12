@@ -869,7 +869,7 @@ const ManagerTreasury = () => {
                   <p className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-300 leading-tight">
                     {Number(totalCash).toLocaleString('fr-FR')}
                   </p>
-                  <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">دج</p>
+                  <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">DA</p>
                 </div>
               </div>
               <div className="relative grid grid-cols-3 gap-2">

@@ -174,7 +174,7 @@ const StampTiersDialog: React.FC<StampTiersDialogProps> = ({ open, onOpenChange 
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1.5">
-                      <Label className="text-xs">من (دج)</Label>
+                      <Label className="text-xs">من (DA)</Label>
                       <Input
                         type="number"
                         min={0}
@@ -185,7 +185,7 @@ const StampTiersDialog: React.FC<StampTiersDialogProps> = ({ open, onOpenChange 
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs">إلى (دج) - اختياري</Label>
+                      <Label className="text-xs">إلى (DA) - اختياري</Label>
                       <Input
                         type="number"
                         min={0}
@@ -276,7 +276,7 @@ const StampTiersDialog: React.FC<StampTiersDialogProps> = ({ open, onOpenChange 
                               <span className="font-medium">
                                 {tier.max_amount ? formatAmount(tier.max_amount) : '∞'}
                               </span>
-                              <span className="text-xs text-muted-foreground">دج</span>
+                              <span className="text-xs text-muted-foreground">DA</span>
                             </span>
                             {!tier.is_active && (
                               <Badge variant="outline" className="text-xs">معطّل</Badge>

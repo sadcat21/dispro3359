@@ -990,7 +990,7 @@ const WorkerActions: React.FC = () => {
         </h2>
         {selectedWorker && liability && (
           <Badge variant={liability.totalLiability > 0 ? 'destructive' : 'outline'} className="mr-auto text-xs">
-            {t('liability.title')}: {liability.totalLiability.toLocaleString('ar-DZ')} د.ج
+            {t('liability.title')}: {liability.totalLiability.toLocaleString('ar-DZ')} DA
           </Badge>
         )}
       </div>

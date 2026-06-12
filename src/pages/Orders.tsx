@@ -875,11 +875,11 @@ const OrdersContent: React.FC = () => {
                     </div>
                     <div className="rounded-lg bg-primary/10 px-2.5 py-1.5">
                       <p className="text-[10px] text-muted-foreground">{t('accounting.total_sales')}</p>
-                      <p className="font-bold text-primary truncate">{stats.total.toLocaleString()} <span className="text-[10px]">دج</span></p>
+                      <p className="font-bold text-primary truncate">{stats.total.toLocaleString()} <span className="text-[10px]">DA</span></p>
                     </div>
                     <div className="rounded-lg bg-yellow-500/10 px-2.5 py-1.5">
                       <p className="text-[10px] text-muted-foreground">قيد المعالجة</p>
-                      <p className="font-bold text-yellow-700 dark:text-yellow-400 truncate">{stats.openAmount.toLocaleString()} <span className="text-[10px]">دج</span></p>
+                      <p className="font-bold text-yellow-700 dark:text-yellow-400 truncate">{stats.openAmount.toLocaleString()} <span className="text-[10px]">DA</span></p>
                     </div>
                     <div className={`rounded-lg px-2.5 py-1.5 ${stats.overdue > 0 ? 'bg-destructive/10' : 'bg-muted/50'}`}>
                       <p className="text-[10px] text-muted-foreground">متأخرة</p>
@@ -957,7 +957,7 @@ const OrdersContent: React.FC = () => {
                   </div>
                   <p className="font-bold text-base text-primary truncate">
                     {Number(order.total_amount || 0).toLocaleString()}
-                    <span className="text-[10px] font-normal text-muted-foreground mr-1">دج</span>
+                    <span className="text-[10px] font-normal text-muted-foreground mr-1">DA</span>
                   </p>
                 </div>
 

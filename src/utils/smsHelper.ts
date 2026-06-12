@@ -219,15 +219,15 @@ export const buildDeliveryConfirmationSms = (params: {
   if (companyName) message += `${companyName}\n`;
   message += `العميل: ${customerName}\n`;
   message += `الطلب: ${orderId.slice(0, 8)}\n`;
-  message += `الإجمالي: ${totalAmount.toLocaleString()} دج\n`;
+  message += `الإجمالي: ${totalAmount.toLocaleString()} DA\n`;
 
   if (paidAmount > 0 && paidAmount < totalAmount) {
-    message += `المدفوع: ${paidAmount.toLocaleString()} دج\n`;
-    message += `المتبقي: ${remainingAmount.toLocaleString()} دج\n`;
+    message += `المدفوع: ${paidAmount.toLocaleString()} DA\n`;
+    message += `المتبقي: ${remainingAmount.toLocaleString()} DA\n`;
   } else if (paidAmount >= totalAmount) {
     message += `الحالة: مدفوع بالكامل\n`;
   } else {
-    message += `الحالة: دين ${totalAmount.toLocaleString()} دج\n`;
+    message += `الحالة: دين ${totalAmount.toLocaleString()} DA\n`;
   }
 
   message += `شكراً لتعاملكم معنا`;

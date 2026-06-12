@@ -69,7 +69,7 @@ export function SaleSuccessDialog({ open, onClose, info }: Props) {
         <div className="space-y-3 px-2">
           <div className="text-center">
             <div className="text-3xl font-bold text-primary">
-              {Number(info.amount || 0).toLocaleString()} دج
+              {Number(info.amount || 0).toLocaleString()} DA
             </div>
           </div>
 
@@ -122,7 +122,7 @@ export function SaleSuccessDialog({ open, onClose, info }: Props) {
                   </Badge>
                   {info.paymentStatus === 'partial' && (
                     <span className="text-xs text-muted-foreground">
-                      المدفوع: {Number(info.paidAmount || 0).toLocaleString()} دج · المتبقي: {Number(info.remainingAmount || 0).toLocaleString()} دج
+                      المدفوع: {Number(info.paidAmount || 0).toLocaleString()} DA · المتبقي: {Number(info.remainingAmount || 0).toLocaleString()} DA
                     </span>
                   )}
                 </div>
@@ -157,12 +157,12 @@ export function SaleSuccessDialog({ open, onClose, info }: Props) {
                     </div>
                     <div className="flex justify-between text-muted-foreground">
                       <span>طريقة الدفع: <span className="text-foreground">{paymentMethodLabel(g.paymentMethod)}</span></span>
-                      <span>الإجمالي: <span className="text-foreground font-semibold">{Number(g.total).toLocaleString()} دج</span></span>
+                      <span>الإجمالي: <span className="text-foreground font-semibold">{Number(g.total).toLocaleString()} DA</span></span>
                     </div>
                     {g.status !== 'paid' && (
                       <div className="flex justify-between text-muted-foreground">
-                        <span>المدفوع: <span className="text-foreground">{Number(g.paidAmount).toLocaleString()} دج</span></span>
-                        <span>المتبقي: <span className="text-destructive font-semibold">{Number(g.remainingDebt).toLocaleString()} دج</span></span>
+                        <span>المدفوع: <span className="text-foreground">{Number(g.paidAmount).toLocaleString()} DA</span></span>
+                        <span>المتبقي: <span className="text-destructive font-semibold">{Number(g.remainingDebt).toLocaleString()} DA</span></span>
                       </div>
                     )}
                   </div>

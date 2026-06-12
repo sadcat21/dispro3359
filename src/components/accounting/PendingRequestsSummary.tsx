@@ -137,7 +137,7 @@ const PendingRequestsSummary: React.FC<Props> = ({ workerId, periodStart, period
             {orders.length} طلبية قيد التوصيل
           </Badge>
           <Badge variant="outline" className="text-[10px]">
-            إجمالي: {fmt(totalAmount)} دج
+            إجمالي: {fmt(totalAmount)} DA
           </Badge>
         </div>
 
@@ -169,7 +169,7 @@ const PendingRequestsSummary: React.FC<Props> = ({ workerId, periodStart, period
                     {o.assigned.full_name}
                   </span>
                 )}
-                <span className="font-semibold text-foreground">{fmt(Number(o.total_amount || 0))} دج</span>
+                <span className="font-semibold text-foreground">{fmt(Number(o.total_amount || 0))} DA</span>
               </div>
             </CardContent>
           </Card>

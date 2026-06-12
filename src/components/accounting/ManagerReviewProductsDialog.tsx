@@ -198,7 +198,7 @@ const ManagerReviewProductsDialog: React.FC<Props> = ({ open, onOpenChange, revi
                 {title || 'تجميع المنتجات المباعة'}
               </span>
               <span className="text-sm font-bold text-blue-700">
-                {Number(totalAmount).toLocaleString('fr-FR')} دج
+                {Number(totalAmount).toLocaleString('fr-FR')} DA
               </span>
             </DialogTitle>
           </DialogHeader>
@@ -246,7 +246,7 @@ const ManagerReviewProductsDialog: React.FC<Props> = ({ open, onOpenChange, revi
                           )}
                         </div>
                         <div className="flex items-center justify-center rounded-md bg-muted py-1 text-[10px] font-semibold text-muted-foreground">
-                          {Number(p.totalAmount).toLocaleString('fr-FR')} دج
+                          {Number(p.totalAmount).toLocaleString('fr-FR')} DA
                         </div>
                       </div>
                     </div>
@@ -273,7 +273,7 @@ const ManagerReviewProductsDialog: React.FC<Props> = ({ open, onOpenChange, revi
                     <p className="font-bold leading-tight">{selectedProduct.name}</p>
                     <p className="text-[11px] text-muted-foreground font-normal">
                       إجمالي: {boxesToBPAlways(selectedProduct.boxes, selectedProduct.piecesPerBox)} ·{' '}
-                      {Number(selectedProduct.totalAmount).toLocaleString('fr-FR')} دج
+                      {Number(selectedProduct.totalAmount).toLocaleString('fr-FR')} DA
                     </p>
                   </div>
                 </DialogTitle>

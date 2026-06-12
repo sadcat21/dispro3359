@@ -720,7 +720,7 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
 
         {!isCashInvoice2 && <div className="mb-2 rounded-lg bg-muted/50 p-3 text-center">
           <p className="text-xs text-muted-foreground">الإجمالي</p>
-          <p className={`text-xl font-bold ${config.colorClass}`}>{formatAmountWithMaxFraction(invoice1GrandTotal)} د.ج</p>
+          <p className={`text-xl font-bold ${config.colorClass}`}>{formatAmountWithMaxFraction(invoice1GrandTotal)} DA</p>
         </div>}
 
         {isCashInvoice1 && (
@@ -728,7 +728,7 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
             <div className="mb-2 grid grid-cols-2 gap-2">
               <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-2 text-center">
                 <p className="text-[10px] text-muted-foreground">قيمة المشتريات</p>
-                <p className="text-sm font-bold text-green-600">{formatAmountWithMaxFraction(grandTotal)} د.ج</p>
+                <p className="text-sm font-bold text-green-600">{formatAmountWithMaxFraction(grandTotal)} DA</p>
               </div>
               {grandStamp > 0 && (
                 <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-2 text-center">
@@ -736,7 +736,7 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
                     <Coins className="h-3 w-3 text-amber-600" />
                     <p className="text-[10px] font-medium text-amber-700">قيمة الطابع</p>
                   </div>
-                  <p className="text-sm font-bold text-amber-600">{formatAmountWithMaxFraction(grandStamp)} د.ج</p>
+                  <p className="text-sm font-bold text-amber-600">{formatAmountWithMaxFraction(grandStamp)} DA</p>
                 </div>
               )}
             </div>
@@ -746,7 +746,7 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
                   <AlertCircle className="h-4 w-4 text-destructive" />
                   <p className="text-xs font-medium text-destructive">ديون غير محصلة (مستعارة من Facture 2)</p>
                 </div>
-                <p className="text-lg font-bold text-destructive">{formatAmountWithMaxFraction(grandDebt)} د.ج</p>
+                <p className="text-lg font-bold text-destructive">{formatAmountWithMaxFraction(grandDebt)} DA</p>
               </div>
             )}
           </>
@@ -755,7 +755,7 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
         {!isCashInvoice1 && !isCashInvoice2 && grandDebt > 0 && (
           <div className="mb-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-center">
             <p className="text-xs font-medium text-destructive">ديون غير محصلة</p>
-            <p className="text-lg font-bold text-destructive">{formatAmountWithMaxFraction(grandDebt)} د.ج</p>
+            <p className="text-lg font-bold text-destructive">{formatAmountWithMaxFraction(grandDebt)} DA</p>
           </div>
         )}
 
@@ -801,7 +801,7 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
                         </>
                       )}
                       <div className="text-left">
-                        <p className={`font-bold ${config.colorClass}`}>{formatAmountWithMaxFraction(group.total)} د.ج</p>
+                        <p className={`font-bold ${config.colorClass}`}>{formatAmountWithMaxFraction(group.total)} DA</p>
                         {group.orders.length > 1 && (
                           <Badge variant="outline" className="mt-1 text-[10px]">
                             {group.orders.length} عمليات
@@ -858,13 +858,13 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
                             <p className="text-muted-foreground">
                               {format(new Date(order.created_at), 'dd/MM/yyyy HH:mm', { locale: ar })}
                             </p>
-                            {order.debt_amount > 0 && <p className="text-[10px] text-destructive">دين: {formatAmountWithMaxFraction(order.debt_amount)} د.ج</p>}
+                            {order.debt_amount > 0 && <p className="text-[10px] text-destructive">دين: {formatAmountWithMaxFraction(order.debt_amount)} DA</p>}
                           </div>
                           <div className="text-left">
-                            <p className="font-medium">{formatAmountWithMaxFraction(order.total_amount)} د.ج</p>
+                            <p className="font-medium">{formatAmountWithMaxFraction(order.total_amount)} DA</p>
                             {isCashInvoice1 && order.stamp_amount > 0 && (
                               <p className="text-[10px] text-amber-600">
-                                طابع ({formatAmountWithMaxFraction(order.stamp_percentage)}%): {formatAmountWithMaxFraction(order.stamp_amount)} د.ج
+                                طابع ({formatAmountWithMaxFraction(order.stamp_percentage)}%): {formatAmountWithMaxFraction(order.stamp_amount)} DA
                               </p>
                             )}
                           </div>
@@ -880,14 +880,14 @@ const PaymentMethodDetailsDialog = ({ open, onOpenChange, category, handedCashIn
                           {format(new Date(group.orders[0].created_at), 'dd/MM/yyyy HH:mm', { locale: ar })}
                         </p>
                         {group.orders[0].debt_amount > 0 && (
-                          <p className="text-[10px] text-destructive">دين: {formatAmountWithMaxFraction(group.orders[0].debt_amount)} د.ج</p>
+                          <p className="text-[10px] text-destructive">دين: {formatAmountWithMaxFraction(group.orders[0].debt_amount)} DA</p>
                         )}
                       </div>
                       <div className="text-left">
                         {isCashInvoice1 && group.orders[0].stamp_amount > 0 && (
                           <p className="flex items-center gap-1 text-amber-600">
                             <Coins className="h-3 w-3" />
-                            طابع ({formatAmountWithMaxFraction(group.orders[0].stamp_percentage)}%): {formatAmountWithMaxFraction(group.orders[0].stamp_amount)} د.ج
+                            طابع ({formatAmountWithMaxFraction(group.orders[0].stamp_percentage)}%): {formatAmountWithMaxFraction(group.orders[0].stamp_amount)} DA
                           </p>
                         )}
                       </div>

@@ -1122,8 +1122,8 @@ const DirectSaleDialog: React.FC<DirectSaleDialogProps> = ({
             const paymentStatusText = normalizedPaid >= normalizedTotal
               ? 'الحالة: مدفوع بالكامل'
               : normalizedPaid > 0
-                ? `المدفوع: ${normalizedPaid.toLocaleString()} دج\nالمتبقي: ${normalizedRemaining.toLocaleString()} دج`
-                : `الحالة: دين ${normalizedTotal.toLocaleString()} دج`;
+                ? `المدفوع: ${normalizedPaid.toLocaleString()} DA\nالمتبقي: ${normalizedRemaining.toLocaleString()} DA`
+                : `الحالة: دين ${normalizedTotal.toLocaleString()} DA`;
 
             const message = buildSmsFromTemplate(opConfig.template, {
               customer: selectedCustomer?.name || '',

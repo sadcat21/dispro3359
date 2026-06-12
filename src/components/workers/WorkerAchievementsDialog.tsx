@@ -133,7 +133,7 @@ const AchievementDetailContent: React.FC<{ visit: any; onClose: () => void }> = 
             ) : orderData ? (
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
-                  <span>الإجمالي: <strong className="text-foreground">{Number(orderData.order.total_amount).toLocaleString()} د.ج</strong></span>
+                  <span>الإجمالي: <strong className="text-foreground">{Number(orderData.order.total_amount).toLocaleString()} DA</strong></span>
                   {orderData.order.invoice_payment_method && (
                     <Badge variant="outline" className="text-[10px]">
                       {orderData.order.invoice_payment_method === 'cash' ? 'Espèces' :

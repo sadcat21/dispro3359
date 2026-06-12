@@ -180,7 +180,7 @@ const CustomerSpecialPricesDialog: React.FC<CustomerSpecialPricesDialogProps> = 
               </div>
 
               <div>
-                <Label>{newPrice.price_type === 'fixed' ? 'السعر (دج)' : 'نسبة الخصم %'}</Label>
+                <Label>{newPrice.price_type === 'fixed' ? 'السعر (DA)' : 'نسبة الخصم %'}</Label>
                 <Input
                   type="number"
                   value={newPrice.special_price}
@@ -219,7 +219,7 @@ const CustomerSpecialPricesDialog: React.FC<CustomerSpecialPricesDialogProps> = 
                       <span className="text-muted-foreground mx-2">-</span>
                       <span className="text-primary font-bold">
                         {sp.price_type === 'fixed' 
-                          ? `${sp.special_price} دج`
+                          ? `${sp.special_price} DA`
                           : `خصم ${sp.special_price}%`
                         }
                       </span>

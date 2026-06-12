@@ -254,7 +254,7 @@ const DocumentTrackingDialog: React.FC<Props> = ({ open, onOpenChange, branchId 
                 <p className="text-[11px] text-slate-500">{new Date(r.createdAt).toLocaleDateString('ar-DZ')}</p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <Badge variant="secondary" className="text-xs">{formatMoney(r.total)} دج</Badge>
+                <Badge variant="secondary" className="text-xs">{formatMoney(r.total)} DA</Badge>
                 <Button
                   size="sm"
                   className="h-7 px-2 text-[11px] gap-1"

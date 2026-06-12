@@ -148,7 +148,7 @@ const OrderTimeline: React.FC<{ order: GroupedOrder }> = ({ order }) => {
               {event.event_type === 'amount_changed' && (
                 <div className="mt-0.5 text-[11px]">
                   <span className="text-muted-foreground" dir="ltr" style={{ unicodeBidi: 'embed' }}>
-                    {Number(event.old_value).toLocaleString()} → {Number(event.new_value).toLocaleString()} د.ج
+                    {Number(event.old_value).toLocaleString()} → {Number(event.new_value).toLocaleString()} DA
                   </span>
                   {/* Show current payment context from enhanced trigger */}
                   {event.details?.payment_type && (
@@ -207,7 +207,7 @@ const OrderTimeline: React.FC<{ order: GroupedOrder }> = ({ order }) => {
 
               {event.event_type === 'created' && event.details?.total_amount && (
                 <div className="mt-0.5 text-[11px] text-muted-foreground">
-                  المبلغ: {Number(event.details.total_amount).toLocaleString()} د.ج
+                  المبلغ: {Number(event.details.total_amount).toLocaleString()} DA
                 </div>
               )}
               
@@ -557,7 +557,7 @@ const OrderTracking: React.FC<{ workerMode?: boolean }> = ({ workerMode = false 
                           {STATUS_LABELS[order.currentStatus] || order.currentStatus}
                         </Badge>
                         {order.totalAmount && (
-                          <span className="text-xs font-bold text-foreground">{Number(order.totalAmount).toLocaleString()} د.ج</span>
+                          <span className="text-xs font-bold text-foreground">{Number(order.totalAmount).toLocaleString()} DA</span>
                         )}
                       </div>
                     </div>
@@ -692,7 +692,7 @@ const OrderDetailsContent: React.FC<{ order: GroupedOrder }> = ({ order }) => {
         {order.totalAmount && (
           <div className="text-center">
             <span className="text-2xl font-bold text-foreground">{Number(order.totalAmount).toLocaleString()}</span>
-            <span className="text-sm text-muted-foreground ms-1">د.ج</span>
+            <span className="text-sm text-muted-foreground ms-1">DA</span>
           </div>
         )}
         

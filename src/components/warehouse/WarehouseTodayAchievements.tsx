@@ -399,7 +399,7 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
                       )}
                     </div>
                     <div className="text-[10px] text-muted-foreground flex gap-2 flex-wrap mt-0.5">
-                      <span className="font-semibold text-foreground">{total.toLocaleString()} د.ج</span>
+                      <span className="font-semibold text-foreground">{total.toLocaleString()} DA</span>
                       {paid > 0 && <span className="text-emerald-600">مدفوع: {paid.toLocaleString()}</span>}
                       {remaining > 0 && <span className="text-destructive">متبقي: {remaining.toLocaleString()}</span>}
                       <span>{itemsCount} منتج</span>
@@ -527,7 +527,7 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-medium truncate">{d.customer?.name || 'بدون زبون'}</div>
                   <div className="text-[10px] text-muted-foreground flex gap-2 flex-wrap">
-                    <span className="font-semibold text-destructive">{Number(d.total_amount || 0).toLocaleString()} د.ج</span>
+                    <span className="font-semibold text-destructive">{Number(d.total_amount || 0).toLocaleString()} DA</span>
                     {Number(d.remaining_amount || 0) > 0 && <span>متبقي: {Number(d.remaining_amount).toLocaleString()}</span>}
                     <span>{format(new Date(d.created_at), 'HH:mm', { locale: ar })}</span>
                   </div>
@@ -551,7 +551,7 @@ export const WarehouseTodayAchievements: React.FC<Props> = ({ branchId }) => {
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-medium truncate">{p.debt?.customer?.name || 'بدون زبون'}</div>
                   <div className="text-[10px] text-muted-foreground flex gap-2 flex-wrap">
-                    <span className="font-semibold text-emerald-600">{Number(p.amount || 0).toLocaleString()} د.ج</span>
+                    <span className="font-semibold text-emerald-600">{Number(p.amount || 0).toLocaleString()} DA</span>
                     {p.payment_method && <span>{p.payment_method}</span>}
                     <span>{format(new Date(p.created_at), 'HH:mm', { locale: ar })}</span>
                   </div>

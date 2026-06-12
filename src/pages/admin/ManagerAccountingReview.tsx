@@ -304,7 +304,7 @@ const ManagerAccountingReview: React.FC = () => {
             {reviewHistory.length > 0 && (
               <>
                 <Badge className="bg-red-600 text-white hover:bg-red-600 text-xs">
-                  إجمالي النقد: {Number(reviewHistory.reduce((s: number, r: any) => s + Number(r.total_cash || 0), 0)).toLocaleString('fr-FR')} دج
+                  إجمالي النقد: {Number(reviewHistory.reduce((s: number, r: any) => s + Number(r.total_cash || 0), 0)).toLocaleString('fr-FR')} DA
                 </Badge>
                 <Button
                   variant="outline"
@@ -318,7 +318,7 @@ const ManagerAccountingReview: React.FC = () => {
                         <td style="padding:6px 8px;border:1px solid #e2e8f0;text-align:center">#${reviewHistory.length - idx}</td>
                         <td style="padding:6px 8px;border:1px solid #e2e8f0;text-align:center">${r.completed_at ? format(new Date(r.completed_at), 'yyyy-MM-dd HH:mm') : (r.created_at ? format(new Date(r.created_at), 'yyyy-MM-dd HH:mm') : '—')}</td>
                         <td style="padding:6px 8px;border:1px solid #e2e8f0;text-align:center">${r.sessions_count || 0}</td>
-                        <td style="padding:6px 8px;border:1px solid #e2e8f0;text-align:center;color:#047857;font-weight:700">${Number(r.total_cash || 0).toLocaleString('fr-FR')} دج</td>
+                        <td style="padding:6px 8px;border:1px solid #e2e8f0;text-align:center;color:#047857;font-weight:700">${Number(r.total_cash || 0).toLocaleString('fr-FR')} DA</td>
                       </tr>`).join('');
                     const html = `<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>ملخص مراجعة حسابات المدير</title>
                       <style>body{font-family:Arial,sans-serif;padding:20px;color:#0f172a}h1{font-size:18px;margin:0 0 4px}h2{font-size:13px;color:#64748b;margin:0 0 16px;font-weight:500}table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}th{background:#f1f5f9;padding:8px;border:1px solid #e2e8f0;text-align:center}.total{margin-top:16px;padding:10px;background:#fef2f2;border:2px solid #dc2626;border-radius:8px;text-align:center;font-size:14px;font-weight:800;color:#dc2626}@media print{.no-print{display:none}}</style>
@@ -326,7 +326,7 @@ const ManagerAccountingReview: React.FC = () => {
                       <h1>ملخص مراجعة حسابات المدير</h1>
                       <h2>تاريخ الطباعة: ${format(new Date(), 'yyyy-MM-dd HH:mm')}</h2>
                       <table><thead><tr><th>المراجعة</th><th>تاريخ الإيداع</th><th>عدد الجلسات</th><th>إجمالي النقد</th></tr></thead><tbody>${rows}</tbody></table>
-                      <div class="total">الإجمالي العام: ${Number(total).toLocaleString('fr-FR')} دج</div>
+                      <div class="total">الإجمالي العام: ${Number(total).toLocaleString('fr-FR')} DA</div>
                       <script>window.onload=()=>{setTimeout(()=>window.print(),200)}</script>
                       </body></html>`;
                     const iframe = document.createElement('iframe');
@@ -403,7 +403,7 @@ const ManagerAccountingReview: React.FC = () => {
                 <p className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-300 leading-tight">
                   {Number(totalCash).toLocaleString('fr-FR')}
                 </p>
-                <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">دج</p>
+                <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">DA</p>
               </div>
             </div>
             <div className="relative grid grid-cols-3 gap-2">
@@ -685,7 +685,7 @@ const ManagerAccountingReview: React.FC = () => {
                         <p className="text-base font-extrabold text-emerald-700 whitespace-nowrap leading-tight">
                           {Number(review.total_cash || 0).toLocaleString('fr-FR')}
                         </p>
-                        <p className="text-[9px] font-bold text-emerald-600 leading-tight">دج</p>
+                        <p className="text-[9px] font-bold text-emerald-600 leading-tight">DA</p>
                       </div>
                     </div>
 
@@ -962,7 +962,7 @@ export const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ to
           </div>
           <div className="bg-emerald-100 rounded-lg p-2 text-center">
             <p className="text-[10px] text-emerald-700 font-medium">إجمالي النقدية</p>
-            <p className="text-lg font-bold text-emerald-800">{fmt(totalCashReceived)} د.ج</p>
+            <p className="text-lg font-bold text-emerald-800">{fmt(totalCashReceived)} DA</p>
           </div>
         </div>
 
@@ -1029,7 +1029,7 @@ export const SessionsSummary: React.FC<{ totals: any; sessions: any[] }> = ({ to
             صافي الفرق (فعلي - متوقع)
           </p>
           <p className={`text-xl font-bold ${totals.cashDifference >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-            {totals.cashDifference >= 0 ? '+' : ''}{fmt(totals.cashDifference)} د.ج
+            {totals.cashDifference >= 0 ? '+' : ''}{fmt(totals.cashDifference)} DA
           </p>
         </div>
       </CardContent>
@@ -1134,7 +1134,7 @@ export const WorkerBreakdown: React.FC<{
                 >
                   <span className="flex items-center gap-1.5">
                     <Receipt className="w-3.5 h-3.5" />
-                    تفاصيل المصاريف ({fmt(expensesTotal)} د.ج)
+                    تفاصيل المصاريف ({fmt(expensesTotal)} DA)
                   </span>
                   <ChevronDown className="w-3.5 h-3.5" />
                 </CollapsibleTrigger>

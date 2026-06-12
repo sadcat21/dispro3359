@@ -42,7 +42,7 @@ export interface WorkerTargetProgress {
 }
 
 export const METRIC_LABELS: Record<TargetMetric, string> = {
-  sales_amount: 'مبلغ المبيعات (د.ج)',
+  sales_amount: 'مبلغ المبيعات (DA)',
   deliveries_count: 'عدد التوصيلات',
   cartons_sold: 'عدد الكراتين المباعة',
 };

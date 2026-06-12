@@ -1334,13 +1334,13 @@ const FactoryApprovalsDialog: React.FC<Props> = ({ open, onOpenChange, mode = 'b
                 </div>
                 <div className="p-3 border rounded-lg bg-rose-50 dark:bg-rose-950/20">
                   <div className="text-xs text-muted-foreground">💰 مصاريف الاستلام</div>
-                  <div className="text-lg font-bold">{(summaryReceipt.receipt_expenses || 0).toLocaleString()} دج</div>
+                  <div className="text-lg font-bold">{(summaryReceipt.receipt_expenses || 0).toLocaleString()} DA</div>
                   {Array.isArray((summaryReceipt as any).expenses_breakdown) && (summaryReceipt as any).expenses_breakdown.length > 0 ? (
                     <ul className="text-[10px] text-muted-foreground mt-1 space-y-0.5">
                       {((summaryReceipt as any).expenses_breakdown as { description: string; amount: number }[]).map((l, i) => (
                         <li key={i} className="flex justify-between gap-2">
                           <span className="truncate">{l.description || '-'}</span>
-                          <span className="font-semibold">{Number(l.amount || 0).toLocaleString()} دج</span>
+                          <span className="font-semibold">{Number(l.amount || 0).toLocaleString()} DA</span>
                         </li>
                       ))}
                     </ul>

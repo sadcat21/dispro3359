@@ -59,7 +59,7 @@ const WorkerLiability: React.FC = () => {
     }
   };
 
-  const formatCurrency = (n: number) => n.toLocaleString('ar-DZ') + ' د.ج';
+  const formatCurrency = (n: number) => n.toLocaleString('ar-DZ') + ' DA';
 
   if (isLoading) {
     return (

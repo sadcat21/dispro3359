@@ -87,7 +87,7 @@ const NewDebtsSummary: React.FC<Props> = ({ workerId, periodStart, periodEnd, co
       ))}
       <div className="bg-rose-500/5 border border-rose-500/20 rounded-lg p-2.5 flex justify-between items-center">
         <span className="text-sm font-bold">الإجمالي</span>
-        <span className="font-bold text-rose-700">{fmt(total)} دج</span>
+        <span className="font-bold text-rose-700">{fmt(total)} DA</span>
       </div>
     </div>
   );

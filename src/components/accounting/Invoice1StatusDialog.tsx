@@ -158,7 +158,7 @@ const Invoice1StatusDialog: React.FC<Props> = ({ open, onOpenChange, branchId })
                 </p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <Badge variant="secondary" className="text-xs">{formatMoney(r.total)} دج</Badge>
+                <Badge variant="secondary" className="text-xs">{formatMoney(r.total)} DA</Badge>
                 {showReceiveAction && r.documentType && (
                   <Button
                     size="sm"

@@ -26,7 +26,7 @@ export const TargetsList: React.FC = () => {
   });
 
   const formatMetric = (t: WorkerTarget) => {
-    if (t.metric_type === 'sales_amount') return `${Number(t.target_value).toLocaleString()} د.ج`;
+    if (t.metric_type === 'sales_amount') return `${Number(t.target_value).toLocaleString()} DA`;
     if (t.metric_type === 'deliveries_count') return `${t.target_value} توصيلة`;
     return `${t.target_value} كرتونة`;
   };
@@ -68,8 +68,8 @@ export const TargetsList: React.FC = () => {
                   <div><span className="text-muted-foreground">الفترة:</span> {PERIOD_LABELS[t.period_type]}</div>
                   <div><span className="text-muted-foreground">المستهدف:</span> {formatMetric(t)}</div>
                   <div><span className="text-muted-foreground">الحد الأدنى:</span> {t.min_achievement_pct}%</div>
-                  <div><span className="text-muted-foreground">المكافأة:</span> {Number(t.reward_amount).toLocaleString()} د.ج</div>
-                  <div><span className="text-muted-foreground">الخصم:</span> {Number(t.penalty_amount).toLocaleString()} د.ج</div>
+                  <div><span className="text-muted-foreground">المكافأة:</span> {Number(t.reward_amount).toLocaleString()} DA</div>
+                  <div><span className="text-muted-foreground">الخصم:</span> {Number(t.penalty_amount).toLocaleString()} DA</div>
                   <div><span className="text-muted-foreground">من:</span> {t.start_date}</div>
                   <div><span className="text-muted-foreground">إلى:</span> {t.end_date}</div>
                 </div>

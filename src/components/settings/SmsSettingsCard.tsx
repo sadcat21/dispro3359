@@ -42,26 +42,26 @@ const DEFAULT_TEMPLATES: Record<SmsOperationType, string> = {
 {company}
 العميل: {customer}
 الطلب: {order_id}
-الإجمالي: {total} دج
+الإجمالي: {total} DA
 {payment_status}
 شكراً لتعاملكم معنا`,
   direct_sale: `تم البيع المباشر
 {company}
 العميل: {customer}
-الإجمالي: {total} دج
+الإجمالي: {total} DA
 {payment_status}
 شكراً لتعاملكم معنا`,
   order_create: `تم إنشاء طلبية جديدة
 {company}
 العميل: {customer}
 الطلب: {order_id}
-الإجمالي: {total} دج
+الإجمالي: {total} DA
 سيتم التوصيل قريباً`,
   debt_collection: `تم تحصيل دفعة
 {company}
 العميل: {customer}
-المبلغ المحصل: {amount} دج
-المتبقي: {remaining} دج
+المبلغ المحصل: {amount} DA
+المتبقي: {remaining} DA
 شكراً لتعاملكم معنا`,
   document_collection: `تم تحصيل المستند
 {company}

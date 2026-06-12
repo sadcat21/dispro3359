@@ -175,15 +175,15 @@ const CollectedDebtsDialog = ({ open, onOpenChange, range }: Props) => {
           <div className="grid grid-cols-3 gap-2 text-center">
             <div className="rounded-md bg-background p-2 border">
               <p className="text-[10px] text-muted-foreground">إجمالي التحصيلات</p>
-              <p className="text-sm font-bold text-green-600">{fmt(totalCollections)} د.ج</p>
+              <p className="text-sm font-bold text-green-600">{fmt(totalCollections)} DA</p>
             </div>
             <div className="rounded-md bg-background p-2 border">
               <p className="text-[10px] text-muted-foreground">المُسلَّم</p>
-              <p className="text-sm font-bold text-blue-600">{fmt(handedAmount)} د.ج</p>
+              <p className="text-sm font-bold text-blue-600">{fmt(handedAmount)} DA</p>
             </div>
             <div className="rounded-md bg-background p-2 border">
               <p className="text-[10px] text-muted-foreground">المتبقي</p>
-              <p className="text-sm font-bold text-amber-600">{fmt(remaining)} د.ج</p>
+              <p className="text-sm font-bold text-amber-600">{fmt(remaining)} DA</p>
             </div>
           </div>
         </div>
@@ -205,7 +205,7 @@ const CollectedDebtsDialog = ({ open, onOpenChange, range }: Props) => {
                       showMeta={false}
                     />
                     <div className="text-left">
-                      <p className="font-bold text-green-600">{fmt(group.total)} د.ج</p>
+                      <p className="font-bold text-green-600">{fmt(group.total)} DA</p>
                       <Badge variant="outline" className="mt-1 text-[10px]">
                         {group.payments.length} تحصيل
                       </Badge>
@@ -223,7 +223,7 @@ const CollectedDebtsDialog = ({ open, onOpenChange, range }: Props) => {
                             {p.notes && <p className="text-[10px] text-muted-foreground">{p.notes}</p>}
                           </div>
                           <div className="text-left">
-                            <p className="font-medium text-green-600">{fmt(Number(p.amount || 0))} د.ج</p>
+                            <p className="font-medium text-green-600">{fmt(Number(p.amount || 0))} DA</p>
                           </div>
                         </div>
                       </div>

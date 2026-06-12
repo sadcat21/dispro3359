@@ -210,7 +210,7 @@ const emptyCalc = (): SessionCalculations => ({
   customerSurplusCash: 0,
 });
 
-const fmtMoney = (value: number) => `${value.toLocaleString('ar-DZ')} د.ج`;
+const fmtMoney = (value: number) => `${value.toLocaleString('ar-DZ')} DA`;
 
 const formatGiftDisplay = (giftPieces: number, piecesPerBox: number) => {
   if (giftPieces <= 0) return '0.00';

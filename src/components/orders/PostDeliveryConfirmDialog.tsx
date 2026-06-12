@@ -116,26 +116,26 @@ const PostDeliveryConfirmDialog: React.FC<PostDeliveryConfirmDialogProps> = ({
               <div className="bg-muted/50 rounded-lg p-3 space-y-1 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">المبلغ الأصلي:</span>
-                  <span>{originalTotal.toLocaleString()} دج</span>
+                  <span>{originalTotal.toLocaleString()} DA</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">المبلغ الجديد:</span>
-                  <span>{newTotal.toLocaleString()} دج</span>
+                  <span>{newTotal.toLocaleString()} DA</span>
                 </div>
                 <div className="border-t pt-1 mt-1 flex justify-between font-bold">
                   <span>الفارق:</span>
                   <span className={isIncrease ? 'text-red-600' : isDecrease ? 'text-green-600' : ''}>
-                    {isIncrease ? '+' : ''}{totalDifference.toLocaleString()} دج
+                    {isIncrease ? '+' : ''}{totalDifference.toLocaleString()} DA
                   </span>
                 </div>
               </div>
 
               {isIncrease && (
                 <div className="border border-amber-200 bg-amber-50 rounded-lg p-3 text-sm text-amber-800">
-                  <p className="font-bold mb-1">العميل مطالب بدفع {absDifference.toLocaleString()} دج إضافية</p>
+                  <p className="font-bold mb-1">العميل مطالب بدفع {absDifference.toLocaleString()} DA إضافية</p>
                   {customerCreditBalance > 0 && (
                     <p className="text-xs mt-1">
-                      لدى العميل رصيد فائض: {customerCreditBalance.toLocaleString()} دج وسيتم خصمه تلقائياً
+                      لدى العميل رصيد فائض: {customerCreditBalance.toLocaleString()} DA وسيتم خصمه تلقائياً
                     </p>
                   )}
                 </div>
@@ -143,10 +143,10 @@ const PostDeliveryConfirmDialog: React.FC<PostDeliveryConfirmDialogProps> = ({
 
               {isDecrease && (
                 <div className="border border-blue-200 bg-blue-50 rounded-lg p-3 text-sm text-blue-800">
-                  <p className="font-bold mb-1">فارق لصالح العميل: {absDifference.toLocaleString()} دج</p>
+                  <p className="font-bold mb-1">فارق لصالح العميل: {absDifference.toLocaleString()} DA</p>
                   {customerHasDebt && customerDebtAmount > 0 && (
                     <p className="text-xs mt-1">
-                      لدى العميل ديون بقيمة: {customerDebtAmount.toLocaleString()} دج وسيتم خصم الفارق منها تلقائياً
+                      لدى العميل ديون بقيمة: {customerDebtAmount.toLocaleString()} DA وسيتم خصم الفارق منها تلقائياً
                     </p>
                   )}
                 </div>
@@ -167,7 +167,7 @@ const PostDeliveryConfirmDialog: React.FC<PostDeliveryConfirmDialogProps> = ({
                         <SelectItem value="partial">دفع جزئي</SelectItem>
                         <SelectItem value="no_payment">
                           {customerCreditBalance > 0
-                            ? `خصم من رصيد العميل (${customerCreditBalance.toLocaleString()} دج)`
+                            ? `خصم من رصيد العميل (${customerCreditBalance.toLocaleString()} DA)`
                             : 'بدون دفع (دين)'}
                         </SelectItem>
                       </>
@@ -177,7 +177,7 @@ const PostDeliveryConfirmDialog: React.FC<PostDeliveryConfirmDialogProps> = ({
                         <SelectItem value="partial">إعادة جزئية</SelectItem>
                         <SelectItem value="no_payment">
                           {customerHasDebt && customerDebtAmount > 0
-                            ? `خصم من دين العميل (${customerDebtAmount.toLocaleString()} دج)`
+                            ? `خصم من دين العميل (${customerDebtAmount.toLocaleString()} DA)`
                             : 'بدون إرجاع (رصيد فائض للعميل)'}
                         </SelectItem>
                       </>
@@ -196,7 +196,7 @@ const PostDeliveryConfirmDialog: React.FC<PostDeliveryConfirmDialogProps> = ({
                       min={0}
                       max={absDifference}
                     />
-                    <span className="text-sm text-muted-foreground whitespace-nowrap">/ {absDifference.toLocaleString()} دج</span>
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">/ {absDifference.toLocaleString()} DA</span>
                   </div>
                 )}
               </div>

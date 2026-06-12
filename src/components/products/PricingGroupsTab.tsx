@@ -569,13 +569,13 @@ const PricingGroupsTab: React.FC = () => {
                   <p className="font-medium mb-2">أسعار المنتج المرجعي:</p>
                   <div className="grid grid-cols-2 gap-1 text-xs">
                     <span className="text-muted-foreground">سبر غرو:</span>
-                    <span className="font-medium">{src.price_super_gros || 0} دج</span>
+                    <span className="font-medium">{src.price_super_gros || 0} DA</span>
                     <span className="text-muted-foreground">غرو:</span>
-                    <span className="font-medium">{src.price_gros || 0} دج</span>
+                    <span className="font-medium">{src.price_gros || 0} DA</span>
                     <span className="text-muted-foreground">فاتورة:</span>
-                    <span className="font-medium">{src.price_invoice || 0} دج</span>
+                    <span className="font-medium">{src.price_invoice || 0} DA</span>
                     <span className="text-muted-foreground">تجزئة:</span>
-                    <span className="font-medium">{src.price_retail || 0} دج</span>
+                    <span className="font-medium">{src.price_retail || 0} DA</span>
                   </div>
                 </div>
               );
