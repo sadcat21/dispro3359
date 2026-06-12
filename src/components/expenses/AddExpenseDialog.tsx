@@ -64,6 +64,7 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
   const [uploading, setUploading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [advanceWorkerId, setAdvanceWorkerId] = useState('');
+  const [justification, setJustification] = useState('');
 
   // Check if selected category is fuel / advance
   const selectedCategory = filteredCategories.find(c => c.id === categoryId);
