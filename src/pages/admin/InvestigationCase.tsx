@@ -76,7 +76,7 @@ const InvestigationCase: React.FC = () => {
 
         <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t mt-2">
           <div><span className="text-muted-foreground">فُتحت:</span> {format(new Date(c.opened_at), 'dd/MM/yyyy HH:mm')}</div>
-          {c.deadline && <div><span className="text-muted-foreground">المهلة:</span> {format(new Date(c.deadline), 'dd/MM/yyyy')}</div>}
+          {c.deadline && <div><span className="text-muted-foreground">تاريخ المتابعة:</span> {format(new Date(c.deadline), 'dd/MM/yyyy')}</div>}
           {c.closed_at && <div><span className="text-muted-foreground">أُغلقت:</span> {format(new Date(c.closed_at), 'dd/MM/yyyy HH:mm')}</div>}
           {c.decision && <div><span className="text-muted-foreground">القرار:</span> {DECISION_META[c.decision].ar}</div>}
         </div>
