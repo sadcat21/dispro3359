@@ -20,6 +20,7 @@ interface WorkerPickerDialogProps {
   onSelect: (workerId: string) => void;
   stockAlerts?: { worker_id: string; deficit: number }[];
   frozenWorkerIds?: string[];
+  hideStatusBadge?: boolean;
 }
 
 const AVATAR_COLORS = [
