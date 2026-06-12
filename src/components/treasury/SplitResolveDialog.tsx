@@ -98,6 +98,7 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
 
   const [customerOpen, setCustomerOpen] = useState(false);
   const [workerOpen, setWorkerOpen] = useState(false);
+  const [peerPickerOpen, setPeerPickerOpen] = useState(false);
   const [typePickerOpen, setTypePickerOpen] = useState(false);
 
 
