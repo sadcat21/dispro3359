@@ -114,8 +114,9 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
       setPaymentMethod(expense.payment_method || 'cash');
     } else if (open && !expense) {
       resetForm();
+      if (initialCategoryId) setCategoryId(initialCategoryId);
     }
-  }, [open, expense]);
+  }, [open, expense, initialCategoryId]);
 
 
   const addFiles = (files: FileList | null) => {
