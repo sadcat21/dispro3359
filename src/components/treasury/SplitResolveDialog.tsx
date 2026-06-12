@@ -144,6 +144,9 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
   const currentOpt = OPTIONS.find((o) => o.key === draftType);
   const needsCustomer = currentOpt?.requires === 'customer';
   const needsWorker = currentOpt?.requires === 'worker';
+  const isPeerHandover = draftType === 'peer_cash_handover';
+  const senderWorkerId = entry?.worker_id || entry?.manager_id || null;
+  const senderBalance = remaining; // ما تبقّى من الفائض = رصيد قابل للتسليم
 
   const reset = () => {
     setDraftAmount('');
