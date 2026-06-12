@@ -105,6 +105,9 @@ const TYPE_HELP: Record<string, { behavior: string; example: string }> = {
   },
 };
 
+const fmt = (n: number) => n.toLocaleString();
+
+
 
 const useBranchCustomers = (branchId: string | null | undefined, enabled: boolean) =>
   useQuery({
