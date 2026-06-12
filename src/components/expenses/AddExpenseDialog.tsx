@@ -360,6 +360,40 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
         </form>
       </DialogContent>
     </Dialog>
+
+    <Dialog open={workerPickerOpen} onOpenChange={setWorkerPickerOpen}>
+      <DialogContent className="max-w-md" dir={dir}>
+        <DialogHeader>
+          <DialogTitle>{isPeerHandoverCategory ? 'اختر الزميل المستلِم' : 'اختر العامل المستفيد'}</DialogTitle>
+        </DialogHeader>
+        {(!branchWorkers || branchWorkers.length === 0) ? (
+          <p className="text-center text-sm text-muted-foreground py-6">
+            لا يوجد عمال في هذا الفرع
+          </p>
+        ) : (
+          <div className="grid grid-cols-2 gap-2 pt-2 max-h-[60vh] overflow-y-auto">
+            {branchWorkers.map(w => {
+              const selected = advanceWorkerId === w.id;
+              return (
+                <button
+                  key={w.id}
+                  type="button"
+                  onClick={() => { setAdvanceWorkerId(w.id); setWorkerPickerOpen(false); }}
+                  className={`rounded-lg border p-3 text-center text-xs font-medium transition-all flex flex-col items-center gap-1 ${
+                    selected
+                      ? 'border-primary bg-primary/5 ring-2 ring-primary/30'
+                      : 'border-border hover:border-primary/40 hover:bg-muted/40'
+                  }`}
+                >
+                  <span className="line-clamp-2">{w.full_name}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+    </>
   );
 };
 
