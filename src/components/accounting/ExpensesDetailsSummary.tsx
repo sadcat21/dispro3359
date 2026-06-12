@@ -86,11 +86,25 @@ const ExpensesDetailsSummary: React.FC<Props> = ({ workerId, periodStart, period
           const hasReceipt = receipts.length > 0;
           const catName = e.category?.name_fr || e.category?.name || '';
           const isAdvance = /advance|avance|مسبق/i.test(`${catName} ${e.category?.name_en || ''}`);
+          const desc: string = e.description || '';
+          const isPeerSender = /^تسليم لزميل\s*:/.test(desc);
+          const isPeerReceiver = /^استلام نقدي من زميل\s*:/.test(desc) || Number(e.amount) < 0;
           let advanceWorker = '';
-          if (isAdvance && e.description) {
-            const m = e.description.match(/مسبق\s*أجرة\s*[:\-]?\s*([^—\-\n]+)/);
+          if (isAdvance && desc && !isPeerSender && !isPeerReceiver) {
+            const m = desc.match(/مسبق\s*أجرة\s*[:\-]?\s*([^—\-\n]+)/);
             if (m) advanceWorker = m[1].trim();
           }
+          // Peer-handover summary: pull counterparty + justification from desc.
+          let peerLabel = '';
+          if (isPeerSender) {
+            const m = desc.match(/^تسليم لزميل\s*:\s*([^—]+?)(?:\s*—\s*مبرر:\s*([^—]+))?(?:\s*—|$)/);
+            if (m) peerLabel = `← ${m[1].trim()}${m[2] ? ` · ${m[2].trim()}` : ''}`;
+          } else if (isPeerReceiver) {
+            const m = desc.match(/^استلام نقدي من زميل\s*:\s*([^—]+?)(?:\s*—\s*مبرر:\s*([^—]+))?(?:\s*—|$)/);
+            if (m) peerLabel = `→ ${m[1].trim()}${m[2] ? ` · ${m[2].trim()}` : ''}`;
+          }
+          const amountAbs = Math.abs(Number(e.amount || 0));
+          const isInflow = Number(e.amount) < 0;
           return (
             <div
               key={e.id}
@@ -101,13 +115,16 @@ const ExpensesDetailsSummary: React.FC<Props> = ({ workerId, periodStart, period
                 <span className="text-xs font-semibold truncate">
                   {catName || t('expenses_summary.fallback_label')}
                   {advanceWorker && <span className="text-primary"> — {advanceWorker}</span>}
+                  {peerLabel && <span className={isInflow ? 'text-emerald-600' : 'text-primary'}> {peerLabel}</span>}
                 </span>
                 <span className="text-[10px] text-muted-foreground shrink-0">
                   {format(new Date(e.expense_date), 'dd/MM/yyyy')}
                 </span>
                 {hasReceipt && <Image className="w-3.5 h-3.5 text-primary shrink-0" />}
               </div>
-              <span className="font-bold text-sm text-destructive shrink-0">-{fmt(Number(e.amount))} DA</span>
+              <span className={`font-bold text-sm shrink-0 ${isInflow ? 'text-emerald-600' : 'text-destructive'}`}>
+                {isInflow ? '+' : '-'}{fmt(amountAbs)} DA
+              </span>
             </div>
           );
         })}
