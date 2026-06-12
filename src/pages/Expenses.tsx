@@ -4,6 +4,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useExpenses, useDeleteExpense, useWorkerAccountedRanges } from '@/hooks/useExpenses';
 import { ExpenseWithDetails } from '@/types/expense';
 import AddExpenseDialog from '@/components/expenses/AddExpenseDialog';
+import CategoryPickerDialog from '@/components/expenses/CategoryPickerDialog';
+import SalaryAdvanceBar from '@/components/expenses/SalaryAdvanceBar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
