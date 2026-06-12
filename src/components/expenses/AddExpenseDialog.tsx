@@ -213,21 +213,23 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label>{t('expenses.category')}</Label>
-            <Select value={categoryId} onValueChange={setCategoryId}>
-              <SelectTrigger>
-                <SelectValue placeholder={t('expenses.select_category')} />
-              </SelectTrigger>
-              <SelectContent>
-                {filteredCategories.map(cat => (
-                  <SelectItem key={cat.id} value={cat.id}>
-                    {getCategoryName(cat as any, language)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {!initialCategoryId && !isEdit ? null : (
+            <div className="space-y-2">
+              <Label>{t('expenses.category')}</Label>
+              <Select value={categoryId} onValueChange={setCategoryId}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t('expenses.select_category')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {filteredCategories.map(cat => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      {getCategoryName(cat as any, language)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Worker selector for advance category */}
           {isAdvanceCategory && (
