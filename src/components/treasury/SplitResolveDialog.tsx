@@ -47,7 +47,10 @@ const OPTIONS: OptionDef[] = [
   { key: 'deduct_from_reward', label: 'خصم من المكافأة', requires: 'none' },
   { key: 'offset_against_return', label: 'مقاصّة مع مرتجع (انتظار)', requires: 'none' },
   { key: 'carry_forward', label: 'ترحيل للجلسة القادمة', requires: 'none' },
+  { key: 'split_writeoff_debt', label: 'تقاسم: شطب + دين', requires: 'none' },
+  { key: 'investigation', label: 'فتح ملف متابعة', requires: 'none' },
 ];
+
 
 const TYPE_LABEL: Record<SplitResolutionType, string> = Object.fromEntries(
   OPTIONS.map((o) => [o.key, o.label]),
@@ -372,22 +375,6 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
                 </button>
               );
             })}
-            <button
-              type="button"
-              onClick={() => {
-                setDraftType('investigation' as SplitResolutionType);
-                setDraftParty(null);
-                setTypePickerOpen(false);
-              }}
-              className={cn(
-                'rounded-lg border p-3 text-right text-xs font-medium transition-all col-span-2 flex items-center justify-center gap-1.5',
-                draftType === 'investigation'
-                  ? 'border-amber-500 bg-amber-50 text-amber-800 ring-2 ring-amber-200'
-                  : 'border-border hover:border-amber-300 hover:bg-amber-50/50',
-              )}
-            >
-              <SearchIcon className="w-3.5 h-3.5" /> فتح ملف متابعة
-            </button>
           </div>
         </DialogContent>
       </Dialog>
