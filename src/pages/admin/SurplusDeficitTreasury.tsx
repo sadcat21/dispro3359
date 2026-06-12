@@ -20,7 +20,8 @@ type ResolutionKey =
   | 'deduct_from_reward'
   | 'offset_against_return'
   | 'worker_acknowledged'
-  | 'credit_to_customer';
+  | 'credit_to_customer'
+  | 'carry_forward';
 
 const RESOLUTION_OPTIONS: {
   key: ResolutionKey;
