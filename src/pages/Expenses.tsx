@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useExpenses, useDeleteExpense, useWorkerAccountedRanges } from '@/hooks/useExpenses';
+import { useExpenses, useDeleteExpense, useWorkerAccountedRanges, useExpenseCategories } from '@/hooks/useExpenses';
 import { ExpenseWithDetails } from '@/types/expense';
 import AddExpenseDialog from '@/components/expenses/AddExpenseDialog';
 import CategoryPickerDialog from '@/components/expenses/CategoryPickerDialog';
@@ -35,7 +35,7 @@ const Expenses: React.FC = () => {
   const { language, t, dir } = useLanguage();
   const isManager = isAdminRole(role);
 
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [pickedCategoryId, setPickedCategoryId] = useState<string | undefined>(undefined);
   const [showAdd, setShowAdd] = useState(false);
@@ -43,6 +43,7 @@ const Expenses: React.FC = () => {
   const [tab, setTab] = useState('expenses');
 
   const { data: expenses, isLoading } = useExpenses(isManager ? null : workerId);
+  const { data: categories = [] } = useExpenseCategories();
   const deleteExpense = useDeleteExpense();
   const { data: accountedRanges } = useWorkerAccountedRanges(isManager ? null : workerId);
   const { data: peerHandovers = [], isLoading: peerLoading } = usePendingPeerHandoversForMe(workerId);
@@ -60,7 +61,7 @@ const Expenses: React.FC = () => {
 
   const filtered = expenses?.filter(e => {
     if (!isManager && isAccounted(e.created_at)) return false;
-    return statusFilter === 'all' ? true : e.status === statusFilter;
+    return categoryFilter === 'all' ? true : e.category_id === categoryFilter;
   });
 
   return (
@@ -100,16 +101,18 @@ const Expenses: React.FC = () => {
 
         <TabsContent value="expenses" className="space-y-4 mt-4">
           <div className="flex gap-2">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-40">
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-48">
                 <Filter className="w-4 h-4 me-1" />
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{t('expenses.all')}</SelectItem>
-                <SelectItem value="pending">{t('expenses.pending')}</SelectItem>
-                <SelectItem value="approved">{t('expenses.approved')}</SelectItem>
-                <SelectItem value="rejected">{t('expenses.rejected')}</SelectItem>
+                {categories.map((c: any) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {getCategoryName(c, language)}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
