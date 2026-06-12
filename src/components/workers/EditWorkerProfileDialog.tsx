@@ -30,6 +30,7 @@ const EditWorkerProfileDialog: React.FC<Props> = ({ open, onOpenChange, workerId
   const [deviceId, setDeviceId] = useState('');
   const [deviceInfo, setDeviceInfo] = useState<any>(null);
   const [deviceLocked, setDeviceLocked] = useState(false);
+  const [maxMonthlyAdvance, setMaxMonthlyAdvance] = useState('');
   useEffect(() => {
     if (open && workerId) {
       loadWorkerData();

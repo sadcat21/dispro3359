@@ -1,0 +1,1 @@
+ALTER TABLE public.workers ADD COLUMN IF NOT EXISTS max_monthly_salary_advance NUMERIC(12,2);
