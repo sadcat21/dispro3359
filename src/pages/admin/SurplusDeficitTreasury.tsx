@@ -138,16 +138,9 @@ const ResolveDialog: React.FC<{
           <DialogTitle>تسوية القيد ({fmt(Number(entry.amount))} DA)</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
-          <div>
+          <div className="space-y-2">
             <Label>القرار</Label>
-            <Select value={resolution} onValueChange={(v: any) => setResolution(v)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="manager_approved_writeoff">شطب باعتماد المدير</SelectItem>
-                <SelectItem value="worker_debt">تحويل لدين العامل</SelectItem>
-                <SelectItem value="investigation">إحالة للتحقيق</SelectItem>
-              </SelectContent>
-            </Select>
+            <ResolutionButtons value={resolution} onChange={setResolution} />
           </div>
           <div>
             <Label>المبرر / الملاحظات</Label>
