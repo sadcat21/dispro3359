@@ -389,6 +389,53 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
             </div>
           )}
 
+          {isPeerHandoverCategory && (
+            <div className="space-y-2">
+              <Label>المبرر <span className="text-[10px] text-red-600">*</span></Label>
+              {!advanceWorkerId ? (
+                <p className="text-[11px] text-muted-foreground">يرجى اختيار الزميل المستلِم أولاً لعرض المبررات المسموح بها له</p>
+              ) : justificationOptions.length === 0 ? (
+                <p className="text-[11px] text-muted-foreground">لا توجد فئات مسموح بها لهذا الزميل</p>
+              ) : (
+                <div className="grid grid-cols-3 gap-2">
+                  {justificationOptions.map(opt => {
+                    const isAdv = opt.name?.includes('مسبق') ||
+                      opt.name_fr?.toLowerCase().includes('avance') ||
+                      opt.name_en?.toLowerCase().includes('advance');
+                    const selected = justificationCategoryId === opt.id;
+                    const baseColor = isAdv ? advanceTierClass : 'bg-card border-border text-foreground';
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setJustificationCategoryId(selected ? null : opt.id)}
+                        className={`rounded-lg border p-2 text-[11px] font-medium transition-all ${baseColor} ${
+                          selected ? 'ring-2 ring-primary border-primary' : 'hover:bg-muted/40'
+                        }`}
+                      >
+                        {getCategoryName(opt as any, language)}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {isJustificationOther && (
+                <Input
+                  value={justificationOtherTitle}
+                  onChange={e => setJustificationOtherTitle(e.target.value)}
+                  placeholder="أدخل عنوان المبرر"
+                  maxLength={80}
+                />
+              )}
+              {isJustificationAdvance && receiverAdvance && receiverAdvance.remaining === 0 && (
+                <p className="text-[10px] text-red-600">لا يمكن منح مسبق أجرة لهذا الزميل هذا الشهر</p>
+              )}
+              {exceedsAdvanceLimit && (
+                <p className="text-[11px] font-medium text-red-600">المبلغ المُدخل يتجاوز الحد المسموح به</p>
+              )}
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label>{t('expenses.amount')}</Label>
             <Input
@@ -432,46 +479,6 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
             />
           </div>
 
-          {isPeerHandoverCategory && (
-            <div className="space-y-2">
-              <Label>المبرر <span className="text-[10px] text-muted-foreground">(اختياري)</span></Label>
-              <div className="grid grid-cols-3 gap-2">
-                {justificationOptions.map(opt => {
-                  const isAdv = opt.name?.includes('مسبق') ||
-                    opt.name_fr?.toLowerCase().includes('avance') ||
-                    opt.name_en?.toLowerCase().includes('advance');
-                  const selected = justificationCategoryId === opt.id;
-                  const baseColor = isAdv ? advanceTierClass : 'bg-card border-border text-foreground';
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => setJustificationCategoryId(selected ? null : opt.id)}
-                      className={`rounded-lg border p-2 text-[11px] font-medium transition-all ${baseColor} ${
-                        selected ? 'ring-2 ring-primary border-primary' : 'hover:bg-muted/40'
-                      }`}
-                    >
-                      {getCategoryName(opt as any, language)}
-                    </button>
-                  );
-                })}
-              </div>
-              {isJustificationOther && (
-                <Input
-                  value={justificationOtherTitle}
-                  onChange={e => setJustificationOtherTitle(e.target.value)}
-                  placeholder="أدخل عنوان المبرر"
-                  maxLength={80}
-                />
-              )}
-              {isJustificationAdvance && receiverAdvance && receiverAdvance.remaining === 0 && (
-                <p className="text-[10px] text-red-600">لا يمكن منح مسبق أجرة لهذا الزميل هذا الشهر</p>
-              )}
-              {exceedsAdvanceLimit && (
-                <p className="text-[11px] font-medium text-red-600">المبلغ المُدخل يتجاوز الحد المسموح به</p>
-              )}
-            </div>
-          )}
 
           <div className="space-y-2">
             <Label>{t('expenses.description')}</Label>
