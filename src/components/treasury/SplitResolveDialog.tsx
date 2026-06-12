@@ -87,11 +87,6 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
   const total = Math.abs(Number(entry?.amount || 0));
   const used = useMemo(() => splits.reduce((s, r) => s + Number(r.amount || 0), 0), [splits]);
   const remaining = Math.max(0, total - used);
-  const editingRow = useMemo(
-    () => splits.find((r) => r.id === editingSplitId) ?? null,
-    [splits, editingSplitId],
-  );
-  const availableAmount = remaining + Number(editingRow?.amount || 0);
 
   // Draft row
   const [draftType, setDraftType] = useState<SplitResolutionType>('manager_approved_writeoff');
