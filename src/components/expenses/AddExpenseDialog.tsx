@@ -588,7 +588,7 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
           <Button
             type="submit"
             className="w-full"
-            disabled={!categoryId || !amount || createExpense.isPending || updateExpense.isPending || uploading || createWorkerDebt.isPending || (!isEdit && needsWorkerPick && !advanceWorkerId) || exceedsAdvanceLimit || (isPeerHandoverCategory && !justificationCategoryId) || (isPeerHandoverCategory && isJustificationOther && !justificationOtherTitle.trim())}
+            disabled={!categoryId || !amount || createExpense.isPending || updateExpense.isPending || uploading || createWorkerDebt.isPending || (!isEdit && needsWorkerPick && !advanceWorkerId) || exceedsAdvanceLimit || exceedsAvailableCash || (isPeerHandoverCategory && !justificationCategoryId) || (isPeerHandoverCategory && isJustificationOther && !justificationOtherTitle.trim())}
           >
             {(createExpense.isPending || updateExpense.isPending || uploading) && <Loader2 className="w-4 h-4 animate-spin me-2" />}
             {isEdit ? t('common.save') : t('expenses.add_button')}
