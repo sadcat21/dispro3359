@@ -148,6 +148,7 @@ export const useAddTreasuryResolution = () => {
       qc.invalidateQueries({ queryKey: ['surplus-deficit-cash'] });
       qc.invalidateQueries({ queryKey: ['surplus-deficit-customer'] });
       qc.invalidateQueries({ queryKey: ['peer-cash-handovers'] });
+      qc.invalidateQueries({ queryKey: ['worker-debts'] });
       toast.success('تمت إضافة سطر التسوية');
     },
     onError: (e: any) => toast.error(e.message || 'فشل إضافة السطر'),
