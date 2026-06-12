@@ -115,7 +115,25 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
     },
   });
 
-  const availableOptions = OPTIONS.filter((o) => {
+  // Live status of peer cash handovers for this treasury entry (for badges)
+  const peerHandoversQ = useQuery({
+    enabled: !!entry?.id,
+    queryKey: ['treasury-peer-handovers', entry?.id],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from('peer_cash_handovers')
+        .select('split_id, status, response_note, responded_at')
+        .eq('treasury_id', entry!.id);
+      if (error) throw error;
+      return data as Array<{ split_id: string; status: 'pending' | 'approved' | 'rejected'; response_note: string | null; responded_at: string | null }>;
+    },
+  });
+  const peerBySplit = useMemo(() => {
+    const m: Record<string, { status: string; response_note: string | null }> = {};
+    (peerHandoversQ.data ?? []).forEach((h) => { m[h.split_id] = h; });
+    return m;
+  }, [peerHandoversQ.data]);
+
     if (o.surplusOnly && !isSurplus) return false;
     if (o.deficitOnly && isSurplus) return false;
     return true;
