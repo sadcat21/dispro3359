@@ -540,9 +540,18 @@ const SurplusDeficitTreasury: React.FC = () => {
         </TabsContent>
       </Tabs>
 
-      <ResolveDialog entry={resolveTarget} onClose={() => setResolveTarget(null)} />
+      <ResolveDialog
+        entry={resolveTarget}
+        onClose={() => setResolveTarget(null)}
+        onRequestInvestigation={(e) => setInvestigationTarget(e)}
+      />
       <ApproveDialog entry={approveTarget} onClose={() => setApproveTarget(null)} />
       <ToleranceDialog open={showSettings} onClose={() => setShowSettings(false)} branchId={activeBranch?.id} />
+      <OpenInvestigationDialog
+        open={!!investigationTarget}
+        onClose={() => setInvestigationTarget(null)}
+        treasury={investigationTarget}
+      />
     </div>
   );
 };
