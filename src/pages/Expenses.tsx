@@ -101,16 +101,18 @@ const Expenses: React.FC = () => {
 
         <TabsContent value="expenses" className="space-y-4 mt-4">
           <div className="flex gap-2">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-40">
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-48">
                 <Filter className="w-4 h-4 me-1" />
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{t('expenses.all')}</SelectItem>
-                <SelectItem value="pending">{t('expenses.pending')}</SelectItem>
-                <SelectItem value="approved">{t('expenses.approved')}</SelectItem>
-                <SelectItem value="rejected">{t('expenses.rejected')}</SelectItem>
+                {categories.map((c: any) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {getCategoryName(c, language)}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
