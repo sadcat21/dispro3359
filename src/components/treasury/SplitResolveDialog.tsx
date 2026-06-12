@@ -270,9 +270,8 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
                 <Label className="text-sm font-semibold">إضافة سطر تسوية</Label>
                 <Button
                   type="button"
-                  variant="ghost"
                   size="sm"
-                  className="h-7 text-xs"
+                  className="h-7 text-xs bg-red-600 text-white hover:bg-red-700"
                   onClick={() => setDraftAmount(String(remaining))}
                 >
                   استخدم كامل المتبقّي ({fmt(remaining)})
@@ -404,6 +403,9 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
                     setDraftType(o.key);
                     setDraftParty(null);
                     setTypePickerOpen(false);
+                    if (o.requires === 'customer') setCustomerOpen(true);
+                    else if (o.key === 'peer_cash_handover') setPeerPickerOpen(true);
+                    else if (o.requires === 'worker') setWorkerOpen(true);
                   }}
                   className={cn(
                     'rounded-lg border p-3 text-right text-xs font-medium transition-all',
