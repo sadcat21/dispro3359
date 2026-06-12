@@ -252,6 +252,14 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
       toast.error(isPeerHandoverCategory ? 'يرجى اختيار الزميل المستلِم' : 'يرجى اختيار العامل المستفيد من المسبق');
       return;
     }
+    if (isPeerHandoverCategory && !justificationCategoryId) {
+      toast.error('يرجى اختيار المبرر');
+      return;
+    }
+    if (isPeerHandoverCategory && isJustificationOther && !justificationOtherTitle.trim()) {
+      toast.error('يرجى إدخال عنوان المبرر');
+      return;
+    }
     // Enforce remaining advance limit when the justification is "salary advance"
     if (isPeerHandoverCategory && isJustificationAdvance) {
       const rem = receiverAdvance?.remaining ?? 0;
