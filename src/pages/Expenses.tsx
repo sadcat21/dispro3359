@@ -70,12 +70,16 @@ const Expenses: React.FC = () => {
           {isManager ? t('expenses.title') : t('expenses.my_expenses')}
         </h1>
         {!isAddExpenseHidden && tab === 'expenses' && (
-          <Button size="sm" onClick={() => setShowAdd(true)}>
+          <Button size="sm" onClick={() => { setPickedCategoryId(undefined); setShowCategoryPicker(true); }}>
             <Plus className="w-4 h-4 me-1" />
             {t('expenses.add')}
           </Button>
         )}
       </div>
+
+      {!isManager && workerId && (
+        <SalaryAdvanceBar workerId={workerId} language={language} />
+      )}
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="w-full">
