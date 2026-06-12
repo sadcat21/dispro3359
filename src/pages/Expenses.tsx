@@ -319,42 +319,41 @@ const ExpenseCard: React.FC<{
 
         {/* Row 1: Date | Amount */}
         <div className="mt-2 grid grid-cols-2 border-t border-border/50">
-          <div className="border-l border-border/50 px-3 py-2.5">
+          <div className="border-l border-border/50 px-3 py-1.5">
             <p className="text-[9px] uppercase text-muted-foreground">{t('common.date') || 'التاريخ'}</p>
-            <p className="text-xs font-semibold text-foreground">
-              {formatDate(expense.expense_date, 'dd MMM yyyy', language as any)}
+            <p className="text-xs font-semibold text-foreground" dir="ltr">
+              {formatDate(expense.expense_date, 'dd/MM/yyyy', language as any)}
             </p>
           </div>
-          <div className="px-3 py-2.5 text-left" dir="ltr">
+          <div className="px-3 py-1.5">
             <p className="text-[9px] uppercase text-muted-foreground">{t('common.amount') || 'المبلغ'}</p>
-            <div className="flex items-baseline justify-start gap-1">
-              <span className="text-[10px] font-semibold uppercase text-muted-foreground">
-                {t('common.currency')}
-              </span>
-              <span className={`text-xl font-bold leading-none tracking-tight ${isNegative ? 'text-emerald-500' : 'text-foreground'}`}>
+            <div className="flex items-baseline gap-1">
+              <span className="text-xl font-bold leading-none tracking-tight text-red-500">
                 {formatNumber(Math.abs(amountNum), language as any)}
               </span>
+              <span className="text-[10px] font-semibold uppercase text-red-500/80">
+                {t('common.currency')}
+              </span>
             </div>
-            
           </div>
         </div>
 
-        {/* Row 2: Classification (reviewer/worker) | Beneficiary */}
+        {/* Row 2: Category | Beneficiary */}
         <div className="grid grid-cols-2 border-t border-border/50">
-          <div className="flex items-center border-l border-border/50 px-3 py-2.5">
+          <div className="flex items-center border-l border-border/50 px-3 py-1.5">
             <p className="truncate text-xs font-bold text-foreground">{categoryName}</p>
           </div>
-          <div className="px-3 py-2.5">
-            <p className="text-[9px] uppercase text-muted-foreground">🧾 {t('expenses.beneficiary') || 'المستفيد'}</p>
+          <div className="flex items-center px-3 py-1.5">
             {beneficiary ? (
-              <p className="mt-1 truncate text-xs font-bold text-foreground">{beneficiary}</p>
+              <p className="truncate text-xs font-bold text-foreground">{beneficiary}</p>
             ) : peerLabel ? (
-              <p className="mt-1 truncate text-xs font-bold text-emerald-500">{peerLabel}</p>
+              <p className="truncate text-xs font-bold text-emerald-500">{peerLabel}</p>
             ) : (
-              <p className="mt-1 truncate text-xs text-muted-foreground">—</p>
+              <p className="truncate text-xs text-muted-foreground">—</p>
             )}
           </div>
         </div>
+
 
         {/* Optional extras */}
         {(expense.status === 'rejected' && expense.rejection_reason) || (isOwner && accounted) || (expense.description && !beneficiary && !peerLabel) ? (
