@@ -41,11 +41,17 @@ const SalaryAdvanceBar: React.FC<Props> = ({ workerId, language }) => {
     },
   });
 
-  if (!data || data.limit <= 0) return null;
+  if (!data) return null;
 
-  const remaining = Math.max(0, data.limit - data.used);
-  const pct = Math.min(100, (data.used / data.limit) * 100);
-  const isFull = remaining <= 0;
+  const hasLimit = data.limit > 0;
+  const remaining = hasLimit ? Math.max(0, data.limit - data.used) : 0;
+  const pct = hasLimit ? Math.min(100, (data.used / data.limit) * 100) : 0;
+  const isFull = hasLimit && remaining <= 0;
+
+  const monthLabel = new Date().toLocaleDateString(
+    language === 'fr' ? 'fr-FR' : language === 'en' ? 'en-US' : 'ar-DZ',
+    { month: 'long', year: 'numeric' },
+  );
 
   return (
     <>
@@ -56,26 +62,33 @@ const SalaryAdvanceBar: React.FC<Props> = ({ workerId, language }) => {
       >
         <div className="flex items-center gap-2 mb-2">
           <Wallet className="w-4 h-4 text-primary" />
-          <span className="text-sm font-semibold">سلفة الراتب لهذا الشهر</span>
+          <span className="text-sm font-semibold">سلفة شهر {monthLabel}</span>
           <span className="ms-auto text-xs text-muted-foreground">
-            {formatNumber(data.used, language as any)} / {formatNumber(data.limit, language as any)} دج
+            {hasLimit
+              ? `${formatNumber(data.used, language as any)} / ${formatNumber(data.limit, language as any)} دج`
+              : `${formatNumber(data.used, language as any)} دج`}
           </span>
         </div>
-        <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-          <div
-            className={`h-full transition-all ${isFull ? 'bg-destructive' : 'bg-primary'}`}
-            style={{ width: `${pct}%` }}
-          />
-        </div>
+        {hasLimit && (
+          <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+            <div
+              className={`h-full transition-all ${isFull ? 'bg-destructive' : 'bg-primary'}`}
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+        )}
         <div className="mt-2 flex items-center justify-between text-xs">
           <span className={isFull ? 'text-destructive font-medium' : 'text-primary font-medium'}>
-            {isFull
-              ? 'تم استنفاد سلفة الراتب لهذا الشهر'
-              : `يمكنك أخذ سلفة بقيمة ${formatNumber(remaining, language as any)} دج`}
+            {!hasLimit
+              ? 'لم يحدد المدير حدًّا شهريًا للسلفة'
+              : isFull
+                ? 'تم استنفاد سلفة الراتب لهذا الشهر'
+                : `يمكنك أخذ سلفة بقيمة ${formatNumber(remaining, language as any)} دج`}
           </span>
           <span className="text-muted-foreground">اضغط لعرض السجل</span>
         </div>
       </Card>
+
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-md">
