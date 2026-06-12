@@ -140,7 +140,7 @@ const WorkerPickerDialog: React.FC<WorkerPickerDialogProps> = ({
                       <AlertTriangle className="w-3 h-3 me-0.5" />
                       {deficit}
                     </Badge>
-                  ) : (
+                  ) : hideStatusBadge ? null : (
                     <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-emerald-600 border-emerald-300 bg-emerald-50">
                       <CheckCircle className="w-3 h-3 me-0.5" />
                       جاهز
