@@ -6,10 +6,21 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { format, differenceInDays } from 'date-fns';
-import { ArrowUpCircle, ArrowDownCircle, Package, Banknote, TrendingUp, TrendingDown, Users, Settings as SettingsIcon, CheckCircle2, ShieldCheck, Eraser, UserMinus, Search, HandCoins } from 'lucide-react';
+import { ArrowUpCircle, ArrowDownCircle, Package, Banknote, TrendingUp, TrendingDown, Users, Settings as SettingsIcon, CheckCircle2, ShieldCheck, Eraser, UserMinus, Search, HandCoins, HelpCircle, Sparkles, Gift, RotateCcw, PenLine, Wallet } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
-type ResolutionKey = 'manager_approved_writeoff' | 'worker_debt' | 'investigation' | 'customer_repayment';
+type ResolutionKey =
+  | 'manager_approved_writeoff'
+  | 'worker_debt'
+  | 'investigation'
+  | 'customer_repayment'
+  | 'tolerance_writeoff'
+  | 'split_writeoff_debt'
+  | 'deduct_from_reward'
+  | 'offset_against_return'
+  | 'worker_acknowledged'
+  | 'credit_to_customer';
 
 const RESOLUTION_OPTIONS: {
   key: ResolutionKey;
