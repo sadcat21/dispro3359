@@ -237,7 +237,7 @@ const OpenInvestigationDialog: React.FC<Props> = ({ open, onClose, treasury }) =
       <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
         <DialogContent dir="rtl" className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>فتح قضية تحقيق</DialogTitle>
+            <DialogTitle>فتح ملف متابعة</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4">
