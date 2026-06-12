@@ -58,7 +58,53 @@ const TYPE_LABEL: Record<SplitResolutionType, string> = Object.fromEntries(
 TYPE_LABEL['investigation'] = 'فتح ملف متابعة';
 TYPE_LABEL['split_writeoff_debt'] = 'تقاسم: شطب + دين';
 
-const fmt = (n: number) => n.toLocaleString();
+const TYPE_HELP: Record<string, { behavior: string; example: string }> = {
+  customer_repayment: {
+    behavior: 'يُسجَّل المبلغ كدين على العميل المختار ويُغلق الفرق فور تحصيله.',
+    example: 'عجز 500 DA بسبب عميل لم يدفع كامل الفاتورة → اختر العميل، المبلغ يُضاف لذمته.',
+  },
+  credit_to_customer: {
+    behavior: 'يُضاف الفائض كرصيد لصالح حساب العميل يُستعمل في فواتيره القادمة.',
+    example: 'فائض 200 DA من عميل دفع أكثر من المستحق → يُضاف لرصيده.',
+  },
+  worker_debt: {
+    behavior: 'يُحوَّل الفرق إلى دين على العامل الأصلي صاحب الجلسة ويظهر في كشف ديونه.',
+    example: 'عجز 100 DA في تسليم العامل → يُسجَّل دين عليه يُسدَّد لاحقًا أو يُخصم.',
+  },
+  worker_acknowledged: {
+    behavior: 'إقرار رسمي من العامل بالفرق دون إنشاء دين فوري — يُغلق القيد بالاعتماد.',
+    example: 'العامل وقّع أنه استلم المبلغ ولم يُسلِّمه بالكامل دون نزاع.',
+  },
+  manager_approved_writeoff: {
+    behavior: 'يشطب الفرق بقرار من المدير دون تحميل أي طرف — يُغلق القيد نهائيًا.',
+    example: 'فرق 50 DA ناتج عن خطأ تقني، المدير يعتمد شطبه.',
+  },
+  tolerance_writeoff: {
+    behavior: 'شطب آلي لفرق صغير ضمن حد التسامح المسموح به في الإعدادات.',
+    example: 'فرق 5 DA أقل من حد التسامح → يُشطب تلقائيًا.',
+  },
+  deduct_from_reward: {
+    behavior: 'يُحجز المبلغ من مكافأة العامل القادمة بدل تسجيله كدين منفصل.',
+    example: 'عجز 80 DA → يُخصم من مكافأة الشهر.',
+  },
+  offset_against_return: {
+    behavior: 'يُعلَّق القيد في انتظار مرتجع من العميل لمقاصّته بالفرق.',
+    example: 'عجز ناتج عن منتج سيُرجعه العميل غدًا → ننتظر المرتجع للمقاصّة.',
+  },
+  carry_forward: {
+    behavior: 'يُرحَّل الفرق إلى الجلسة المحاسبية القادمة دون قرار نهائي الآن.',
+    example: 'فرق صغير سيُسوَّى مع جلسة الغد.',
+  },
+  split_writeoff_debt: {
+    behavior: 'يُقسَّم الفرق: جزء يُشطب باعتماد المدير وجزء يُحوَّل لدين على العامل.',
+    example: 'عجز 300 DA: 100 شطب + 200 دين على العامل.',
+  },
+  investigation: {
+    behavior: 'يُفتح ملف تحقيق رسمي لمتابعة سبب الفرق قبل اتخاذ قرار نهائي.',
+    example: 'فرق كبير غير مبرر → فتح تحقيق وتعليق القيد.',
+  },
+};
+
 
 const useBranchCustomers = (branchId: string | null | undefined, enabled: boolean) =>
   useQuery({
