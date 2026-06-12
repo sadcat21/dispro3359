@@ -187,16 +187,21 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
       onRequestInvestigation(entry);
       return;
     }
+    // For worker_debt: attach the original worker (who caused the deficit)
+    const partyType = draftType === 'worker_debt' ? 'worker' : (draftParty?.type ?? null);
+    const partyId = draftType === 'worker_debt' ? originalWorkerId : (draftParty?.id ?? null);
+    const partyLabel = draftType === 'worker_debt' ? originalWorkerName : (draftParty?.label ?? null);
     await add.mutateAsync({
       treasury_id: entry.id,
       resolution_type: draftType,
       amount: Number(draftAmount),
-      party_type: draftParty?.type ?? null,
-      party_id: draftParty?.id ?? null,
-      party_label: draftParty?.label ?? null,
+      party_type: partyType as any,
+      party_id: partyId,
+      party_label: partyLabel,
       notes: draftNotes || null,
       resolved_by: workerId || null,
       sender_worker_id: entry?.worker_id || entry?.manager_id || null,
+      branch_id: entry?.branch_id ?? activeBranch?.id ?? null,
     });
     reset();
   };
