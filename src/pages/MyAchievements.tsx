@@ -1004,7 +1004,9 @@ const MyAchievements: React.FC = () => {
     if (activeFilter) {
       result = activeFilter === 'debt_new'
         ? result.filter((visit: any) => isDebtNewAchievement(visit))
-        : result.filter((visit: any) => visit.operation_type === activeFilter);
+        : activeFilter === 'cancelled'
+          ? result.filter((visit: any) => (visit as any).order_status === 'cancelled')
+          : result.filter((visit: any) => visit.operation_type === activeFilter);
     }
 
     if (searchQuery.trim()) {
