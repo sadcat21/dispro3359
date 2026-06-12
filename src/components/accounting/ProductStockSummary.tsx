@@ -620,7 +620,7 @@ const ProductStockSummary: React.FC<ProductStockSummaryProps> = ({
             <span className="text-green-600">{productRows.reduce((s, r) => s + r.loaded, 0) ? fmtQty(productRows.reduce((s, r) => s + r.loaded, 0)) : '-'}</span>
             <span className="text-destructive">{productRows.reduce((s, r) => s + r.unloaded, 0) ? fmtQty(productRows.reduce((s, r) => s + r.unloaded, 0)) : '-'}</span>
             <span className="text-blue-600">{productRows.reduce((s, r) => s + r.sold, 0) ? fmtQty(productRows.reduce((s, r) => s + r.sold, 0)) : '-'}</span>
-            <span>{fmtQty(totalTruckQty)}</span>
+            <span>{fmtQty(useSnapshot ? productRows.reduce((s, r) => s + r.systemQty, 0) : totalTruckQty)}</span>
             <span>-</span>
             <span>-</span>
           </div>
