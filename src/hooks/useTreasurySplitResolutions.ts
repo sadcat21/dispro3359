@@ -86,15 +86,37 @@ export const useAddTreasuryResolution = () => {
 
       // Create an actual worker_debt for "worker_debt" resolutions
       let linkedDebtId: string | null = null;
-      if (row.resolution_type === 'worker_debt' && row.party_id && Number(row.amount) > 0) {
+      let resolvedPartyId: string | null = row.party_id ?? null;
+      let resolvedPartyLabel: string | null = row.party_label ?? null;
+      let resolvedBranchId: string | null = row.branch_id ?? null;
+
+      if (row.resolution_type === 'worker_debt' && Number(row.amount) > 0) {
+        // Fallback: if caller didn't pass a worker, derive the original worker
+        // from the treasury entry's accounting session.
+        if (!resolvedPartyId) {
+          const { data: mt } = await supabase
+            .from('manager_treasury')
+            .select('session_id, branch_id, accounting_sessions:session_id(worker_id, workers:worker_id(id, full_name))')
+            .eq('id', row.treasury_id)
+            .maybeSingle();
+          const sess: any = (mt as any)?.accounting_sessions ?? null;
+          resolvedPartyId = sess?.workers?.id ?? sess?.worker_id ?? null;
+          resolvedPartyLabel = sess?.workers?.full_name ?? resolvedPartyLabel;
+          resolvedBranchId = resolvedBranchId ?? (mt as any)?.branch_id ?? null;
+        }
+
+        if (!resolvedPartyId) {
+          throw new Error('تعذّر تحديد العامل الأصلي لتسجيل الدين');
+        }
+
         const { data: debtRow, error: debtErr } = await supabase
           .from('worker_debts')
           .insert({
-            worker_id: row.party_id,
+            worker_id: resolvedPartyId,
             amount: Number(row.amount),
             debt_type: 'deficit',
             description: row.notes || 'تحويل عجز خزينة لدين العامل',
-            branch_id: row.branch_id ?? null,
+            branch_id: resolvedBranchId,
             created_by: row.resolved_by ?? null,
           })
           .select('id')
@@ -109,9 +131,9 @@ export const useAddTreasuryResolution = () => {
           id: splitId,
           resolution_type: row.resolution_type,
           amount: Number(row.amount),
-          party_type: row.party_type ?? null,
-          party_id: row.party_id ?? null,
-          party_label: row.party_label ?? null,
+          party_type: row.resolution_type === 'worker_debt' ? 'worker' : (row.party_type ?? null),
+          party_id: resolvedPartyId,
+          party_label: resolvedPartyLabel,
           linked_debt_id: linkedDebtId,
           customer_credit_id: null,
           status,
