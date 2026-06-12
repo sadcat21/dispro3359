@@ -335,7 +335,7 @@ const ExpenseCard: React.FC<{
                 {formatNumber(Math.abs(amountNum), language as any)}
               </span>
             </div>
-            <p className="mt-0.5 truncate text-[10px] text-muted-foreground">{categoryName}</p>
+            
           </div>
         </div>
 
