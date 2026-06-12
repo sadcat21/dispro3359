@@ -687,7 +687,10 @@ const SurplusDeficitTreasury: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <ArrowUpCircle className="w-4 h-4 text-blue-600" />
                       <span className="text-sm font-bold text-blue-700 dark:text-blue-400">
-                        {t('surplus.customer_surplus')} {fmt(Number(entry.amount))} DA
+                        {t('surplus.customer_surplus')} {fmt(remainingOf(entry))} DA
+                        {remainingOf(entry) !== Number(entry.amount) && (
+                          <span className="ms-1 text-[10px] font-normal text-muted-foreground line-through">{fmt(Number(entry.amount))}</span>
+                        )}
                       </span>
                       <StatusBadge status={entry.status} />
                     </div>
