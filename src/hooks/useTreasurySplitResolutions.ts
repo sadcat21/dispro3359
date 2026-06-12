@@ -69,19 +69,23 @@ export const useAddTreasuryResolution = () => {
       notes?: string | null;
       resolved_by?: string | null;
       status?: 'settled' | 'under_review' | 'open';
+      sender_worker_id?: string | null;
     }) => {
       const status =
         row.status ??
-        (row.resolution_type === 'offset_against_return' || row.resolution_type === 'investigation'
+        (row.resolution_type === 'offset_against_return' ||
+        row.resolution_type === 'investigation' ||
+        row.resolution_type === 'peer_cash_handover'
           ? 'under_review'
           : row.resolution_type === 'carry_forward'
           ? 'open'
           : 'settled');
+      const splitId = genId();
       const current = await fetchSplits(row.treasury_id);
       const next = [
         ...current,
         {
-          id: genId(),
+          id: splitId,
           resolution_type: row.resolution_type,
           amount: Number(row.amount),
           party_type: row.party_type ?? null,
@@ -101,11 +105,28 @@ export const useAddTreasuryResolution = () => {
         .update({ resolution_splits: next as any })
         .eq('id', row.treasury_id);
       if (error) throw error;
+
+      // For peer_cash_handover, create the awaiting-confirmation record
+      if (row.resolution_type === 'peer_cash_handover' && row.party_id && row.sender_worker_id) {
+        const { error: hErr } = await (supabase as any)
+          .from('peer_cash_handovers')
+          .insert({
+            treasury_id: row.treasury_id,
+            split_id: splitId,
+            sender_worker_id: row.sender_worker_id,
+            receiver_worker_id: row.party_id,
+            amount: Number(row.amount),
+            notes: row.notes ?? null,
+            created_by: row.resolved_by ?? null,
+          });
+        if (hErr) throw hErr;
+      }
     },
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: ['treasury-resolutions', vars.treasury_id] });
       qc.invalidateQueries({ queryKey: ['surplus-deficit-cash'] });
       qc.invalidateQueries({ queryKey: ['surplus-deficit-customer'] });
+      qc.invalidateQueries({ queryKey: ['peer-cash-handovers'] });
       toast.success('تمت إضافة سطر التسوية');
     },
     onError: (e: any) => toast.error(e.message || 'فشل إضافة السطر'),
