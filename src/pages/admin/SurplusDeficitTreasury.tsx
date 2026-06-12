@@ -45,8 +45,8 @@ const RESOLUTION_OPTIONS: {
   },
   {
     key: 'investigation',
-    label: 'إحالة للتحقيق',
-    hint: 'تعليق القرار حتى انتهاء المراجعة',
+    label: 'فتح ملف متابعة',
+    hint: 'تأجيل القرار حتى انتهاء المراجعة',
     icon: Search,
     active: 'border-amber-500 bg-amber-50 text-amber-700 ring-2 ring-amber-200',
     idle: 'border-border hover:border-amber-300 hover:bg-amber-50/50',
@@ -148,7 +148,7 @@ const ResolveDialog: React.FC<{
           </div>
           {isInvestigation ? (
             <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900">
-              ستُفتح <b>قضية تحقيق رسمية</b> بمحقّق مُكلَّف، مهلة، أدلة موثَّقة، وقرار ختامي يُطبَّق تلقائيًا على هذا القيد.
+              سيُفتح <b>ملف متابعة</b> مع مسؤول مُكلَّف ومهلة، تُجمع فيه الملاحظات والمستندات، ويُطبَّق القرار النهائي تلقائيًا على هذا القيد.
             </div>
           ) : (
             <div>
@@ -176,7 +176,7 @@ const ResolveDialog: React.FC<{
               onClose();
             }}
           >
-            {isInvestigation ? 'فتح قضية تحقيق' : 'حفظ'}
+            {isInvestigation ? 'فتح ملف متابعة' : 'حفظ'}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -379,7 +379,7 @@ const SurplusDeficitTreasury: React.FC = () => {
         <h2 className="text-xl font-bold">{t('surplus.title')}</h2>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => navigate('/admin/investigations')} className="gap-1.5">
-            <Search className="w-4 h-4" /> قضايا التحقيق
+            <Search className="w-4 h-4" /> ملفات المتابعة
           </Button>
           <Button variant="outline" size="sm" onClick={() => setShowSettings(true)} className="gap-1.5">
             <SettingsIcon className="w-4 h-4" /> إعدادات التسامح
@@ -464,7 +464,7 @@ const SurplusDeficitTreasury: React.FC = () => {
                         onClick={(e) => { e.stopPropagation(); navigate(`/admin/investigations/${entry.investigation_case_id}`); }}
                         className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-full px-2 py-0.5 hover:bg-purple-100"
                       >
-                        <Search className="w-3 h-3" /> قضية تحقيق مفتوحة — اعرض التفاصيل
+                        <Search className="w-3 h-3" /> ملف متابعة مفتوح — اعرض التفاصيل
                       </button>
                     )}
                     {entry.resolution_notes && <p className="text-[11px] text-blue-700 dark:text-blue-300 mt-1">قرار: {entry.resolution_notes}</p>}
