@@ -300,119 +300,121 @@ const ExpenseCard: React.FC<{
   const amountNum = Number(expense.amount);
   const isNegative = amountNum < 0;
 
+  const categoryName = getCategoryName(expense.category as any, language as any) || t('expenses.uncategorized');
+
   return (
     <>
       <Card className="overflow-hidden rounded-2xl border-border bg-card p-0 shadow-md" dir="rtl">
-        {/* Header: Date & Status */}
-        <div className="flex items-center justify-between border-b border-border/50 px-3 py-2">
-          <span className="text-[11px] font-medium text-muted-foreground">
-            {formatDate(expense.expense_date, 'dd MMM yyyy', language as any)}
-          </span>
+        {/* Status pill top */}
+        <div className="flex items-center justify-between px-3 pt-3">
           <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${statusPill}`}>
             {t(status.labelKey)}
           </span>
-        </div>
-
-        {/* Amount & Category + Beneficiary inline */}
-        <div className="flex items-start justify-between gap-2 px-3 py-3">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-baseline gap-1">
-              <span className={`text-2xl font-bold leading-none tracking-tight ${isNegative ? 'text-emerald-500' : 'text-foreground'}`}>
-                {formatNumber(Math.abs(amountNum), language as any)}
-              </span>
-              <span className="text-[10px] font-semibold uppercase text-muted-foreground">
-                {t('common.currency')}
-              </span>
-            </div>
-            <h3 className="mt-1 truncate text-xs font-semibold text-foreground">
-              {getCategoryName(expense.category as any, language as any) || t('expenses.uncategorized')}
-            </h3>
-          </div>
-          {beneficiary && (
-            <div className="max-w-[55%] shrink-0 rounded-lg border border-primary/20 bg-primary/5 px-2 py-1.5 text-right">
-              <p className="text-[9px] text-primary/70">🧾 المستفيد</p>
-              <p className="truncate text-xs font-bold text-foreground">{beneficiary}</p>
-            </div>
-          )}
-        </div>
-
-        {/* Metadata Grid */}
-        <div className="space-y-2 px-3 pb-3">
-          <div className="grid grid-cols-2 gap-2">
-            <div className="rounded-lg border border-border/40 bg-muted/30 px-2 py-1.5">
-              <p className="text-[9px] text-muted-foreground">{t('expenses.worker') || 'الموظف'}</p>
-              <p className="truncate text-xs font-semibold text-foreground">
-                {expense.worker?.full_name ?? '—'}
-              </p>
-            </div>
-            <div className="rounded-lg border border-border/40 bg-muted/30 px-2 py-1.5">
-              <p className="text-[9px] text-muted-foreground">{t('expenses.reviewer') || 'المراجع'}</p>
-              <div className="flex items-center gap-1">
-                {expense.reviewer && (
-                  <div className={`h-1.5 w-1.5 rounded-full ${expense.status === 'approved' ? 'bg-emerald-400' : expense.status === 'rejected' ? 'bg-red-400' : 'bg-amber-400'}`} />
-                )}
-                <p className="truncate text-xs font-semibold text-foreground">
-                  {expense.reviewer?.full_name ?? '—'}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {peerLabel && (
-            <div className="rounded-lg border border-emerald-500/15 bg-emerald-500/5 px-2 py-1.5">
-              <p className="text-[9px] text-emerald-500/80">تحويل بين الزملاء</p>
-              <p className="text-xs font-bold text-foreground">{peerLabel}</p>
-            </div>
-          )}
-
-          {expense.description && !beneficiary && !peerLabel && (
-            <p className="text-xs text-foreground/80">{expense.description}</p>
-          )}
-
           {receiptUrls.length > 0 && (
             <button
               onClick={() => setShowReceipt(true)}
               className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline"
             >
               <Image className="h-3 w-3" />
-              {receiptUrls.length > 1 ? `${t('expenses.has_receipts')} (${receiptUrls.length})` : t('expenses.view_receipt')}
+              {receiptUrls.length > 1 ? `(${receiptUrls.length})` : t('expenses.view_receipt')}
             </button>
-          )}
-
-          {expense.status === 'rejected' && expense.rejection_reason && (
-            <p className="rounded bg-destructive/10 p-1.5 text-[11px] text-destructive">
-              {t('expenses.rejection_reason')}: {expense.rejection_reason}
-            </p>
-          )}
-
-          {isOwner && accounted && (
-            <p className="text-[9px] text-muted-foreground">{t('expenses.locked_accounted')}</p>
           )}
         </div>
 
+        {/* Row 1: Date | Amount */}
+        <div className="mt-2 grid grid-cols-2 border-t border-border/50">
+          <div className="border-l border-border/50 px-3 py-2.5">
+            <p className="text-[9px] uppercase text-muted-foreground">{t('common.date') || 'التاريخ'}</p>
+            <p className="text-xs font-semibold text-foreground">
+              {formatDate(expense.expense_date, 'dd MMM yyyy', language as any)}
+            </p>
+          </div>
+          <div className="px-3 py-2.5 text-left" dir="ltr">
+            <p className="text-[9px] uppercase text-muted-foreground">{t('common.amount') || 'المبلغ'}</p>
+            <div className="flex items-baseline justify-start gap-1">
+              <span className="text-[10px] font-semibold uppercase text-muted-foreground">
+                {t('common.currency')}
+              </span>
+              <span className={`text-xl font-bold leading-none tracking-tight ${isNegative ? 'text-emerald-500' : 'text-foreground'}`}>
+                {formatNumber(Math.abs(amountNum), language as any)}
+              </span>
+            </div>
+            <p className="mt-0.5 truncate text-[10px] text-muted-foreground">{categoryName}</p>
+          </div>
+        </div>
 
-        {/* Actions */}
+        {/* Row 2: Classification (reviewer/worker) | Beneficiary */}
+        <div className="grid grid-cols-2 border-t border-border/50">
+          <div className="space-y-1.5 border-l border-border/50 px-3 py-2.5">
+            <p className="text-[9px] uppercase text-muted-foreground">{t('expenses.classification') || 'التصنيف'}</p>
+            <div className="flex items-center justify-between gap-1">
+              <span className="text-[9px] text-muted-foreground">{t('expenses.reviewer') || 'المراجع'}</span>
+              <div className="flex items-center gap-1">
+                {expense.reviewer && (
+                  <div className={`h-1.5 w-1.5 rounded-full ${expense.status === 'approved' ? 'bg-emerald-400' : expense.status === 'rejected' ? 'bg-red-400' : 'bg-amber-400'}`} />
+                )}
+                <p className="truncate text-[11px] font-semibold text-foreground">
+                  {expense.reviewer?.full_name ?? '—'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center justify-between gap-1">
+              <span className="text-[9px] text-muted-foreground">{t('expenses.worker') || 'الموظف'}</span>
+              <p className="truncate text-[11px] font-semibold text-foreground">
+                {expense.worker?.full_name ?? '—'}
+              </p>
+            </div>
+          </div>
+          <div className="px-3 py-2.5">
+            <p className="text-[9px] uppercase text-muted-foreground">🧾 {t('expenses.beneficiary') || 'المستفيد'}</p>
+            {beneficiary ? (
+              <p className="mt-1 truncate text-xs font-bold text-foreground">{beneficiary}</p>
+            ) : peerLabel ? (
+              <p className="mt-1 truncate text-xs font-bold text-emerald-500">{peerLabel}</p>
+            ) : (
+              <p className="mt-1 truncate text-xs text-muted-foreground">—</p>
+            )}
+          </div>
+        </div>
+
+        {/* Optional extras */}
+        {(expense.status === 'rejected' && expense.rejection_reason) || (isOwner && accounted) || (expense.description && !beneficiary && !peerLabel) ? (
+          <div className="space-y-1.5 border-t border-border/50 px-3 py-2">
+            {expense.description && !beneficiary && !peerLabel && (
+              <p className="text-[11px] text-foreground/80">{expense.description}</p>
+            )}
+            {expense.status === 'rejected' && expense.rejection_reason && (
+              <p className="rounded bg-destructive/10 p-1.5 text-[11px] text-destructive">
+                {t('expenses.rejection_reason')}: {expense.rejection_reason}
+              </p>
+            )}
+            {isOwner && accounted && (
+              <p className="text-[9px] text-muted-foreground">{t('expenses.locked_accounted')}</p>
+            )}
+          </div>
+        ) : null}
+
+        {/* Row 3: Delete | Edit */}
         {canModify && (
-          <div className="flex border-t border-border">
+          <div className="grid grid-cols-2 border-t border-border">
+            {!hideDelete ? (
+              <button
+                onClick={onDelete}
+                className="flex items-center justify-center gap-1.5 border-l border-border py-2.5 text-xs font-bold text-red-500 transition-colors hover:bg-red-500/5"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                {t('common.delete')}
+              </button>
+            ) : (
+              <div className="border-l border-border" />
+            )}
             <button
               onClick={onEdit}
-              className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-bold text-foreground/80 transition-colors hover:bg-muted"
+              className="flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold text-foreground/80 transition-colors hover:bg-muted"
             >
               <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
               {t('common.edit')}
             </button>
-            {!hideDelete && (
-              <>
-                <div className="w-px bg-border" />
-                <button
-                  onClick={onDelete}
-                  className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-bold text-red-500 transition-colors hover:bg-red-500/5"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                  {t('common.delete')}
-                </button>
-              </>
-            )}
           </div>
         )}
       </Card>
