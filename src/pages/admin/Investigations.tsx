@@ -27,7 +27,7 @@ const Investigations: React.FC = () => {
           <ChevronLeft className="w-4 h-4" /> رجوع
         </Button>
         <h2 className="text-xl font-bold flex items-center gap-2">
-          <Search className="w-5 h-5" /> قضايا التحقيق
+          <Search className="w-5 h-5" /> ملفات المتابعة
         </h2>
         <div />
       </div>
