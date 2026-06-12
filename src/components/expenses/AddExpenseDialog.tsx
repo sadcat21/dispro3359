@@ -72,11 +72,17 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
   const isAdvanceCategory = selectedCategory?.name?.includes('مسبق') ||
     selectedCategory?.name_fr?.toLowerCase().includes('avance') ||
     selectedCategory?.name_en?.toLowerCase().includes('advance');
+  const isPeerHandoverCategory = selectedCategory?.name?.includes('تسليم لزميل') ||
+    selectedCategory?.name_fr?.toLowerCase().includes('collègue') ||
+    selectedCategory?.name_fr?.toLowerCase().includes('collegue') ||
+    selectedCategory?.name_en?.toLowerCase().includes('colleague') ||
+    selectedCategory?.name_en?.toLowerCase().includes('handover to');
+  const needsWorkerPick = isAdvanceCategory || isPeerHandoverCategory;
 
-  // Load workers of the current branch (for advance category)
+  // Load workers of the current branch (for advance / peer-handover category)
   const { data: branchWorkers } = useQuery({
     queryKey: ['expense-advance-workers', activeBranch?.id],
-    enabled: open && isAdvanceCategory && !!activeBranch?.id,
+    enabled: open && needsWorkerPick && !!activeBranch?.id,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('workers')
@@ -88,6 +94,8 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
       return data || [];
     },
   });
+
+  const [workerPickerOpen, setWorkerPickerOpen] = useState(false);
 
   const resetForm = () => {
     setCategoryId('');
