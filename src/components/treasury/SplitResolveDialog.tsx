@@ -326,7 +326,7 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
                       {draftType === 'customer_repayment' && draftParty
                         ? draftParty.label
                         : draftType === 'worker_debt'
-                        ? `دين على: ${(branchWorkersQ.data ?? []).find((w) => w.id === (entry?.worker_id || entry?.manager_id))?.full_name || 'العامل الأصلي'}`
+                        ? `دين على: ${originalWorkerName}`
                         : TYPE_LABEL[draftType] || 'اختر النوع'}
                     </span>
                     <Plus className="w-3.5 h-3.5 opacity-60 shrink-0" />
