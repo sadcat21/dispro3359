@@ -296,7 +296,9 @@ const SurplusDeficitTreasury: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'open' | 'settled'>('open');
   const [resolveTarget, setResolveTarget] = useState<any | null>(null);
   const [approveTarget, setApproveTarget] = useState<any | null>(null);
+  const [investigationTarget, setInvestigationTarget] = useState<any | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const navigate = useNavigate();
 
   const { data: cashEntries = [] } = useQuery({
     queryKey: ['surplus-deficit-cash', activeBranch?.id],
