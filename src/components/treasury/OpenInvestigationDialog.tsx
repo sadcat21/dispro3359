@@ -401,7 +401,7 @@ const OpenInvestigationDialog: React.FC<Props> = ({ open, onClose, treasury }) =
                 navigate(`/admin/investigations/${caseId}`);
               }}
             >
-              فتح القضية
+              بدء المتابعة
             </Button>
           </DialogFooter>
         </DialogContent>
