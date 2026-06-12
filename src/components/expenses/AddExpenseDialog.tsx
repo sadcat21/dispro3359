@@ -480,59 +480,75 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
             </div>
           )}
 
-          <div className="space-y-2">
-            <Label>{t('expenses.amount')}</Label>
-            <Input
-              type="number"
-              min="0"
-              step="0.01"
-              max={isPeerHandoverCategory && isJustificationAdvance ? (receiverAdvance?.remaining ?? undefined) : undefined}
-              value={amount}
-              onChange={e => setAmount(e.target.value)}
-              placeholder="0.00"
-              required
-            />
-          </div>
+          {(!isPeerHandoverCategory || !!advanceWorkerId) && (
+            <>
+              <div className="space-y-2">
+                <Label>{t('expenses.amount')}</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  max={
+                    isPeerHandoverCategory
+                      ? (isJustificationAdvance && receiverAdvance
+                          ? Math.min(receiverAdvance.remaining, availableCash)
+                          : availableCash)
+                      : undefined
+                  }
+                  value={amount}
+                  onChange={e => setAmount(e.target.value)}
+                  placeholder="0.00"
+                  required
+                />
+                {isPeerHandoverCategory && submitterCalc && (
+                  <p className={`text-[11px] ${exceedsAvailableCash ? 'text-red-600 font-medium' : 'text-muted-foreground'}`}>
+                    {exceedsAvailableCash
+                      ? `المبلغ يتجاوز السيولة المتوفرة لديك (${availableCash.toFixed(2)} DA)`
+                      : `السيولة المتوفرة لديك: ${availableCash.toFixed(2)} DA`}
+                  </p>
+                )}
+              </div>
 
-          {/* Fuel Payment Method */}
-          {isFuelCategory && (
-            <div className="space-y-2">
-              <Label>{t('expenses.payment_method')}</Label>
-              <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cash">{t('expenses.payment_cash')}</SelectItem>
-                  <SelectItem value="card">{t('expenses.payment_card')}</SelectItem>
-                </SelectContent>
-              </Select>
-              {paymentMethod === 'card' && (
-                <p className="text-xs text-muted-foreground">{t('expenses.card_note')}</p>
+              {/* Fuel Payment Method */}
+              {isFuelCategory && (
+                <div className="space-y-2">
+                  <Label>{t('expenses.payment_method')}</Label>
+                  <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cash">{t('expenses.payment_cash')}</SelectItem>
+                      <SelectItem value="card">{t('expenses.payment_card')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {paymentMethod === 'card' && (
+                    <p className="text-xs text-muted-foreground">{t('expenses.card_note')}</p>
+                  )}
+                </div>
               )}
-            </div>
+
+              <div className="space-y-2">
+                <Label>{t('expenses.date')}</Label>
+                <Input
+                  type="date"
+                  value={expenseDate}
+                  onChange={e => setExpenseDate(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t('expenses.description')}</Label>
+                <Textarea
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
+                  placeholder={t('expenses.description_placeholder')}
+                  rows={2}
+                />
+              </div>
+            </>
           )}
-
-          <div className="space-y-2">
-            <Label>{t('expenses.date')}</Label>
-            <Input
-              type="date"
-              value={expenseDate}
-              onChange={e => setExpenseDate(e.target.value)}
-              required
-            />
-          </div>
-
-
-          <div className="space-y-2">
-            <Label>{t('expenses.description')}</Label>
-            <Textarea
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              placeholder={t('expenses.description_placeholder')}
-              rows={2}
-            />
-          </div>
 
           {!isPeerHandoverCategory && (
             <div className="space-y-2">
