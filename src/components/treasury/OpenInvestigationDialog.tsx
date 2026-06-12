@@ -140,7 +140,7 @@ const OpenInvestigationDialog: React.FC<Props> = ({ open, onClose, treasury }) =
   // Reset form when opening
   useEffect(() => {
     if (!open) return;
-    setTitle(treasury ? `تحقيق في ${treasury.source_type === 'accounting_deficit' ? 'عجز' : 'فائض'} بمبلغ ${treasury.amount} DA` : '');
+    setTitle(treasury ? `متابعة ${treasury.source_type === 'accounting_deficit' ? 'عجز' : 'فائض'} بمبلغ ${treasury.amount} DA` : '');
     setSummary(treasury?.notes ?? '');
     setSeverity('medium');
     setInvestigatorId('');
