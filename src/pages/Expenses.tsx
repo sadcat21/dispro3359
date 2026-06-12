@@ -305,12 +305,8 @@ const ExpenseCard: React.FC<{
   return (
     <>
       <Card className="overflow-hidden rounded-2xl border-border bg-card p-0 shadow-md" dir="rtl">
-        {/* Status pill top */}
-        <div className="flex items-center justify-between px-3 pt-3">
-          <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${statusPill}`}>
-            {t(status.labelKey)}
-          </span>
-          {receiptUrls.length > 0 && (
+        {receiptUrls.length > 0 && (
+          <div className="flex justify-end px-3 pt-3">
             <button
               onClick={() => setShowReceipt(true)}
               className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline"
@@ -318,8 +314,8 @@ const ExpenseCard: React.FC<{
               <Image className="h-3 w-3" />
               {receiptUrls.length > 1 ? `(${receiptUrls.length})` : t('expenses.view_receipt')}
             </button>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Row 1: Date | Amount */}
         <div className="mt-2 grid grid-cols-2 border-t border-border/50">
