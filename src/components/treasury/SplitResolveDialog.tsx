@@ -87,6 +87,11 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
   const total = Math.abs(Number(entry?.amount || 0));
   const used = useMemo(() => splits.reduce((s, r) => s + Number(r.amount || 0), 0), [splits]);
   const remaining = Math.max(0, total - used);
+  const editingRow = useMemo(
+    () => splits.find((r) => r.id === editingSplitId) ?? null,
+    [splits, editingSplitId],
+  );
+  const availableAmount = remaining + Number(editingRow?.amount || 0);
 
   // Draft row
   const [draftType, setDraftType] = useState<SplitResolutionType>('manager_approved_writeoff');
@@ -178,7 +183,7 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
   const canAdd = () => {
     const a = Number(draftAmount);
     if (!(a > 0)) return false;
-    if (a > remaining + 0.005) return false;
+    if (a > availableAmount + 0.005) return false;
     if (needsCustomer && (!draftParty || draftParty.type !== 'customer')) return false;
     if (needsWorker && (!draftParty || draftParty.type !== 'worker')) return false;
     return true;
@@ -311,7 +316,7 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
           )}
 
           {/* Add row form */}
-          {remaining > 0 && (
+          {(remaining > 0 || !!editingSplitId) && (
             <div className="rounded-lg border-2 border-dashed border-primary/30 p-3 space-y-3">
               <div className="flex items-center justify-between">
                 <Label className="text-sm font-semibold">إضافة سطر تسوية</Label>
@@ -319,9 +324,9 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
                   type="button"
                   size="sm"
                   className="h-7 text-xs bg-red-600 text-white hover:bg-red-700"
-                  onClick={() => setDraftAmount(String(remaining))}
+                  onClick={() => setDraftAmount(String(availableAmount))}
                 >
-                  استخدم كامل المتبقّي ({fmt(remaining)})
+                  استخدم كامل المتبقّي ({fmt(availableAmount)})
                 </Button>
               </div>
 
@@ -347,13 +352,13 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
 
 
                 <div className="space-y-1 col-span-1">
-                  <Label className="text-xs">المبلغ (≤ {fmt(remaining)})</Label>
+                  <Label className="text-xs">المبلغ (≤ {fmt(availableAmount)})</Label>
                   <Input
                     type="number"
                     inputMode="decimal"
                     value={draftAmount}
                     onChange={(e) => setDraftAmount(e.target.value)}
-                    max={remaining}
+                    max={availableAmount}
                     className="h-9"
                   />
                 </div>
