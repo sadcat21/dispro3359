@@ -305,12 +305,8 @@ const ExpenseCard: React.FC<{
   return (
     <>
       <Card className="overflow-hidden rounded-2xl border-border bg-card p-0 shadow-md" dir="rtl">
-        {/* Status pill top */}
-        <div className="flex items-center justify-between px-3 pt-3">
-          <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${statusPill}`}>
-            {t(status.labelKey)}
-          </span>
-          {receiptUrls.length > 0 && (
+        {receiptUrls.length > 0 && (
+          <div className="flex justify-end px-3 pt-3">
             <button
               onClick={() => setShowReceipt(true)}
               className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline"
@@ -318,8 +314,8 @@ const ExpenseCard: React.FC<{
               <Image className="h-3 w-3" />
               {receiptUrls.length > 1 ? `(${receiptUrls.length})` : t('expenses.view_receipt')}
             </button>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Row 1: Date | Amount */}
         <div className="mt-2 grid grid-cols-2 border-t border-border/50">
@@ -339,31 +335,14 @@ const ExpenseCard: React.FC<{
                 {formatNumber(Math.abs(amountNum), language as any)}
               </span>
             </div>
-            <p className="mt-0.5 truncate text-[10px] text-muted-foreground">{categoryName}</p>
+            
           </div>
         </div>
 
         {/* Row 2: Classification (reviewer/worker) | Beneficiary */}
         <div className="grid grid-cols-2 border-t border-border/50">
-          <div className="space-y-1.5 border-l border-border/50 px-3 py-2.5">
-            <p className="text-[9px] uppercase text-muted-foreground">{t('expenses.classification') || 'التصنيف'}</p>
-            <div className="flex items-center justify-between gap-1">
-              <span className="text-[9px] text-muted-foreground">{t('expenses.reviewer') || 'المراجع'}</span>
-              <div className="flex items-center gap-1">
-                {expense.reviewer && (
-                  <div className={`h-1.5 w-1.5 rounded-full ${expense.status === 'approved' ? 'bg-emerald-400' : expense.status === 'rejected' ? 'bg-red-400' : 'bg-amber-400'}`} />
-                )}
-                <p className="truncate text-[11px] font-semibold text-foreground">
-                  {expense.reviewer?.full_name ?? '—'}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center justify-between gap-1">
-              <span className="text-[9px] text-muted-foreground">{t('expenses.worker') || 'الموظف'}</span>
-              <p className="truncate text-[11px] font-semibold text-foreground">
-                {expense.worker?.full_name ?? '—'}
-              </p>
-            </div>
+          <div className="flex items-center border-l border-border/50 px-3 py-2.5">
+            <p className="truncate text-xs font-bold text-foreground">{categoryName}</p>
           </div>
           <div className="px-3 py-2.5">
             <p className="text-[9px] uppercase text-muted-foreground">🧾 {t('expenses.beneficiary') || 'المستفيد'}</p>
