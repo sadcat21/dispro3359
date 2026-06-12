@@ -183,10 +183,10 @@ export const SEVERITY_META: Record<InvestigationSeverity, { ar: string; cls: str
 };
 
 export const STATUS_META: Record<InvestigationStatus, { ar: string; cls: string }> = {
-  open: { ar: 'مفتوحة', cls: 'bg-amber-100 text-amber-700 border-amber-300' },
-  in_progress: { ar: 'قيد التحقيق', cls: 'bg-blue-100 text-blue-700 border-blue-300' },
-  concluded: { ar: 'مغلقة', cls: 'bg-green-100 text-green-700 border-green-300' },
-  cancelled: { ar: 'ملغاة', cls: 'bg-slate-200 text-slate-700 border-slate-300' },
+  open: { ar: 'مفتوح', cls: 'bg-amber-100 text-amber-700 border-amber-300' },
+  in_progress: { ar: 'قيد المتابعة', cls: 'bg-blue-100 text-blue-700 border-blue-300' },
+  concluded: { ar: 'مغلق', cls: 'bg-green-100 text-green-700 border-green-300' },
+  cancelled: { ar: 'ملغى', cls: 'bg-slate-200 text-slate-700 border-slate-300' },
 };
 
 export const DECISION_META: Record<InvestigationDecision, { ar: string }> = {
