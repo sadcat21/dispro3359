@@ -74,10 +74,21 @@ const SalaryAdvanceBar: React.FC<Props> = ({ workerId, language }) => {
         <div className="flex items-center gap-2 mb-2">
           <Wallet className={`w-4 h-4 ${tier.icon}`} />
           <span className="text-sm font-semibold">سلفة شهر {monthLabel}</span>
-          <span className="ms-auto text-xs text-muted-foreground">
-            {hasLimit
-              ? `${formatNumber(data.used, language as any)} / ${formatNumber(data.limit, language as any)} دج`
-              : `${formatNumber(data.used, language as any)} دج`}
+          <span className="ms-auto inline-flex items-stretch overflow-hidden rounded-full border border-red-500 text-[11px] font-bold leading-none shadow-sm" dir="ltr">
+            {hasLimit ? (
+              <>
+                <span className="bg-white text-red-600 px-2 py-1">
+                  {formatNumber(data.used, language as any)}
+                </span>
+                <span className="bg-red-500 text-white px-2 py-1">
+                  {formatNumber(data.limit, language as any)} دج
+                </span>
+              </>
+            ) : (
+              <span className="bg-white text-red-600 px-2 py-1">
+                {formatNumber(data.used, language as any)} دج
+              </span>
+            )}
           </span>
         </div>
         {hasLimit && (
