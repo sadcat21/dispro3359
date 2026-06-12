@@ -4,6 +4,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useExpenses, useDeleteExpense, useWorkerAccountedRanges } from '@/hooks/useExpenses';
 import { ExpenseWithDetails } from '@/types/expense';
 import AddExpenseDialog from '@/components/expenses/AddExpenseDialog';
+import CategoryPickerDialog from '@/components/expenses/CategoryPickerDialog';
+import SalaryAdvanceBar from '@/components/expenses/SalaryAdvanceBar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -34,6 +36,8 @@ const Expenses: React.FC = () => {
   const isManager = isAdminRole(role);
 
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+  const [pickedCategoryId, setPickedCategoryId] = useState<string | undefined>(undefined);
   const [showAdd, setShowAdd] = useState(false);
   const [editExpense, setEditExpense] = useState<ExpenseWithDetails | null>(null);
   const [tab, setTab] = useState('expenses');
@@ -66,12 +70,16 @@ const Expenses: React.FC = () => {
           {isManager ? t('expenses.title') : t('expenses.my_expenses')}
         </h1>
         {!isAddExpenseHidden && tab === 'expenses' && (
-          <Button size="sm" onClick={() => setShowAdd(true)}>
+          <Button size="sm" onClick={() => { setPickedCategoryId(undefined); setShowCategoryPicker(true); }}>
             <Plus className="w-4 h-4 me-1" />
             {t('expenses.add')}
           </Button>
         )}
       </div>
+
+      {!isManager && workerId && (
+        <SalaryAdvanceBar workerId={workerId} language={language} />
+      )}
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="w-full">
@@ -158,7 +166,16 @@ const Expenses: React.FC = () => {
         )}
       </Tabs>
 
-      <AddExpenseDialog open={showAdd} onOpenChange={setShowAdd} />
+      <CategoryPickerDialog
+        open={showCategoryPicker}
+        onOpenChange={setShowCategoryPicker}
+        onPick={(id) => { setPickedCategoryId(id); setShowAdd(true); }}
+      />
+      <AddExpenseDialog
+        open={showAdd}
+        onOpenChange={(o) => { setShowAdd(o); if (!o) setPickedCategoryId(undefined); }}
+        initialCategoryId={pickedCategoryId}
+      />
       <AddExpenseDialog
         open={!!editExpense}
         onOpenChange={(o) => { if (!o) setEditExpense(null); }}

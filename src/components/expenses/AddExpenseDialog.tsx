@@ -22,9 +22,10 @@ interface AddExpenseDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   expense?: ExpenseWithDetails;
+  initialCategoryId?: string;
 }
 
-const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange, expense }) => {
+const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange, expense, initialCategoryId }) => {
   const { data: categories } = useExpenseCategories();
   const createExpense = useCreateExpense();
   const updateExpense = useUpdateExpense();
@@ -113,8 +114,9 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
       setPaymentMethod(expense.payment_method || 'cash');
     } else if (open && !expense) {
       resetForm();
+      if (initialCategoryId) setCategoryId(initialCategoryId);
     }
-  }, [open, expense]);
+  }, [open, expense, initialCategoryId]);
 
 
   const addFiles = (files: FileList | null) => {
@@ -211,21 +213,23 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label>{t('expenses.category')}</Label>
-            <Select value={categoryId} onValueChange={setCategoryId}>
-              <SelectTrigger>
-                <SelectValue placeholder={t('expenses.select_category')} />
-              </SelectTrigger>
-              <SelectContent>
-                {filteredCategories.map(cat => (
-                  <SelectItem key={cat.id} value={cat.id}>
-                    {getCategoryName(cat as any, language)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {!(initialCategoryId && !isEdit) && (
+            <div className="space-y-2">
+              <Label>{t('expenses.category')}</Label>
+              <Select value={categoryId} onValueChange={setCategoryId}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t('expenses.select_category')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {filteredCategories.map(cat => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      {getCategoryName(cat as any, language)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Worker selector for advance category */}
           {isAdvanceCategory && (
