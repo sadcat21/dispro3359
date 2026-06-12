@@ -71,10 +71,25 @@ const Expenses: React.FC = () => {
           {isManager ? t('expenses.title') : t('expenses.my_expenses')}
         </h1>
         {!isAddExpenseHidden && tab === 'expenses' && (
-          <Button size="sm" onClick={() => { setPickedCategoryId(undefined); setShowCategoryPicker(true); }}>
-            <Plus className="w-4 h-4 me-1" />
-            {t('expenses.add')}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-10 h-9 p-0 justify-center [&>svg:last-child]:hidden" aria-label={t('expenses.all')}>
+                <Filter className="w-4 h-4" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('expenses.all')}</SelectItem>
+                {categories.map((c: any) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {getCategoryName(c, language)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button size="sm" onClick={() => { setPickedCategoryId(undefined); setShowCategoryPicker(true); }}>
+              <Plus className="w-4 h-4 me-1" />
+              {t('expenses.add')}
+            </Button>
+          </div>
         )}
       </div>
 
