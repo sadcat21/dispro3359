@@ -14,7 +14,8 @@ export type SplitResolutionType =
   | 'worker_acknowledged'
   | 'credit_to_customer'
   | 'carry_forward'
-  | 'transfer_to_other_employee';
+  | 'transfer_to_other_employee'
+  | 'peer_cash_handover';
 
 export interface TreasuryResolutionRow {
   id: string;
