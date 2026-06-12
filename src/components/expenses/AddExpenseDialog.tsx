@@ -175,12 +175,14 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
       setUploading(false);
     }
 
-    const workerName = isAdvanceCategory
+    const workerName = needsWorkerPick
       ? (branchWorkers?.find(w => w.id === advanceWorkerId)?.full_name || '')
       : '';
     const finalDescription = isAdvanceCategory
       ? `مسبق أجرة: ${workerName}${description ? ` — ${description}` : ''}`
-      : (description || undefined);
+      : isPeerHandoverCategory
+        ? `تسليم لزميل: ${workerName}${justification ? ` — مبرر: ${justification}` : ''}${description ? ` — ${description}` : ''}`
+        : (description || undefined);
 
     if (isEdit && expense) {
       await updateExpense.mutateAsync({
