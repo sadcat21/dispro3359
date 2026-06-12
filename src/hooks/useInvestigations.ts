@@ -169,7 +169,7 @@ export const useCloseInvestigation = () => {
       qc.invalidateQueries({ queryKey: ['investigation', v.case_id] });
       qc.invalidateQueries({ queryKey: ['investigations'] });
       qc.invalidateQueries({ queryKey: ['surplus-deficit-cash'] });
-      toast.success('تم إغلاق القضية وتطبيق القرار');
+      toast.success('تم إغلاق الملف وتطبيق القرار');
     },
     onError: (e: any) => toast.error(e.message || 'فشل الإغلاق'),
   });
