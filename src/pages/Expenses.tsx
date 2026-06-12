@@ -71,40 +71,10 @@ const Expenses: React.FC = () => {
           {isManager ? t('expenses.title') : t('expenses.my_expenses')}
         </h1>
         {!isAddExpenseHidden && tab === 'expenses' && (
-          <Button size="sm" onClick={() => { setPickedCategoryId(undefined); setShowCategoryPicker(true); }}>
-            <Plus className="w-4 h-4 me-1" />
-            {t('expenses.add')}
-          </Button>
-        )}
-      </div>
-
-      {workerId && (
-        <SalaryAdvanceBar workerId={workerId} language={language} />
-      )}
-
-      <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="w-full">
-          <TabsTrigger value="expenses" className="flex-1">
-            {isManager ? t('expenses.title') : t('expenses.my_expenses')}
-          </TabsTrigger>
-          {!isManager && (
-            <TabsTrigger value="peer" className="flex-1 gap-1">
-              تحويلات بانتظار تأكيدي
-              {pendingPeerCount > 0 && (
-                <Badge variant="destructive" className="h-5 min-w-5 px-1 text-[10px]">
-                  {pendingPeerCount}
-                </Badge>
-              )}
-            </TabsTrigger>
-          )}
-        </TabsList>
-
-        <TabsContent value="expenses" className="space-y-4 mt-4">
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-48">
-                <Filter className="w-4 h-4 me-1" />
-                <SelectValue />
+              <SelectTrigger className="w-10 h-9 p-0 justify-center [&>svg:last-child]:hidden" aria-label={t('expenses.all')}>
+                <Filter className="w-4 h-4" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{t('expenses.all')}</SelectItem>
@@ -115,7 +85,36 @@ const Expenses: React.FC = () => {
                 ))}
               </SelectContent>
             </Select>
+            <Button size="sm" onClick={() => { setPickedCategoryId(undefined); setShowCategoryPicker(true); }}>
+              <Plus className="w-4 h-4 me-1" />
+              {t('expenses.add')}
+            </Button>
           </div>
+        )}
+      </div>
+
+      {workerId && (
+        <SalaryAdvanceBar workerId={workerId} language={language} />
+      )}
+
+      <Tabs value={tab} onValueChange={setTab}>
+        {!isManager && (
+          <TabsList className="w-full">
+            <TabsTrigger value="expenses" className="flex-1">
+              {t('expenses.my_expenses')}
+            </TabsTrigger>
+            <TabsTrigger value="peer" className="flex-1 gap-1">
+              تحويلات بانتظار تأكيدي
+              {pendingPeerCount > 0 && (
+                <Badge variant="destructive" className="h-5 min-w-5 px-1 text-[10px]">
+                  {pendingPeerCount}
+                </Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+        )}
+
+        <TabsContent value="expenses" className="space-y-4 mt-4">
 
           {isLoading ? (
             <div className="flex justify-center py-12">
