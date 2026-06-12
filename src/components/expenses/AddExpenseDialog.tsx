@@ -114,16 +114,56 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
     setJustificationOtherTitle('');
   };
 
-  // Justification options = expense categories minus the peer-handover one
-  const justificationOptions = useMemo(
-    () => filteredCategories.filter(c => {
+  // Fetch the receiver's roles (system role + custom role codes) so the
+  // justification categories shown reflect what is allowed for the RECIPIENT,
+  // not the submitter. This handles cases where a category is allowed for the
+  // receiver but not the submitter (or vice versa).
+  const { data: receiverRoles } = useQuery({
+    queryKey: ['receiver-roles', advanceWorkerId],
+    enabled: open && isPeerHandoverCategory && !!advanceWorkerId,
+    queryFn: async () => {
+      const [{ data: w }, { data: wrs }] = await Promise.all([
+        supabase.from('workers').select('role').eq('id', advanceWorkerId).maybeSingle(),
+        supabase
+          .from('worker_roles')
+          .select('custom_role_id, is_active, custom_roles:custom_role_id(code)')
+          .eq('worker_id', advanceWorkerId)
+          .eq('is_active', true),
+      ]);
+      const systemRole = (w as any)?.role as string | null;
+      const codes = (wrs || [])
+        .map((r: any) => r?.custom_roles?.code)
+        .filter(Boolean) as string[];
+      return { systemRole, codes };
+    },
+  });
+
+  // Justification options = categories visible to the RECEIVER, minus the
+  // peer-handover one. Falls back to submitter's categories until a receiver
+  // is picked.
+  const justificationOptions = useMemo(() => {
+    const all = (categories || []).filter(c => {
       const n = c.name || '';
       const nf = (c.name_fr || '').toLowerCase();
       const ne = (c.name_en || '').toLowerCase();
       return !(n.includes('تسليم لزميل') || nf.includes('collègue') || nf.includes('collegue') || ne.includes('colleague') || ne.includes('handover to'));
-    }),
-    [filteredCategories],
-  );
+    });
+    if (!isPeerHandoverCategory || !advanceWorkerId || !receiverRoles) {
+      return filteredCategories.filter(c => {
+        const n = c.name || '';
+        const nf = (c.name_fr || '').toLowerCase();
+        const ne = (c.name_en || '').toLowerCase();
+        return !(n.includes('تسليم لزميل') || nf.includes('collègue') || nf.includes('collegue') || ne.includes('colleague') || ne.includes('handover to'));
+      });
+    }
+    return all.filter(cat => {
+      const visibleRoles = (cat as any).visible_to_roles as string[] | null;
+      if (!visibleRoles || visibleRoles.length === 0) return true;
+      if (receiverRoles.systemRole && visibleRoles.includes(receiverRoles.systemRole)) return true;
+      return receiverRoles.codes.some(code => visibleRoles.includes(code));
+    });
+  }, [categories, filteredCategories, isPeerHandoverCategory, advanceWorkerId, receiverRoles]);
+
   const selectedJustification = justificationOptions.find(c => c.id === justificationCategoryId);
   const isJustificationAdvance = !!(selectedJustification && (
     selectedJustification.name?.includes('مسبق') ||
@@ -210,6 +250,14 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
     if (!categoryId || !amount || parseFloat(amount) <= 0) return;
     if (needsWorkerPick && !advanceWorkerId) {
       toast.error(isPeerHandoverCategory ? 'يرجى اختيار الزميل المستلِم' : 'يرجى اختيار العامل المستفيد من المسبق');
+      return;
+    }
+    if (isPeerHandoverCategory && !justificationCategoryId) {
+      toast.error('يرجى اختيار المبرر');
+      return;
+    }
+    if (isPeerHandoverCategory && isJustificationOther && !justificationOtherTitle.trim()) {
+      toast.error('يرجى إدخال عنوان المبرر');
       return;
     }
     // Enforce remaining advance limit when the justification is "salary advance"
@@ -349,6 +397,53 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
             </div>
           )}
 
+          {isPeerHandoverCategory && (
+            <div className="space-y-2">
+              <Label>المبرر <span className="text-[10px] text-red-600">*</span></Label>
+              {!advanceWorkerId ? (
+                <p className="text-[11px] text-muted-foreground">يرجى اختيار الزميل المستلِم أولاً لعرض المبررات المسموح بها له</p>
+              ) : justificationOptions.length === 0 ? (
+                <p className="text-[11px] text-muted-foreground">لا توجد فئات مسموح بها لهذا الزميل</p>
+              ) : (
+                <div className="grid grid-cols-3 gap-2">
+                  {justificationOptions.map(opt => {
+                    const isAdv = opt.name?.includes('مسبق') ||
+                      opt.name_fr?.toLowerCase().includes('avance') ||
+                      opt.name_en?.toLowerCase().includes('advance');
+                    const selected = justificationCategoryId === opt.id;
+                    const baseColor = isAdv ? advanceTierClass : 'bg-card border-border text-foreground';
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setJustificationCategoryId(selected ? null : opt.id)}
+                        className={`rounded-lg border p-2 text-[11px] font-medium transition-all ${baseColor} ${
+                          selected ? 'ring-2 ring-primary border-primary' : 'hover:bg-muted/40'
+                        }`}
+                      >
+                        {getCategoryName(opt as any, language)}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {isJustificationOther && (
+                <Input
+                  value={justificationOtherTitle}
+                  onChange={e => setJustificationOtherTitle(e.target.value)}
+                  placeholder="أدخل عنوان المبرر"
+                  maxLength={80}
+                />
+              )}
+              {isJustificationAdvance && receiverAdvance && receiverAdvance.remaining === 0 && (
+                <p className="text-[10px] text-red-600">لا يمكن منح مسبق أجرة لهذا الزميل هذا الشهر</p>
+              )}
+              {exceedsAdvanceLimit && (
+                <p className="text-[11px] font-medium text-red-600">المبلغ المُدخل يتجاوز الحد المسموح به</p>
+              )}
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label>{t('expenses.amount')}</Label>
             <Input
@@ -392,46 +487,6 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
             />
           </div>
 
-          {isPeerHandoverCategory && (
-            <div className="space-y-2">
-              <Label>المبرر <span className="text-[10px] text-muted-foreground">(اختياري)</span></Label>
-              <div className="grid grid-cols-3 gap-2">
-                {justificationOptions.map(opt => {
-                  const isAdv = opt.name?.includes('مسبق') ||
-                    opt.name_fr?.toLowerCase().includes('avance') ||
-                    opt.name_en?.toLowerCase().includes('advance');
-                  const selected = justificationCategoryId === opt.id;
-                  const baseColor = isAdv ? advanceTierClass : 'bg-card border-border text-foreground';
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => setJustificationCategoryId(selected ? null : opt.id)}
-                      className={`rounded-lg border p-2 text-[11px] font-medium transition-all ${baseColor} ${
-                        selected ? 'ring-2 ring-primary border-primary' : 'hover:bg-muted/40'
-                      }`}
-                    >
-                      {getCategoryName(opt as any, language)}
-                    </button>
-                  );
-                })}
-              </div>
-              {isJustificationOther && (
-                <Input
-                  value={justificationOtherTitle}
-                  onChange={e => setJustificationOtherTitle(e.target.value)}
-                  placeholder="أدخل عنوان المبرر"
-                  maxLength={80}
-                />
-              )}
-              {isJustificationAdvance && receiverAdvance && receiverAdvance.remaining === 0 && (
-                <p className="text-[10px] text-red-600">لا يمكن منح مسبق أجرة لهذا الزميل هذا الشهر</p>
-              )}
-              {exceedsAdvanceLimit && (
-                <p className="text-[11px] font-medium text-red-600">المبلغ المُدخل يتجاوز الحد المسموح به</p>
-              )}
-            </div>
-          )}
 
           <div className="space-y-2">
             <Label>{t('expenses.description')}</Label>
@@ -477,7 +532,7 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
           <Button
             type="submit"
             className="w-full"
-            disabled={!categoryId || !amount || createExpense.isPending || updateExpense.isPending || uploading || createWorkerDebt.isPending || (!isEdit && needsWorkerPick && !advanceWorkerId) || exceedsAdvanceLimit || (isPeerHandoverCategory && isJustificationOther && !justificationOtherTitle.trim())}
+            disabled={!categoryId || !amount || createExpense.isPending || updateExpense.isPending || uploading || createWorkerDebt.isPending || (!isEdit && needsWorkerPick && !advanceWorkerId) || exceedsAdvanceLimit || (isPeerHandoverCategory && !justificationCategoryId) || (isPeerHandoverCategory && isJustificationOther && !justificationOtherTitle.trim())}
           >
             {(createExpense.isPending || updateExpense.isPending || uploading) && <Loader2 className="w-4 h-4 animate-spin me-2" />}
             {isEdit ? t('common.save') : t('expenses.add_button')}
