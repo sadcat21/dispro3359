@@ -86,7 +86,7 @@ export const useInvestigators = () => {
         .select('user_id')
         .in('role', ['admin', 'branch_admin', 'supervisor', 'project_manager']);
       if (rolesErr) throw rolesErr;
-      const ids = Array.from(new Set((roles ?? []).map((r: any) => r.user_id)));
+      const ids = Array.from(new Set(((roles ?? []) as Array<{ user_id: string }>).map((r) => r.user_id)));
       if (ids.length === 0) return [];
       const { data, error } = await supabase
         .from('workers')
