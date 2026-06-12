@@ -77,7 +77,7 @@ const Expenses: React.FC = () => {
         )}
       </div>
 
-      {!isManager && workerId && (
+      {workerId && (
         <SalaryAdvanceBar workerId={workerId} language={language} />
       )}
 
