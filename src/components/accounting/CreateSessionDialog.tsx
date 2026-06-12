@@ -15,6 +15,7 @@ import { useCreateWorkerDebt } from '@/hooks/useWorkerDebts';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { captureTruckSnapshot } from '@/utils/captureTruckSnapshot';
 import { format } from 'date-fns';
 import ProductStockSummary from './ProductStockSummary';
 import SalesDetailsSummary from './SalesDetailsSummary';
