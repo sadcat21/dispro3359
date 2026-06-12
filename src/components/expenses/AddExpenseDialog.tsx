@@ -108,8 +108,8 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
   };
 
   useEffect(() => {
-    if (!isAdvanceCategory) setAdvanceWorkerId('');
-  }, [isAdvanceCategory]);
+    if (!needsWorkerPick) setAdvanceWorkerId('');
+  }, [needsWorkerPick]);
 
   useEffect(() => {
     if (open && expense) {
