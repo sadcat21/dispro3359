@@ -1043,6 +1043,7 @@ const MyAchievements: React.FC = () => {
   }, [visits, activeFilter, searchQuery, invoiceMode, selectedProductIds, selectedSessionRanges]);
 
   const debtNewCount = useMemo(() => visits.filter((visit: any) => isDebtNewAchievement(visit)).length, [visits]);
+  const cancelledCount = useMemo(() => visits.filter((visit: any) => (visit as any).order_status === 'cancelled').length, [visits]);
 
   const handleOpenAchievement = async (visit: any) => {
     if (visit.operation_type === 'debt_collection') {
