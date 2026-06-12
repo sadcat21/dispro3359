@@ -64,6 +64,7 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
   const [uploading, setUploading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [advanceWorkerId, setAdvanceWorkerId] = useState('');
+  const [justification, setJustification] = useState('');
 
   // Check if selected category is fuel / advance
   const selectedCategory = filteredCategories.find(c => c.id === categoryId);
@@ -106,11 +107,19 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
     setReceiptFiles([]);
     setPaymentMethod('cash');
     setAdvanceWorkerId('');
+    setJustification('');
   };
 
   useEffect(() => {
     if (!needsWorkerPick) setAdvanceWorkerId('');
   }, [needsWorkerPick]);
+
+  // Auto-open the colleague picker as soon as the peer-handover category is chosen
+  useEffect(() => {
+    if (open && isPeerHandoverCategory && !advanceWorkerId) {
+      setWorkerPickerOpen(true);
+    }
+  }, [open, isPeerHandoverCategory, advanceWorkerId]);
 
   useEffect(() => {
     if (open && expense) {
@@ -166,12 +175,14 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
       setUploading(false);
     }
 
-    const workerName = isAdvanceCategory
+    const workerName = needsWorkerPick
       ? (branchWorkers?.find(w => w.id === advanceWorkerId)?.full_name || '')
       : '';
     const finalDescription = isAdvanceCategory
       ? `مسبق أجرة: ${workerName}${description ? ` — ${description}` : ''}`
-      : (description || undefined);
+      : isPeerHandoverCategory
+        ? `تسليم لزميل: ${workerName}${justification ? ` — مبرر: ${justification}` : ''}${description ? ` — ${description}` : ''}`
+        : (description || undefined);
 
     if (isEdit && expense) {
       await updateExpense.mutateAsync({
@@ -308,6 +319,18 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
             />
           </div>
 
+          {isPeerHandoverCategory && (
+            <div className="space-y-2">
+              <Label>المبرر <span className="text-[10px] text-muted-foreground">(اختياري)</span></Label>
+              <Textarea
+                value={justification}
+                onChange={e => setJustification(e.target.value)}
+                placeholder="المبرر الذي قدّمه الزميل لطلب المبلغ"
+                rows={2}
+              />
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label>{t('expenses.description')}</Label>
             <Textarea
@@ -318,36 +341,36 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>{t('expenses.receipts')}</Label>
-            
-            {/* Show selected files */}
-            {receiptFiles.length > 0 && (
-              <div className="space-y-1">
-                {receiptFiles.map((file, index) => (
-                  <div key={index} className="flex items-center gap-2 p-2 bg-muted rounded-md">
-                    <span className="text-sm truncate flex-1">{file.name}</span>
-                    <Button type="button" variant="ghost" size="sm" onClick={() => removeFile(index)}>
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
+          {!isPeerHandoverCategory && (
+            <div className="space-y-2">
+              <Label>{t('expenses.receipts')}</Label>
 
-            {/* Upload button */}
-            <label className="flex items-center gap-2 p-3 border-2 border-dashed rounded-md cursor-pointer hover:bg-muted/50 transition-colors">
-              <Upload className="w-5 h-5 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">{t('expenses.click_upload')}</span>
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                className="hidden"
-                onChange={e => addFiles(e.target.files)}
-              />
-            </label>
-          </div>
+              {receiptFiles.length > 0 && (
+                <div className="space-y-1">
+                  {receiptFiles.map((file, index) => (
+                    <div key={index} className="flex items-center gap-2 p-2 bg-muted rounded-md">
+                      <span className="text-sm truncate flex-1">{file.name}</span>
+                      <Button type="button" variant="ghost" size="sm" onClick={() => removeFile(index)}>
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <label className="flex items-center gap-2 p-3 border-2 border-dashed rounded-md cursor-pointer hover:bg-muted/50 transition-colors">
+                <Upload className="w-5 h-5 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">{t('expenses.click_upload')}</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={e => addFiles(e.target.files)}
+                />
+              </label>
+            </div>
+          )}
 
           <Button
             type="submit"
