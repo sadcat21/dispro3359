@@ -569,6 +569,16 @@ const CreateSessionDialog: React.FC<CreateSessionDialogProps> = ({ open, onOpenC
         toast.success(t('accounting.session_created'));
       }
 
+      // Freeze the truck-balance state for this session so the branch manager
+      // review always sees save-time values, not the worker's live truck.
+      if (sessionId) {
+        try {
+          await captureTruckSnapshot(sessionId, selectedWorkerId, periodStart, periodEnd);
+        } catch (e) {
+          console.warn('Truck snapshot capture failed', e);
+        }
+      }
+
       // Apply any pending manager decision drafts for this worker now that
       // the accounting session has been saved.
       try {
