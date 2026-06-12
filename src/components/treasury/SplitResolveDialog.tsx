@@ -195,9 +195,9 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
           {/* Progress */}
           <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
             <div className="flex items-center justify-between text-xs">
-              <span>الإجمالي: <b>{fmt(total)} DA</b></span>
-              <span>المُسوّى: <b className="text-emerald-700">{fmt(used)} DA</b></span>
-              <span>المتبقّي: <b className={remaining > 0 ? 'text-amber-700' : 'text-emerald-700'}>{fmt(remaining)} DA</b></span>
+              <span>الإجمالي: <b dir="ltr">{fmt(total)} DA</b></span>
+              <span>المُسوّى: <b className="text-emerald-700" dir="ltr">{fmt(used)} DA</b></span>
+              <span>المتبقّي: <b className={remaining > 0 ? 'text-amber-700' : 'text-emerald-700'} dir="ltr">{fmt(remaining)} DA</b></span>
             </div>
             <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
               <div
