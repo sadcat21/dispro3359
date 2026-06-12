@@ -232,8 +232,13 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
     };
   }, [open, isPeerHandoverCategory, submitterWorkerId, effectiveBranchId, submitterLastSessionEnd]);
   const { data: submitterCalc } = useSessionCalculations(submitterCalcParams);
+  // Admins and accountants have direct access to the treasury, so the
+  // "available cash" ceiling does not apply to them.
+  const isCashExempt = isAdminRole(role)
+    || role === 'accountant'
+    || activeRole?.custom_role_code === 'accountant';
   const availableCash = Math.max(0, Number(submitterCalc?.physicalCash || 0));
-  const exceedsAvailableCash = isPeerHandoverCategory && !!submitterCalc && amountNum > availableCash;
+  const exceedsAvailableCash = isPeerHandoverCategory && !isCashExempt && !!submitterCalc && amountNum > availableCash;
 
   const advanceTierClass = !receiverAdvance || receiverAdvance.limit <= 0
     ? 'bg-card border-border text-foreground'
@@ -296,7 +301,7 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
       toast.error('يرجى إدخال عنوان المبرر');
       return;
     }
-    if (isPeerHandoverCategory && submitterCalc && parseFloat(amount) > availableCash) {
+    if (isPeerHandoverCategory && !isCashExempt && submitterCalc && parseFloat(amount) > availableCash) {
       toast.error('المبلغ يتجاوز السيولة المتوفرة لديك');
       return;
     }
@@ -493,18 +498,20 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
                   min="0"
                   step="0.01"
                   max={
-                    isPeerHandoverCategory
+                    isPeerHandoverCategory && !isCashExempt
                       ? (isJustificationAdvance && receiverAdvance
                           ? Math.min(receiverAdvance.remaining, availableCash)
                           : availableCash)
-                      : undefined
+                      : (isPeerHandoverCategory && isJustificationAdvance && receiverAdvance
+                          ? receiverAdvance.remaining
+                          : undefined)
                   }
                   value={amount}
                   onChange={e => setAmount(e.target.value)}
                   placeholder="0.00"
                   required
                 />
-                {isPeerHandoverCategory && submitterCalc && (
+                {isPeerHandoverCategory && !isCashExempt && submitterCalc && (
                   <p className={`text-[11px] ${exceedsAvailableCash ? 'text-red-600 font-medium' : 'text-muted-foreground'}`}>
                     {exceedsAvailableCash
                       ? `المبلغ يتجاوز السيولة المتوفرة لديك (${availableCash.toFixed(2)} DA)`
