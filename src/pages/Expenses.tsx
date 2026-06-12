@@ -284,79 +284,136 @@ const ExpenseCard: React.FC<{
   const [showReceipt, setShowReceipt] = useState(false);
   const canModify = isOwner && !accounted && expense.status !== 'rejected';
 
+  const beneficiaryMatch = expense.description?.match(/^مسبق أجرة:\s*([^—]+)/);
+  const beneficiary = beneficiaryMatch ? beneficiaryMatch[1].trim() : null;
+  const peerSenderMatch = expense.description?.match(/^استلام نقدي من زميل:\s*([^—\n]+)/);
+  const peerReceiverMatch = expense.description?.match(/^تسليم لزميل:\s*([^—\n]+)/);
+  const peerLabel = peerSenderMatch ? `من: ${peerSenderMatch[1].trim()}` : peerReceiverMatch ? `إلى: ${peerReceiverMatch[1].trim()}` : null;
+
+  const statusPill =
+    expense.status === 'approved'
+      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+      : expense.status === 'rejected'
+      ? 'bg-red-500/10 text-red-400 border-red-500/20'
+      : 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+
+  const amountNum = Number(expense.amount);
+  const isNegative = amountNum < 0;
+
   return (
     <>
-      <Card className="p-4 space-y-2">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="font-semibold text-lg">{formatNumber(Number(expense.amount), language as any)} {t('common.currency')}</span>
-              <Badge variant={status.variant}>{t(status.labelKey)}</Badge>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {getCategoryName(expense.category as any, language as any) || t('expenses.uncategorized')}
-            </p>
-            {isManager && expense.worker && (
-              <p className="text-xs text-muted-foreground">
-                👤 {expense.worker.full_name}
+      <Card className="overflow-hidden rounded-2xl border-border bg-card p-0 shadow-lg" dir="rtl">
+        {/* Header: Date & Status */}
+        <div className="flex items-center justify-between border-b border-border/50 px-5 py-3">
+          <span className="text-xs font-medium text-muted-foreground">
+            {formatDate(expense.expense_date, 'dd MMM yyyy', language as any)}
+          </span>
+          <span className={`rounded-full border px-3 py-1 text-xs font-bold ${statusPill}`}>
+            {t(status.labelKey)}
+          </span>
+        </div>
+
+        {/* Amount & Category */}
+        <div className="px-5 py-5">
+          <div className="mb-1 flex items-baseline gap-2">
+            <span className={`text-3xl font-bold tracking-tight ${isNegative ? 'text-emerald-500' : 'text-foreground'}`}>
+              {formatNumber(Math.abs(amountNum), language as any)}
+            </span>
+            <span className="text-sm font-semibold uppercase text-muted-foreground">
+              {t('common.currency')}
+            </span>
+          </div>
+          <h3 className="text-base font-bold text-foreground">
+            {getCategoryName(expense.category as any, language as any) || t('expenses.uncategorized')}
+          </h3>
+        </div>
+
+        {/* Metadata Grid */}
+        <div className="space-y-3 px-5 pb-5">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-xl border border-border/40 bg-muted/30 p-3">
+              <p className="mb-1 text-[10px] text-muted-foreground">{t('expenses.worker') || 'الموظف'}</p>
+              <p className="text-sm font-semibold text-foreground">
+                {expense.worker?.full_name ?? '—'}
               </p>
+            </div>
+            <div className="rounded-xl border border-border/40 bg-muted/30 p-3">
+              <p className="mb-1 text-[10px] text-muted-foreground">{t('expenses.reviewer') || 'المراجع'}</p>
+              <div className="flex items-center gap-1.5">
+                {expense.reviewer && (
+                  <div className={`h-2 w-2 rounded-full ${expense.status === 'approved' ? 'bg-emerald-400' : expense.status === 'rejected' ? 'bg-red-400' : 'bg-amber-400'}`} />
+                )}
+                <p className="text-sm font-semibold text-foreground">
+                  {expense.reviewer?.full_name ?? '—'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {beneficiary && (
+            <div className="rounded-xl border border-primary/15 bg-primary/5 p-3">
+              <p className="mb-1 text-[10px] text-primary/70">🧾 المستفيد من المسبق</p>
+              <p className="text-sm font-bold text-foreground">{beneficiary}</p>
+            </div>
+          )}
+
+          {peerLabel && (
+            <div className="rounded-xl border border-emerald-500/15 bg-emerald-500/5 p-3">
+              <p className="mb-1 text-[10px] text-emerald-500/80">تحويل بين الزملاء</p>
+              <p className="text-sm font-bold text-foreground">{peerLabel}</p>
+            </div>
+          )}
+
+          {expense.description && !beneficiary && !peerLabel && (
+            <p className="text-sm text-foreground/80">{expense.description}</p>
+          )}
+
+          {receiptUrls.length > 0 && (
+            <button
+              onClick={() => setShowReceipt(true)}
+              className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+            >
+              <Image className="h-3 w-3" />
+              {receiptUrls.length > 1 ? `${t('expenses.has_receipts')} (${receiptUrls.length})` : t('expenses.view_receipt')}
+            </button>
+          )}
+
+          {expense.status === 'rejected' && expense.rejection_reason && (
+            <p className="rounded bg-destructive/10 p-2 text-xs text-destructive">
+              {t('expenses.rejection_reason')}: {expense.rejection_reason}
+            </p>
+          )}
+
+          {isOwner && accounted && (
+            <p className="text-[10px] text-muted-foreground">{t('expenses.locked_accounted')}</p>
+          )}
+        </div>
+
+        {/* Actions */}
+        {canModify && (
+          <div className="flex border-t border-border">
+            <button
+              onClick={onEdit}
+              className="flex flex-1 items-center justify-center gap-2 py-3.5 text-sm font-bold text-foreground/80 transition-colors hover:bg-muted"
+            >
+              <Pencil className="h-4 w-4 text-muted-foreground" />
+              {t('common.edit')}
+            </button>
+            {!hideDelete && (
+              <>
+                <div className="w-px bg-border" />
+                <button
+                  onClick={onDelete}
+                  className="flex flex-1 items-center justify-center gap-2 py-3.5 text-sm font-bold text-red-500 transition-colors hover:bg-red-500/5"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {t('common.delete')}
+                </button>
+              </>
             )}
           </div>
-          <div className="text-xs text-muted-foreground">
-            {formatDate(expense.expense_date, 'dd MMM yyyy', language as any)}
-          </div>
-        </div>
-
-        {expense.description?.startsWith('مسبق أجرة:') && (
-          <p className="text-xs font-medium text-primary bg-primary/10 rounded px-2 py-1 inline-block">
-            🧾 المستفيد من المسبق: {expense.description.replace(/^مسبق أجرة:\s*/, '').split(' — ')[0]}
-          </p>
         )}
-        {expense.description && (
-          <p className="text-sm text-foreground/80">{expense.description}</p>
-        )}
-
-        {receiptUrls.length > 0 && (
-          <button
-            onClick={() => setShowReceipt(true)}
-            className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-          >
-            <Image className="w-3 h-3" />
-            {receiptUrls.length > 1 ? `${t('expenses.has_receipts')} (${receiptUrls.length})` : t('expenses.view_receipt')}
-          </button>
-        )}
-
-        {expense.status === 'rejected' && expense.rejection_reason && (
-          <p className="text-xs text-destructive bg-destructive/10 p-2 rounded">
-            {t('expenses.rejection_reason')}: {expense.rejection_reason}
-          </p>
-        )}
-
-        {expense.reviewer && (
-          <p className="text-xs text-muted-foreground">
-            {t('expenses.reviewed_by')}: {expense.reviewer.full_name}
-          </p>
-        )}
-
-        <div className="flex gap-2 pt-1">
-          {canModify && (
-            <Button variant="outline" size="sm" onClick={onEdit}>
-              <Pencil className="w-3 h-3 me-1" />
-              {t('common.edit')}
-            </Button>
-          )}
-          {canModify && !hideDelete && (
-            <Button variant="destructive" size="sm" onClick={onDelete}>
-              <Trash2 className="w-3 h-3 me-1" />
-              {t('common.delete')}
-            </Button>
-          )}
-          {isOwner && accounted && (
-            <span className="text-[10px] text-muted-foreground">{t('expenses.locked_accounted')}</span>
-          )}
-        </div>
       </Card>
-
 
       <ReceiptViewerDialog
         open={showReceipt}
