@@ -105,7 +105,7 @@ const SalaryAdvanceBar: React.FC<Props> = ({ workerId, language }) => {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>سجل سلف الراتب لهذا الشهر</DialogTitle>
+            <DialogTitle>سجل سلف شهر {monthLabel}</DialogTitle>
           </DialogHeader>
           {isLoading ? (
             <div className="flex justify-center py-8">
