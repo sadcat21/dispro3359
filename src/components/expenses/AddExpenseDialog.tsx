@@ -22,9 +22,10 @@ interface AddExpenseDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   expense?: ExpenseWithDetails;
+  initialCategoryId?: string;
 }
 
-const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange, expense }) => {
+const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange, expense, initialCategoryId }) => {
   const { data: categories } = useExpenseCategories();
   const createExpense = useCreateExpense();
   const updateExpense = useUpdateExpense();
