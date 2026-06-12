@@ -93,6 +93,8 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
   const [draftAmount, setDraftAmount] = useState<string>('');
   const [draftParty, setDraftParty] = useState<{ id: string; label: string; type: 'customer' | 'worker' } | null>(null);
   const [draftNotes, setDraftNotes] = useState('');
+  const [editingSplitId, setEditingSplitId] = useState<string | null>(null);
+  const [editingLinkedDebtId, setEditingLinkedDebtId] = useState<string | null>(null);
 
   const [customerOpen, setCustomerOpen] = useState(false);
   const [workerOpen, setWorkerOpen] = useState(false);
@@ -169,6 +171,8 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
     setDraftAmount('');
     setDraftParty(null);
     setDraftNotes('');
+    setEditingSplitId(null);
+    setEditingLinkedDebtId(null);
   };
 
   const canAdd = () => {
@@ -193,11 +197,13 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
     const partyLabel = draftType === 'worker_debt' ? originalWorkerName : (draftParty?.label ?? null);
     await add.mutateAsync({
       treasury_id: entry.id,
+      split_id: editingSplitId,
       resolution_type: draftType,
       amount: Number(draftAmount),
       party_type: partyType as any,
       party_id: partyId,
       party_label: partyLabel,
+      linked_debt_id: editingLinkedDebtId,
       notes: draftNotes || null,
       resolved_by: workerId || null,
       sender_worker_id: entry?.worker_id || entry?.manager_id || null,
@@ -282,6 +288,8 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
                         variant="ghost"
                         className="h-6 w-6 shrink-0 text-foreground"
                         onClick={() => {
+                        setEditingSplitId(r.id);
+                        setEditingLinkedDebtId(r.linked_debt_id || null);
                           setDraftType(r.resolution_type as SplitResolutionType);
                           setDraftAmount(String(r.amount));
                           setDraftParty(
@@ -290,7 +298,6 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
                               : null
                           );
                           setDraftNotes(r.notes || '');
-                          del.mutate({ id: r.id, treasury_id: entry.id });
                         }}
                       >
                         <Pencil className="w-3.5 h-3.5" />
