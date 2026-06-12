@@ -33,7 +33,8 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
 
   const createWorkerDebt = useCreateWorkerDebt();
   const { language, t, dir } = useLanguage();
-  const { role, activeRole, activeBranch } = useAuth();
+  const { role, activeRole, activeBranch, user } = useAuth();
+  const effectiveBranchId = activeBranch?.id || activeRole?.branch_id || (user as any)?.branch_id || null;
 
   // Filter categories based on user's active role
   const filteredCategories = useMemo(() => {
@@ -81,13 +82,13 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
 
   // Load workers of the current branch (for advance / peer-handover category)
   const { data: branchWorkers } = useQuery({
-    queryKey: ['expense-advance-workers', activeBranch?.id],
-    enabled: open && needsWorkerPick && !!activeBranch?.id,
+    queryKey: ['expense-advance-workers', effectiveBranchId],
+    enabled: open && needsWorkerPick && !!effectiveBranchId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('workers')
         .select('id, full_name, role')
-        .eq('branch_id', activeBranch!.id)
+        .eq('branch_id', effectiveBranchId!)
         .eq('is_active', true)
         .order('full_name');
       if (error) throw error;
