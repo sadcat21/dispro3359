@@ -133,6 +133,25 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
     return m;
   }, [peerHandoversQ.data]);
 
+  // Original worker who caused the deficit (via the accounting session), not the accountant
+  const originalWorkerQ = useQuery({
+    enabled: !!entry?.session_id,
+    queryKey: ['split-session-worker', entry?.session_id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('accounting_sessions')
+        .select('worker_id, workers:worker_id(id, full_name)')
+        .eq('id', entry!.session_id)
+        .maybeSingle();
+      return (data as any)?.workers ?? null;
+    },
+  });
+  const originalWorkerId: string | null = (originalWorkerQ.data as any)?.id ?? entry?.worker_id ?? null;
+  const originalWorkerName: string =
+    (originalWorkerQ.data as any)?.full_name ||
+    (branchWorkersQ.data ?? []).find((w) => w.id === originalWorkerId)?.full_name ||
+    'العامل الأصلي';
+
   const availableOptions = OPTIONS.filter((o) => {
     if (o.surplusOnly && !isSurplus) return false;
     if (o.deficitOnly && isSurplus) return false;
