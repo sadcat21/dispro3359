@@ -202,6 +202,14 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
       toast.error(isPeerHandoverCategory ? 'يرجى اختيار الزميل المستلِم' : 'يرجى اختيار العامل المستفيد من المسبق');
       return;
     }
+    // Enforce remaining advance limit when the justification is "salary advance"
+    if (isPeerHandoverCategory && isJustificationAdvance) {
+      const rem = receiverAdvance?.remaining ?? 0;
+      if (parseFloat(amount) > rem) {
+        toast.error('المبلغ يتجاوز الحد المسموح به للزميل المستلِم لهذا الشهر');
+        return;
+      }
+    }
 
     const receiptUrls: string[] = [];
 
@@ -227,10 +235,11 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({ open, onOpenChange,
     const workerName = needsWorkerPick
       ? (branchWorkers?.find(w => w.id === advanceWorkerId)?.full_name || '')
       : '';
+    const justificationLabel = selectedJustification ? getCategoryName(selectedJustification as any, language) : '';
     const finalDescription = isAdvanceCategory
       ? `مسبق أجرة: ${workerName}${description ? ` — ${description}` : ''}`
       : isPeerHandoverCategory
-        ? `تسليم لزميل: ${workerName}${justification ? ` — مبرر: ${justification}` : ''}${description ? ` — ${description}` : ''}`
+        ? `تسليم لزميل: ${workerName}${justificationLabel ? ` — مبرر: ${justificationLabel}` : ''}${description ? ` — ${description}` : ''}`
         : (description || undefined);
 
     if (isEdit && expense) {
