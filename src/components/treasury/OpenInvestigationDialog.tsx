@@ -273,7 +273,7 @@ const OpenInvestigationDialog: React.FC<Props> = ({ open, onClose, treasury }) =
 
             <div className="space-y-1.5">
               <Label>ملخص الحالة</Label>
-              <Textarea value={summary} onChange={(e) => setSummary(e.target.value)} rows={3} placeholder="اشرح ما تعرفه حتى الآن..." />
+              <Textarea value={summary} onChange={(e) => setSummary(e.target.value)} rows={3} placeholder="اكتب باختصار ما تعرفه حتى الآن..." />
             </div>
 
             <div className="space-y-2">
