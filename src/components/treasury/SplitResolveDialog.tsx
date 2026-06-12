@@ -235,7 +235,7 @@ const SplitResolveDialog: React.FC<Props> = ({ entry, onClose, onRequestInvestig
                         </span>
                       )}
                       {!r.party_label && <span className="flex-1" />}
-                      <span className="font-bold shrink-0">{fmt(Number(r.amount))} DA</span>
+                      <span className="font-bold shrink-0" dir="ltr">{fmt(Number(r.amount))} DA</span>
                       {peer && (
                         <Badge
                           variant={peer.status === 'approved' ? 'default' : peer.status === 'rejected' ? 'destructive' : 'secondary'}
