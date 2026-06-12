@@ -112,6 +112,32 @@ export const useResolveTreasuryEntry = () => {
   });
 };
 
+// Four-eyes approval via RPC: only admin-level users; cannot approve own entries.
+export const useApproveTreasuryEntry = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: {
+      id: string;
+      decision: 'manager_approved_writeoff' | 'worker_debt' | 'investigation' | 'customer_repayment';
+      notes?: string;
+    }) => {
+      const { data, error } = await (supabase as any).rpc('approve_treasury_entry', {
+        p_entry_id: params.id,
+        p_decision: params.decision,
+        p_notes: params.notes ?? null,
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['surplus-deficit-cash'] });
+      qc.invalidateQueries({ queryKey: ['surplus-deficit-customer'] });
+      toast.success('تم اعتماد القرار');
+    },
+    onError: (e: any) => toast.error(e.message || 'فشل الاعتماد'),
+  });
+};
+
 export const useUpdateToleranceSettings = () => {
   const qc = useQueryClient();
   return useMutation({
