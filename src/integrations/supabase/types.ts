@@ -4450,6 +4450,87 @@ export type Database = {
           },
         ]
       }
+      peer_cash_handovers: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          receiver_worker_id: string
+          responded_at: string | null
+          response_note: string | null
+          sender_worker_id: string
+          split_id: string
+          status: string
+          treasury_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          receiver_worker_id: string
+          responded_at?: string | null
+          response_note?: string | null
+          sender_worker_id: string
+          split_id: string
+          status?: string
+          treasury_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          receiver_worker_id?: string
+          responded_at?: string | null
+          response_note?: string | null
+          sender_worker_id?: string
+          split_id?: string
+          status?: string
+          treasury_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "peer_cash_handovers_receiver_worker_id_fkey"
+            columns: ["receiver_worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "peer_cash_handovers_receiver_worker_id_fkey"
+            columns: ["receiver_worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "peer_cash_handovers_sender_worker_id_fkey"
+            columns: ["sender_worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "peer_cash_handovers_sender_worker_id_fkey"
+            columns: ["sender_worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "peer_cash_handovers_treasury_id_fkey"
+            columns: ["treasury_id"]
+            isOneToOne: false
+            referencedRelation: "manager_treasury"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pending_offer_confirmations: {
         Row: {
           branch_id: string | null
@@ -10678,6 +10759,29 @@ export type Database = {
         Returns: undefined
       }
       repair_offer_ledger: { Args: never; Returns: Json }
+      respond_peer_cash_handover: {
+        Args: { p_decision: string; p_handover_id: string; p_note?: string }
+        Returns: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          receiver_worker_id: string
+          responded_at: string | null
+          response_note: string | null
+          sender_worker_id: string
+          split_id: string
+          status: string
+          treasury_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "peer_cash_handovers"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       revert_accounting_session_decisions: {
         Args: { p_session_id: string }
         Returns: number
