@@ -61,11 +61,13 @@ export const useAddTreasuryResolution = () => {
   return useMutation({
     mutationFn: async (row: {
       treasury_id: string;
+      split_id?: string | null;
       resolution_type: SplitResolutionType;
       amount: number;
       party_type?: 'customer' | 'worker' | null;
       party_id?: string | null;
       party_label?: string | null;
+      linked_debt_id?: string | null;
       notes?: string | null;
       resolved_by?: string | null;
       status?: 'settled' | 'under_review' | 'open';
@@ -81,14 +83,33 @@ export const useAddTreasuryResolution = () => {
           : row.resolution_type === 'carry_forward'
           ? 'open'
           : 'settled');
-      const splitId = genId();
       const current = await fetchSplits(row.treasury_id);
+      const splitId = row.split_id ?? genId();
+      const existingRow = row.split_id ? current.find((item) => item.id === row.split_id) ?? null : null;
 
       // Create an actual worker_debt for "worker_debt" resolutions
-      let linkedDebtId: string | null = null;
+      let linkedDebtId: string | null = row.linked_debt_id ?? existingRow?.linked_debt_id ?? null;
       let resolvedPartyId: string | null = row.party_id ?? null;
       let resolvedPartyLabel: string | null = row.party_label ?? null;
       let resolvedBranchId: string | null = row.branch_id ?? null;
+
+      if (existingRow?.resolution_type === 'worker_debt' && row.resolution_type !== 'worker_debt' && existingRow.linked_debt_id) {
+        const { count, error: paymentsErr } = await supabase
+          .from('worker_debt_payments')
+          .select('id', { count: 'exact', head: true })
+          .eq('worker_debt_id', existingRow.linked_debt_id);
+        if (paymentsErr) throw paymentsErr;
+        if ((count ?? 0) > 0) {
+          throw new Error('لا يمكن تغيير نوع هذا السطر لأن الدين المرتبط عليه تسديدات مسجّلة');
+        }
+
+        const { error: deleteDebtErr } = await supabase
+          .from('worker_debts')
+          .delete()
+          .eq('id', existingRow.linked_debt_id);
+        if (deleteDebtErr) throw deleteDebtErr;
+        linkedDebtId = null;
+      }
 
       if (row.resolution_type === 'worker_debt' && Number(row.amount) > 0) {
         // Fallback: if caller didn't pass a worker, derive the original worker
@@ -109,40 +130,49 @@ export const useAddTreasuryResolution = () => {
           throw new Error('تعذّر تحديد العامل الأصلي لتسجيل الدين');
         }
 
-        const { data: debtRow, error: debtErr } = await supabase
-          .from('worker_debts')
-          .insert({
-            worker_id: resolvedPartyId,
-            amount: Number(row.amount),
-            debt_type: 'deficit',
-            description: row.notes || 'تحويل عجز خزينة لدين العامل',
-            branch_id: resolvedBranchId,
-            created_by: row.resolved_by ?? null,
-          })
-          .select('id')
-          .single();
+        const debtPayload = {
+          worker_id: resolvedPartyId,
+          amount: Number(row.amount),
+          debt_type: 'deficit' as const,
+          description: row.notes || 'تحويل عجز خزينة لدين العامل',
+          branch_id: resolvedBranchId,
+        };
+
+        const debtQuery = linkedDebtId
+          ? supabase.from('worker_debts').update(debtPayload).eq('id', linkedDebtId).select('id').single()
+          : supabase
+              .from('worker_debts')
+              .insert({
+                ...debtPayload,
+                created_by: row.resolved_by ?? null,
+              })
+              .select('id')
+              .single();
+
+        const { data: debtRow, error: debtErr } = await debtQuery;
         if (debtErr) throw debtErr;
         linkedDebtId = (debtRow as any)?.id ?? null;
       }
 
-      const next = [
-        ...current,
-        {
-          id: splitId,
-          resolution_type: row.resolution_type,
-          amount: Number(row.amount),
-          party_type: row.resolution_type === 'worker_debt' ? 'worker' : (row.party_type ?? null),
-          party_id: resolvedPartyId,
-          party_label: resolvedPartyLabel,
-          linked_debt_id: linkedDebtId,
-          customer_credit_id: null,
-          status,
-          notes: row.notes ?? null,
-          resolved_by: row.resolved_by ?? null,
-          resolved_at: new Date().toISOString(),
-          created_at: new Date().toISOString(),
-        },
-      ];
+      const nextRow = {
+        id: splitId,
+        resolution_type: row.resolution_type,
+        amount: Number(row.amount),
+        party_type: row.resolution_type === 'worker_debt' ? 'worker' : (row.party_type ?? null),
+        party_id: resolvedPartyId,
+        party_label: resolvedPartyLabel,
+        linked_debt_id: row.resolution_type === 'worker_debt' ? linkedDebtId : null,
+        customer_credit_id: null,
+        status,
+        notes: row.notes ?? null,
+        resolved_by: row.resolved_by ?? null,
+        resolved_at: new Date().toISOString(),
+        created_at: existingRow?.created_at ?? new Date().toISOString(),
+      };
+
+      const next = existingRow
+        ? current.map((item) => (item.id === splitId ? nextRow : item))
+        : [...current, nextRow];
       const { error } = await supabase
         .from('manager_treasury')
         .update({ resolution_splits: next as any })
@@ -182,6 +212,25 @@ export const useDeleteTreasuryResolution = () => {
   return useMutation({
     mutationFn: async (params: { id: string; treasury_id: string }) => {
       const current = await fetchSplits(params.treasury_id);
+      const target = current.find((r) => r.id === params.id) ?? null;
+
+      if (target?.resolution_type === 'worker_debt' && target.linked_debt_id) {
+        const { count, error: paymentsErr } = await supabase
+          .from('worker_debt_payments')
+          .select('id', { count: 'exact', head: true })
+          .eq('worker_debt_id', target.linked_debt_id);
+        if (paymentsErr) throw paymentsErr;
+        if ((count ?? 0) > 0) {
+          throw new Error('لا يمكن حذف سطر التسوية لأن الدين المرتبط عليه تسديدات مسجّلة');
+        }
+
+        const { error: deleteDebtErr } = await supabase
+          .from('worker_debts')
+          .delete()
+          .eq('id', target.linked_debt_id);
+        if (deleteDebtErr) throw deleteDebtErr;
+      }
+
       const next = current.filter((r) => r.id !== params.id);
       const { error } = await supabase
         .from('manager_treasury')
