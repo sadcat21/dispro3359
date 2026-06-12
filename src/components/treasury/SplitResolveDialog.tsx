@@ -39,6 +39,7 @@ interface OptionDef {
 const OPTIONS: OptionDef[] = [
   { key: 'customer_repayment', label: 'استرداد من عميل', requires: 'customer', deficitOnly: true },
   { key: 'credit_to_customer', label: 'رصيد لحساب عميل', requires: 'customer', surplusOnly: true },
+  { key: 'peer_cash_handover', label: 'تسليم نقدية لزميل', requires: 'worker' },
   { key: 'transfer_to_other_employee', label: 'تسوية مع عامل آخر', requires: 'worker' },
   { key: 'worker_debt', label: 'تحويل لدين العامل الأصلي', requires: 'none' },
   { key: 'worker_acknowledged', label: 'العامل أقرّ بالفرق', requires: 'none' },
